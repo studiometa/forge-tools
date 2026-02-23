@@ -4,7 +4,7 @@ Instructions for AI agents contributing to this codebase.
 
 ## Git & Commits
 
-- Commit messages: **French**, imperative mood (Ajoute, Corrige, Met à jour...)
+- Commit messages: **English**, imperative mood (Add, Fix, Update...)
 - No conventional commit prefixes (feat:, fix:, etc.)
 - Always add `Co-authored-by: Claude <claude@anthropic.com>` trailer
 - **Tags**: Do NOT use `v` prefix (use `0.1.0` not `v0.1.0`)
@@ -19,7 +19,7 @@ Instructions for AI agents contributing to this codebase.
 - Use `[#N]` format for PR references (GitHub style)
 - Add link definitions at the end of each release section
 - Keep entries concise, single line with references at the end
-- Use French imperative: Ajoute, Corrige, Modifie, Supprime
+- Use English imperative: Add, Fix, Update, Remove
 
 ## Versioning
 
