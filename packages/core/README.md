@@ -57,6 +57,46 @@ import { RESOURCES, ACTIONS } from "@studiometa/forge-core";
 - `getDeploymentScript({ server_id, site_id }, ctx)` — Get deploy script
 - `updateDeploymentScript({ server_id, site_id, content }, ctx)` — Update script
 
+### Certificates
+
+- `listCertificates`, `getCertificate`, `createCertificate`, `deleteCertificate`, `activateCertificate`
+
+### Databases
+
+- `listDatabases`, `getDatabase`, `createDatabase`, `deleteDatabase`
+
+### Daemons
+
+- `listDaemons`, `getDaemon`, `createDaemon`, `deleteDaemon`, `restartDaemon`
+
+### Firewall Rules
+
+- `listFirewallRules`, `getFirewallRule`, `createFirewallRule`, `deleteFirewallRule`
+
+### SSH Keys
+
+- `listSshKeys`, `getSshKey`, `createSshKey`, `deleteSshKey`
+
+### Security Rules
+
+- `listSecurityRules`, `getSecurityRule`, `createSecurityRule`, `deleteSecurityRule`
+
+### Redirect Rules
+
+- `listRedirectRules`, `getRedirectRule`, `createRedirectRule`, `deleteRedirectRule`
+
+### Monitors
+
+- `listMonitors`, `getMonitor`, `createMonitor`, `deleteMonitor`
+
+### Nginx Templates
+
+- `listNginxTemplates`, `getNginxTemplate`, `createNginxTemplate`, `updateNginxTemplate`, `deleteNginxTemplate`
+
+### Recipes
+
+- `listRecipes`, `getRecipe`, `createRecipe`, `deleteRecipe`, `runRecipe`
+
 ## Testing
 
 ```typescript
