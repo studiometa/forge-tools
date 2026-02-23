@@ -80,15 +80,15 @@ Use dependency injection for mocking. The `@studiometa/forge-core` package provi
 
 ## Commit Messages
 
-Use simple French imperative sentences:
+Use simple English imperative sentences:
 
 ```
-Ajoute le composant X
-Corrige le bug Y
-Met à jour les dépendances
+Add the X component
+Fix the Y bug
+Update dependencies
 ```
 
-Always add the co-author trailer:
+Always add the co-author trailer when AI-assisted:
 
 ```
 Co-authored-by: Claude <claude@anthropic.com>

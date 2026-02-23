@@ -28,8 +28,11 @@ console.log(result.data); // ForgeServer[]
 ```typescript
 import { RESOURCES, ACTIONS } from "@studiometa/forge-core";
 
-// RESOURCES: ['servers', 'sites', 'deployments', 'certificates', 'databases', 'daemons', 'env', 'nginx']
-// ACTIONS: ['list', 'get', 'create', 'update', 'delete', 'deploy', 'reboot', 'restart', 'activate', 'help', 'schema']
+// RESOURCES: ['servers', 'sites', 'deployments', 'certificates', 'databases', 'daemons',
+//   'env', 'nginx', 'firewall-rules', 'ssh-keys', 'security-rules', 'redirect-rules',
+//   'nginx-templates', 'monitors', 'recipes']
+// ACTIONS: ['list', 'get', 'create', 'update', 'delete', 'deploy', 'reboot', 'restart',
+//   'activate', 'run', 'help', 'schema']
 ```
 
 ## Executors

@@ -27,6 +27,18 @@ describe("handleConfigureTool", () => {
     expect(text).toContain("***1234");
     expect(text).not.toContain("test-token-1234");
   });
+
+  it("should reject empty token", () => {
+    const result = handleConfigureTool({ apiToken: "" });
+    expect(result.isError).toBe(true);
+    expect(result.content[0]!.text).toContain("required");
+  });
+
+  it("should reject whitespace-only token", () => {
+    const result = handleConfigureTool({ apiToken: "   " });
+    expect(result.isError).toBe(true);
+    expect(result.content[0]!.text).toContain("required");
+  });
 });
 
 describe("handleGetConfigTool", () => {

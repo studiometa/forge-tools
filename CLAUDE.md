@@ -38,7 +38,7 @@ Instructions for AI agents contributing to this codebase.
 forge-api   → (nothing)       # HTTP client, types, config, rate limiter
 forge-sdk   → forge-api       # PUBLIC: fluent chainable SDK (the hero package)
 forge-core  → forge-api       # Executors with DI for MCP
-forge-mcp   → forge-core      # MCP server (stdio + HTTP + OAuth)
+forge-mcp   → forge-core      # MCP server (stdio transport)
             → forge-api
 ```
 
@@ -47,7 +47,7 @@ forge-mcp   → forge-core      # MCP server (stdio + HTTP + OAuth)
 - **forge-api** (`packages/api`): `HttpClient` class (internal), TypeScript types for all Forge resources, `ForgeApiError`, `RateLimiter` (60 req/min sliding window + exponential backoff), `ConfigStore` (XDG-compliant config storage). Zero runtime dependencies. Node 18+ target (wide adoption).
 - **forge-sdk** (`packages/sdk`): `Forge` class with fluent chainable API (`forge.servers(123).sites(456).deploy()`). Thin wrapper over forge-api — delegates all HTTP. JSDoc on every public method. The hero package with standalone README.
 - **forge-core** (`packages/core`): Pure executor functions `(options, context) → ExecutorResult<T>`, `ExecutorContext` with DI, centralized constants (`RESOURCES`, `ACTIONS`). Same pattern as productive-core.
-- **forge-mcp** (`packages/mcp`): Single unified `forge` MCP tool with `resource` + `action` routing, `createResourceHandler()` factory, OAuth 2.1 + PKCE for HTTP mode, stdio for local.
+- **forge-mcp** (`packages/mcp`): Single unified `forge` MCP tool with `resource` + `action` routing, `createResourceHandler()` factory, stdio transport for local use.
 
 ### Key Design Principles
 

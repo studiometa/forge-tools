@@ -56,16 +56,23 @@ A single unified tool with `resource` + `action` routing:
 
 ### Resources & Actions
 
-| Resource     | Actions                            | Required Fields            |
-| ------------ | ---------------------------------- | -------------------------- |
-| servers      | list, get, create, delete, reboot  | id (for get/delete/reboot) |
-| sites        | list, get, create, delete          | server_id                  |
-| deployments  | list, deploy, get, update          | server_id, site_id         |
-| env          | get, update                        | server_id, site_id         |
-| nginx        | get, update                        | server_id, site_id         |
-| certificates | list, get, create, delete          | server_id, site_id         |
-| databases    | list, get, create, delete          | server_id                  |
-| daemons      | list, get, create, delete, restart | server_id                  |
+| Resource        | Actions                             | Required Fields            |
+| --------------- | ----------------------------------- | -------------------------- |
+| servers         | list, get, create, delete, reboot   | id (for get/delete/reboot) |
+| sites           | list, get, create, delete           | server_id                  |
+| deployments     | list, deploy, get, update           | server_id, site_id         |
+| env             | get, update                         | server_id, site_id         |
+| nginx           | get, update                         | server_id, site_id         |
+| certificates    | list, get, create, delete, activate | server_id, site_id         |
+| databases       | list, get, create, delete           | server_id                  |
+| daemons         | list, get, create, delete, restart  | server_id                  |
+| firewall-rules  | list, get, create, delete           | server_id                  |
+| ssh-keys        | list, get, create, delete           | server_id                  |
+| security-rules  | list, get, create, delete           | server_id, site_id         |
+| redirect-rules  | list, get, create, delete           | server_id, site_id         |
+| monitors        | list, get, create, delete           | server_id                  |
+| nginx-templates | list, get, create, update, delete   | server_id                  |
+| recipes         | list, get, create, delete, run      | id (for get/delete/run)    |
 
 ### Discovery
 

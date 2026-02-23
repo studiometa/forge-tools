@@ -1,9 +1,12 @@
 /**
  * All supported resources.
  * Single source of truth — MCP schema and handlers derive from this.
+ *
+ * Only includes resources with implemented executors and handlers.
+ * Deferred resources (backups, commands, scheduled-jobs, logs)
+ * will be added when their executors are implemented.
  */
 export const RESOURCES = [
-  // Phase 1
   "servers",
   "sites",
   "deployments",
@@ -12,12 +15,6 @@ export const RESOURCES = [
   "daemons",
   "env",
   "nginx",
-  // Phase 2
-  "backups",
-  "commands",
-  "scheduled-jobs",
-  "logs",
-  // Phase 3
   "firewall-rules",
   "ssh-keys",
   "security-rules",

@@ -19,6 +19,18 @@ export function getAvailableTools(): any[] {
  * Handle the forge_configure tool.
  */
 export function handleConfigureTool(args: { apiToken: string }): ToolResult {
+  if (!args.apiToken || typeof args.apiToken !== "string" || args.apiToken.trim().length === 0) {
+    return {
+      content: [
+        {
+          type: "text",
+          text: "Error: apiToken is required and must be a non-empty string.",
+        },
+      ],
+      isError: true,
+    };
+  }
+
   setToken(args.apiToken);
 
   return {

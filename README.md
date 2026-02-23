@@ -82,7 +82,7 @@ Add to your Claude Desktop config:
 forge-api   → (nothing)       # HTTP client, types, config, rate limiter
 forge-sdk   → forge-api       # Fluent chainable SDK (the hero package)
 forge-core  → forge-api       # Executors with DI for MCP
-forge-mcp   → forge-core      # MCP server (stdio + HTTP + OAuth)
+forge-mcp   → forge-core      # MCP server (stdio transport)
 ```
 
 ## Contributing

@@ -8,7 +8,7 @@ import {
 
 import type { CommonArgs, HandlerContext, ToolResult } from "./types.ts";
 
-import { errorResult, jsonResult } from "./utils.ts";
+import { errorResult, jsonResult, sanitizeId } from "./utils.ts";
 
 /**
  * Handle deployment resource actions.
@@ -23,6 +23,17 @@ export async function handleDeployments(
 ): Promise<ToolResult> {
   if (!args.server_id) return errorResult("Missing required field: server_id");
   if (!args.site_id) return errorResult("Missing required field: site_id");
+
+  // Validate IDs to prevent path traversal
+  if (!sanitizeId(args.server_id)) {
+    return errorResult(`Invalid server_id: "${args.server_id}". IDs must be alphanumeric.`);
+  }
+  if (!sanitizeId(args.site_id)) {
+    return errorResult(`Invalid site_id: "${args.site_id}". IDs must be alphanumeric.`);
+  }
+  if (args.id && !sanitizeId(args.id)) {
+    return errorResult(`Invalid id: "${args.id}". IDs must be alphanumeric.`);
+  }
 
   const opts = { server_id: args.server_id, site_id: args.site_id };
 
