@@ -1,0 +1,59 @@
+{
+  "name": "@studiometa/forge-mcp",
+  "version": "0.1.0",
+  "description": "MCP server for Laravel Forge — Model Context Protocol integration for AI agents",
+  "keywords": [
+    "ai",
+    "claude",
+    "forge",
+    "laravel",
+    "mcp",
+    "model-context-protocol"
+  ],
+  "license": "MIT",
+  "author": "Studio Meta",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/studiometa/forge-tools",
+    "directory": "packages/mcp"
+  },
+  "bin": {
+    "forge-mcp": "./dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "dev": "vite build --watch",
+    "build": "vite build && tsc --emitDeclarationOnly",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:ci": "vitest run --coverage",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@studiometa/forge-api": "*",
+    "@studiometa/forge-core": "*"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "^4.1.0-beta.4",
+    "typescript": "^5.7.3",
+    "vite": "^8.0.0-beta.14",
+    "vitest": "^4.1.0-beta.4"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

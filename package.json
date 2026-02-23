@@ -1,0 +1,67 @@
+{
+  "name": "@studiometa/forge-tools",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Laravel Forge Tools — TypeScript SDK and MCP server for AI agents and humans",
+  "keywords": [
+    "ai-agent",
+    "api",
+    "automation",
+    "laravel-forge",
+    "mcp",
+    "model-context-protocol",
+    "sdk",
+    "typescript"
+  ],
+  "license": "MIT",
+  "author": "Studio Meta",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/studiometa/forge-tools"
+  },
+  "workspaces": [
+    "packages/*"
+  ],
+  "type": "module",
+  "scripts": {
+    "dev": "npm run dev --workspaces",
+    "build": "npm run build -w @studiometa/forge-api && npm run build -w @studiometa/forge-sdk && npm run build -w @studiometa/forge-core && npm run build -w @studiometa/forge-mcp",
+    "test": "vitest run",
+    "test:watch": "npm run test:watch --workspaces",
+    "test:ci": "npm run test:ci --workspaces --if-present",
+    "lint": "oxlint",
+    "lint:fix": "oxlint --fix",
+    "format": "oxfmt --write .",
+    "format:check": "oxfmt --check .",
+    "typecheck": "npm run typecheck --workspaces",
+    "semgrep": "semgrep scan --config p/typescript --config p/nodejs --config p/secrets --config p/owasp-top-ten --error --exclude='node_modules' --exclude='dist' --exclude='coverage' .",
+    "semgrep:secrets": "semgrep scan --config p/secrets --error --quiet --exclude='node_modules' --exclude='dist' --exclude='coverage' .",
+    "clean": "rm -rf packages/*/dist packages/*/node_modules node_modules",
+    "version:patch": "npm version --include-workspace-root --workspaces --no-git-tag-version patch",
+    "version:minor": "npm version --include-workspace-root --workspaces --no-git-tag-version minor",
+    "version:major": "npm version --include-workspace-root --workspaces --no-git-tag-version major",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "husky": "9.1.7",
+    "lint-staged": "16.2.7",
+    "oxfmt": "0.28.0",
+    "oxlint": "1.43.0",
+    "typescript": "^5.7.3",
+    "vite": "^8.0.0-beta.14",
+    "vitest": "^4.1.0-beta.4"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx}": [
+      "oxlint --fix",
+      "oxfmt --write"
+    ],
+    "*.{json,md,yml,yaml}": [
+      "oxfmt --write"
+    ]
+  },
+  "engines": {
+    "node": ">=24.0.0"
+  }
+}
