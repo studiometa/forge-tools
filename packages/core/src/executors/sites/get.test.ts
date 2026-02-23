@@ -27,7 +27,7 @@ describe("getSite", () => {
       } as never,
     });
 
-    const result = await getSite({ server_id: 123, site_id: 456 }, ctx);
+    const result = await getSite({ server_id: "123", site_id: "456" }, ctx);
 
     expect(result.data.name).toBe("example.com");
     expect(result.text).toContain("example.com");

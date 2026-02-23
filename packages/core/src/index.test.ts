@@ -110,4 +110,14 @@ describe("@studiometa/forge-core", () => {
     expect(core.deleteRecipe).toBeTypeOf("function");
     expect(core.runRecipe).toBeTypeOf("function");
   });
+
+  it("should export env executors", () => {
+    expect(core.getEnv).toBeTypeOf("function");
+    expect(core.updateEnv).toBeTypeOf("function");
+  });
+
+  it("should export nginx config executors", () => {
+    expect(core.getNginxConfig).toBeTypeOf("function");
+    expect(core.updateNginxConfig).toBeTypeOf("function");
+  });
 });

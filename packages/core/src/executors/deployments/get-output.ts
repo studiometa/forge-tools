@@ -1,9 +1,9 @@
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
 
 export interface GetDeploymentOutputOptions {
-  server_id: number;
-  site_id: number;
-  deployment_id: number;
+  server_id: string;
+  site_id: string;
+  deployment_id: string;
 }
 
 /**

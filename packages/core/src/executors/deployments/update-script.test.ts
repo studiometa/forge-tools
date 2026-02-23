@@ -9,7 +9,7 @@ describe("updateDeploymentScript", () => {
     const ctx = createTestExecutorContext({ client: { put: putMock } as never });
 
     const result = await updateDeploymentScript(
-      { server_id: 123, site_id: 456, content: "npm run build" },
+      { server_id: "123", site_id: "456", content: "npm run build" },
       ctx,
     );
 

@@ -25,7 +25,7 @@ describe("getServer", () => {
       } as never,
     });
 
-    const result = await getServer({ server_id: 123 }, ctx);
+    const result = await getServer({ server_id: "123" }, ctx);
 
     expect(result.data.name).toBe("web-1");
     expect(result.text).toContain("web-1");

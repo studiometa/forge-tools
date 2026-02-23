@@ -33,13 +33,13 @@ const forge = new Forge("your-api-token");
 const servers = await forge.servers.list();
 
 // Deploy a site
-await forge.servers(123).sites(456).deploy();
+await forge.server(123).site(456).deploy();
 
 // Get environment variables
-const env = await forge.servers(123).sites(456).env.get();
+const env = await forge.server(123).site(456).env.get();
 
 // Manage databases
-const dbs = await forge.servers(123).databases.list();
+const dbs = await forge.server(123).databases.list();
 ```
 
 ### MCP Server (Claude Desktop)

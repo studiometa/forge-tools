@@ -73,6 +73,34 @@ export const TOOLS: Tool[] = [
         directory: { type: "string" },
         // Content fields (env, nginx, deployment script)
         content: { type: "string", description: "Content for env, nginx, or deployment script" },
+        // Daemon fields
+        command: { type: "string", description: "Shell command (daemons, recipes)" },
+        user: { type: "string", description: "Execution user (daemons, recipes)" },
+        // Firewall fields
+        port: { type: ["string", "number"], description: "Port number or range (firewall rules)" },
+        ip_address: { type: "string", description: "IP address (firewall rules)" },
+        // SSH key fields
+        key: { type: "string", description: "Public SSH key content" },
+        // Redirect fields
+        from: { type: "string", description: "Source path (redirect rules)" },
+        to: { type: "string", description: "Destination URL (redirect rules)" },
+        // Security rule fields
+        credentials: {
+          type: "array",
+          description: "Credentials array [{username, password}] (security rules)",
+          items: { type: "object" },
+        },
+        // Monitor fields
+        operator: { type: "string", description: "Comparison operator (monitors)" },
+        threshold: { type: "number", description: "Threshold value (monitors)" },
+        minutes: { type: "number", description: "Check interval in minutes (monitors)" },
+        // Recipe fields
+        script: { type: "string", description: "Bash script content (recipes)" },
+        servers: {
+          type: "array",
+          description: "Server IDs to run recipe on",
+          items: { type: "number" },
+        },
       },
       required: ["resource", "action"],
     },

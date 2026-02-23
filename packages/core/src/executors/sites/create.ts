@@ -2,7 +2,7 @@ import type { CreateSiteData, ForgeSite, SiteResponse } from "@studiometa/forge-
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
 
 export interface CreateSiteOptions extends CreateSiteData {
-  server_id: number;
+  server_id: string;
 }
 
 /**

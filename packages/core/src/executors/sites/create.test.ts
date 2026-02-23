@@ -14,7 +14,7 @@ describe("createSite", () => {
     });
 
     const result = await createSite(
-      { server_id: 123, domain: "example.com", project_type: "php" },
+      { server_id: "123", domain: "example.com", project_type: "php" },
       ctx,
     );
 

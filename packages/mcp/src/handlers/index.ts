@@ -30,6 +30,8 @@ import { handleSecurityRules } from "./security-rules.ts";
 import { handleServers } from "./servers.ts";
 import { handleSites } from "./sites.ts";
 import { handleSshKeys } from "./ssh-keys.ts";
+import { isForgeApiError } from "@studiometa/forge-api";
+
 import { errorResult } from "./utils.ts";
 
 export type { ToolResult } from "./types.ts";
@@ -127,11 +129,19 @@ export async function executeToolWithCredentials(
     compact: compact !== false,
   };
 
-  // Route to resource handler
-  return routeToHandler(
-    resource,
-    action,
-    { resource, action, ...rest } as CommonArgs,
-    handlerContext,
-  );
+  // Route to resource handler with error catching
+  try {
+    return await routeToHandler(
+      resource,
+      action,
+      { resource, action, ...rest } as CommonArgs,
+      handlerContext,
+    );
+  } catch (error) {
+    if (isForgeApiError(error)) {
+      return errorResult(`Forge API error (${error.status}): ${error.message}`);
+    }
+    const message = error instanceof Error ? error.message : String(error);
+    return errorResult(message);
+  }
 }

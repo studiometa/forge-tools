@@ -18,7 +18,7 @@ describe("listSites", () => {
       } as never,
     });
 
-    const result = await listSites({ server_id: 123 }, ctx);
+    const result = await listSites({ server_id: "123" }, ctx);
 
     expect(result.data).toHaveLength(2);
     expect(result.text).toContain("2 site(s)");
@@ -32,7 +32,7 @@ describe("listSites", () => {
       } as never,
     });
 
-    const result = await listSites({ server_id: 123 }, ctx);
+    const result = await listSites({ server_id: "123" }, ctx);
 
     expect(result.data).toHaveLength(0);
     expect(result.text).toContain("No sites");

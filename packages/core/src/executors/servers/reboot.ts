@@ -1,7 +1,7 @@
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
 
 export interface RebootServerOptions {
-  server_id: number;
+  server_id: string;
 }
 
 /**

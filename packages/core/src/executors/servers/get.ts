@@ -2,7 +2,7 @@ import type { ForgeServer, ServerResponse } from "@studiometa/forge-api";
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
 
 export interface GetServerOptions {
-  server_id: number;
+  server_id: string;
 }
 
 /**

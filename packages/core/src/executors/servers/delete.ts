@@ -1,7 +1,7 @@
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
 
 export interface DeleteServerOptions {
-  server_id: number;
+  server_id: string;
 }
 
 /**

@@ -6,60 +6,41 @@ import {
   rebootServer,
 } from "@studiometa/forge-core";
 
-import type { CommonArgs, HandlerContext, ToolResult } from "./types.ts";
+import { createResourceHandler } from "./factory.ts";
 
-import { errorResult, jsonResult } from "./utils.ts";
-
-/**
- * Handle server resource actions.
- */
-export async function handleServers(
-  action: string,
-  args: CommonArgs,
-  ctx: HandlerContext,
-): Promise<ToolResult> {
-  switch (action) {
-    case "list": {
-      const result = await listServers({} as Record<string, never>, ctx.executorContext);
-      return jsonResult(result.text);
+export const handleServers = createResourceHandler({
+  resource: "servers",
+  actions: ["list", "get", "create", "delete", "reboot"],
+  requiredFields: {
+    get: ["id"],
+    create: ["provider", "name", "type", "region"],
+    delete: ["id"],
+    reboot: ["id"],
+  },
+  executors: {
+    list: listServers,
+    get: getServer,
+    create: createServer,
+    delete: deleteServer,
+    reboot: rebootServer,
+  },
+  mapOptions: (action, args) => {
+    switch (action) {
+      case "get":
+      case "delete":
+      case "reboot":
+        return { server_id: args.id };
+      case "create":
+        return {
+          provider: args.provider,
+          credential_id: Number(args.credential_id) || 0,
+          name: args.name,
+          type: args.type ?? "app",
+          size: args.size ?? "",
+          region: args.region,
+        };
+      default:
+        return {};
     }
-
-    case "get": {
-      if (!args.id) return errorResult("Missing required field: id");
-      const result = await getServer({ server_id: Number(args.id) }, ctx.executorContext);
-      return jsonResult(result.text);
-    }
-
-    case "create": {
-      const result = await createServer(
-        {
-          provider: args.provider as string,
-          credential_id: Number(args.credential_id),
-          name: args.name as string,
-          type: (args.type as string) ?? "app",
-          size: args.size as string,
-          region: args.region as string,
-        },
-        ctx.executorContext,
-      );
-      return jsonResult(result.text);
-    }
-
-    case "delete": {
-      if (!args.id) return errorResult("Missing required field: id");
-      const result = await deleteServer({ server_id: Number(args.id) }, ctx.executorContext);
-      return jsonResult(result.text);
-    }
-
-    case "reboot": {
-      if (!args.id) return errorResult("Missing required field: id");
-      const result = await rebootServer({ server_id: Number(args.id) }, ctx.executorContext);
-      return jsonResult(result.text);
-    }
-
-    default:
-      return errorResult(
-        `Unknown action "${action}" for servers. Valid actions: list, get, create, delete, reboot.`,
-      );
-  }
-}
+  },
+});

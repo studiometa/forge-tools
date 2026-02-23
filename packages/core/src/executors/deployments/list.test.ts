@@ -18,7 +18,7 @@ describe("listDeployments", () => {
       } as never,
     });
 
-    const result = await listDeployments({ server_id: 123, site_id: 456 }, ctx);
+    const result = await listDeployments({ server_id: "123", site_id: "456" }, ctx);
 
     expect(result.data).toHaveLength(2);
     expect(result.text).toContain("2 deployment(s)");
@@ -33,7 +33,7 @@ describe("listDeployments", () => {
       } as never,
     });
 
-    const result = await listDeployments({ server_id: 123, site_id: 456 }, ctx);
+    const result = await listDeployments({ server_id: "123", site_id: "456" }, ctx);
 
     expect(result.data).toHaveLength(0);
     expect(result.text).toContain("No deployments found");

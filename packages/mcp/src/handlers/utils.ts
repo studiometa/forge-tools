@@ -12,6 +12,16 @@ export function jsonResult(data: string | Record<string, unknown> | unknown): To
 }
 
 /**
+ * Validate an ID-like value (must be alphanumeric/dashes only).
+ * Prevents path traversal via `../` in URL segments.
+ *
+ * @returns true if the value is safe, false otherwise.
+ */
+export function sanitizeId(value: string): boolean {
+  return /^[\w-]+$/.test(value);
+}
+
+/**
  * Create an error result.
  */
 export function errorResult(message: string): ToolResult {

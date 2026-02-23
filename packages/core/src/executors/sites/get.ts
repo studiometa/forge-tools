@@ -2,8 +2,8 @@ import type { ForgeSite, SiteResponse } from "@studiometa/forge-api";
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
 
 export interface GetSiteOptions {
-  server_id: number;
-  site_id: number;
+  server_id: string;
+  site_id: string;
 }
 
 /**

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { errorResult, inputErrorResult, jsonResult } from "./utils.ts";
+import { errorResult, inputErrorResult, jsonResult, sanitizeId } from "./utils.ts";
 
 describe("jsonResult", () => {
   it("should create a text result from string", () => {
@@ -35,5 +35,33 @@ describe("inputErrorResult", () => {
     const result = inputErrorResult("Invalid input");
     expect(result.content[0]!.text).toContain("Invalid input");
     expect(result.content[0]!.text).not.toContain("Suggestion");
+  });
+});
+
+describe("sanitizeId", () => {
+  it("should accept numeric IDs", () => {
+    expect(sanitizeId("123")).toBe(true);
+    expect(sanitizeId("0")).toBe(true);
+  });
+
+  it("should accept alphanumeric IDs", () => {
+    expect(sanitizeId("abc123")).toBe(true);
+    expect(sanitizeId("my-key")).toBe(true);
+    expect(sanitizeId("my_key")).toBe(true);
+  });
+
+  it("should reject path traversal", () => {
+    expect(sanitizeId("../etc/passwd")).toBe(false);
+    expect(sanitizeId("1/../../secrets")).toBe(false);
+    expect(sanitizeId("..")).toBe(false);
+  });
+
+  it("should reject empty strings", () => {
+    expect(sanitizeId("")).toBe(false);
+  });
+
+  it("should reject special characters", () => {
+    expect(sanitizeId("1;rm -rf")).toBe(false);
+    expect(sanitizeId("1&id")).toBe(false);
   });
 });

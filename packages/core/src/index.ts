@@ -97,6 +97,12 @@ export {
   updateNginxTemplate,
 } from "./executors/nginx-templates/index.ts";
 
+// Env
+export { getEnv, updateEnv } from "./executors/env/index.ts";
+
+// Nginx Config
+export { getNginxConfig, updateNginxConfig } from "./executors/nginx/index.ts";
+
 // Recipes
 export {
   createRecipe,

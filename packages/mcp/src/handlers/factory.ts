@@ -9,7 +9,7 @@ import type { ExecutorContext, ExecutorResult } from "@studiometa/forge-core";
 
 import type { CommonArgs, HandlerContext, ToolResult } from "./types.ts";
 
-import { errorResult, jsonResult } from "./utils.ts";
+import { errorResult, jsonResult, sanitizeId } from "./utils.ts";
 
 /**
  * Configuration for a resource handler.
@@ -83,14 +83,28 @@ export function createResourceHandler(
       }
     }
 
+    // Validate ID-like fields to prevent path traversal
+    for (const field of ["id", "server_id", "site_id"]) {
+      const value = args[field];
+      if (value !== undefined && !sanitizeId(String(value))) {
+        return errorResult(`Invalid ${field}: "${value}". IDs must be alphanumeric.`);
+      }
+    }
+
     // Get executor
     const executor = executors[action];
     if (!executor) {
       return errorResult(`Action "${action}" is not yet implemented for ${resource}.`);
     }
 
-    // Map args to executor options
-    const options = mapOptions ? mapOptions(action, args) : { ...args };
+    // Map args to executor options — strip MCP-specific fields from passthrough
+    let options: Record<string, unknown>;
+    if (mapOptions) {
+      options = mapOptions(action, args);
+    } else {
+      const { resource: _r, action: _a, compact: _c, ...rest } = args;
+      options = rest;
+    }
 
     // Execute
     const result = await executor(options as Record<string, unknown>, ctx.executorContext);

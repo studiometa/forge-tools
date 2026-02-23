@@ -12,7 +12,7 @@ describe("getDeploymentOutput", () => {
     });
 
     const result = await getDeploymentOutput(
-      { server_id: 123, site_id: 456, deployment_id: 789 },
+      { server_id: "123", site_id: "456", deployment_id: "789" },
       ctx,
     );
 

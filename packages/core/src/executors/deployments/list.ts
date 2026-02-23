@@ -2,8 +2,8 @@ import type { ForgeDeployment, DeploymentsResponse } from "@studiometa/forge-api
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
 
 export interface ListDeploymentsOptions {
-  server_id: number;
-  site_id: number;
+  server_id: string;
+  site_id: string;
 }
 
 /**

@@ -4,7 +4,7 @@ import type { HandlerContext } from "./types.ts";
 
 import { handleServers } from "./servers.ts";
 
-function createMockContext(mockClient: Record<string, unknown> = {}): HandlerContext {
+function createMockContext(): HandlerContext {
   return {
     executorContext: {
       client: {
@@ -24,7 +24,6 @@ function createMockContext(mockClient: Record<string, unknown> = {}): HandlerCon
         }),
         post: async () => ({ server: { id: 1, name: "web-1", is_ready: false } }),
         delete: async () => undefined,
-        ...mockClient,
       } as never,
     },
     compact: true,
@@ -79,5 +78,15 @@ describe("handleServers", () => {
     );
     expect(result.isError).toBe(true);
     expect(result.content[0]!.text).toContain("Unknown action");
+  });
+
+  it("should reject path traversal in id", async () => {
+    const result = await handleServers(
+      "get",
+      { resource: "servers", action: "get", id: "../etc/passwd" },
+      createMockContext(),
+    );
+    expect(result.isError).toBe(true);
+    expect(result.content[0]!.text).toContain("Invalid");
   });
 });
