@@ -1,0 +1,20 @@
+import type { ExecutorContext, ExecutorResult } from "../../context.ts";
+
+export interface RebootServerOptions {
+  server_id: number;
+}
+
+/**
+ * Reboot a server.
+ */
+export async function rebootServer(
+  options: RebootServerOptions,
+  ctx: ExecutorContext,
+): Promise<ExecutorResult<void>> {
+  await ctx.client.post(`/servers/${options.server_id}/reboot`);
+
+  return {
+    data: undefined,
+    text: `Server ${options.server_id} reboot initiated.`,
+  };
+}

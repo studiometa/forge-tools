@@ -7,11 +7,38 @@ export type { Action, Resource } from "./constants.ts";
 export { createTestExecutorContext } from "./context.ts";
 export type { ExecutorContext, ExecutorResult } from "./context.ts";
 
-export { deploySite, listDeployments } from "./executors/deployments/index.ts";
-export type { DeploySiteOptions, ListDeploymentsOptions } from "./executors/deployments/index.ts";
+export {
+  deploySite,
+  getDeploymentOutput,
+  getDeploymentScript,
+  listDeployments,
+  updateDeploymentScript,
+} from "./executors/deployments/index.ts";
+export type {
+  DeploySiteOptions,
+  GetDeploymentOutputOptions,
+  GetDeploymentScriptOptions,
+  ListDeploymentsOptions,
+  UpdateDeploymentScriptOptions,
+} from "./executors/deployments/index.ts";
 
-export { getServer, listServers } from "./executors/servers/index.ts";
-export type { GetServerOptions } from "./executors/servers/index.ts";
+export {
+  createServer,
+  deleteServer,
+  getServer,
+  listServers,
+  rebootServer,
+} from "./executors/servers/index.ts";
+export type {
+  DeleteServerOptions,
+  GetServerOptions,
+  RebootServerOptions,
+} from "./executors/servers/index.ts";
 
-export { getSite, listSites } from "./executors/sites/index.ts";
-export type { GetSiteOptions, ListSitesOptions } from "./executors/sites/index.ts";
+export { createSite, deleteSite, getSite, listSites } from "./executors/sites/index.ts";
+export type {
+  CreateSiteOptions,
+  DeleteSiteOptions,
+  GetSiteOptions,
+  ListSitesOptions,
+} from "./executors/sites/index.ts";
