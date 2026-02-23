@@ -44,6 +44,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.26.0",
     "@studiometa/forge-api": "*",
     "@studiometa/forge-core": "*"
   },
