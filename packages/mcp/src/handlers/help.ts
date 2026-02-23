@@ -127,6 +127,17 @@ export function handleHelpOverview(): ToolResult {
 | certificates | list, get, create, delete | server_id, site_id |
 | databases | list, get, create, delete | server_id |
 | daemons | list, get, create, delete, restart | server_id |
+| backups | list, get, create, delete | server_id |
+| commands | list, get, create, delete | server_id, site_id |
+| scheduled-jobs | list, get, create, delete | server_id |
+| logs | get | server_id |
+| firewall-rules | list, get, create, delete | server_id |
+| ssh-keys | list, get, create, delete | server_id |
+| security-rules | list, get, create, delete | server_id, site_id |
+| redirect-rules | list, get, create, delete | server_id, site_id |
+| nginx-templates | list, get, create, update, delete | server_id |
+| monitors | list, get, create, delete | server_id |
+| recipes | list, get, create, run, delete | — |
 
 ## Discovery
 

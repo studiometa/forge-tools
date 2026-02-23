@@ -6,7 +6,9 @@ import { RESOURCES } from "@studiometa/forge-core";
 import type { CommonArgs, HandlerContext, ToolResult } from "./types.ts";
 
 import { handleDeployments } from "./deployments.ts";
+import { handleEnv } from "./env.ts";
 import { handleHelp } from "./help.ts";
+import { handleNginxConfig } from "./nginx-config.ts";
 import { handleServers } from "./servers.ts";
 import { handleSites } from "./sites.ts";
 import { errorResult } from "./utils.ts";
@@ -77,10 +79,14 @@ function routeToHandler(
       return handleSites(action, args, ctx);
     case "deployments":
       return handleDeployments(action, args, ctx);
+    case "env":
+      return handleEnv(action, args, ctx);
+    case "nginx":
+      return handleNginxConfig(action, args, ctx);
     default:
       return Promise.resolve(
         errorResult(
-          `Resource "${resource}" is not yet implemented. Use action="help" for available resources.`,
+          `Resource "${resource}" is not yet fully implemented. Use action="help" for available resources.`,
         ),
       );
   }
