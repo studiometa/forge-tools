@@ -8,6 +8,10 @@ Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/).
 
 ### Ajouté
 
-- Scaffolding monorepo avec les 4 packages (api, sdk, core, mcp)
-- Configuration Vite, Vitest, TypeScript, oxlint, oxfmt, husky, lint-staged
-- Documentation : CLAUDE.md, CONTRIBUTING.md, README.md
+- **API**: HttpClient with auth, rate limiting (60 req/min), retry on 429, ForgeApiError, ConfigStore (XDG), types for all Forge resources
+- **SDK**: Fluent chainable API — `forge.server(id).site(id).deploy()`, servers, sites, deployments, certificates, databases, daemons
+- **Core**: Pure executor functions with DI — listServers, getServer, createServer, rebootServer, deleteServer, listSites, getSite, createSite, deleteSite, listDeployments, deploySite, getDeploymentOutput, getDeploymentScript, updateDeploymentScript
+- **MCP**: Stdio transport with single `forge` tool (resource/action routing), `forge_configure`/`forge_get_config` tools, handlers for servers/sites/deployments, help system
+- CI/CD: GitHub Actions (lint, build, typecheck, test, semgrep, publish)
+- Monorepo scaffolding: Vite, Vitest, TypeScript, oxlint, oxfmt, husky, lint-staged
+- Documentation: CLAUDE.md, CONTRIBUTING.md, README.md, package READMEs
