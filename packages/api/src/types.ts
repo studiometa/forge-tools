@@ -236,6 +236,210 @@ export interface CreateDaemonData {
   stopwaitsecs?: number;
 }
 
+// ── Backups ──────────────────────────────────────────
+
+export interface ForgeBackupConfig {
+  id: number;
+  server_id: number;
+  day_of_week: number | null;
+  time: string | null;
+  provider: string;
+  provider_name: string;
+  databases: { id: number; name: string }[];
+  frequency: string;
+  directory: string | null;
+  email: string | null;
+  retention: number;
+  status: string;
+  last_backup_time: string | null;
+}
+
+export interface ForgeBackup {
+  id: number;
+  backup_id: number;
+  status: string;
+  restore_status: string | null;
+  archive_size: number;
+  duration: number;
+  date: string;
+}
+
+export interface CreateBackupConfigData {
+  provider: string;
+  credentials: Record<string, string>;
+  frequency: string;
+  directory?: string;
+  email?: string;
+  retention?: number;
+  databases: number[];
+}
+
+// ── Commands ─────────────────────────────────────────
+
+export interface ForgeCommand {
+  id: number;
+  server_id: number;
+  site_id: number;
+  user_id: number;
+  event_id: number;
+  command: string;
+  status: string;
+  created_at: string;
+  profile_photo_url: string;
+  user_name: string;
+}
+
+export interface CreateCommandData {
+  command: string;
+}
+
+// ── Scheduled Jobs ───────────────────────────────────
+
+export interface ForgeScheduledJob {
+  id: number;
+  server_id: number;
+  command: string;
+  user: string;
+  frequency: string;
+  cron: string;
+  status: string;
+  created_at: string;
+}
+
+export interface CreateScheduledJobData {
+  command: string;
+  user?: string;
+  frequency?: string;
+  minute?: string;
+  hour?: string;
+  day?: string;
+  month?: string;
+  weekday?: string;
+}
+
+// ── Firewall Rules ───────────────────────────────────
+
+export interface ForgeFirewallRule {
+  id: number;
+  server_id: number;
+  name: string;
+  port: number | string;
+  type: string;
+  ip_address: string;
+  status: string;
+  created_at: string;
+}
+
+export interface CreateFirewallRuleData {
+  name: string;
+  port: number | string;
+  type?: string;
+  ip_address?: string;
+}
+
+// ── SSH Keys ─────────────────────────────────────────
+
+export interface ForgeSshKey {
+  id: number;
+  server_id: number;
+  name: string;
+  status: string;
+  created_at: string;
+}
+
+export interface CreateSshKeyData {
+  name: string;
+  key: string;
+  username?: string;
+}
+
+// ── Security Rules ───────────────────────────────────
+
+export interface ForgeSecurityRule {
+  id: number;
+  server_id: number;
+  site_id: number;
+  name: string;
+  path: string | null;
+  credentials: { id: number; username: string }[];
+  created_at: string;
+}
+
+export interface CreateSecurityRuleData {
+  name: string;
+  path?: string;
+  credentials: { username: string; password: string }[];
+}
+
+// ── Redirect Rules ───────────────────────────────────
+
+export interface ForgeRedirectRule {
+  id: number;
+  server_id: number;
+  site_id: number;
+  from: string;
+  to: string;
+  type: string;
+  created_at: string;
+}
+
+export interface CreateRedirectRuleData {
+  from: string;
+  to: string;
+  type?: string;
+}
+
+// ── Monitors ─────────────────────────────────────────
+
+export interface ForgeMonitor {
+  id: number;
+  server_id: number;
+  type: string;
+  operator: string;
+  threshold: number;
+  minutes: number;
+  state: string;
+  state_changed_at: string;
+}
+
+export interface CreateMonitorData {
+  type: string;
+  operator: string;
+  threshold: number;
+  minutes: number;
+}
+
+// ── Nginx Templates ──────────────────────────────────
+
+export interface ForgeNginxTemplate {
+  id: number;
+  server_id: number;
+  name: string;
+  content: string;
+  created_at: string;
+}
+
+export interface CreateNginxTemplateData {
+  name: string;
+  content: string;
+}
+
+// ── Recipes ──────────────────────────────────────────
+
+export interface ForgeRecipe {
+  id: number;
+  name: string;
+  user: string;
+  script: string;
+  created_at: string;
+}
+
+export interface CreateRecipeData {
+  name: string;
+  user?: string;
+  script: string;
+}
+
 // ── Config types ─────────────────────────────────────
 
 export interface ForgeConfig {
@@ -294,4 +498,84 @@ export interface DaemonsResponse {
 
 export interface UserResponse {
   user: ForgeUser;
+}
+
+export interface BackupConfigResponse {
+  backup: ForgeBackupConfig;
+}
+
+export interface BackupConfigsResponse {
+  backups: ForgeBackupConfig[];
+}
+
+export interface CommandResponse {
+  command: ForgeCommand;
+}
+
+export interface CommandsResponse {
+  commands: ForgeCommand[];
+}
+
+export interface ScheduledJobResponse {
+  job: ForgeScheduledJob;
+}
+
+export interface ScheduledJobsResponse {
+  jobs: ForgeScheduledJob[];
+}
+
+export interface FirewallRuleResponse {
+  rule: ForgeFirewallRule;
+}
+
+export interface FirewallRulesResponse {
+  rules: ForgeFirewallRule[];
+}
+
+export interface SshKeyResponse {
+  key: ForgeSshKey;
+}
+
+export interface SshKeysResponse {
+  keys: ForgeSshKey[];
+}
+
+export interface SecurityRuleResponse {
+  security_rule: ForgeSecurityRule;
+}
+
+export interface SecurityRulesResponse {
+  security_rules: ForgeSecurityRule[];
+}
+
+export interface RedirectRuleResponse {
+  redirect_rule: ForgeRedirectRule;
+}
+
+export interface RedirectRulesResponse {
+  redirect_rules: ForgeRedirectRule[];
+}
+
+export interface MonitorResponse {
+  monitor: ForgeMonitor;
+}
+
+export interface MonitorsResponse {
+  monitors: ForgeMonitor[];
+}
+
+export interface NginxTemplateResponse {
+  template: ForgeNginxTemplate;
+}
+
+export interface NginxTemplatesResponse {
+  templates: ForgeNginxTemplate[];
+}
+
+export interface RecipeResponse {
+  recipe: ForgeRecipe;
+}
+
+export interface RecipesResponse {
+  recipes: ForgeRecipe[];
 }

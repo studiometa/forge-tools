@@ -3,6 +3,7 @@
  * Single source of truth — MCP schema and handlers derive from this.
  */
 export const RESOURCES = [
+  // Phase 1
   "servers",
   "sites",
   "deployments",
@@ -11,6 +12,19 @@ export const RESOURCES = [
   "daemons",
   "env",
   "nginx",
+  // Phase 2
+  "backups",
+  "commands",
+  "scheduled-jobs",
+  "logs",
+  // Phase 3
+  "firewall-rules",
+  "ssh-keys",
+  "security-rules",
+  "redirect-rules",
+  "nginx-templates",
+  "monitors",
+  "recipes",
 ] as const;
 
 export type Resource = (typeof RESOURCES)[number];
@@ -29,6 +43,7 @@ export const ACTIONS = [
   "reboot",
   "restart",
   "activate",
+  "run",
   "help",
   "schema",
 ] as const;
