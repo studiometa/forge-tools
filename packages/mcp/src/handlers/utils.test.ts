@@ -3,11 +3,16 @@ import { describe, expect, it } from "vitest";
 import { errorResult, inputErrorResult, jsonResult } from "./utils.ts";
 
 describe("jsonResult", () => {
-  it("should create a text result", () => {
+  it("should create a text result from string", () => {
     const result = jsonResult("Hello");
     expect(result.content).toHaveLength(1);
     expect(result.content[0]!.text).toBe("Hello");
     expect(result.isError).toBeUndefined();
+  });
+
+  it("should create a JSON result from object", () => {
+    const result = jsonResult({ name: "test", value: 42 });
+    expect(result.content[0]!.text).toBe('{\n  "name": "test",\n  "value": 42\n}');
   });
 });
 

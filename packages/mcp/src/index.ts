@@ -24,6 +24,7 @@ import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprotocol/sdk/types.js";
 
+import { INSTRUCTIONS } from "./instructions.ts";
 import { getAvailableTools, handleToolCall } from "./stdio.ts";
 import { VERSION } from "./version.ts";
 
@@ -40,6 +41,7 @@ export function createStdioServer(): Server {
       capabilities: {
         tools: {},
       },
+      instructions: INSTRUCTIONS,
     },
   );
 

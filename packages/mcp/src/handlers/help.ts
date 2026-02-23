@@ -1,153 +1,544 @@
+/**
+ * Help handler — provides detailed documentation for each resource.
+ *
+ * Follows the productive-tools convention: per-resource docs with
+ * actions, required fields, field descriptions, and examples.
+ */
+
 import type { ToolResult } from "./types.ts";
 
 import { jsonResult } from "./utils.ts";
 
-const HELP_TEXTS: Record<string, string> = {
-  servers: `## Servers
+interface ResourceHelp {
+  description: string;
+  scope: string;
+  actions: Record<string, string>;
+  fields?: Record<string, string>;
+  examples?: Array<{ description: string; params: Record<string, unknown> }>;
+}
 
-**Actions**: list, get, create, delete, reboot
+const RESOURCE_HELP: Record<string, ResourceHelp> = {
+  servers: {
+    description:
+      "Manage Laravel Forge servers — provisioned cloud instances (DigitalOcean, AWS, Hetzner, etc.)",
+    scope: "global (no parent ID needed)",
+    actions: {
+      list: "List all servers in your Forge account",
+      get: "Get a single server by ID with full details",
+      create: "Provision a new server (requires provider, type, region, name)",
+      delete: "Delete a server by ID (irreversible)",
+      reboot: "Reboot a server by ID",
+    },
+    fields: {
+      id: "Server ID",
+      name: "Server name (hostname)",
+      provider: "Cloud provider (hetzner, ocean2, aws, linode, vultr, custom)",
+      region: "Provider region code",
+      ip_address: "Public IP address",
+      is_ready: "Whether the server has finished provisioning",
+      php_version: "Default PHP version (php84, php83, etc.)",
+    },
+    examples: [
+      { description: "List all servers", params: { resource: "servers", action: "list" } },
+      {
+        description: "Get server details",
+        params: { resource: "servers", action: "get", id: "123" },
+      },
+      {
+        description: "Reboot a server",
+        params: { resource: "servers", action: "reboot", id: "123" },
+      },
+    ],
+  },
 
-### list
-List all servers.
-\`{ resource: "servers", action: "list" }\`
+  sites: {
+    description: "Manage sites on a Forge server — web applications, PHP projects, static sites",
+    scope: "server (requires server_id)",
+    actions: {
+      list: "List all sites on a server",
+      get: "Get a single site by ID",
+      create: "Create a new site (requires domain, project_type)",
+      delete: "Delete a site by ID",
+    },
+    fields: {
+      id: "Site ID",
+      server_id: "Parent server ID",
+      name: "Domain name (e.g. example.com)",
+      project_type: "Project type (php, html, symfony, symfony_dev, symfony_four, laravel)",
+      directory: "Web root directory (e.g. /public)",
+      repository: "Git repository URL (if connected)",
+      deployment_status: "Last deployment status (null, deploying, deployed, failed)",
+    },
+    examples: [
+      {
+        description: "List sites on a server",
+        params: { resource: "sites", action: "list", server_id: "123" },
+      },
+      {
+        description: "Get site details",
+        params: { resource: "sites", action: "get", server_id: "123", id: "456" },
+      },
+      {
+        description: "Create a Laravel site",
+        params: {
+          resource: "sites",
+          action: "create",
+          server_id: "123",
+          domain: "app.example.com",
+          project_type: "php",
+          directory: "/public",
+        },
+      },
+    ],
+  },
 
-### get
-Get server details.
-\`{ resource: "servers", action: "get", id: "123" }\`
+  deployments: {
+    description: "Manage site deployments — trigger, monitor, and configure deploy scripts",
+    scope: "site (requires server_id + site_id)",
+    actions: {
+      list: "List recent deployments for a site",
+      deploy: "Trigger a new deployment",
+      get: "Get deployment output (requires deployment_id in 'id' field)",
+      update: "Update the deployment script (provide 'content' field)",
+    },
+    fields: {
+      id: "Deployment ID",
+      server_id: "Parent server ID",
+      site_id: "Parent site ID",
+      status: "Deployment status (null, deploying, deployed, failed)",
+      displayable_type: "Type of deployment trigger",
+      ended_at: "Completion timestamp",
+    },
+    examples: [
+      {
+        description: "Deploy a site",
+        params: { resource: "deployments", action: "deploy", server_id: "123", site_id: "456" },
+      },
+      {
+        description: "List deployments",
+        params: { resource: "deployments", action: "list", server_id: "123", site_id: "456" },
+      },
+      {
+        description: "Get deployment output",
+        params: {
+          resource: "deployments",
+          action: "get",
+          server_id: "123",
+          site_id: "456",
+          id: "789",
+        },
+      },
+      {
+        description: "Update deploy script",
+        params: {
+          resource: "deployments",
+          action: "update",
+          server_id: "123",
+          site_id: "456",
+          content:
+            "cd /home/forge/app.example.com\ngit pull\ncomposer install\nphp artisan migrate --force",
+        },
+      },
+    ],
+  },
 
-### create
-Create a new server.
-\`{ resource: "servers", action: "create", name: "web-1", provider: "ocean2", region: "ams3", size: "01", credential_id: "1", type: "app" }\`
+  env: {
+    description: "Manage environment variables (.env file) for a site",
+    scope: "site (requires server_id + site_id)",
+    actions: {
+      get: "Get the current .env file content",
+      update: "Replace the entire .env file (provide 'content' field)",
+    },
+    examples: [
+      {
+        description: "Get env variables",
+        params: { resource: "env", action: "get", server_id: "123", site_id: "456" },
+      },
+      {
+        description: "Update env",
+        params: {
+          resource: "env",
+          action: "update",
+          server_id: "123",
+          site_id: "456",
+          content: "APP_ENV=production\nAPP_DEBUG=false\nDB_HOST=127.0.0.1",
+        },
+      },
+    ],
+  },
 
-### delete
-Delete a server.
-\`{ resource: "servers", action: "delete", id: "123" }\`
+  nginx: {
+    description: "Manage Nginx configuration for a site",
+    scope: "site (requires server_id + site_id)",
+    actions: {
+      get: "Get the current Nginx config",
+      update: "Replace the Nginx config (provide 'content' field)",
+    },
+    examples: [
+      {
+        description: "Get nginx config",
+        params: { resource: "nginx", action: "get", server_id: "123", site_id: "456" },
+      },
+    ],
+  },
 
-### reboot
-Reboot a server.
-\`{ resource: "servers", action: "reboot", id: "123" }\``,
+  certificates: {
+    description: "Manage SSL/TLS certificates for a site — Let's Encrypt, custom, or cloned",
+    scope: "site (requires server_id + site_id)",
+    actions: {
+      list: "List certificates for a site",
+      get: "Get certificate details",
+      create: "Create/request a new certificate",
+      delete: "Delete a certificate",
+      activate: "Activate a certificate (make it the active cert for the site)",
+    },
+    examples: [
+      {
+        description: "List certificates",
+        params: { resource: "certificates", action: "list", server_id: "123", site_id: "456" },
+      },
+      {
+        description: "Create Let's Encrypt cert",
+        params: {
+          resource: "certificates",
+          action: "create",
+          server_id: "123",
+          site_id: "456",
+          domain: "example.com",
+          type: "new",
+        },
+      },
+      {
+        description: "Activate a certificate",
+        params: {
+          resource: "certificates",
+          action: "activate",
+          server_id: "123",
+          site_id: "456",
+          id: "789",
+        },
+      },
+    ],
+  },
 
-  sites: `## Sites
+  databases: {
+    description: "Manage MySQL/PostgreSQL databases on a server",
+    scope: "server (requires server_id)",
+    actions: {
+      list: "List databases on a server",
+      get: "Get database details",
+      create: "Create a new database (optionally with user)",
+      delete: "Delete a database",
+    },
+    fields: {
+      name: "Database name",
+      user: "(create only) Create a database user",
+      password: "(create only) User password",
+    },
+    examples: [
+      {
+        description: "List databases",
+        params: { resource: "databases", action: "list", server_id: "123" },
+      },
+      {
+        description: "Create database with user",
+        params: {
+          resource: "databases",
+          action: "create",
+          server_id: "123",
+          name: "myapp",
+          user: "admin",
+          password: "secret123",
+        },
+      },
+    ],
+  },
 
-**Actions**: list, get, create, delete
-**Requires**: server_id
+  daemons: {
+    description: "Manage background processes (daemons) — queue workers, websocket servers, etc.",
+    scope: "server (requires server_id)",
+    actions: {
+      list: "List daemons on a server",
+      get: "Get daemon details",
+      create: "Create a new daemon",
+      delete: "Delete a daemon",
+      restart: "Restart a daemon",
+    },
+    fields: {
+      command: "Shell command to run",
+      user: "Execution user (default: forge)",
+      directory: "Working directory",
+      processes: "Number of processes (default: 1)",
+    },
+    examples: [
+      {
+        description: "List daemons",
+        params: { resource: "daemons", action: "list", server_id: "123" },
+      },
+      {
+        description: "Create queue worker",
+        params: {
+          resource: "daemons",
+          action: "create",
+          server_id: "123",
+          command: "php artisan queue:work --tries=3",
+          user: "forge",
+        },
+      },
+      {
+        description: "Restart a daemon",
+        params: { resource: "daemons", action: "restart", server_id: "123", id: "456" },
+      },
+    ],
+  },
 
-### list
-List all sites on a server.
-\`{ resource: "sites", action: "list", server_id: "123" }\`
+  "firewall-rules": {
+    description: "Manage UFW firewall rules on a server",
+    scope: "server (requires server_id)",
+    actions: {
+      list: "List firewall rules",
+      get: "Get rule details",
+      create: "Create a new firewall rule",
+      delete: "Delete a firewall rule",
+    },
+    fields: {
+      name: "Rule name/description",
+      port: "Port number or range (e.g. 80, 8000-9000)",
+      type: "allow or deny (default: allow)",
+      ip_address: "Restrict to specific IP (optional)",
+    },
+    examples: [
+      {
+        description: "List firewall rules",
+        params: { resource: "firewall-rules", action: "list", server_id: "123" },
+      },
+      {
+        description: "Open port 3000",
+        params: {
+          resource: "firewall-rules",
+          action: "create",
+          server_id: "123",
+          name: "Allow Node.js",
+          port: 3000,
+        },
+      },
+    ],
+  },
 
-### get
-Get site details.
-\`{ resource: "sites", action: "get", server_id: "123", id: "456" }\`
+  "ssh-keys": {
+    description: "Manage SSH keys on a server",
+    scope: "server (requires server_id)",
+    actions: {
+      list: "List SSH keys",
+      get: "Get key details",
+      create: "Add an SSH key to the server",
+      delete: "Remove an SSH key",
+    },
+    fields: {
+      name: "Key label/description",
+      key: "Public key content (ssh-rsa ...)",
+      username: "User to add the key to (optional)",
+    },
+    examples: [
+      {
+        description: "List SSH keys",
+        params: { resource: "ssh-keys", action: "list", server_id: "123" },
+      },
+      {
+        description: "Add SSH key",
+        params: {
+          resource: "ssh-keys",
+          action: "create",
+          server_id: "123",
+          name: "Deploy Key",
+          key: "ssh-rsa AAAA...",
+        },
+      },
+    ],
+  },
 
-### create
-Create a new site.
-\`{ resource: "sites", action: "create", server_id: "123", domain: "example.com", project_type: "php" }\`
+  "security-rules": {
+    description: "Manage HTTP Basic Auth security rules for a site",
+    scope: "site (requires server_id + site_id)",
+    actions: {
+      list: "List security rules",
+      get: "Get rule details",
+      create: "Create a security rule with credentials",
+      delete: "Delete a security rule",
+    },
+    examples: [
+      {
+        description: "List security rules",
+        params: { resource: "security-rules", action: "list", server_id: "123", site_id: "456" },
+      },
+      {
+        description: "Create basic auth",
+        params: {
+          resource: "security-rules",
+          action: "create",
+          server_id: "123",
+          site_id: "456",
+          name: "Staging Auth",
+          credentials: [{ username: "admin", password: "secret" }],
+        },
+      },
+    ],
+  },
 
-### delete
-Delete a site.
-\`{ resource: "sites", action: "delete", server_id: "123", id: "456" }\``,
+  "redirect-rules": {
+    description: "Manage URL redirect rules for a site",
+    scope: "site (requires server_id + site_id)",
+    actions: {
+      list: "List redirect rules",
+      get: "Get rule details",
+      create: "Create a redirect rule",
+      delete: "Delete a redirect rule",
+    },
+    fields: {
+      from: "Source path (regex supported)",
+      to: "Destination URL",
+      type: "redirect (302, default) or permanent (301)",
+    },
+    examples: [
+      {
+        description: "List redirects",
+        params: { resource: "redirect-rules", action: "list", server_id: "123", site_id: "456" },
+      },
+      {
+        description: "Create redirect",
+        params: {
+          resource: "redirect-rules",
+          action: "create",
+          server_id: "123",
+          site_id: "456",
+          from: "/old-page",
+          to: "/new-page",
+          type: "permanent",
+        },
+      },
+    ],
+  },
 
-  deployments: `## Deployments
+  monitors: {
+    description: "Manage server monitoring alerts — CPU, disk, memory thresholds",
+    scope: "server (requires server_id)",
+    actions: {
+      list: "List monitors",
+      get: "Get monitor details",
+      create: "Create a monitor",
+      delete: "Delete a monitor",
+    },
+    fields: {
+      type: "Monitor type (disk, cpu, memory)",
+      operator: "Comparison operator (gte, lte)",
+      threshold: "Threshold value (e.g. 80 for 80%)",
+      minutes: "Check interval in minutes",
+    },
+    examples: [
+      {
+        description: "List monitors",
+        params: { resource: "monitors", action: "list", server_id: "123" },
+      },
+      {
+        description: "Alert on high disk usage",
+        params: {
+          resource: "monitors",
+          action: "create",
+          server_id: "123",
+          type: "disk",
+          operator: "gte",
+          threshold: 80,
+          minutes: 5,
+        },
+      },
+    ],
+  },
 
-**Actions**: list, deploy, get, update
-**Requires**: server_id, site_id
+  "nginx-templates": {
+    description: "Manage reusable Nginx configuration templates on a server",
+    scope: "server (requires server_id)",
+    actions: {
+      list: "List nginx templates",
+      get: "Get template with content",
+      create: "Create a new template",
+      update: "Update template name or content",
+      delete: "Delete a template",
+    },
+    examples: [
+      {
+        description: "List templates",
+        params: { resource: "nginx-templates", action: "list", server_id: "123" },
+      },
+      {
+        description: "Get template content",
+        params: { resource: "nginx-templates", action: "get", server_id: "123", id: "456" },
+      },
+    ],
+  },
 
-### list
-List deployments for a site.
-\`{ resource: "deployments", action: "list", server_id: "123", site_id: "456" }\`
-
-### deploy
-Trigger a deployment.
-\`{ resource: "deployments", action: "deploy", server_id: "123", site_id: "456" }\`
-
-### get
-Get deployment output (with id) or deployment script (without id).
-\`{ resource: "deployments", action: "get", server_id: "123", site_id: "456", id: "789" }\`
-\`{ resource: "deployments", action: "get", server_id: "123", site_id: "456" }\`
-
-### update
-Update the deployment script.
-\`{ resource: "deployments", action: "update", server_id: "123", site_id: "456", content: "npm run build" }\``,
-
-  env: `## Environment Variables
-
-**Actions**: get, update
-**Requires**: server_id, site_id
-
-### get
-Get the .env file content.
-\`{ resource: "env", action: "get", server_id: "123", site_id: "456" }\`
-
-### update
-Update the .env file content.
-\`{ resource: "env", action: "update", server_id: "123", site_id: "456", content: "APP_ENV=production" }\``,
-
-  nginx: `## Nginx Configuration
-
-**Actions**: get, update
-**Requires**: server_id, site_id
-
-### get
-Get the Nginx configuration.
-\`{ resource: "nginx", action: "get", server_id: "123", site_id: "456" }\`
-
-### update
-Update the Nginx configuration.
-\`{ resource: "nginx", action: "update", server_id: "123", site_id: "456", content: "server { ... }" }\``,
+  recipes: {
+    description:
+      "Manage and run server recipes — reusable bash scripts executed on one or more servers",
+    scope: "global (no parent ID needed)",
+    actions: {
+      list: "List all recipes",
+      get: "Get recipe details and script content",
+      create: "Create a new recipe",
+      delete: "Delete a recipe",
+      run: "Run a recipe on specified servers (provide 'servers' as array of server IDs)",
+    },
+    fields: {
+      name: "Recipe name",
+      script: "Bash script content",
+      user: "Execution user (default: root)",
+      servers: "(run only) Array of server IDs to run on",
+    },
+    examples: [
+      { description: "List recipes", params: { resource: "recipes", action: "list" } },
+      {
+        description: "Create a recipe",
+        params: {
+          resource: "recipes",
+          action: "create",
+          name: "Clear caches",
+          script: "php artisan cache:clear\nphp artisan view:clear",
+        },
+      },
+      {
+        description: "Run recipe on servers",
+        params: { resource: "recipes", action: "run", id: "123", servers: [1, 2, 3] },
+      },
+    ],
+  },
 };
 
 /**
  * Handle help action — returns documentation for a specific resource.
  */
 export function handleHelp(resource: string): ToolResult {
-  const help = HELP_TEXTS[resource];
-  if (help) {
-    return jsonResult(help);
+  const help = RESOURCE_HELP[resource];
+
+  if (!help) {
+    return handleHelpOverview();
   }
 
-  return handleHelpOverview();
+  return jsonResult({ resource, ...help });
 }
 
 /**
- * Return a global overview of all resources and actions.
+ * Get help for all resources (overview).
  */
 export function handleHelpOverview(): ToolResult {
-  const overview = `# Laravel Forge MCP — Help
+  const overview = Object.entries(RESOURCE_HELP).map(([resource, help]) => ({
+    resource,
+    description: help.description,
+    scope: help.scope,
+    actions: Object.keys(help.actions),
+  }));
 
-## Available Resources
-
-| Resource | Actions | Required Fields |
-|----------|---------|-----------------|
-| servers | list, get, create, delete, reboot | id (for get/delete/reboot) |
-| sites | list, get, create, delete | server_id, id (for get/delete) |
-| deployments | list, deploy, get, update | server_id, site_id |
-| env | get, update | server_id, site_id |
-| nginx | get, update | server_id, site_id |
-| certificates | list, get, create, delete | server_id, site_id |
-| databases | list, get, create, delete | server_id |
-| daemons | list, get, create, delete, restart | server_id |
-| backups | list, get, create, delete | server_id |
-| commands | list, get, create, delete | server_id, site_id |
-| scheduled-jobs | list, get, create, delete | server_id |
-| logs | get | server_id |
-| firewall-rules | list, get, create, delete | server_id |
-| ssh-keys | list, get, create, delete | server_id |
-| security-rules | list, get, create, delete | server_id, site_id |
-| redirect-rules | list, get, create, delete | server_id, site_id |
-| nginx-templates | list, get, create, update, delete | server_id |
-| monitors | list, get, create, delete | server_id |
-| recipes | list, get, create, run, delete | — |
-
-## Discovery
-
-Use \`action: "help"\` with any resource for detailed documentation.
-
-## Examples
-
-\`{ resource: "servers", action: "list" }\`
-\`{ resource: "sites", action: "list", server_id: "123" }\`
-\`{ resource: "deployments", action: "deploy", server_id: "123", site_id: "456" }\``;
-
-  return jsonResult(overview);
+  return jsonResult({
+    message: 'Use action="help" with a specific resource for detailed documentation',
+    resources: overview,
+    _tip: "Always call { action: 'help', resource: '<name>' } before your first interaction with any resource to learn required fields and examples.",
+  });
 }

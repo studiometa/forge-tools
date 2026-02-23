@@ -2,8 +2,10 @@ import type { ToolResult } from "./types.ts";
 
 /**
  * Create a successful JSON result.
+ * Accepts a string or an object (which will be JSON-serialized).
  */
-export function jsonResult(text: string): ToolResult {
+export function jsonResult(data: string | Record<string, unknown> | unknown): ToolResult {
+  const text = typeof data === "string" ? data : JSON.stringify(data, null, 2);
   return {
     content: [{ type: "text", text }],
   };

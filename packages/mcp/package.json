@@ -21,7 +21,8 @@
     "forge-mcp": "./dist/index.js"
   },
   "files": [
-    "dist"
+    "dist",
+    "skills"
   ],
   "type": "module",
   "main": "./dist/index.js",
