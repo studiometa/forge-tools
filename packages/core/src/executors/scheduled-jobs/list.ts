@@ -13,15 +13,7 @@ export async function listScheduledJobs(
   );
   const jobs = response.jobs;
 
-  const lines = jobs.map(
-    (j) => `• ${j.command} (ID: ${j.id}) — ${j.frequency} — ${j.status} — user: ${j.user}`,
-  );
-
   return {
     data: jobs,
-    text:
-      jobs.length > 0
-        ? `${jobs.length} scheduled job(s):\n${lines.join("\n")}`
-        : "No scheduled jobs found.",
   };
 }

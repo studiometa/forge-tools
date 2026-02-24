@@ -13,6 +13,5 @@ export async function updateNginxConfig(
 
   return {
     data: undefined,
-    text: "Nginx configuration updated.",
   };
 }

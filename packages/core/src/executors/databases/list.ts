@@ -13,13 +13,7 @@ export async function listDatabases(
   );
   const databases = response.databases;
 
-  const lines = databases.map((d) => `• ${d.name} (ID: ${d.id}) — ${d.status}`);
-
   return {
     data: databases,
-    text:
-      databases.length > 0
-        ? `${databases.length} database(s):\n${lines.join("\n")}`
-        : "No databases found.",
   };
 }

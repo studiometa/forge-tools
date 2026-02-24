@@ -15,6 +15,5 @@ export async function getDaemon(
 
   return {
     data: daemon,
-    text: `Daemon: ${daemon.command} (ID: ${daemon.id})\nUser: ${daemon.user}\nProcesses: ${daemon.processes}\nStatus: ${daemon.status}`,
   };
 }

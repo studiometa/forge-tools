@@ -15,12 +15,5 @@ export async function getCommand(
 
   return {
     data: command,
-    text: [
-      `Command #${command.id}`,
-      `Command: ${command.command}`,
-      `Status: ${command.status}`,
-      `User: ${command.user_name}`,
-      `Created: ${command.created_at}`,
-    ].join("\n"),
   };
 }

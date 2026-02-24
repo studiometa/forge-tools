@@ -19,6 +19,5 @@ export async function getDeploymentOutput(
 
   return {
     data: output,
-    text: `Deployment ${options.deployment_id} output:\n${output}`,
   };
 }

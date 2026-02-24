@@ -13,6 +13,5 @@ export async function getNginxConfig(
 
   return {
     data: content,
-    text: `Nginx configuration:\n${content}`,
   };
 }

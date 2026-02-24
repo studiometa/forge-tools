@@ -8,6 +8,5 @@ export async function deleteFirewallRule(
 
   return {
     data: undefined,
-    text: `Firewall rule ${options.id} deleted.`,
   };
 }

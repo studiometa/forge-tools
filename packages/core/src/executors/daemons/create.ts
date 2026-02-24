@@ -14,6 +14,5 @@ export async function createDaemon(
 
   return {
     data: daemon,
-    text: `Daemon created: ${daemon.command} (ID: ${daemon.id})`,
   };
 }

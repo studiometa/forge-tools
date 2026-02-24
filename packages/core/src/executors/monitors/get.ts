@@ -12,6 +12,5 @@ export async function getMonitor(
 
   return {
     data: monitor,
-    text: `Monitor: ${monitor.type} ${monitor.operator} ${monitor.threshold} (ID: ${monitor.id})\nState: ${monitor.state}\nMinutes: ${monitor.minutes}`,
   };
 }

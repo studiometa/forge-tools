@@ -17,14 +17,5 @@ export async function getServer(
 
   return {
     data: server,
-    text: [
-      `Server: ${server.name} (ID: ${server.id})`,
-      `Provider: ${server.provider} (${server.region})`,
-      `IP: ${server.ip_address}`,
-      `PHP: ${server.php_version}`,
-      `Ubuntu: ${server.ubuntu_version}`,
-      `Status: ${server.is_ready ? "ready" : "provisioning"}`,
-      `Created: ${server.created_at}`,
-    ].join("\n"),
   };
 }

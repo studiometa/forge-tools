@@ -10,6 +10,5 @@ export async function getRecipe(
 
   return {
     data: recipe,
-    text: `Recipe: ${recipe.name} (ID: ${recipe.id})\nUser: ${recipe.user}\nScript:\n${recipe.script}`,
   };
 }

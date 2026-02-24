@@ -12,6 +12,5 @@ export async function getNginxTemplate(
 
   return {
     data: template,
-    text: `Nginx Template: ${template.name} (ID: ${template.id})\n\n${template.content}`,
   };
 }

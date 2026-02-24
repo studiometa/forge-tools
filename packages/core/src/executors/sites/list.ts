@@ -15,13 +15,7 @@ export async function listSites(
   const response = await ctx.client.get<SitesResponse>(`/servers/${options.server_id}/sites`);
   const sites = response.sites;
 
-  const lines = sites.map((s) => `• ${s.name} (ID: ${s.id}) — ${s.project_type} — ${s.status}`);
-
   return {
     data: sites,
-    text:
-      sites.length > 0
-        ? `${sites.length} site(s) on server ${options.server_id}:\n${lines.join("\n")}`
-        : `No sites on server ${options.server_id}.`,
   };
 }

@@ -9,13 +9,7 @@ export async function listNginxTemplates(
     `/servers/${options.server_id}/nginx/templates`,
   );
   const templates = response.templates;
-  const lines = templates.map((t) => `• ${t.name} (ID: ${t.id})`);
-
   return {
     data: templates,
-    text:
-      templates.length > 0
-        ? `${templates.length} nginx template(s):\n${lines.join("\n")}`
-        : "No nginx templates found.",
   };
 }

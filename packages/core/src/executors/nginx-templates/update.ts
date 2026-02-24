@@ -14,6 +14,5 @@ export async function updateNginxTemplate(
 
   return {
     data: template,
-    text: `Nginx template updated: ${template.name} (ID: ${template.id})`,
   };
 }

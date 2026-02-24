@@ -13,6 +13,5 @@ export async function createServer(
 
   return {
     data: server,
-    text: `Server "${server.name}" created (ID: ${server.id}). Status: ${server.is_ready ? "ready" : "provisioning"}.`,
   };
 }

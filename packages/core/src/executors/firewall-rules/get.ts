@@ -12,6 +12,5 @@ export async function getFirewallRule(
 
   return {
     data: rule,
-    text: `Firewall Rule: ${rule.name} (ID: ${rule.id})\nPort: ${rule.port}\nType: ${rule.type}\nIP: ${rule.ip_address}\nStatus: ${rule.status}`,
   };
 }

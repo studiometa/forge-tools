@@ -12,6 +12,5 @@ export async function getRedirectRule(
 
   return {
     data: rule,
-    text: `Redirect Rule: ${rule.from} → ${rule.to} (ID: ${rule.id})\nType: ${rule.type}`,
   };
 }

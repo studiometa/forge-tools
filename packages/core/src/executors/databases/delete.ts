@@ -11,6 +11,5 @@ export async function deleteDatabase(
 
   return {
     data: undefined,
-    text: `Database ${options.id} deleted.`,
   };
 }

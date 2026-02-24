@@ -18,6 +18,5 @@ export async function createSite(
 
   return {
     data: site,
-    text: `Site "${site.name}" created on server ${server_id} (ID: ${site.id}).`,
   };
 }

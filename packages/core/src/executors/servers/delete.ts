@@ -15,6 +15,5 @@ export async function deleteServer(
 
   return {
     data: undefined,
-    text: `Server ${options.server_id} deleted.`,
   };
 }

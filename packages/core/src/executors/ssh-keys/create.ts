@@ -11,6 +11,5 @@ export async function createSshKey(
 
   return {
     data: key,
-    text: `SSH key created: ${key.name} (ID: ${key.id})`,
   };
 }

@@ -8,6 +8,5 @@ export async function deleteNginxTemplate(
 
   return {
     data: undefined,
-    text: `Nginx template ${options.id} deleted.`,
   };
 }

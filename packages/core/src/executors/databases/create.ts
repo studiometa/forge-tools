@@ -14,6 +14,5 @@ export async function createDatabase(
 
   return {
     data: db,
-    text: `Database created: ${db.name} (ID: ${db.id})`,
   };
 }

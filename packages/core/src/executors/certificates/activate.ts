@@ -14,6 +14,5 @@ export async function activateCertificate(
 
   return {
     data: undefined,
-    text: `Certificate ${options.id} activated.`,
   };
 }

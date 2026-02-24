@@ -13,6 +13,5 @@ export async function updateEnv(
 
   return {
     data: undefined,
-    text: "Environment variables updated.",
   };
 }

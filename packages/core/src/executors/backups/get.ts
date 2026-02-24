@@ -15,13 +15,5 @@ export async function getBackupConfig(
 
   return {
     data: backup,
-    text: [
-      `Backup Config: ${backup.provider_name} (ID: ${backup.id})`,
-      `Frequency: ${backup.frequency}`,
-      `Status: ${backup.status}`,
-      `Retention: ${backup.retention} backups`,
-      `Databases: ${backup.databases.map((d) => d.name).join(", ") || "none"}`,
-      `Last backup: ${backup.last_backup_time ?? "never"}`,
-    ].join("\n"),
   };
 }

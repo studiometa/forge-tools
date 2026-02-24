@@ -11,6 +11,5 @@ export async function restartDaemon(
 
   return {
     data: undefined,
-    text: `Daemon ${options.id} restarted.`,
   };
 }

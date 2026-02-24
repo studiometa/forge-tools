@@ -13,16 +13,7 @@ export async function listCertificates(
   );
   const certificates = response.certificates;
 
-  const lines = certificates.map(
-    (c) =>
-      `• ${c.domain} (ID: ${c.id}) — ${c.type} — ${c.active ? "active" : "inactive"} — ${c.status}`,
-  );
-
   return {
     data: certificates,
-    text:
-      certificates.length > 0
-        ? `${certificates.length} certificate(s):\n${lines.join("\n")}`
-        : "No certificates found.",
   };
 }

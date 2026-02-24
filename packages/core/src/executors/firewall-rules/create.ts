@@ -18,6 +18,5 @@ export async function createFirewallRule(
 
   return {
     data: rule,
-    text: `Firewall rule created: ${rule.name} (ID: ${rule.id}) — port: ${rule.port}`,
   };
 }

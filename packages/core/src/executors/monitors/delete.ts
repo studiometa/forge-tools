@@ -8,6 +8,5 @@ export async function deleteMonitor(
 
   return {
     data: undefined,
-    text: `Monitor ${options.id} deleted.`,
   };
 }
