@@ -78,6 +78,20 @@ export type {
   ListDatabasesOptions,
 } from "./executors/databases/index.ts";
 
+// Database Users
+export {
+  createDatabaseUser,
+  deleteDatabaseUser,
+  getDatabaseUser,
+  listDatabaseUsers,
+} from "./executors/database-users/index.ts";
+export type {
+  CreateDatabaseUserOptions,
+  DeleteDatabaseUserOptions,
+  GetDatabaseUserOptions,
+  ListDatabaseUsersOptions,
+} from "./executors/database-users/index.ts";
+
 // Daemons
 export {
   createDaemon,

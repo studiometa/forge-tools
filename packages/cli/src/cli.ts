@@ -4,6 +4,10 @@ import { handleCertificatesCommand, showCertificatesHelp } from "./commands/cert
 import { handleConfigCommand, showConfigHelp } from "./commands/config.ts";
 import { handleDaemonsCommand, showDaemonsHelp } from "./commands/daemons/index.ts";
 import { handleDatabasesCommand, showDatabasesHelp } from "./commands/databases/index.ts";
+import {
+  handleDatabaseUsersCommand,
+  showDatabaseUsersHelp,
+} from "./commands/database-users/index.ts";
 import { handleDeploymentsCommand, showDeploymentsHelp } from "./commands/deployments/index.ts";
 import { handleEnvCommand, showEnvHelp } from "./commands/env/index.ts";
 import {
@@ -50,6 +54,12 @@ ${colors.bold("COMMANDS:")}
   databases, db       Manage databases
     list, ls            List databases (requires --server)
     get <id>            Get database details (requires --server)
+
+  database-users      Manage database users
+    list, ls            List database users (requires --server)
+    get <id>            Get database user details (requires --server)
+    create              Create a database user (requires --server --name --password)
+    delete <id>         Delete a database user (requires --server)
 
   daemons             Manage daemons
     list, ls            List daemons (requires --server)
@@ -206,6 +216,18 @@ async function main(): Promise<void> {
           process.exit(0);
         }
         await handleDatabasesCommand(
+          subcommand ?? "list",
+          positional,
+          options as Record<string, string | boolean | string[]>,
+        );
+        break;
+
+      case "database-users":
+        if (wantsHelp) {
+          showDatabaseUsersHelp(subcommand);
+          process.exit(0);
+        }
+        await handleDatabaseUsersCommand(
           subcommand ?? "list",
           positional,
           options as Record<string, string | boolean | string[]>,

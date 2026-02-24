@@ -120,6 +120,37 @@ export function getDatabaseHints(serverId: string, databaseId: string): Contextu
 }
 
 /**
+ * Hints after getting a database user.
+ */
+export function getDatabaseUserHints(serverId: string, userId: string): ContextualHints {
+  return {
+    related_resources: [
+      {
+        resource: "database-users",
+        description: "List all database users on this server",
+        example: { resource: "database-users", action: "list", server_id: serverId },
+      },
+      {
+        resource: "databases",
+        description: "List databases on this server",
+        example: { resource: "databases", action: "list", server_id: serverId },
+      },
+    ],
+    common_actions: [
+      {
+        action: "Delete this database user",
+        example: {
+          resource: "database-users",
+          action: "delete",
+          server_id: serverId,
+          id: userId,
+        },
+      },
+    ],
+  };
+}
+
+/**
  * Hints after getting a daemon.
  */
 export function getDaemonHints(serverId: string, daemonId: string): ContextualHints {

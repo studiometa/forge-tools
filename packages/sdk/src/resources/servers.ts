@@ -9,6 +9,7 @@ import type {
 import { AsyncPaginatedIterator } from "../pagination.ts";
 import { SitesCollection, SiteResource } from "./sites.ts";
 import { DatabasesCollection } from "./databases.ts";
+import { DatabaseUsersCollection } from "./database-users.ts";
 import { DaemonsCollection } from "./daemons.ts";
 import { BaseCollection } from "./base.ts";
 
@@ -169,6 +170,9 @@ export class ServerResource extends BaseCollection {
   /** Databases on this server. */
   readonly databases: DatabasesCollection;
 
+  /** Database users on this server. */
+  readonly databaseUsers: DatabaseUsersCollection;
+
   /** Daemons (background processes) on this server. */
   readonly daemons: DaemonsCollection;
 
@@ -180,6 +184,7 @@ export class ServerResource extends BaseCollection {
     super(client);
     this.sites = new SitesCollection(client, serverId);
     this.databases = new DatabasesCollection(client, serverId);
+    this.databaseUsers = new DatabaseUsersCollection(client, serverId);
     this.daemons = new DaemonsCollection(client, serverId);
   }
 

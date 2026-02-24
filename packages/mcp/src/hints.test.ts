@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   getCertificateHints,
   getDatabaseHints,
+  getDatabaseUserHints,
   getDaemonHints,
   getFirewallRuleHints,
   getNginxTemplateHints,
@@ -69,6 +70,20 @@ describe("getDatabaseHints", () => {
     expect(hints.common_actions).toBeDefined();
     expect(hints.common_actions![0]!.example.server_id).toBe("10");
     expect(hints.common_actions![0]!.example.id).toBe("99");
+  });
+});
+
+describe("getDatabaseUserHints", () => {
+  it("should return hints for a database user", () => {
+    const hints = getDatabaseUserHints("10", "5");
+
+    expect(hints.related_resources).toBeDefined();
+    expect(hints.related_resources![0]!.resource).toBe("database-users");
+    expect(hints.related_resources![0]!.example.server_id).toBe("10");
+
+    expect(hints.common_actions).toBeDefined();
+    expect(hints.common_actions![0]!.example.server_id).toBe("10");
+    expect(hints.common_actions![0]!.example.id).toBe("5");
   });
 });
 

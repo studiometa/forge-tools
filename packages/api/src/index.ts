@@ -39,10 +39,13 @@ export type {
   CertificatesResponse,
   // Databases
   CreateDatabaseData,
+  CreateDatabaseUserData,
   ForgeDatabase,
   ForgeDatabaseUser,
   DatabaseResponse,
   DatabasesResponse,
+  DatabaseUserResponse,
+  DatabaseUsersResponse,
   // Daemons
   CreateDaemonData,
   ForgeDaemon,
