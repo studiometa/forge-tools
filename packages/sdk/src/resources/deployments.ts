@@ -5,6 +5,8 @@ import type {
   DeploymentsResponse,
 } from "@studiometa/forge-api";
 
+import { BaseCollection } from "./base.ts";
+
 /**
  * Collection of deployments for a site.
  *
@@ -15,13 +17,15 @@ import type {
  * const deployments = await forge.server(123).site(456).deployments.list();
  * ```
  */
-export class DeploymentsCollection {
+export class DeploymentsCollection extends BaseCollection {
   /** @internal */
   constructor(
-    private readonly client: HttpClient,
+    client: HttpClient,
     private readonly serverId: number,
     private readonly siteId: number,
-  ) {}
+  ) {
+    super(client);
+  }
 
   private get basePath(): string {
     return `/servers/${this.serverId}/sites/${this.siteId}/deployments`;

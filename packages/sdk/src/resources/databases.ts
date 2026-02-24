@@ -6,6 +6,8 @@ import type {
   DatabasesResponse,
 } from "@studiometa/forge-api";
 
+import { BaseCollection } from "./base.ts";
+
 /**
  * Collection of databases on a server.
  *
@@ -16,12 +18,14 @@ import type {
  * const dbs = await forge.server(123).databases.list();
  * ```
  */
-export class DatabasesCollection {
+export class DatabasesCollection extends BaseCollection {
   /** @internal */
   constructor(
-    private readonly client: HttpClient,
+    client: HttpClient,
     private readonly serverId: number,
-  ) {}
+  ) {
+    super(client);
+  }
 
   private get basePath(): string {
     return `/servers/${this.serverId}/databases`;

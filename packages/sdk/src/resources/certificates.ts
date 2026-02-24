@@ -6,6 +6,8 @@ import type {
   CertificatesResponse,
 } from "@studiometa/forge-api";
 
+import { BaseCollection } from "./base.ts";
+
 /**
  * Collection of SSL certificates for a site.
  *
@@ -16,13 +18,15 @@ import type {
  * const certs = await forge.server(123).site(456).certificates.list();
  * ```
  */
-export class CertificatesCollection {
+export class CertificatesCollection extends BaseCollection {
   /** @internal */
   constructor(
-    private readonly client: HttpClient,
+    client: HttpClient,
     private readonly serverId: number,
     private readonly siteId: number,
-  ) {}
+  ) {
+    super(client);
+  }
 
   private get basePath(): string {
     return `/servers/${this.serverId}/sites/${this.siteId}/certificates`;

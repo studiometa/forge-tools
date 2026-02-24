@@ -9,6 +9,7 @@ import type {
 import { SitesCollection, SiteResource } from "./sites.ts";
 import { DatabasesCollection } from "./databases.ts";
 import { DaemonsCollection } from "./daemons.ts";
+import { BaseCollection } from "./base.ts";
 
 /**
  * Collection of servers.
@@ -27,9 +28,11 @@ import { DaemonsCollection } from "./daemons.ts";
  * const server = await forge.servers.create({ ... });
  * ```
  */
-export class ServersCollection {
+export class ServersCollection extends BaseCollection {
   /** @internal */
-  constructor(private readonly client: HttpClient) {}
+  constructor(client: HttpClient) {
+    super(client);
+  }
 
   /**
    * List all servers.
@@ -129,7 +132,7 @@ export class ServersCollection {
  * const dbs = await forge.server(123).databases.list();
  * ```
  */
-export class ServerResource {
+export class ServerResource extends BaseCollection {
   /** Sites on this server. */
   readonly sites: SitesCollection;
 
@@ -141,9 +144,10 @@ export class ServerResource {
 
   /** @internal */
   constructor(
-    private readonly client: HttpClient,
+    client: HttpClient,
     private readonly serverId: number,
   ) {
+    super(client);
     this.sites = new SitesCollection(client, serverId);
     this.databases = new DatabasesCollection(client, serverId);
     this.daemons = new DaemonsCollection(client, serverId);

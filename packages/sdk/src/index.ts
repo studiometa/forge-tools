@@ -2,6 +2,7 @@
 // Laravel Forge TypeScript SDK — fluent, chainable, fully-typed API client
 
 export { Forge } from "./forge.ts";
+export { BaseCollection } from "./resources/base.ts";
 export { CertificatesCollection } from "./resources/certificates.ts";
 export { DaemonsCollection } from "./resources/daemons.ts";
 export { DatabasesCollection } from "./resources/databases.ts";
