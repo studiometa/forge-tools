@@ -1,12 +1,10 @@
-import type {
-  CreateFirewallRuleData,
-  FirewallRuleResponse,
-  ForgeFirewallRule,
-} from "@studiometa/forge-api";
+import type { FirewallRuleResponse, ForgeFirewallRule } from "@studiometa/forge-api";
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
 
+import type { CreateFirewallRuleOptions } from "./types.ts";
+
 export async function createFirewallRule(
-  options: { server_id: string } & CreateFirewallRuleData,
+  options: CreateFirewallRuleOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<ForgeFirewallRule>> {
   const { server_id, ...data } = options;

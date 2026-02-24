@@ -1,10 +1,12 @@
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
 
+import type { DeleteDaemonOptions } from "./types.ts";
+
 /**
  * Delete a daemon.
  */
 export async function deleteDaemon(
-  options: { server_id: string; id: string },
+  options: DeleteDaemonOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<void>> {
   await ctx.client.delete(`/servers/${options.server_id}/daemons/${options.id}`);

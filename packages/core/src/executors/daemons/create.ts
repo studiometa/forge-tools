@@ -1,11 +1,13 @@
-import type { CreateDaemonData, DaemonResponse, ForgeDaemon } from "@studiometa/forge-api";
+import type { DaemonResponse, ForgeDaemon } from "@studiometa/forge-api";
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
+
+import type { CreateDaemonOptions } from "./types.ts";
 
 /**
  * Create a new daemon (background process).
  */
 export async function createDaemon(
-  options: { server_id: string } & CreateDaemonData,
+  options: CreateDaemonOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<ForgeDaemon>> {
   const { server_id, ...data } = options;

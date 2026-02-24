@@ -1,7 +1,9 @@
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
 
+import type { DeleteSecurityRuleOptions } from "./types.ts";
+
 export async function deleteSecurityRule(
-  options: { server_id: string; site_id: string; id: string },
+  options: DeleteSecurityRuleOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<void>> {
   await ctx.client.delete(

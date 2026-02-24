@@ -1,10 +1,12 @@
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
 
+import type { DeleteCertificateOptions } from "./types.ts";
+
 /**
  * Delete an SSL certificate.
  */
 export async function deleteCertificate(
-  options: { server_id: string; site_id: string; id: string },
+  options: DeleteCertificateOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<void>> {
   await ctx.client.delete(

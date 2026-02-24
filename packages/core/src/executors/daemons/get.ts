@@ -1,11 +1,13 @@
 import type { DaemonResponse, ForgeDaemon } from "@studiometa/forge-api";
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
 
+import type { GetDaemonOptions } from "./types.ts";
+
 /**
  * Get a single daemon.
  */
 export async function getDaemon(
-  options: { server_id: string; id: string },
+  options: GetDaemonOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<ForgeDaemon>> {
   const response = await ctx.client.get<DaemonResponse>(

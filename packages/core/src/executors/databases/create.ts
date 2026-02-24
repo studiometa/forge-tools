@@ -1,11 +1,13 @@
-import type { CreateDatabaseData, DatabaseResponse, ForgeDatabase } from "@studiometa/forge-api";
+import type { DatabaseResponse, ForgeDatabase } from "@studiometa/forge-api";
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
+
+import type { CreateDatabaseOptions } from "./types.ts";
 
 /**
  * Create a new database.
  */
 export async function createDatabase(
-  options: { server_id: string } & CreateDatabaseData,
+  options: CreateDatabaseOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<ForgeDatabase>> {
   const { server_id, ...data } = options;

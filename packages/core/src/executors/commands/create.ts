@@ -1,11 +1,13 @@
 import type { CommandResponse, ForgeCommand } from "@studiometa/forge-api";
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
 
+import type { CreateCommandOptions } from "./types.ts";
+
 /**
  * Execute a command on a site.
  */
 export async function createCommand(
-  options: { server_id: string; site_id: string; command: string },
+  options: CreateCommandOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<ForgeCommand>> {
   const response = await ctx.client.post<CommandResponse>(

@@ -1,9 +1,7 @@
-import type { CreateSiteData, ForgeSite, SiteResponse } from "@studiometa/forge-api";
+import type { ForgeSite, SiteResponse } from "@studiometa/forge-api";
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
 
-export interface CreateSiteOptions extends CreateSiteData {
-  server_id: string;
-}
+import type { CreateSiteOptions } from "./types.ts";
 
 /**
  * Create a new site on a server.

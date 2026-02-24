@@ -1,8 +1,10 @@
 import type { ForgeNginxTemplate, NginxTemplateResponse } from "@studiometa/forge-api";
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
 
+import type { GetNginxTemplateOptions } from "./types.ts";
+
 export async function getNginxTemplate(
-  options: { server_id: string; id: string },
+  options: GetNginxTemplateOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<ForgeNginxTemplate>> {
   const response = await ctx.client.get<NginxTemplateResponse>(

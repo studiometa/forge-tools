@@ -1,10 +1,12 @@
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
 
+import type { GetNginxConfigOptions } from "./types.ts";
+
 /**
  * Get Nginx configuration for a site.
  */
 export async function getNginxConfig(
-  options: { server_id: string; site_id: string },
+  options: GetNginxConfigOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<string>> {
   const content = await ctx.client.get<string>(

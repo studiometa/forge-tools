@@ -1,12 +1,10 @@
-import type {
-  CreateRedirectRuleData,
-  ForgeRedirectRule,
-  RedirectRuleResponse,
-} from "@studiometa/forge-api";
+import type { ForgeRedirectRule, RedirectRuleResponse } from "@studiometa/forge-api";
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
 
+import type { CreateRedirectRuleOptions } from "./types.ts";
+
 export async function createRedirectRule(
-  options: { server_id: string; site_id: string } & CreateRedirectRuleData,
+  options: CreateRedirectRuleOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<ForgeRedirectRule>> {
   const { server_id, site_id, ...data } = options;

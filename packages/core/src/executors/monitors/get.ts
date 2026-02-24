@@ -1,8 +1,10 @@
 import type { ForgeMonitor, MonitorResponse } from "@studiometa/forge-api";
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
 
+import type { GetMonitorOptions } from "./types.ts";
+
 export async function getMonitor(
-  options: { server_id: string; id: string },
+  options: GetMonitorOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<ForgeMonitor>> {
   const response = await ctx.client.get<MonitorResponse>(

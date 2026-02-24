@@ -9,7 +9,12 @@ export default defineConfig({
   }),
   test: createTestConfig({
     name: "core",
-    coverageExclude: ["src/index.ts", "src/executors/*/index.ts"],
+    coverageExclude: [
+      "src/index.ts",
+      "src/executors/types.ts",
+      "src/executors/*/index.ts",
+      "src/executors/*/types.ts",
+    ],
     coverageThresholds: {
       statements: 90,
       branches: 80,

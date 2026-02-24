@@ -1,8 +1,10 @@
 import type { ForgeSecurityRule, SecurityRulesResponse } from "@studiometa/forge-api";
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
 
+import type { ListSecurityRulesOptions } from "./types.ts";
+
 export async function listSecurityRules(
-  options: { server_id: string; site_id: string },
+  options: ListSecurityRulesOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<ForgeSecurityRule[]>> {
   const response = await ctx.client.get<SecurityRulesResponse>(

@@ -1,8 +1,10 @@
 import type { ForgeRedirectRule, RedirectRuleResponse } from "@studiometa/forge-api";
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
 
+import type { GetRedirectRuleOptions } from "./types.ts";
+
 export async function getRedirectRule(
-  options: { server_id: string; site_id: string; id: string },
+  options: GetRedirectRuleOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<ForgeRedirectRule>> {
   const response = await ctx.client.get<RedirectRuleResponse>(

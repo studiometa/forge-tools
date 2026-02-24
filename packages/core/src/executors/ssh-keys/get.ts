@@ -1,8 +1,10 @@
 import type { ForgeSshKey, SshKeyResponse } from "@studiometa/forge-api";
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
 
+import type { GetSshKeyOptions } from "./types.ts";
+
 export async function getSshKey(
-  options: { server_id: string; id: string },
+  options: GetSshKeyOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<ForgeSshKey>> {
   const response = await ctx.client.get<SshKeyResponse>(

@@ -1,8 +1,10 @@
 import type { ForgeNginxTemplate, NginxTemplateResponse } from "@studiometa/forge-api";
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
 
+import type { UpdateNginxTemplateOptions } from "./types.ts";
+
 export async function updateNginxTemplate(
-  options: { server_id: string; id: string; name?: string; content?: string },
+  options: UpdateNginxTemplateOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<ForgeNginxTemplate>> {
   const { server_id, id, ...data } = options;

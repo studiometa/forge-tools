@@ -1,9 +1,6 @@
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
 
-export interface DeploySiteOptions {
-  server_id: string;
-  site_id: string;
-}
+import type { DeploySiteOptions } from "./types.ts";
 
 /**
  * Trigger a deployment for a site.

@@ -1,9 +1,6 @@
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
 
-export interface GetDeploymentScriptOptions {
-  server_id: string;
-  site_id: string;
-}
+import type { GetDeploymentScriptOptions } from "./types.ts";
 
 /**
  * Get the deployment script for a site.
