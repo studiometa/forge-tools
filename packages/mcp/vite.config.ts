@@ -11,6 +11,7 @@ export default defineConfig({
       server: "./src/server.ts",
       auth: "./src/auth.ts",
       http: "./src/http.ts",
+      "streamable-http": "./src/streamable-http.ts",
     },
     external: [
       /^@studiometa\/forge-api/,

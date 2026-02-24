@@ -1,8 +1,11 @@
 /**
- * HTTP transport handlers for Forge MCP Server
+ * HTTP transport handlers for Forge MCP Server (custom JSON-RPC over HTTP)
  *
- * This module contains the app/router creation logic for the HTTP transport.
- * The actual server startup is in server.ts.
+ * @deprecated Use streamable-http.ts instead, which implements the official
+ * MCP Streamable HTTP transport specification via the SDK's StreamableHTTPServerTransport.
+ *
+ * This module contains the legacy custom JSON-RPC over HTTP implementation.
+ * It is kept for backward compatibility but will be removed in a future version.
  */
 
 import {

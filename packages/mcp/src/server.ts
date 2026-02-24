@@ -1,42 +1,58 @@
 #!/usr/bin/env node
 
 /**
- * Forge MCP Server - HTTP Transport
+ * Forge MCP Server - HTTP Transport (Streamable HTTP)
  *
- * This is the remote HTTP server mode for Claude Desktop custom connectors.
+ * Implements the official MCP Streamable HTTP transport specification.
  * Credentials are passed via Bearer token in the Authorization header.
  *
- * Token format: raw Forge API token (no base64 encoding needed)
+ * Token format: raw Forge API token
  *
  * Usage:
  *   forge-mcp-server
  *   PORT=3000 forge-mcp-server
  *
- * Claude Desktop custom connector config:
- *   Name: Forge
- *   URL: https://your-server.example.com
- *   Authorization: Bearer <your-forge-api-token>
+ * Endpoints:
+ *   POST /mcp   - MCP Streamable HTTP (JSON-RPC messages)
+ *   GET  /mcp   - MCP Streamable HTTP (SSE stream for server notifications)
+ *   DELETE /mcp - MCP Streamable HTTP (session termination)
+ *   GET  /       - Service info
+ *   GET  /health - Health check
  */
 
 import { toNodeHandler } from "h3/node";
 import { createServer, type Server } from "node:http";
 
-import { createHttpApp } from "./http.ts";
+import { createHealthApp } from "./streamable-http.ts";
+import { handleMcpRequest } from "./streamable-http.ts";
 import { VERSION } from "./version.ts";
 
 const DEFAULT_PORT = 3000;
 const DEFAULT_HOST = "0.0.0.0";
 
 /**
- * Start the HTTP server
+ * Start the HTTP server with Streamable HTTP transport.
  */
 export function startHttpServer(
   port: number = DEFAULT_PORT,
   host: string = DEFAULT_HOST,
 ): Promise<Server> {
   return new Promise((resolve) => {
-    const app = createHttpApp();
-    const server = createServer(toNodeHandler(app));
+    const healthApp = createHealthApp();
+    const healthHandler = toNodeHandler(healthApp);
+
+    const server = createServer(async (req, res) => {
+      const url = req.url ?? "/";
+
+      // Route /mcp to MCP Streamable HTTP transport
+      if (url === "/mcp" || url.startsWith("/mcp?")) {
+        await handleMcpRequest(req, res);
+        return;
+      }
+
+      // Everything else goes to h3 (health checks, service info)
+      healthHandler(req, res);
+    });
 
     server.listen(port, host, () => {
       const displayHost = host === "0.0.0.0" ? "localhost" : host;
@@ -46,7 +62,9 @@ export function startHttpServer(
       console.log(`Running at http://${displayHost}:${port}`);
       console.log("");
       console.log("Endpoints:");
-      console.log(`  POST http://${displayHost}:${port}/mcp - MCP JSON-RPC endpoint`);
+      console.log(
+        `  POST/GET/DELETE http://${displayHost}:${port}/mcp - MCP Streamable HTTP endpoint`,
+      );
       console.log(`  GET  http://${displayHost}:${port}/health - Health check`);
       console.log("");
       console.log("Authentication:");
