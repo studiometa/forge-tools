@@ -52,6 +52,13 @@ describe("@studiometa/forge-core", () => {
     expect(core.deleteDatabase).toBeTypeOf("function");
   });
 
+  it("should export database user executors", () => {
+    expect(core.listDatabaseUsers).toBeTypeOf("function");
+    expect(core.getDatabaseUser).toBeTypeOf("function");
+    expect(core.createDatabaseUser).toBeTypeOf("function");
+    expect(core.deleteDatabaseUser).toBeTypeOf("function");
+  });
+
   it("should export daemon executors", () => {
     expect(core.listDaemons).toBeTypeOf("function");
     expect(core.getDaemon).toBeTypeOf("function");

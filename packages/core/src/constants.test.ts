@@ -3,12 +3,13 @@ import { describe, expect, it } from "vitest";
 import { ACTIONS, RESOURCES } from "./constants.ts";
 
 describe("constants", () => {
-  it("should export RESOURCES array with all 19 implemented resources", () => {
-    expect(RESOURCES).toHaveLength(19);
+  it("should export RESOURCES array with all 20 implemented resources", () => {
+    expect(RESOURCES).toHaveLength(20);
     expect(RESOURCES).toContain("servers");
     expect(RESOURCES).toContain("sites");
     expect(RESOURCES).toContain("deployments");
     expect(RESOURCES).toContain("databases");
+    expect(RESOURCES).toContain("database-users");
     expect(RESOURCES).toContain("daemons");
     expect(RESOURCES).toContain("certificates");
     expect(RESOURCES).toContain("env");

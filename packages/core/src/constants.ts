@@ -8,6 +8,7 @@ export const RESOURCES = [
   "deployments",
   "certificates",
   "databases",
+  "database-users",
   "daemons",
   "env",
   "nginx",

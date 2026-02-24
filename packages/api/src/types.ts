@@ -210,6 +210,12 @@ export interface CreateDatabaseData {
   password?: string;
 }
 
+export interface CreateDatabaseUserData {
+  name: string;
+  password: string;
+  databases?: number[];
+}
+
 // ── Daemons (Background Processes) ───────────────────
 
 export interface ForgeDaemon {
@@ -486,6 +492,14 @@ export interface DatabaseResponse {
 
 export interface DatabasesResponse {
   databases: ForgeDatabase[];
+}
+
+export interface DatabaseUserResponse {
+  user: ForgeDatabaseUser;
+}
+
+export interface DatabaseUsersResponse {
+  users: ForgeDatabaseUser[];
 }
 
 export interface DaemonResponse {
