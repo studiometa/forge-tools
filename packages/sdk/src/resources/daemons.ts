@@ -6,6 +6,8 @@ import type {
   DaemonsResponse,
 } from "@studiometa/forge-api";
 
+import { BaseCollection } from "./base.ts";
+
 /**
  * Collection of daemons (background processes) on a server.
  *
@@ -16,12 +18,14 @@ import type {
  * const daemons = await forge.server(123).daemons.list();
  * ```
  */
-export class DaemonsCollection {
+export class DaemonsCollection extends BaseCollection {
   /** @internal */
   constructor(
-    private readonly client: HttpClient,
+    client: HttpClient,
     private readonly serverId: number,
-  ) {}
+  ) {
+    super(client);
+  }
 
   private get basePath(): string {
     return `/servers/${this.serverId}/daemons`;

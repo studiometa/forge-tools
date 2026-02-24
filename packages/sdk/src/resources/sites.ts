@@ -8,6 +8,7 @@ import type {
 
 import { DeploymentsCollection } from "./deployments.ts";
 import { CertificatesCollection } from "./certificates.ts";
+import { BaseCollection } from "./base.ts";
 
 /**
  * Collection of sites on a server.
@@ -19,12 +20,14 @@ import { CertificatesCollection } from "./certificates.ts";
  * const sites = await forge.server(123).sites.list();
  * ```
  */
-export class SitesCollection {
+export class SitesCollection extends BaseCollection {
   /** @internal */
   constructor(
-    private readonly client: HttpClient,
+    client: HttpClient,
     private readonly serverId: number,
-  ) {}
+  ) {
+    super(client);
+  }
 
   private get basePath(): string {
     return `/servers/${this.serverId}/sites`;
@@ -113,7 +116,7 @@ export class SitesCollection {
  * const env = await forge.server(123).site(456).env.get();
  * ```
  */
-export class SiteResource {
+export class SiteResource extends BaseCollection {
   /** Deployments for this site. */
   readonly deployments: DeploymentsCollection;
 
@@ -128,10 +131,11 @@ export class SiteResource {
 
   /** @internal */
   constructor(
-    private readonly client: HttpClient,
+    client: HttpClient,
     private readonly serverId: number,
     private readonly siteId: number,
   ) {
+    super(client);
     this.deployments = new DeploymentsCollection(client, serverId, siteId);
     this.certificates = new CertificatesCollection(client, serverId, siteId);
     this.env = new SiteEnvResource(client, serverId, siteId);
@@ -189,13 +193,15 @@ export class SiteResource {
  * await forge.server(123).site(456).env.update('APP_ENV=production\n...');
  * ```
  */
-export class SiteEnvResource {
+export class SiteEnvResource extends BaseCollection {
   /** @internal */
   constructor(
-    private readonly client: HttpClient,
+    client: HttpClient,
     private readonly serverId: number,
     private readonly siteId: number,
-  ) {}
+  ) {
+    super(client);
+  }
 
   private get basePath(): string {
     return `/servers/${this.serverId}/sites/${this.siteId}/env`;
@@ -229,13 +235,15 @@ export class SiteEnvResource {
  * await forge.server(123).site(456).nginx.update('server { ... }');
  * ```
  */
-export class SiteNginxResource {
+export class SiteNginxResource extends BaseCollection {
   /** @internal */
   constructor(
-    private readonly client: HttpClient,
+    client: HttpClient,
     private readonly serverId: number,
     private readonly siteId: number,
-  ) {}
+  ) {
+    super(client);
+  }
 
   private get basePath(): string {
     return `/servers/${this.serverId}/sites/${this.siteId}/nginx`;
