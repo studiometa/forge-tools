@@ -1,10 +1,12 @@
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
 
+import type { UpdateEnvOptions } from "./types.ts";
+
 /**
  * Update environment variables for a site.
  */
 export async function updateEnv(
-  options: { server_id: string; site_id: string; content: string },
+  options: UpdateEnvOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<void>> {
   await ctx.client.put(`/servers/${options.server_id}/sites/${options.site_id}/env`, {

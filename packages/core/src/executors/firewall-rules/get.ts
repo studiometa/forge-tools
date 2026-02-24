@@ -1,8 +1,10 @@
 import type { FirewallRuleResponse, ForgeFirewallRule } from "@studiometa/forge-api";
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
 
+import type { GetFirewallRuleOptions } from "./types.ts";
+
 export async function getFirewallRule(
-  options: { server_id: string; id: string },
+  options: GetFirewallRuleOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<ForgeFirewallRule>> {
   const response = await ctx.client.get<FirewallRuleResponse>(

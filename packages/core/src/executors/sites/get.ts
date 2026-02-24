@@ -1,10 +1,7 @@
 import type { ForgeSite, SiteResponse } from "@studiometa/forge-api";
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
 
-export interface GetSiteOptions {
-  server_id: string;
-  site_id: string;
-}
+import type { GetSiteOptions } from "./types.ts";
 
 /**
  * Get a specific site by ID.

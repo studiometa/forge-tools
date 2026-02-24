@@ -1,9 +1,7 @@
 import type { ForgeSite, SitesResponse } from "@studiometa/forge-api";
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
 
-export interface ListSitesOptions {
-  server_id: string;
-}
+import type { ListSitesOptions } from "./types.ts";
 
 /**
  * List all sites on a server.

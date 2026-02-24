@@ -1,15 +1,13 @@
-import type {
-  BackupConfigResponse,
-  CreateBackupConfigData,
-  ForgeBackupConfig,
-} from "@studiometa/forge-api";
+import type { BackupConfigResponse, ForgeBackupConfig } from "@studiometa/forge-api";
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
+
+import type { CreateBackupConfigOptions } from "./types.ts";
 
 /**
  * Create a new backup configuration.
  */
 export async function createBackupConfig(
-  options: { server_id: string } & CreateBackupConfigData,
+  options: CreateBackupConfigOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<ForgeBackupConfig>> {
   const { server_id, ...data } = options;

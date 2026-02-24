@@ -1,7 +1,9 @@
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
 
+import type { DeleteRedirectRuleOptions } from "./types.ts";
+
 export async function deleteRedirectRule(
-  options: { server_id: string; site_id: string; id: string },
+  options: DeleteRedirectRuleOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<void>> {
   await ctx.client.delete(

@@ -1,10 +1,12 @@
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
 
+import type { ActivateCertificateOptions } from "./types.ts";
+
 /**
  * Activate an SSL certificate.
  */
 export async function activateCertificate(
-  options: { server_id: string; site_id: string; id: string },
+  options: ActivateCertificateOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<void>> {
   await ctx.client.post(

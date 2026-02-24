@@ -1,8 +1,10 @@
 import type { ForgeRecipe, RecipeResponse } from "@studiometa/forge-api";
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
 
+import type { GetRecipeOptions } from "./types.ts";
+
 export async function getRecipe(
-  options: { id: string },
+  options: GetRecipeOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<ForgeRecipe>> {
   const response = await ctx.client.get<RecipeResponse>(`/recipes/${options.id}`);

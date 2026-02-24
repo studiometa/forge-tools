@@ -1,15 +1,13 @@
-import type {
-  CertificateResponse,
-  CreateCertificateData,
-  ForgeCertificate,
-} from "@studiometa/forge-api";
+import type { CertificateResponse, ForgeCertificate } from "@studiometa/forge-api";
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
+
+import type { CreateCertificateOptions } from "./types.ts";
 
 /**
  * Create a new SSL certificate.
  */
 export async function createCertificate(
-  options: { server_id: string; site_id: string } & CreateCertificateData,
+  options: CreateCertificateOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<ForgeCertificate>> {
   const { server_id, site_id, ...data } = options;

@@ -1,11 +1,13 @@
 import type { ForgeScheduledJob, ScheduledJobResponse } from "@studiometa/forge-api";
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
 
+import type { GetScheduledJobOptions } from "./types.ts";
+
 /**
  * Get a specific scheduled job.
  */
 export async function getScheduledJob(
-  options: { server_id: string; id: string },
+  options: GetScheduledJobOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<ForgeScheduledJob>> {
   const response = await ctx.client.get<ScheduledJobResponse>(

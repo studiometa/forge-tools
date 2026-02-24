@@ -1,8 +1,10 @@
-import type { CreateSshKeyData, ForgeSshKey, SshKeyResponse } from "@studiometa/forge-api";
+import type { ForgeSshKey, SshKeyResponse } from "@studiometa/forge-api";
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
 
+import type { CreateSshKeyOptions } from "./types.ts";
+
 export async function createSshKey(
-  options: { server_id: string } & CreateSshKeyData,
+  options: CreateSshKeyOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<ForgeSshKey>> {
   const { server_id, ...data } = options;

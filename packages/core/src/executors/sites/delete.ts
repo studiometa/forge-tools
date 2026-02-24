@@ -1,9 +1,6 @@
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
 
-export interface DeleteSiteOptions {
-  server_id: string;
-  site_id: string;
-}
+import type { DeleteSiteOptions } from "./types.ts";
 
 /**
  * Delete a site.

@@ -1,12 +1,10 @@
-import type {
-  CreateSecurityRuleData,
-  ForgeSecurityRule,
-  SecurityRuleResponse,
-} from "@studiometa/forge-api";
+import type { ForgeSecurityRule, SecurityRuleResponse } from "@studiometa/forge-api";
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
 
+import type { CreateSecurityRuleOptions } from "./types.ts";
+
 export async function createSecurityRule(
-  options: { server_id: string; site_id: string } & CreateSecurityRuleData,
+  options: CreateSecurityRuleOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<ForgeSecurityRule>> {
   const { server_id, site_id, ...data } = options;

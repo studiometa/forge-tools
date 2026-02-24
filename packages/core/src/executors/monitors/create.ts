@@ -1,8 +1,10 @@
-import type { CreateMonitorData, ForgeMonitor, MonitorResponse } from "@studiometa/forge-api";
+import type { ForgeMonitor, MonitorResponse } from "@studiometa/forge-api";
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
 
+import type { CreateMonitorOptions } from "./types.ts";
+
 export async function createMonitor(
-  options: { server_id: string } & CreateMonitorData,
+  options: CreateMonitorOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<ForgeMonitor>> {
   const { server_id, ...data } = options;

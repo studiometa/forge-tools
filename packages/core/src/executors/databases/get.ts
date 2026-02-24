@@ -1,11 +1,13 @@
 import type { DatabaseResponse, ForgeDatabase } from "@studiometa/forge-api";
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
 
+import type { GetDatabaseOptions } from "./types.ts";
+
 /**
  * Get a single database.
  */
 export async function getDatabase(
-  options: { server_id: string; id: string },
+  options: GetDatabaseOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<ForgeDatabase>> {
   const response = await ctx.client.get<DatabaseResponse>(
