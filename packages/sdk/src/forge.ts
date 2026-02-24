@@ -3,6 +3,7 @@ import type { ForgeOptions, ForgeUser, UserResponse } from "@studiometa/forge-ap
 import { HttpClient } from "@studiometa/forge-api";
 
 import { ServersCollection, ServerResource } from "./resources/servers.ts";
+import { RecipesCollection } from "./resources/recipes.ts";
 
 /**
  * Laravel Forge TypeScript SDK.
@@ -36,6 +37,9 @@ export class Forge {
   /** Server operations (list, get, create, update, delete, reboot). */
   readonly servers: ServersCollection;
 
+  /** Recipe operations (list, get, create, delete, run). */
+  readonly recipes: RecipesCollection;
+
   /**
    * Create a new Forge SDK instance.
    *
@@ -59,6 +63,7 @@ export class Forge {
   constructor(token: string, options?: ForgeOptions) {
     this.client = new HttpClient({ token, ...options });
     this.servers = new ServersCollection(this.client);
+    this.recipes = new RecipesCollection(this.client);
   }
 
   /**

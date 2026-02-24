@@ -6,6 +6,9 @@ import { AsyncPaginatedIterator } from "../pagination.ts";
 import { SitesCollection, SiteResource, SiteEnvResource, SiteNginxResource } from "./sites.ts";
 import { DeploymentsCollection } from "./deployments.ts";
 import { CertificatesCollection } from "./certificates.ts";
+import { CommandsCollection } from "./commands.ts";
+import { SecurityRulesCollection } from "./security-rules.ts";
+import { RedirectRulesCollection } from "./redirect-rules.ts";
 
 function createTrackingClient(): {
   client: HttpClient;
@@ -128,6 +131,9 @@ describe("SiteResource", () => {
     expect(resource.certificates).toBeInstanceOf(CertificatesCollection);
     expect(resource.env).toBeInstanceOf(SiteEnvResource);
     expect(resource.nginx).toBeInstanceOf(SiteNginxResource);
+    expect(resource.commands).toBeInstanceOf(CommandsCollection);
+    expect(resource.securityRules).toBeInstanceOf(SecurityRulesCollection);
+    expect(resource.redirectRules).toBeInstanceOf(RedirectRulesCollection);
   });
 
   it("should get site details", async () => {

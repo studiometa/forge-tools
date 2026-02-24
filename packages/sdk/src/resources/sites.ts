@@ -9,6 +9,9 @@ import type {
 import { AsyncPaginatedIterator } from "../pagination.ts";
 import { DeploymentsCollection } from "./deployments.ts";
 import { CertificatesCollection } from "./certificates.ts";
+import { CommandsCollection } from "./commands.ts";
+import { SecurityRulesCollection } from "./security-rules.ts";
+import { RedirectRulesCollection } from "./redirect-rules.ts";
 import { BaseCollection } from "./base.ts";
 
 /**
@@ -159,6 +162,15 @@ export class SiteResource extends BaseCollection {
   /** Nginx configuration for this site. */
   readonly nginx: SiteNginxResource;
 
+  /** Commands run on this site. */
+  readonly commands: CommandsCollection;
+
+  /** Security rules for this site. */
+  readonly securityRules: SecurityRulesCollection;
+
+  /** Redirect rules for this site. */
+  readonly redirectRules: RedirectRulesCollection;
+
   /** @internal */
   constructor(
     client: HttpClient,
@@ -170,6 +182,9 @@ export class SiteResource extends BaseCollection {
     this.certificates = new CertificatesCollection(client, serverId, siteId);
     this.env = new SiteEnvResource(client, serverId, siteId);
     this.nginx = new SiteNginxResource(client, serverId, siteId);
+    this.commands = new CommandsCollection(client, serverId, siteId);
+    this.securityRules = new SecurityRulesCollection(client, serverId, siteId);
+    this.redirectRules = new RedirectRulesCollection(client, serverId, siteId);
   }
 
   private get basePath(): string {

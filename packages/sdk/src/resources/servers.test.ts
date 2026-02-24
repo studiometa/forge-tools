@@ -8,6 +8,12 @@ import { SitesCollection, SiteResource } from "./sites.ts";
 import { DatabasesCollection } from "./databases.ts";
 import { DatabaseUsersCollection } from "./database-users.ts";
 import { DaemonsCollection } from "./daemons.ts";
+import { BackupsCollection } from "./backups.ts";
+import { ScheduledJobsCollection } from "./scheduled-jobs.ts";
+import { MonitorsCollection } from "./monitors.ts";
+import { FirewallRulesCollection } from "./firewall-rules.ts";
+import { SshKeysCollection } from "./ssh-keys.ts";
+import { NginxTemplatesCollection } from "./nginx-templates.ts";
 
 function createClient(body: unknown = {}): HttpClient {
   return new HttpClient({
@@ -157,6 +163,12 @@ describe("ServerResource", () => {
     expect(resource.databases).toBeInstanceOf(DatabasesCollection);
     expect(resource.databaseUsers).toBeInstanceOf(DatabaseUsersCollection);
     expect(resource.daemons).toBeInstanceOf(DaemonsCollection);
+    expect(resource.backups).toBeInstanceOf(BackupsCollection);
+    expect(resource.scheduledJobs).toBeInstanceOf(ScheduledJobsCollection);
+    expect(resource.monitors).toBeInstanceOf(MonitorsCollection);
+    expect(resource.firewallRules).toBeInstanceOf(FirewallRulesCollection);
+    expect(resource.sshKeys).toBeInstanceOf(SshKeysCollection);
+    expect(resource.nginxTemplates).toBeInstanceOf(NginxTemplatesCollection);
   });
 
   it("should return a SiteResource", () => {

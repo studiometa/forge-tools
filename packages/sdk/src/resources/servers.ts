@@ -11,6 +11,12 @@ import { SitesCollection, SiteResource } from "./sites.ts";
 import { DatabasesCollection } from "./databases.ts";
 import { DatabaseUsersCollection } from "./database-users.ts";
 import { DaemonsCollection } from "./daemons.ts";
+import { BackupsCollection } from "./backups.ts";
+import { ScheduledJobsCollection } from "./scheduled-jobs.ts";
+import { MonitorsCollection } from "./monitors.ts";
+import { FirewallRulesCollection } from "./firewall-rules.ts";
+import { SshKeysCollection } from "./ssh-keys.ts";
+import { NginxTemplatesCollection } from "./nginx-templates.ts";
 import { BaseCollection } from "./base.ts";
 
 /**
@@ -176,6 +182,24 @@ export class ServerResource extends BaseCollection {
   /** Daemons (background processes) on this server. */
   readonly daemons: DaemonsCollection;
 
+  /** Backup configurations on this server. */
+  readonly backups: BackupsCollection;
+
+  /** Scheduled jobs (cron jobs) on this server. */
+  readonly scheduledJobs: ScheduledJobsCollection;
+
+  /** Monitors on this server. */
+  readonly monitors: MonitorsCollection;
+
+  /** Firewall rules on this server. */
+  readonly firewallRules: FirewallRulesCollection;
+
+  /** SSH keys on this server. */
+  readonly sshKeys: SshKeysCollection;
+
+  /** Nginx templates on this server. */
+  readonly nginxTemplates: NginxTemplatesCollection;
+
   /** @internal */
   constructor(
     client: HttpClient,
@@ -186,6 +210,12 @@ export class ServerResource extends BaseCollection {
     this.databases = new DatabasesCollection(client, serverId);
     this.databaseUsers = new DatabaseUsersCollection(client, serverId);
     this.daemons = new DaemonsCollection(client, serverId);
+    this.backups = new BackupsCollection(client, serverId);
+    this.scheduledJobs = new ScheduledJobsCollection(client, serverId);
+    this.monitors = new MonitorsCollection(client, serverId);
+    this.firewallRules = new FirewallRulesCollection(client, serverId);
+    this.sshKeys = new SshKeysCollection(client, serverId);
+    this.nginxTemplates = new NginxTemplatesCollection(client, serverId);
   }
 
   /**
