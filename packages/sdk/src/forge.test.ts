@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { Forge } from "./forge.ts";
 import { ServersCollection, ServerResource } from "./resources/servers.ts";
+import { RecipesCollection } from "./resources/recipes.ts";
 
 function createMockFetch(body: unknown = {}): typeof globalThis.fetch {
   return async () =>
@@ -23,6 +24,11 @@ describe("Forge", () => {
   it("should expose servers collection", () => {
     const forge = new Forge("test-token", { fetch: createMockFetch() });
     expect(forge.servers).toBeInstanceOf(ServersCollection);
+  });
+
+  it("should expose recipes collection", () => {
+    const forge = new Forge("test-token", { fetch: createMockFetch() });
+    expect(forge.recipes).toBeInstanceOf(RecipesCollection);
   });
 
   describe("server()", () => {
