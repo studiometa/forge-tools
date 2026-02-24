@@ -12,11 +12,35 @@ The official Forge SDK exists only in PHP. This project fills the gap with a ful
 | Package                                     | Description                                            |
 | ------------------------------------------- | ------------------------------------------------------ |
 | [`@studiometa/forge-sdk`](./packages/sdk)   | **Fluent, chainable TypeScript SDK** for Laravel Forge |
+| [`@studiometa/forge-cli`](./packages/cli)   | CLI tool for managing Forge servers, sites, and more   |
 | [`@studiometa/forge-mcp`](./packages/mcp)   | MCP server for Claude Desktop and other MCP clients    |
 | [`@studiometa/forge-core`](./packages/core) | Shared business logic — executor functions with DI     |
 | [`@studiometa/forge-api`](./packages/api)   | Internal API client, types, config, and rate limiter   |
 
 ## Quick Start
+
+### CLI
+
+```bash
+npm install -g @studiometa/forge-cli
+```
+
+```bash
+# Save your API token
+forge-cli config set YOUR_FORGE_TOKEN
+
+# List all servers
+forge-cli servers list
+
+# List sites on a server
+forge-cli sites list --server 123
+
+# Deploy a site
+forge-cli deployments deploy --server 123 --site 456
+
+# Get JSON output (for scripting and AI agents)
+forge-cli servers list --format json
+```
 
 ### SDK
 
@@ -81,8 +105,10 @@ Add to your Claude Desktop config:
 ```
 forge-api   → (nothing)       # HTTP client, types, config, rate limiter
 forge-sdk   → forge-api       # Fluent chainable SDK (the hero package)
-forge-core  → forge-api       # Executors with DI for MCP
+forge-core  → forge-api       # Executors with DI for MCP and CLI
 forge-mcp   → forge-core      # MCP server (stdio transport)
+forge-cli   → forge-core      # CLI tool (human + AI agent use)
+            → forge-api
 ```
 
 ## Contributing
