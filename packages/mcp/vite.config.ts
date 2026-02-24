@@ -6,12 +6,19 @@ import { createBuildConfig, createTestConfig, versionDefine } from "../../vite.c
 export default defineConfig({
   define: versionDefine(),
   build: createBuildConfig({
-    entry: { index: "./src/index.ts" },
+    entry: {
+      index: "./src/index.ts",
+      server: "./src/server.ts",
+      auth: "./src/auth.ts",
+      http: "./src/http.ts",
+    },
     external: [
       /^@studiometa\/forge-api/,
       /^@studiometa\/forge-core/,
       /^@modelcontextprotocol\//,
       /^node:/,
+      /^h3$/,
+      /^h3\//,
     ],
   }),
   plugins: [
@@ -25,7 +32,7 @@ export default defineConfig({
   ],
   test: createTestConfig({
     name: "mcp",
-    coverageExclude: ["src/index.ts", "src/version.ts", "src/handlers/types.ts"],
+    coverageExclude: ["src/index.ts", "src/server.ts", "src/version.ts", "src/handlers/types.ts"],
     coverageThresholds: {
       statements: 80,
       branches: 70,
