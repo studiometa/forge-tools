@@ -1,0 +1,93 @@
+import {
+  createSecurityRule,
+  deleteSecurityRule,
+  getSecurityRule,
+  listSecurityRules,
+} from "@studiometa/forge-core";
+
+import type { CommandContext } from "../../context.ts";
+
+import { exitWithValidationError, runCommand } from "../../error-handler.ts";
+
+function requireServerAndSite(
+  ctx: CommandContext,
+  usage: string,
+): { server_id: string; site_id: string } {
+  const server_id = String(ctx.options.server ?? "");
+  const site_id = String(ctx.options.site ?? "");
+
+  if (!server_id) {
+    exitWithValidationError("server_id", usage, ctx.formatter);
+  }
+  if (!site_id) {
+    exitWithValidationError("site_id", usage, ctx.formatter);
+  }
+
+  return { server_id, site_id };
+}
+
+export async function securityRulesList(ctx: CommandContext): Promise<void> {
+  const usage = "forge-cli security-rules list --server <server_id> --site <site_id>";
+  const { server_id, site_id } = requireServerAndSite(ctx, usage);
+
+  await runCommand(async () => {
+    const token = ctx.getToken();
+    const execCtx = ctx.createExecutorContext(token);
+    const result = await listSecurityRules({ server_id, site_id }, execCtx);
+    ctx.formatter.output(result.data);
+  }, ctx.formatter);
+}
+
+export async function securityRulesGet(args: string[], ctx: CommandContext): Promise<void> {
+  const [id] = args;
+  const usage = "forge-cli security-rules get <rule_id> --server <server_id> --site <site_id>";
+
+  if (!id) {
+    exitWithValidationError("rule_id", usage, ctx.formatter);
+  }
+
+  const { server_id, site_id } = requireServerAndSite(ctx, usage);
+
+  await runCommand(async () => {
+    const token = ctx.getToken();
+    const execCtx = ctx.createExecutorContext(token);
+    const result = await getSecurityRule({ server_id, site_id, id }, execCtx);
+    ctx.formatter.output(result.data);
+  }, ctx.formatter);
+}
+
+export async function securityRulesCreate(ctx: CommandContext): Promise<void> {
+  const usage =
+    "forge-cli security-rules create --server <server_id> --site <site_id> --name <name>";
+  const { server_id, site_id } = requireServerAndSite(ctx, usage);
+  const name = String(ctx.options.name ?? "");
+
+  if (!name) {
+    exitWithValidationError("name", usage, ctx.formatter);
+  }
+
+  await runCommand(async () => {
+    const token = ctx.getToken();
+    const execCtx = ctx.createExecutorContext(token);
+    const result = await createSecurityRule({ server_id, site_id, name, credentials: [] }, execCtx);
+    ctx.formatter.output(result.data);
+  }, ctx.formatter);
+}
+
+export async function securityRulesDelete(args: string[], ctx: CommandContext): Promise<void> {
+  const [id] = args;
+  const usage = "forge-cli security-rules delete <rule_id> --server <server_id> --site <site_id>";
+
+  if (!id) {
+    exitWithValidationError("rule_id", usage, ctx.formatter);
+  }
+
+  const { server_id, site_id } = requireServerAndSite(ctx, usage);
+
+  await runCommand(async () => {
+    const token = ctx.getToken();
+    const execCtx = ctx.createExecutorContext(token);
+    await deleteSecurityRule({ server_id, site_id, id }, execCtx);
+    ctx.formatter.success(`Security rule ${id} deleted.`);
+  }, ctx.formatter);
+}
