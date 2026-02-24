@@ -138,7 +138,7 @@ export async function executeToolWithCredentials(
   const executorContext: ExecutorContext = { client };
   const handlerContext: HandlerContext = {
     executorContext,
-    compact: compact !== false,
+    compact: compact ?? action !== "get",
   };
 
   // Route to resource handler with error catching

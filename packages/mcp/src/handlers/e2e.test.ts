@@ -332,6 +332,64 @@ describe("E2E: executeToolWithCredentials", () => {
     expect(Array.isArray(parsed)).toBe(true);
   });
 
+  it("should default compact=true for list action", async () => {
+    // list action without explicit compact → compact defaults to true → returns text summary
+    const result = await executeToolWithCredentials(
+      "forge",
+      { resource: "servers", action: "list" },
+      creds,
+    );
+    expect(result.isError).toBeUndefined();
+    // compact=true → result.text (plain string summary), not a JSON array
+    const text = result.content[0]!.text;
+    expect(typeof text).toBe("string");
+    expect(text).toContain("web-1");
+    // plain text summary is not a JSON array
+    expect(text.trimStart()).not.toMatch(/^\[/);
+  });
+
+  it("should default compact=false for get action", async () => {
+    // get action without explicit compact → compact defaults to false → returns full data object
+    const result = await executeToolWithCredentials(
+      "forge",
+      { resource: "servers", action: "get", id: "1" },
+      creds,
+    );
+    expect(result.isError).toBeUndefined();
+    // compact=false → result.data (JSON object), not a string summary
+    const parsed = JSON.parse(result.content[0]!.text);
+    expect(typeof parsed).toBe("object");
+    expect(parsed).not.toBeNull();
+    expect(Array.isArray(parsed)).toBe(false);
+    expect(parsed.id).toBe(1);
+  });
+
+  it("should respect explicit compact=true for get action", async () => {
+    // Explicit compact=true on a get action → returns text summary
+    const result = await executeToolWithCredentials(
+      "forge",
+      { resource: "servers", action: "get", id: "1", compact: true },
+      creds,
+    );
+    expect(result.isError).toBeUndefined();
+    // compact=true → plain text summary
+    const text = result.content[0]!.text;
+    expect(typeof text).toBe("string");
+    expect(text).toContain("Server: web-1");
+  });
+
+  it("should respect explicit compact=false for list action", async () => {
+    // Explicit compact=false on a list action → returns full data array
+    const result = await executeToolWithCredentials(
+      "forge",
+      { resource: "servers", action: "list", compact: false },
+      creds,
+    );
+    expect(result.isError).toBeUndefined();
+    const parsed = JSON.parse(result.content[0]!.text);
+    expect(Array.isArray(parsed)).toBe(true);
+  });
+
   it("should handle help overview when resource is empty string", async () => {
     const result = await executeToolWithCredentials(
       "forge",
