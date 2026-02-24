@@ -364,6 +364,33 @@ describe("E2E: executeToolWithCredentials", () => {
     expect(parsed.id).toBe(1);
   });
 
+  it("should include contextual hints for get action on servers", async () => {
+    const result = await executeToolWithCredentials(
+      "forge",
+      { resource: "servers", action: "get", id: "1" },
+      creds,
+    );
+    expect(result.isError).toBeUndefined();
+    const parsed = JSON.parse(result.content[0]!.text);
+    // get action with no compact → includeHints=true → _hints injected
+    expect(parsed._hints).toBeDefined();
+    expect(parsed._hints.related_resources).toBeDefined();
+  });
+
+  it("should not include hints when compact=true for get action", async () => {
+    const result = await executeToolWithCredentials(
+      "forge",
+      { resource: "servers", action: "get", id: "1", compact: true },
+      creds,
+    );
+    expect(result.isError).toBeUndefined();
+    // compact=true → text summary, no JSON with _hints
+    const text = result.content[0]!.text;
+    expect(text).toContain("Server: web-1");
+    // text summary is not a JSON object with _hints
+    expect(text).not.toContain("_hints");
+  });
+
   it("should respect explicit compact=true for get action", async () => {
     // Explicit compact=true on a get action → returns text summary
     const result = await executeToolWithCredentials(

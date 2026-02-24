@@ -116,4 +116,16 @@ describe("handleServers", () => {
     );
     expect(result.isError).toBeUndefined();
   });
+
+  it("should inject hints on get when includeHints=true", async () => {
+    const ctx = createMockContext();
+    ctx.compact = false;
+    ctx.includeHints = true;
+
+    const result = await handleServers("get", { resource: "servers", action: "get", id: "1" }, ctx);
+    expect(result.isError).toBeUndefined();
+    const parsed = JSON.parse(result.content[0]!.text);
+    expect(parsed._hints).toBeDefined();
+    expect(parsed._hints.related_resources).toBeDefined();
+  });
 });

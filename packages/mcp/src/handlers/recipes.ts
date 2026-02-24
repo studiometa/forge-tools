@@ -9,6 +9,7 @@ import {
 import type { ForgeRecipe } from "@studiometa/forge-api";
 
 import { formatRecipe, formatRecipeList } from "../formatters.ts";
+import { getRecipeHints } from "../hints.ts";
 import { createResourceHandler } from "./factory.ts";
 
 export const handleRecipes = createResourceHandler({
@@ -27,6 +28,7 @@ export const handleRecipes = createResourceHandler({
     delete: deleteRecipe,
     run: runRecipe,
   },
+  hints: (_data, id) => getRecipeHints(id),
   formatResult: (action, data, args) => {
     switch (action) {
       case "list":

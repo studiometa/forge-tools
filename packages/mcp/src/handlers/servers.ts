@@ -9,6 +9,7 @@ import {
 import type { ForgeServer } from "@studiometa/forge-api";
 
 import { formatServer, formatServerList } from "../formatters.ts";
+import { getServerHints } from "../hints.ts";
 import { createResourceHandler } from "./factory.ts";
 
 export const handleServers = createResourceHandler({
@@ -27,6 +28,7 @@ export const handleServers = createResourceHandler({
     delete: deleteServer,
     reboot: rebootServer,
   },
+  hints: (_data, id) => getServerHints(id),
   mapOptions: (action, args) => {
     switch (action) {
       case "get":

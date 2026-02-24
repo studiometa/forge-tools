@@ -3,6 +3,7 @@ import { createDatabase, deleteDatabase, getDatabase, listDatabases } from "@stu
 import type { ForgeDatabase } from "@studiometa/forge-api";
 
 import { formatDatabase, formatDatabaseList } from "../formatters.ts";
+import { getDatabaseHints } from "../hints.ts";
 import { createResourceHandler } from "./factory.ts";
 
 export const handleDatabases = createResourceHandler({
@@ -19,6 +20,10 @@ export const handleDatabases = createResourceHandler({
     get: getDatabase,
     create: createDatabase,
     delete: deleteDatabase,
+  },
+  hints: (data, id) => {
+    const db = data as ForgeDatabase;
+    return getDatabaseHints(String(db.server_id), id);
   },
   formatResult: (action, data, args) => {
     switch (action) {

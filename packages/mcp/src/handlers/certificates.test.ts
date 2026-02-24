@@ -20,10 +20,15 @@ function createMockContext(): HandlerContext {
           ],
           certificate: {
             id: 1,
+            server_id: 1,
+            site_id: 10,
             domain: "example.com",
             type: "letsencrypt",
             active: true,
             status: "installed",
+            request_status: "installed",
+            existing: false,
+            created_at: "2024-01-01",
           },
         }),
         post: async () => ({
@@ -116,5 +121,21 @@ describe("handleCertificates", () => {
     );
     expect(result.isError).toBe(true);
     expect(result.content[0]!.text).toContain("Unknown action");
+  });
+
+  it("should inject hints on get when includeHints=true", async () => {
+    const ctx = createMockContext();
+    ctx.compact = false;
+    ctx.includeHints = true;
+
+    const result = await handleCertificates(
+      "get",
+      { resource: "certificates", action: "get", server_id: "1", site_id: "10", id: "1" },
+      ctx,
+    );
+    expect(result.isError).toBeUndefined();
+    const parsed = JSON.parse(result.content[0]!.text);
+    expect(parsed._hints).toBeDefined();
+    expect(parsed._hints.related_resources).toBeDefined();
   });
 });

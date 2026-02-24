@@ -140,6 +140,7 @@ export async function executeToolWithCredentials(
   const handlerContext: HandlerContext = {
     executorContext,
     compact: compact ?? action !== "get",
+    includeHints: action === "get",
   };
 
   // Route to resource handler with error catching

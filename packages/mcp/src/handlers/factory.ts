@@ -7,6 +7,7 @@
 
 import type { ExecutorContext, ExecutorResult } from "@studiometa/forge-core";
 
+import type { ContextualHints } from "../hints.ts";
 import type { CommonArgs, HandlerContext, ToolResult } from "./types.ts";
 
 import { errorResult, jsonResult, sanitizeId } from "./utils.ts";
@@ -31,6 +32,14 @@ export interface ResourceHandlerConfig {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (options: any, ctx: ExecutorContext) => Promise<ExecutorResult<unknown>>
   >;
+
+  /**
+   * Generate contextual hints for the get action response.
+   *
+   * Called with the executor result data and the resource id.
+   * Only injected when `ctx.includeHints` is true.
+   */
+  hints?: (data: unknown, id: string) => ContextualHints;
 
   /** Map tool args to executor options. Defaults to pass-through. */
   mapOptions?: (action: string, args: CommonArgs) => Record<string, unknown>;
@@ -79,7 +88,15 @@ export interface ResourceHandlerConfig {
 export function createResourceHandler(
   config: ResourceHandlerConfig,
 ): (action: string, args: CommonArgs, ctx: HandlerContext) => Promise<ToolResult> {
-  const { resource, actions, requiredFields = {}, executors, mapOptions, formatResult } = config;
+  const {
+    resource,
+    actions,
+    requiredFields = {},
+    executors,
+    hints,
+    mapOptions,
+    formatResult,
+  } = config;
 
   return async (action: string, args: CommonArgs, ctx: HandlerContext): Promise<ToolResult> => {
     // Validate action
@@ -132,6 +149,16 @@ export function createResourceHandler(
 
     if (ctx.compact && formatResult) {
       return jsonResult(formatResult(action, result.data, args));
+    }
+
+    // For non-compact get responses, inject contextual hints when enabled
+    if (action === "get" && ctx.includeHints && hints) {
+      const id = args.id ?? args.server_id ?? "";
+      const responseData = {
+        ...(result.data as Record<string, unknown>),
+        _hints: hints(result.data, String(id)),
+      };
+      return jsonResult(responseData);
     }
 
     return jsonResult(result.data);

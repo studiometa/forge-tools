@@ -9,6 +9,7 @@ import {
 import type { ForgeDaemon } from "@studiometa/forge-api";
 
 import { formatDaemon, formatDaemonList } from "../formatters.ts";
+import { getDaemonHints } from "../hints.ts";
 import { createResourceHandler } from "./factory.ts";
 
 export const handleDaemons = createResourceHandler({
@@ -27,6 +28,10 @@ export const handleDaemons = createResourceHandler({
     create: createDaemon,
     delete: deleteDaemon,
     restart: restartDaemon,
+  },
+  hints: (data, id) => {
+    const daemon = data as ForgeDaemon;
+    return getDaemonHints(String(daemon.server_id), id);
   },
   formatResult: (action, data, args) => {
     switch (action) {
