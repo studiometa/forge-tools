@@ -6,9 +6,18 @@ import type {
   SitesResponse,
 } from "@studiometa/forge-api";
 
+import { AsyncPaginatedIterator } from "../pagination.ts";
 import { DeploymentsCollection } from "./deployments.ts";
 import { CertificatesCollection } from "./certificates.ts";
 import { BaseCollection } from "./base.ts";
+
+/**
+ * Options for listing sites.
+ */
+export interface SiteListOptions {
+  /** Page number to fetch (1-indexed). */
+  page?: number;
+}
 
 /**
  * Collection of sites on a server.
@@ -34,16 +43,37 @@ export class SitesCollection extends BaseCollection {
   }
 
   /**
-   * List all sites on this server.
+   * List sites on this server.
    *
    * @example
    * ```ts
    * const sites = await forge.server(123).sites.list();
+   *
+   * // Fetch a specific page:
+   * const page2 = await forge.server(123).sites.list({ page: 2 });
    * ```
    */
-  async list(): Promise<ForgeSite[]> {
-    const response = await this.client.get<SitesResponse>(this.basePath);
+  async list(options: SiteListOptions = {}): Promise<ForgeSite[]> {
+    const query = options.page !== undefined ? `?page=${options.page}` : "";
+    const response = await this.client.get<SitesResponse>(`${this.basePath}${query}`);
     return response.sites;
+  }
+
+  /**
+   * Iterate over all sites across all pages.
+   *
+   * @example
+   * ```ts
+   * for await (const site of forge.server(123).sites.all()) {
+   *   console.log(site);
+   * }
+   *
+   * // Or collect all at once:
+   * const sites = await forge.server(123).sites.all().toArray();
+   * ```
+   */
+  all(options: Omit<SiteListOptions, "page"> = {}): AsyncPaginatedIterator<ForgeSite> {
+    return new AsyncPaginatedIterator<ForgeSite>((page) => this.list({ ...options, page }));
   }
 
   /**

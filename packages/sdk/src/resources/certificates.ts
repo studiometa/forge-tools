@@ -7,6 +7,15 @@ import type {
 } from "@studiometa/forge-api";
 
 import { BaseCollection } from "./base.ts";
+import { AsyncPaginatedIterator } from "../pagination.ts";
+
+/**
+ * Options for listing certificates.
+ */
+export interface CertificateListOptions {
+  /** Page number to fetch (1-indexed). */
+  page?: number;
+}
 
 /**
  * Collection of SSL certificates for a site.
@@ -33,16 +42,39 @@ export class CertificatesCollection extends BaseCollection {
   }
 
   /**
-   * List all certificates for this site.
+   * List certificates for this site.
    *
    * @example
    * ```ts
    * const certs = await forge.server(123).site(456).certificates.list();
+   *
+   * // Fetch a specific page:
+   * const page2 = await forge.server(123).site(456).certificates.list({ page: 2 });
    * ```
    */
-  async list(): Promise<ForgeCertificate[]> {
-    const response = await this.client.get<CertificatesResponse>(this.basePath);
+  async list(options: CertificateListOptions = {}): Promise<ForgeCertificate[]> {
+    const query = options.page !== undefined ? `?page=${options.page}` : "";
+    const response = await this.client.get<CertificatesResponse>(`${this.basePath}${query}`);
     return response.certificates;
+  }
+
+  /**
+   * Iterate over all certificates across all pages.
+   *
+   * @example
+   * ```ts
+   * for await (const cert of forge.server(123).site(456).certificates.all()) {
+   *   console.log(cert);
+   * }
+   *
+   * // Or collect all at once:
+   * const certs = await forge.server(123).site(456).certificates.all().toArray();
+   * ```
+   */
+  all(
+    options: Omit<CertificateListOptions, "page"> = {},
+  ): AsyncPaginatedIterator<ForgeCertificate> {
+    return new AsyncPaginatedIterator<ForgeCertificate>((page) => this.list({ ...options, page }));
   }
 
   /**

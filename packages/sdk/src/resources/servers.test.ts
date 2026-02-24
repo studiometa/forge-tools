@@ -1,7 +1,8 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { HttpClient } from "@studiometa/forge-api";
 
+import { AsyncPaginatedIterator } from "../pagination.ts";
 import { ServersCollection, ServerResource } from "./servers.ts";
 import { SitesCollection, SiteResource } from "./sites.ts";
 import { DatabasesCollection } from "./databases.ts";
@@ -62,6 +63,14 @@ describe("ServersCollection", () => {
     expect(result[0]!.name).toBe("web-1");
   });
 
+  it("should list servers with page option", async () => {
+    const { client, calls } = createTrackingClient();
+    const collection = new ServersCollection(client);
+
+    await collection.list({ page: 2 });
+    expect(calls[0]!.url).toContain("/servers?page=2");
+  });
+
   it("should get a server", async () => {
     const client = createClient({ server: { id: 1, name: "web-1" } });
     const collection = new ServersCollection(client);
@@ -109,6 +118,32 @@ describe("ServersCollection", () => {
     await collection.reboot(1);
     expect(calls[0]!.method).toBe("POST");
     expect(calls[0]!.url).toContain("/servers/1/reboot");
+  });
+
+  it("should return an AsyncPaginatedIterator from all()", () => {
+    const { client } = createTrackingClient();
+    const collection = new ServersCollection(client);
+
+    const iter = collection.all();
+    expect(iter).toBeInstanceOf(AsyncPaginatedIterator);
+  });
+
+  it("should iterate all servers across pages via all()", async () => {
+    const page1 = Array.from({ length: 200 }, (_, i) => ({ id: i + 1 }) as never);
+    const page2 = [{ id: 201 } as never];
+    const { client } = createTrackingClient();
+    const collection = new ServersCollection(client);
+
+    const listSpy = vi
+      .spyOn(collection, "list")
+      .mockResolvedValueOnce(page1)
+      .mockResolvedValueOnce(page2);
+
+    const results = await collection.all().toArray();
+
+    expect(results).toHaveLength(201);
+    expect(listSpy).toHaveBeenCalledWith({ page: 1 });
+    expect(listSpy).toHaveBeenCalledWith({ page: 2 });
   });
 });
 

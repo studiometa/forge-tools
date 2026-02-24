@@ -1,7 +1,8 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { HttpClient } from "@studiometa/forge-api";
 
+import { AsyncPaginatedIterator } from "../pagination.ts";
 import { DatabasesCollection } from "./databases.ts";
 
 function createTrackingClient(): {
@@ -40,6 +41,14 @@ describe("DatabasesCollection", () => {
     expect(calls[0]!.url).toContain("/servers/123/databases");
   });
 
+  it("should list databases with page option", async () => {
+    const { client, calls } = createTrackingClient();
+    const collection = new DatabasesCollection(client, 123);
+
+    await collection.list({ page: 2 });
+    expect(calls[0]!.url).toContain("/servers/123/databases?page=2");
+  });
+
   it("should get a database", async () => {
     const { client, calls } = createTrackingClient();
     const collection = new DatabasesCollection(client, 123);
@@ -63,5 +72,31 @@ describe("DatabasesCollection", () => {
 
     await collection.delete(789);
     expect(calls[0]!.method).toBe("DELETE");
+  });
+
+  it("should return an AsyncPaginatedIterator from all()", () => {
+    const { client } = createTrackingClient();
+    const collection = new DatabasesCollection(client, 123);
+
+    const iter = collection.all();
+    expect(iter).toBeInstanceOf(AsyncPaginatedIterator);
+  });
+
+  it("should iterate all databases across pages via all()", async () => {
+    const page1 = Array.from({ length: 200 }, (_, i) => ({ id: i + 1 }) as never);
+    const page2 = [{ id: 201 } as never];
+    const { client } = createTrackingClient();
+    const collection = new DatabasesCollection(client, 123);
+
+    const listSpy = vi
+      .spyOn(collection, "list")
+      .mockResolvedValueOnce(page1)
+      .mockResolvedValueOnce(page2);
+
+    const results = await collection.all().toArray();
+
+    expect(results).toHaveLength(201);
+    expect(listSpy).toHaveBeenCalledWith({ page: 1 });
+    expect(listSpy).toHaveBeenCalledWith({ page: 2 });
   });
 });

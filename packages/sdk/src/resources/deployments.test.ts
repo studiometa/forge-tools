@@ -1,10 +1,11 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { HttpClient } from "@studiometa/forge-api";
 
+import { AsyncPaginatedIterator } from "../pagination.ts";
 import { DeploymentsCollection } from "./deployments.ts";
 
-function createTrackingClient(): {
+function createTrackingClient(jsonBody: unknown = { deployment: { id: 789 }, deployments: [] }): {
   client: HttpClient;
   calls: Array<{ method: string; url: string; body?: unknown }>;
 } {
@@ -22,7 +23,7 @@ function createTrackingClient(): {
         ok: true,
         status: 200,
         headers: new Headers({ "content-type": "application/json" }),
-        json: async () => ({ deployment: { id: 789 }, deployments: [] }),
+        json: async () => jsonBody,
         text: async () => "deploy output text",
       } as Response;
     },
@@ -38,6 +39,14 @@ describe("DeploymentsCollection", () => {
 
     await collection.list();
     expect(calls[0]!.url).toContain("/servers/123/sites/456/deployments");
+  });
+
+  it("should list deployments with page option", async () => {
+    const { client, calls } = createTrackingClient();
+    const collection = new DeploymentsCollection(client, 123, 456);
+
+    await collection.list({ page: 2 });
+    expect(calls[0]!.url).toContain("/servers/123/sites/456/deployments?page=2");
   });
 
   it("should get a deployment", async () => {
@@ -71,5 +80,35 @@ describe("DeploymentsCollection", () => {
     await collection.updateScript("npm run build");
     expect(calls[0]!.method).toBe("PUT");
     expect(calls[0]!.body).toEqual({ content: "npm run build" });
+  });
+
+  it("should return an AsyncPaginatedIterator from all()", () => {
+    const { client } = createTrackingClient();
+    const collection = new DeploymentsCollection(client, 123, 456);
+
+    const iter = collection.all();
+    expect(iter).toBeInstanceOf(AsyncPaginatedIterator);
+  });
+
+  it("should iterate all deployments across pages via all()", async () => {
+    const page1 = Array.from({ length: 200 }, (_, i) => ({ id: i + 1 }) as never);
+    const page2 = [{ id: 201 } as never];
+
+    let callCount = 0;
+    const { client } = createTrackingClient({
+      deployments: callCount++ === 0 ? page1 : page2,
+    });
+    const collection = new DeploymentsCollection(client, 123, 456);
+
+    const listSpy = vi
+      .spyOn(collection, "list")
+      .mockResolvedValueOnce(page1)
+      .mockResolvedValueOnce(page2);
+
+    const results = await collection.all().toArray();
+
+    expect(results).toHaveLength(201);
+    expect(listSpy).toHaveBeenCalledWith({ page: 1 });
+    expect(listSpy).toHaveBeenCalledWith({ page: 2 });
   });
 });

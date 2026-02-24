@@ -1,7 +1,8 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { HttpClient } from "@studiometa/forge-api";
 
+import { AsyncPaginatedIterator } from "../pagination.ts";
 import { SitesCollection, SiteResource, SiteEnvResource, SiteNginxResource } from "./sites.ts";
 import { DeploymentsCollection } from "./deployments.ts";
 import { CertificatesCollection } from "./certificates.ts";
@@ -49,6 +50,14 @@ describe("SitesCollection", () => {
     expect(result).toBeDefined();
   });
 
+  it("should list sites with page option", async () => {
+    const { client, calls } = createTrackingClient();
+    const collection = new SitesCollection(client, 123);
+
+    await collection.list({ page: 2 });
+    expect(calls[0]!.url).toContain("/servers/123/sites?page=2");
+  });
+
   it("should get a site", async () => {
     const { client, calls } = createTrackingClient();
     const collection = new SitesCollection(client, 123);
@@ -81,6 +90,32 @@ describe("SitesCollection", () => {
 
     await collection.delete(456);
     expect(calls[0]!.method).toBe("DELETE");
+  });
+
+  it("should return an AsyncPaginatedIterator from all()", () => {
+    const { client } = createTrackingClient();
+    const collection = new SitesCollection(client, 123);
+
+    const iter = collection.all();
+    expect(iter).toBeInstanceOf(AsyncPaginatedIterator);
+  });
+
+  it("should iterate all sites across pages via all()", async () => {
+    const page1 = Array.from({ length: 200 }, (_, i) => ({ id: i + 1 }) as never);
+    const page2 = [{ id: 201 } as never];
+    const { client } = createTrackingClient();
+    const collection = new SitesCollection(client, 123);
+
+    const listSpy = vi
+      .spyOn(collection, "list")
+      .mockResolvedValueOnce(page1)
+      .mockResolvedValueOnce(page2);
+
+    const results = await collection.all().toArray();
+
+    expect(results).toHaveLength(201);
+    expect(listSpy).toHaveBeenCalledWith({ page: 1 });
+    expect(listSpy).toHaveBeenCalledWith({ page: 2 });
   });
 });
 
