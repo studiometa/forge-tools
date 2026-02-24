@@ -37,8 +37,8 @@ function createMockServer(overrides: Partial<ForgeServer> = {}): ForgeServer {
 describe("listServers", () => {
   it("should list servers and format output", async () => {
     const servers = [
-      createMockServer({ id: 1, name: "web-1" }),
-      createMockServer({ id: 2, name: "web-2" }),
+      createMockServer({ id: 1, name: "web-1", is_ready: true }),
+      createMockServer({ id: 2, name: "web-2", is_ready: false }),
     ];
 
     const ctx = createTestExecutorContext({

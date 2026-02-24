@@ -16,4 +16,13 @@ describe("listDaemons", () => {
     expect(result.data).toHaveLength(1);
     expect(result.text).toContain("queue:work");
   });
+
+  it("should handle empty list", async () => {
+    const ctx = createTestExecutorContext({
+      client: { get: async () => ({ daemons: [] }) } as never,
+    });
+    const result = await listDaemons({ server_id: "1" }, ctx);
+    expect(result.data).toHaveLength(0);
+    expect(result.text).toContain("No daemons");
+  });
 });

@@ -25,7 +25,7 @@ export default defineConfig({
   ],
   test: createTestConfig({
     name: "mcp",
-    coverageExclude: ["src/index.ts", "src/version.ts"],
+    coverageExclude: ["src/index.ts", "src/version.ts", "src/handlers/types.ts"],
     coverageThresholds: {
       statements: 80,
       branches: 70,

@@ -30,4 +30,27 @@ describe("createServer", () => {
     expect(result.text).toContain("web-new");
     expect(result.text).toContain("provisioning");
   });
+
+  it("should show ready status when server is ready", async () => {
+    const ctx = createTestExecutorContext({
+      client: {
+        post: async () =>
+          ({ server: { id: 100, name: "web-ready", is_ready: true } }) as ServerResponse,
+      } as never,
+    });
+
+    const result = await createServer(
+      {
+        provider: "hetzner",
+        credential_id: 1,
+        name: "web-ready",
+        type: "app",
+        size: "01",
+        region: "eu",
+      },
+      ctx,
+    );
+
+    expect(result.text).toContain("ready");
+  });
 });

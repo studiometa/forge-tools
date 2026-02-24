@@ -33,4 +33,28 @@ describe("getServer", () => {
     expect(result.text).toContain("1.2.3.4");
     expect(result.text).toContain("ready");
   });
+
+  it("should show provisioning status", async () => {
+    const server = {
+      id: 124,
+      name: "web-2",
+      provider: "hetzner",
+      region: "eu",
+      ip_address: "5.6.7.8",
+      php_version: "php84",
+      ubuntu_version: "24.04",
+      is_ready: false,
+      created_at: "2024-02-01T00:00:00.000000Z",
+    };
+
+    const ctx = createTestExecutorContext({
+      client: {
+        get: async () => ({ server }) as ServerResponse,
+      } as never,
+    });
+
+    const result = await getServer({ server_id: "124" }, ctx);
+
+    expect(result.text).toContain("provisioning");
+  });
 });

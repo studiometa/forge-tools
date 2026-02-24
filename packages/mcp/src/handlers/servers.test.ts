@@ -89,4 +89,31 @@ describe("handleServers", () => {
     expect(result.isError).toBe(true);
     expect(result.content[0]!.text).toContain("Invalid");
   });
+
+  it("should create a server", async () => {
+    const result = await handleServers(
+      "create",
+      {
+        resource: "servers",
+        action: "create",
+        provider: "ocean2",
+        credential_id: "1",
+        name: "web-new",
+        type: "app",
+        size: "01",
+        region: "ams3",
+      },
+      createMockContext(),
+    );
+    expect(result.isError).toBeUndefined();
+  });
+
+  it("should delete a server", async () => {
+    const result = await handleServers(
+      "delete",
+      { resource: "servers", action: "delete", id: "1" },
+      createMockContext(),
+    );
+    expect(result.isError).toBeUndefined();
+  });
 });

@@ -16,4 +16,13 @@ describe("listFirewallRules", () => {
     expect(result.data).toHaveLength(1);
     expect(result.text).toContain("HTTP");
   });
+
+  it("should handle empty list", async () => {
+    const ctx = createTestExecutorContext({
+      client: { get: async () => ({ rules: [] }) } as never,
+    });
+    const result = await listFirewallRules({ server_id: "1" }, ctx);
+    expect(result.data).toHaveLength(0);
+    expect(result.text).toContain("No firewall rules");
+  });
 });

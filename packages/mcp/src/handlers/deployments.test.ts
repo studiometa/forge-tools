@@ -117,4 +117,62 @@ describe("handleDeployments", () => {
     expect(result.isError).toBe(true);
     expect(result.content[0]!.text).toContain("content");
   });
+
+  it("should get deployment output with id", async () => {
+    const ctx: HandlerContext = {
+      executorContext: {
+        client: {
+          get: async () => ({ output: "Deployment output log" }),
+        } as never,
+      },
+      compact: true,
+    };
+    const result = await handleDeployments(
+      "get",
+      { resource: "deployments", action: "get", server_id: "123", site_id: "456", id: "1" },
+      ctx,
+    );
+    expect(result.isError).toBeUndefined();
+  });
+
+  it("should get deployment script without id", async () => {
+    const ctx: HandlerContext = {
+      executorContext: {
+        client: {
+          get: async () => "#!/bin/bash\ncd /home/forge",
+        } as never,
+      },
+      compact: true,
+    };
+    const result = await handleDeployments(
+      "get",
+      { resource: "deployments", action: "get", server_id: "123", site_id: "456" },
+      ctx,
+    );
+    expect(result.isError).toBeUndefined();
+  });
+
+  it("should update deployment script with content", async () => {
+    const ctx: HandlerContext = {
+      executorContext: {
+        client: {
+          put: async () => ({}),
+        } as never,
+      },
+      compact: true,
+    };
+    const result = await handleDeployments(
+      "update",
+      {
+        resource: "deployments",
+        action: "update",
+        server_id: "123",
+        site_id: "456",
+        content: "#!/bin/bash\necho deploy",
+      },
+      ctx,
+    );
+    expect(result.isError).toBeUndefined();
+    expect(result.content[0]!.text).toContain("updated");
+  });
 });

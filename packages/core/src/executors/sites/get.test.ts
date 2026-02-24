@@ -33,5 +33,35 @@ describe("getSite", () => {
     expect(result.text).toContain("example.com");
     expect(result.text).toContain("/public");
     expect(result.text).toContain("user/repo");
+    expect(result.text).toContain("enabled");
+  });
+
+  it("should show none for null fields and disabled quick deploy", async () => {
+    const site = {
+      id: 789,
+      name: "test.com",
+      project_type: "html",
+      directory: "/",
+      repository: null,
+      repository_branch: null,
+      status: "installed",
+      deployment_status: null,
+      quick_deploy: false,
+      php_version: "php84",
+      created_at: "2024-02-01T00:00:00.000000Z",
+    };
+
+    const ctx = createTestExecutorContext({
+      client: {
+        get: async () => ({ site }) as SiteResponse,
+      } as never,
+    });
+
+    const result = await getSite({ server_id: "123", site_id: "789" }, ctx);
+
+    expect(result.text).toContain("Repository: none");
+    expect(result.text).toContain("Branch: none");
+    expect(result.text).toContain("Deploy status: none");
+    expect(result.text).toContain("disabled");
   });
 });

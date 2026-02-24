@@ -16,12 +16,30 @@ describe("listCertificates", () => {
               active: true,
               status: "installed",
             },
+            {
+              id: 2,
+              domain: "api.example.com",
+              type: "existing",
+              active: false,
+              status: "installing",
+            },
           ],
         }),
       } as never,
     });
     const result = await listCertificates({ server_id: "1", site_id: "2" }, ctx);
-    expect(result.data).toHaveLength(1);
+    expect(result.data).toHaveLength(2);
     expect(result.text).toContain("example.com");
+    expect(result.text).toContain("active");
+    expect(result.text).toContain("inactive");
+  });
+
+  it("should handle empty list", async () => {
+    const ctx = createTestExecutorContext({
+      client: { get: async () => ({ certificates: [] }) } as never,
+    });
+    const result = await listCertificates({ server_id: "1", site_id: "2" }, ctx);
+    expect(result.data).toHaveLength(0);
+    expect(result.text).toContain("No certificates");
   });
 });

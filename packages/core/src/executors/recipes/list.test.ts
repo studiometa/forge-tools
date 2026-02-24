@@ -16,4 +16,13 @@ describe("listRecipes", () => {
     expect(result.data).toHaveLength(1);
     expect(result.text).toContain("Clear caches");
   });
+
+  it("should handle empty list", async () => {
+    const ctx = createTestExecutorContext({
+      client: { get: async () => ({ recipes: [] }) } as never,
+    });
+    const result = await listRecipes({} as Record<string, never>, ctx);
+    expect(result.data).toHaveLength(0);
+    expect(result.text).toContain("No recipes");
+  });
 });
