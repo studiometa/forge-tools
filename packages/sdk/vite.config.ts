@@ -4,8 +4,8 @@ import { createBuildConfig, createTestConfig } from "../../vite.config.base.ts";
 
 export default defineConfig({
   build: createBuildConfig({
-    entry: { index: "./src/index.ts" },
-    external: [/^@studiometa\/forge-api/],
+    entry: { index: "./src/index.ts", "test-utils": "./src/test-utils.ts" },
+    external: [/^@studiometa\/forge-api/, "vitest"],
   }),
   test: createTestConfig({
     name: "sdk",
