@@ -17,17 +17,5 @@ export async function getSite(
 
   return {
     data: site,
-    text: [
-      `Site: ${site.name} (ID: ${site.id})`,
-      `Type: ${site.project_type}`,
-      `Directory: ${site.directory}`,
-      `Repository: ${site.repository ?? "none"}`,
-      `Branch: ${site.repository_branch ?? "none"}`,
-      `Status: ${site.status}`,
-      `Deploy status: ${site.deployment_status ?? "none"}`,
-      `Quick deploy: ${site.quick_deploy ? "enabled" : "disabled"}`,
-      `PHP: ${site.php_version}`,
-      `Created: ${site.created_at}`,
-    ].join("\n"),
   };
 }

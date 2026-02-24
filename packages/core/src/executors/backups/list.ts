@@ -15,16 +15,7 @@ export async function listBackupConfigs(
   );
   const backups = response.backups;
 
-  const lines = backups.map(
-    (b) =>
-      `• ${b.provider_name} (ID: ${b.id}) — ${b.frequency} — ${b.status} — last: ${b.last_backup_time ?? "never"}`,
-  );
-
   return {
     data: backups,
-    text:
-      backups.length > 0
-        ? `${backups.length} backup config(s):\n${lines.join("\n")}`
-        : "No backup configurations found.",
   };
 }

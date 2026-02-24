@@ -12,6 +12,5 @@ export async function deleteRedirectRule(
 
   return {
     data: undefined,
-    text: `Redirect rule ${options.id} deleted.`,
   };
 }

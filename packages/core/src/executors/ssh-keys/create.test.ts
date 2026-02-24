@@ -22,7 +22,5 @@ describe("createSshKey", () => {
     );
 
     expect(result.data.name).toBe("deploy-key");
-    expect(result.text).toContain("deploy-key");
-    expect(result.text).toContain("12");
   });
 });

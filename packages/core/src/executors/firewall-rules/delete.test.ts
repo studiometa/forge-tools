@@ -12,6 +12,5 @@ describe("deleteFirewallRule", () => {
 
     expect(deleteMock).toHaveBeenCalledWith("/servers/1/firewall-rules/3");
     expect(result.data).toBeUndefined();
-    expect(result.text).toContain("deleted");
   });
 });

@@ -13,6 +13,5 @@ export async function deleteDaemon(
 
   return {
     data: undefined,
-    text: `Daemon ${options.id} deleted.`,
   };
 }

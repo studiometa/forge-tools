@@ -17,8 +17,8 @@ export interface ExecutorContext {
 export interface ExecutorResult<T> {
   /** The response data. */
   data: T;
-  /** Human-readable formatted text for MCP output. */
-  text: string;
+  /** Pagination metadata (for list operations). */
+  meta?: { total_count?: number; current_page?: number };
 }
 
 /**

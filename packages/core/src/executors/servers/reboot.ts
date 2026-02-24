@@ -13,6 +13,5 @@ export async function rebootServer(
 
   return {
     data: undefined,
-    text: `Server ${options.server_id} reboot initiated.`,
   };
 }

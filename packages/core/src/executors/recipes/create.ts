@@ -12,6 +12,5 @@ export async function createRecipe(
 
   return {
     data: recipe,
-    text: `Recipe created: ${recipe.name} (ID: ${recipe.id})`,
   };
 }

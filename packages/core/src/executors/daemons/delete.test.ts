@@ -12,6 +12,5 @@ describe("deleteDaemon", () => {
 
     expect(deleteMock).toHaveBeenCalledWith("/servers/1/daemons/5");
     expect(result.data).toBeUndefined();
-    expect(result.text).toContain("deleted");
   });
 });

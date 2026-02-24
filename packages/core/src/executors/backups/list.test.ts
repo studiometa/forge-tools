@@ -33,9 +33,6 @@ describe("listBackupConfigs", () => {
     const result = await listBackupConfigs({ server_id: "1" }, ctx);
 
     expect(result.data).toHaveLength(2);
-    expect(result.text).toContain("2 backup config(s)");
-    expect(result.text).toContain("S3");
-    expect(result.text).toContain("never");
   });
 
   it("should handle empty list", async () => {
@@ -46,6 +43,5 @@ describe("listBackupConfigs", () => {
     const result = await listBackupConfigs({ server_id: "1" }, ctx);
 
     expect(result.data).toHaveLength(0);
-    expect(result.text).toContain("No backup configurations");
   });
 });

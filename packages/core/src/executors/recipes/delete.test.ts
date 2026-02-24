@@ -12,6 +12,5 @@ describe("deleteRecipe", () => {
 
     expect(deleteMock).toHaveBeenCalledWith("/recipes/8");
     expect(result.data).toBeUndefined();
-    expect(result.text).toContain("deleted");
   });
 });

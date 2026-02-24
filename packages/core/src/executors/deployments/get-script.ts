@@ -15,6 +15,5 @@ export async function getDeploymentScript(
 
   return {
     data: script,
-    text: `Deployment script:\n${script}`,
   };
 }

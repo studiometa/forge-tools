@@ -1,5 +1,8 @@
 import { createSite, deleteSite, getSite, listSites } from "@studiometa/forge-core";
 
+import type { ForgeSite } from "@studiometa/forge-api";
+
+import { formatSite, formatSiteList } from "../formatters.ts";
 import { createResourceHandler } from "./factory.ts";
 
 export const handleSites = createResourceHandler({
@@ -34,6 +37,20 @@ export const handleSites = createResourceHandler({
         return { server_id: args.server_id, site_id: args.id };
       default:
         return {};
+    }
+  },
+  formatResult: (action, data, args) => {
+    switch (action) {
+      case "list":
+        return formatSiteList(data as ForgeSite[], args.server_id as string | undefined);
+      case "get":
+        return formatSite(data as ForgeSite);
+      case "create":
+        return formatSite(data as ForgeSite);
+      case "delete":
+        return `Site ${args.id} deleted from server ${args.server_id}.`;
+      default:
+        return "Done.";
     }
   },
 });

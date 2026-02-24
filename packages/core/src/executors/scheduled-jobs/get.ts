@@ -17,13 +17,5 @@ export async function getScheduledJob(
 
   return {
     data: job,
-    text: [
-      `Job: ${job.command} (ID: ${job.id})`,
-      `User: ${job.user}`,
-      `Frequency: ${job.frequency}`,
-      `Cron: ${job.cron}`,
-      `Status: ${job.status}`,
-      `Created: ${job.created_at}`,
-    ].join("\n"),
   };
 }

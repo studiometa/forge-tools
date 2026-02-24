@@ -19,6 +19,5 @@ export async function createBackupConfig(
 
   return {
     data: backup,
-    text: `Backup config created: ${backup.provider_name} (ID: ${backup.id})`,
   };
 }

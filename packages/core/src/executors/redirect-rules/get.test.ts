@@ -23,8 +23,5 @@ describe("getRedirectRule", () => {
     const result = await getRedirectRule({ server_id: "1", site_id: "2", id: "9" }, ctx);
 
     expect(result.data.from).toBe("/old");
-    expect(result.text).toContain("/old");
-    expect(result.text).toContain("/new");
-    expect(result.text).toContain("redirect");
   });
 });

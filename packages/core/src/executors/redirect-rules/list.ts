@@ -11,13 +11,7 @@ export async function listRedirectRules(
     `/servers/${options.server_id}/sites/${options.site_id}/redirect-rules`,
   );
   const rules = response.redirect_rules;
-  const lines = rules.map((r) => `• ${r.from} → ${r.to} (ID: ${r.id}) — ${r.type}`);
-
   return {
     data: rules,
-    text:
-      rules.length > 0
-        ? `${rules.length} redirect rule(s):\n${lines.join("\n")}`
-        : "No redirect rules found.",
   };
 }

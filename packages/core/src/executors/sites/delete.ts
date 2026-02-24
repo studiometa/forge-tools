@@ -13,6 +13,5 @@ export async function deleteSite(
 
   return {
     data: undefined,
-    text: `Site ${options.site_id} deleted from server ${options.server_id}.`,
   };
 }

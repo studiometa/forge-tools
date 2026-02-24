@@ -18,8 +18,6 @@ describe("listSecurityRules", () => {
     const result = await listSecurityRules({ server_id: "123", site_id: "456" }, ctx);
 
     expect(result.data).toHaveLength(1);
-    expect(result.text).toContain("Staging Auth");
-    expect(result.text).toContain("1 security rule(s)");
   });
 
   it("should handle empty list", async () => {
@@ -32,6 +30,5 @@ describe("listSecurityRules", () => {
     const result = await listSecurityRules({ server_id: "123", site_id: "456" }, ctx);
 
     expect(result.data).toHaveLength(0);
-    expect(result.text).toContain("No security rules");
   });
 });

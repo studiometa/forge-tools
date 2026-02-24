@@ -26,8 +26,6 @@ describe("listScheduledJobs", () => {
     const result = await listScheduledJobs({ server_id: "1" }, ctx);
 
     expect(result.data).toHaveLength(1);
-    expect(result.text).toContain("1 scheduled job(s)");
-    expect(result.text).toContain("schedule:run");
   });
 
   it("should handle empty list", async () => {
@@ -38,6 +36,5 @@ describe("listScheduledJobs", () => {
     const result = await listScheduledJobs({ server_id: "1" }, ctx);
 
     expect(result.data).toHaveLength(0);
-    expect(result.text).toContain("No scheduled jobs");
   });
 });

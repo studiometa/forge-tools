@@ -13,6 +13,5 @@ export async function deploySite(
 
   return {
     data: undefined,
-    text: `Deployment triggered for site ${options.site_id} on server ${options.server_id}.`,
   };
 }

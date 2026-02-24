@@ -18,8 +18,6 @@ describe("listNginxTemplates", () => {
     const result = await listNginxTemplates({ server_id: "123" }, ctx);
 
     expect(result.data).toHaveLength(1);
-    expect(result.text).toContain("Laravel Default");
-    expect(result.text).toContain("1 nginx template(s)");
   });
 
   it("should handle empty list", async () => {
@@ -32,6 +30,5 @@ describe("listNginxTemplates", () => {
     const result = await listNginxTemplates({ server_id: "123" }, ctx);
 
     expect(result.data).toHaveLength(0);
-    expect(result.text).toContain("No nginx templates");
   });
 });

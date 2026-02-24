@@ -15,12 +15,5 @@ export async function getUser(
 
   return {
     data: user,
-    text: [
-      `User: ${user.name} (ID: ${user.id})`,
-      `Email: ${user.email}`,
-      `GitHub: ${user.connected_to_github ? "connected" : "not connected"}`,
-      `GitLab: ${user.connected_to_gitlab ? "connected" : "not connected"}`,
-      `2FA: ${user.two_factor_enabled ? "enabled" : "disabled"}`,
-    ].join("\n"),
   };
 }

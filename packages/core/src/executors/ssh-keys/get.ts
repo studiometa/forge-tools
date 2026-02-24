@@ -14,6 +14,5 @@ export async function getSshKey(
 
   return {
     data: key,
-    text: `SSH Key: ${key.name} (ID: ${key.id})\nStatus: ${key.status}\nCreated: ${key.created_at}`,
   };
 }

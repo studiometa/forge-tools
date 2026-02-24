@@ -17,6 +17,5 @@ export async function getCertificate(
 
   return {
     data: cert,
-    text: `Certificate: ${cert.domain} (ID: ${cert.id})\nType: ${cert.type}\nStatus: ${cert.status}\nActive: ${cert.active}`,
   };
 }

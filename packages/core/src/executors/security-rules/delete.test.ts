@@ -12,6 +12,5 @@ describe("deleteSecurityRule", () => {
 
     expect(deleteMock).toHaveBeenCalledWith("/servers/1/sites/2/security-rules/11");
     expect(result.data).toBeUndefined();
-    expect(result.text).toContain("deleted");
   });
 });

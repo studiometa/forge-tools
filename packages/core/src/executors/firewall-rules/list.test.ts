@@ -14,7 +14,6 @@ describe("listFirewallRules", () => {
     });
     const result = await listFirewallRules({ server_id: "1" }, ctx);
     expect(result.data).toHaveLength(1);
-    expect(result.text).toContain("HTTP");
   });
 
   it("should handle empty list", async () => {
@@ -23,6 +22,5 @@ describe("listFirewallRules", () => {
     });
     const result = await listFirewallRules({ server_id: "1" }, ctx);
     expect(result.data).toHaveLength(0);
-    expect(result.text).toContain("No firewall rules");
   });
 });

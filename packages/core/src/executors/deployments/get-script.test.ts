@@ -14,6 +14,5 @@ describe("getDeploymentScript", () => {
     const result = await getDeploymentScript({ server_id: "123", site_id: "456" }, ctx);
 
     expect(result.data).toContain("npm run build");
-    expect(result.text).toContain("script");
   });
 });

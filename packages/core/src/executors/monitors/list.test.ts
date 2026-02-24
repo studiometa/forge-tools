@@ -18,8 +18,6 @@ describe("listMonitors", () => {
     const result = await listMonitors({ server_id: "123" }, ctx);
 
     expect(result.data).toHaveLength(1);
-    expect(result.text).toContain("disk");
-    expect(result.text).toContain("1 monitor(s)");
   });
 
   it("should handle empty list", async () => {
@@ -32,6 +30,5 @@ describe("listMonitors", () => {
     const result = await listMonitors({ server_id: "123" }, ctx);
 
     expect(result.data).toHaveLength(0);
-    expect(result.text).toContain("No monitors");
   });
 });

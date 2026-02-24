@@ -6,6 +6,9 @@ import {
   listCertificates,
 } from "@studiometa/forge-core";
 
+import type { ForgeCertificate } from "@studiometa/forge-api";
+
+import { formatCertificate, formatCertificateList } from "../formatters.ts";
 import { createResourceHandler } from "./factory.ts";
 
 export const handleCertificates = createResourceHandler({
@@ -24,5 +27,21 @@ export const handleCertificates = createResourceHandler({
     create: createCertificate,
     delete: deleteCertificate,
     activate: activateCertificate,
+  },
+  formatResult: (action, data, args) => {
+    switch (action) {
+      case "list":
+        return formatCertificateList(data as ForgeCertificate[]);
+      case "get":
+        return formatCertificate(data as ForgeCertificate);
+      case "create":
+        return formatCertificate(data as ForgeCertificate);
+      case "delete":
+        return `Certificate ${args.id} deleted.`;
+      case "activate":
+        return `Certificate ${args.id} activated.`;
+      default:
+        return "Done.";
+    }
   },
 });

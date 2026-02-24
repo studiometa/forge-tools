@@ -15,6 +15,5 @@ export async function updateDeploymentScript(
 
   return {
     data: undefined,
-    text: `Deployment script updated for site ${options.site_id} on server ${options.server_id}.`,
   };
 }

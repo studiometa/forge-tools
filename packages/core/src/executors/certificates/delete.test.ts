@@ -12,6 +12,5 @@ describe("deleteCertificate", () => {
 
     expect(deleteMock).toHaveBeenCalledWith("/servers/1/sites/2/certificates/3");
     expect(result.data).toBeUndefined();
-    expect(result.text).toContain("deleted");
   });
 });

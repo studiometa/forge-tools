@@ -15,6 +15,5 @@ export async function runRecipe(
 
   return {
     data: undefined,
-    text: `Recipe ${options.id} run on ${options.servers.length} server(s).`,
   };
 }

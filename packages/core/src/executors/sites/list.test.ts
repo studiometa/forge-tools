@@ -21,8 +21,6 @@ describe("listSites", () => {
     const result = await listSites({ server_id: "123" }, ctx);
 
     expect(result.data).toHaveLength(2);
-    expect(result.text).toContain("2 site(s)");
-    expect(result.text).toContain("example.com");
   });
 
   it("should handle empty site list", async () => {
@@ -35,6 +33,5 @@ describe("listSites", () => {
     const result = await listSites({ server_id: "123" }, ctx);
 
     expect(result.data).toHaveLength(0);
-    expect(result.text).toContain("No sites");
   });
 });

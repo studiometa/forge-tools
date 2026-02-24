@@ -10,6 +10,5 @@ export async function deleteSshKey(
 
   return {
     data: undefined,
-    text: `SSH key ${options.id} deleted.`,
   };
 }

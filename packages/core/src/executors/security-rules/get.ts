@@ -14,6 +14,5 @@ export async function getSecurityRule(
 
   return {
     data: rule,
-    text: `Security Rule: ${rule.name} (ID: ${rule.id})\nPath: ${rule.path ?? "/"}`,
   };
 }

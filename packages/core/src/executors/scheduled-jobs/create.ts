@@ -16,6 +16,5 @@ export async function createScheduledJob(
 
   return {
     data: job,
-    text: `Scheduled job created: "${job.command}" (ID: ${job.id}) — ${job.frequency}`,
   };
 }

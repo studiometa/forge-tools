@@ -6,6 +6,9 @@ import {
   restartDaemon,
 } from "@studiometa/forge-core";
 
+import type { ForgeDaemon } from "@studiometa/forge-api";
+
+import { formatDaemon, formatDaemonList } from "../formatters.ts";
 import { createResourceHandler } from "./factory.ts";
 
 export const handleDaemons = createResourceHandler({
@@ -24,5 +27,21 @@ export const handleDaemons = createResourceHandler({
     create: createDaemon,
     delete: deleteDaemon,
     restart: restartDaemon,
+  },
+  formatResult: (action, data, args) => {
+    switch (action) {
+      case "list":
+        return formatDaemonList(data as ForgeDaemon[]);
+      case "get":
+        return formatDaemon(data as ForgeDaemon);
+      case "create":
+        return formatDaemon(data as ForgeDaemon);
+      case "delete":
+        return `Daemon ${args.id} deleted.`;
+      case "restart":
+        return `Daemon ${args.id} restarted.`;
+      default:
+        return "Done.";
+    }
   },
 });

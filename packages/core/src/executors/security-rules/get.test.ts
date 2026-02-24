@@ -22,7 +22,5 @@ describe("getSecurityRule", () => {
     const result = await getSecurityRule({ server_id: "1", site_id: "2", id: "11" }, ctx);
 
     expect(result.data.name).toBe("Restrict Admin");
-    expect(result.text).toContain("Restrict Admin");
-    expect(result.text).toContain("/admin");
   });
 });

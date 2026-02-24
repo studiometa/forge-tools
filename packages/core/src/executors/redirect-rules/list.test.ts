@@ -18,9 +18,6 @@ describe("listRedirectRules", () => {
     const result = await listRedirectRules({ server_id: "123", site_id: "456" }, ctx);
 
     expect(result.data).toHaveLength(1);
-    expect(result.text).toContain("/old");
-    expect(result.text).toContain("/new");
-    expect(result.text).toContain("1 redirect rule(s)");
   });
 
   it("should handle empty list", async () => {
@@ -33,6 +30,5 @@ describe("listRedirectRules", () => {
     const result = await listRedirectRules({ server_id: "123", site_id: "456" }, ctx);
 
     expect(result.data).toHaveLength(0);
-    expect(result.text).toContain("No redirect rules");
   });
 });

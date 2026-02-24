@@ -15,6 +15,5 @@ export async function getEnv(
 
   return {
     data: content,
-    text: `Environment variables:\n${content}`,
   };
 }

@@ -12,6 +12,5 @@ export async function deleteSecurityRule(
 
   return {
     data: undefined,
-    text: `Security rule ${options.id} deleted.`,
   };
 }

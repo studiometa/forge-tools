@@ -22,7 +22,5 @@ describe("createCertificate", () => {
     );
 
     expect(result.data.domain).toBe("example.com");
-    expect(result.text).toContain("example.com");
-    expect(result.text).toContain("10");
   });
 });

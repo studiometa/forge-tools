@@ -12,6 +12,5 @@ describe("deleteScheduledJob", () => {
 
     expect(deleteMock).toHaveBeenCalledWith("/servers/1/jobs/5");
     expect(result.data).toBeUndefined();
-    expect(result.text).toContain("deleted");
   });
 });

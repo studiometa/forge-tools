@@ -16,6 +16,5 @@ export async function createSecurityRule(
 
   return {
     data: rule,
-    text: `Security rule created: ${rule.name} (ID: ${rule.id})`,
   };
 }

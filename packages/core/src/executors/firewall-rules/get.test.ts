@@ -25,8 +25,5 @@ describe("getFirewallRule", () => {
     const result = await getFirewallRule({ server_id: "1", id: "3" }, ctx);
 
     expect(result.data.name).toBe("Allow SSH");
-    expect(result.text).toContain("Allow SSH");
-    expect(result.text).toContain("22");
-    expect(result.text).toContain("installed");
   });
 });

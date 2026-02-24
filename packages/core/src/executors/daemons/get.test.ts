@@ -24,8 +24,5 @@ describe("getDaemon", () => {
     const result = await getDaemon({ server_id: "1", id: "5" }, ctx);
 
     expect(result.data.command).toBe("node server.js");
-    expect(result.text).toContain("node server.js");
-    expect(result.text).toContain("forge");
-    expect(result.text).toContain("active");
   });
 });

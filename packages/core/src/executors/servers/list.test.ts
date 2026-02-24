@@ -50,9 +50,6 @@ describe("listServers", () => {
     const result = await listServers({} as Record<string, never>, ctx);
 
     expect(result.data).toHaveLength(2);
-    expect(result.text).toContain("2 server(s)");
-    expect(result.text).toContain("web-1");
-    expect(result.text).toContain("web-2");
   });
 
   it("should handle empty server list", async () => {
@@ -65,6 +62,5 @@ describe("listServers", () => {
     const result = await listServers({} as Record<string, never>, ctx);
 
     expect(result.data).toHaveLength(0);
-    expect(result.text).toContain("No servers found");
   });
 });

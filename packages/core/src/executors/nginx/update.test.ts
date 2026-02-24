@@ -17,6 +17,5 @@ describe("updateNginxConfig", () => {
       content: "server { listen 80; }",
     });
     expect(result.data).toBeUndefined();
-    expect(result.text).toContain("updated");
   });
 });

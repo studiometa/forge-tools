@@ -22,7 +22,5 @@ describe("createNginxTemplate", () => {
     );
 
     expect(result.data.name).toBe("custom-php");
-    expect(result.text).toContain("custom-php");
-    expect(result.text).toContain("6");
   });
 });

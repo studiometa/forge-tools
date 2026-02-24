@@ -28,7 +28,5 @@ describe("createBackupConfig", () => {
     );
 
     expect(result.data.provider_name).toBe("S3");
-    expect(result.text).toContain("S3");
-    expect(result.text).toContain("3");
   });
 });

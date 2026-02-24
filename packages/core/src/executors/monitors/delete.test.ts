@@ -12,6 +12,5 @@ describe("deleteMonitor", () => {
 
     expect(deleteMock).toHaveBeenCalledWith("/servers/1/monitors/4");
     expect(result.data).toBeUndefined();
-    expect(result.text).toContain("deleted");
   });
 });

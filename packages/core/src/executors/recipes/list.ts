@@ -9,13 +9,7 @@ export async function listRecipes(
 ): Promise<ExecutorResult<ForgeRecipe[]>> {
   const response = await ctx.client.get<RecipesResponse>("/recipes");
   const recipes = response.recipes;
-  const lines = recipes.map((r) => `• ${r.name} (ID: ${r.id}) — user: ${r.user}`);
-
   return {
     data: recipes,
-    text:
-      recipes.length > 0
-        ? `${recipes.length} recipe(s):\n${lines.join("\n")}`
-        : "No recipes found.",
   };
 }

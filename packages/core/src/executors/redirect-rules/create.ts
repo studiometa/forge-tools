@@ -16,6 +16,5 @@ export async function createRedirectRule(
 
   return {
     data: rule,
-    text: `Redirect rule created: ${rule.from} → ${rule.to} (ID: ${rule.id})`,
   };
 }

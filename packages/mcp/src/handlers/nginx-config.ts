@@ -1,5 +1,6 @@
 import { getNginxConfig, updateNginxConfig } from "@studiometa/forge-core";
 
+import { formatNginxConfig } from "../formatters.ts";
 import { createResourceHandler } from "./factory.ts";
 
 export const handleNginxConfig = createResourceHandler({
@@ -18,4 +19,14 @@ export const handleNginxConfig = createResourceHandler({
     site_id: args.site_id,
     content: args.content,
   }),
+  formatResult: (action, data) => {
+    switch (action) {
+      case "get":
+        return formatNginxConfig(data as string);
+      case "update":
+        return "Nginx configuration updated.";
+      default:
+        return "Done.";
+    }
+  },
 });

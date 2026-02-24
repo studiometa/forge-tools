@@ -19,6 +19,5 @@ export async function createCertificate(
 
   return {
     data: cert,
-    text: `Certificate created: ${cert.domain} (ID: ${cert.id})`,
   };
 }

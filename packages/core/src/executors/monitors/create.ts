@@ -13,6 +13,5 @@ export async function createMonitor(
 
   return {
     data: monitor,
-    text: `Monitor created: ${monitor.type} ${monitor.operator} ${monitor.threshold} (ID: ${monitor.id})`,
   };
 }

@@ -18,6 +18,5 @@ export async function createCommand(
 
   return {
     data: command,
-    text: `Command executed: "${command.command}" (ID: ${command.id}) — ${command.status}`,
   };
 }

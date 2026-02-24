@@ -17,6 +17,5 @@ describe("getDeploymentOutput", () => {
     );
 
     expect(result.data).toContain("Deployment successful");
-    expect(result.text).toContain("output");
   });
 });

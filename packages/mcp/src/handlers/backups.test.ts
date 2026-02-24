@@ -29,7 +29,15 @@ function createMockContext(): HandlerContext {
           },
         }),
         post: async () => ({
-          backup: { id: 1, provider_name: "S3" },
+          backup: {
+            id: 1,
+            provider_name: "S3",
+            frequency: "daily",
+            status: "active",
+            retention: 7,
+            databases: [],
+            last_backup_time: null,
+          },
         }),
         delete: async () => undefined,
       } as never,
@@ -67,6 +75,34 @@ describe("handleBackups", () => {
     );
     expect(result.isError).toBe(true);
     expect(result.content[0]!.text).toContain("server_id");
+  });
+
+  it("should create a backup config", async () => {
+    const result = await handleBackups(
+      "create",
+      {
+        resource: "backups",
+        action: "create",
+        server_id: "1",
+        provider: "s3",
+        credentials: {},
+        frequency: "daily",
+        databases: [1],
+      },
+      createMockContext(),
+    );
+    expect(result.isError).toBeUndefined();
+    expect(result.content[0]!.text).toContain("S3");
+  });
+
+  it("should delete a backup config", async () => {
+    const result = await handleBackups(
+      "delete",
+      { resource: "backups", action: "delete", server_id: "1", id: "1" },
+      createMockContext(),
+    );
+    expect(result.isError).toBeUndefined();
+    expect(result.content[0]!.text).toContain("deleted");
   });
 
   it("should handle unknown action", async () => {

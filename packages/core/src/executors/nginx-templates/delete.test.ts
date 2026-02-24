@@ -12,6 +12,5 @@ describe("deleteNginxTemplate", () => {
 
     expect(deleteMock).toHaveBeenCalledWith("/servers/1/nginx/templates/6");
     expect(result.data).toBeUndefined();
-    expect(result.text).toContain("deleted");
   });
 });

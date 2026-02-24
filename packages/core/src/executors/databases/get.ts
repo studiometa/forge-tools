@@ -17,6 +17,5 @@ export async function getDatabase(
 
   return {
     data: db,
-    text: `Database: ${db.name} (ID: ${db.id})\nStatus: ${db.status}\nCreated: ${db.created_at}`,
   };
 }

@@ -12,6 +12,5 @@ describe("restartDaemon", () => {
 
     expect(postMock).toHaveBeenCalledWith("/servers/1/daemons/5/restart", {});
     expect(result.data).toBeUndefined();
-    expect(result.text).toContain("restarted");
   });
 });

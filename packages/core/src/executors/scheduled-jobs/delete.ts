@@ -13,6 +13,5 @@ export async function deleteScheduledJob(
 
   return {
     data: undefined,
-    text: `Scheduled job ${options.id} deleted.`,
   };
 }

@@ -15,16 +15,7 @@ export async function listDeployments(
   );
   const deployments = response.deployments;
 
-  const lines = deployments.map(
-    (d) =>
-      `• #${d.id} — ${d.status} — ${d.commit_hash?.slice(0, 7) ?? "no commit"} — ${d.started_at}`,
-  );
-
   return {
     data: deployments,
-    text:
-      deployments.length > 0
-        ? `${deployments.length} deployment(s):\n${lines.join("\n")}`
-        : "No deployments found.",
   };
 }

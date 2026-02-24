@@ -11,13 +11,8 @@ export async function listSecurityRules(
     `/servers/${options.server_id}/sites/${options.site_id}/security-rules`,
   );
   const rules = response.security_rules;
-  const lines = rules.map((r) => `• ${r.name} (ID: ${r.id}) — path: ${r.path ?? "/"}`);
 
   return {
     data: rules,
-    text:
-      rules.length > 0
-        ? `${rules.length} security rule(s):\n${lines.join("\n")}`
-        : "No security rules found.",
   };
 }

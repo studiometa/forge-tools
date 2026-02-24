@@ -15,15 +15,7 @@ export async function listCommands(
   );
   const commands = response.commands;
 
-  const lines = commands.map(
-    (c) => `• #${c.id} — ${c.status} — ${c.user_name} — ${c.command.slice(0, 60)}`,
-  );
-
   return {
     data: commands,
-    text:
-      commands.length > 0
-        ? `${commands.length} command(s):\n${lines.join("\n")}`
-        : "No commands found.",
   };
 }

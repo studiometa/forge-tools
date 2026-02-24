@@ -10,6 +10,5 @@ export async function deleteRecipe(
 
   return {
     data: undefined,
-    text: `Recipe ${options.id} deleted.`,
   };
 }

@@ -13,6 +13,5 @@ export async function deleteBackupConfig(
 
   return {
     data: undefined,
-    text: `Backup config ${options.id} deleted.`,
   };
 }

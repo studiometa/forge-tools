@@ -22,7 +22,5 @@ describe("createFirewallRule", () => {
     );
 
     expect(result.data.name).toBe("Allow SSH");
-    expect(result.text).toContain("Allow SSH");
-    expect(result.text).toContain("22");
   });
 });

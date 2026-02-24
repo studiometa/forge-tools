@@ -15,6 +15,5 @@ export async function deleteCertificate(
 
   return {
     data: undefined,
-    text: `Certificate ${options.id} deleted.`,
   };
 }
