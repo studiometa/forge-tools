@@ -119,6 +119,22 @@ const RESOURCE_SCHEMAS: Record<string, ResourceSchemaData> = {
     },
   },
 
+  "database-users": {
+    actions: ["list", "get", "create", "delete"],
+    scope: "server",
+    required: {
+      list: ["server_id"],
+      get: ["server_id", "id"],
+      create: ["server_id", "name", "password"],
+      delete: ["server_id", "id"],
+    },
+    create: {
+      name: { required: true, type: "string — database user name" },
+      password: { required: true, type: "string — user password" },
+      databases: { required: false, type: "array — database IDs to grant access to" },
+    },
+  },
+
   daemons: {
     actions: ["list", "get", "create", "delete", "restart"],
     scope: "server",

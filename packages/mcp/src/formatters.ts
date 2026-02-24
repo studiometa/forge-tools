@@ -14,6 +14,7 @@ import type {
   ForgeCommand,
   ForgeDaemon,
   ForgeDatabase,
+  ForgeDatabaseUser,
   ForgeDeployment,
   ForgeFirewallRule,
   ForgeMonitor,
@@ -111,6 +112,31 @@ export function formatDatabaseList(databases: ForgeDatabase[]): string {
  */
 export function formatDatabase(db: ForgeDatabase): string {
   return `Database: ${db.name} (ID: ${db.id})\nStatus: ${db.status}\nCreated: ${db.created_at}`;
+}
+
+// ── Database Users ────────────────────────────────────
+
+/**
+ * Format a list of database users.
+ */
+export function formatDatabaseUserList(users: ForgeDatabaseUser[]): string {
+  if (users.length === 0) {
+    return "No database users found.";
+  }
+  const lines = users.map((u) => `• ${u.name} (ID: ${u.id}) — ${u.status}`);
+  return `${users.length} database user(s):\n${lines.join("\n")}`;
+}
+
+/**
+ * Format a single database user.
+ */
+export function formatDatabaseUser(user: ForgeDatabaseUser): string {
+  return [
+    `Database User: ${user.name} (ID: ${user.id})`,
+    `Status: ${user.status}`,
+    `Databases: ${user.databases.length > 0 ? user.databases.join(", ") : "none"}`,
+    `Created: ${user.created_at}`,
+  ].join("\n");
 }
 
 // ── Deployments ──────────────────────────────────────

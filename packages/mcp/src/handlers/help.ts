@@ -254,6 +254,39 @@ const RESOURCE_HELP: Record<string, ResourceHelp> = {
     ],
   },
 
+  "database-users": {
+    description: "Manage database users on a server",
+    scope: "server (requires server_id)",
+    actions: {
+      list: "List database users on a server",
+      get: "Get database user details",
+      create: "Create a new database user",
+      delete: "Delete a database user",
+    },
+    fields: {
+      name: "Database user name",
+      password: "User password",
+      databases: "(create only) Array of database IDs to grant access to",
+    },
+    examples: [
+      {
+        description: "List database users",
+        params: { resource: "database-users", action: "list", server_id: "123" },
+      },
+      {
+        description: "Create a database user",
+        params: {
+          resource: "database-users",
+          action: "create",
+          server_id: "123",
+          name: "forge",
+          password: "secret123",
+          databases: [1, 2],
+        },
+      },
+    ],
+  },
+
   daemons: {
     description: "Manage background processes (daemons) — queue workers, websocket servers, etc.",
     scope: "server (requires server_id)",

@@ -18,6 +18,7 @@ import { handleCertificates } from "./certificates.ts";
 import { handleCommands } from "./commands.ts";
 import { handleDaemons } from "./daemons.ts";
 import { handleDatabases } from "./databases.ts";
+import { handleDatabaseUsers } from "./database-users.ts";
 import { handleDeployments } from "./deployments.ts";
 import { handleEnv } from "./env.ts";
 import { handleFirewallRules } from "./firewall-rules.ts";
@@ -68,6 +69,8 @@ function routeToHandler(
       return handleCertificates(action, args, ctx);
     case "databases":
       return handleDatabases(action, args, ctx);
+    case "database-users":
+      return handleDatabaseUsers(action, args, ctx);
     case "daemons":
       return handleDaemons(action, args, ctx);
     case "firewall-rules":

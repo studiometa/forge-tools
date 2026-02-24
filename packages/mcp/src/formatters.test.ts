@@ -6,6 +6,7 @@ import type {
   ForgeCommand,
   ForgeDaemon,
   ForgeDatabase,
+  ForgeDatabaseUser,
   ForgeDeployment,
   ForgeFirewallRule,
   ForgeMonitor,
@@ -32,6 +33,8 @@ import {
   formatDaemonList,
   formatDatabase,
   formatDatabaseList,
+  formatDatabaseUser,
+  formatDatabaseUserList,
   formatDeleted,
   formatDeployAction,
   formatDeploymentList,
@@ -269,6 +272,63 @@ describe("formatDatabase", () => {
     expect(result).toContain("Database: myapp (ID: 1)");
     expect(result).toContain("Status: installed");
     expect(result).toContain("Created: 2024-01-01");
+  });
+});
+
+// ── Database Users ────────────────────────────────────
+
+describe("formatDatabaseUserList", () => {
+  it("should format a list of database users", () => {
+    const users: ForgeDatabaseUser[] = [
+      {
+        id: 1,
+        name: "forge",
+        status: "installed",
+        server_id: 1,
+        databases: [],
+        created_at: "2024-01-01",
+      },
+    ];
+    const result = formatDatabaseUserList(users);
+    expect(result).toContain("forge");
+    expect(result).toContain("ID: 1");
+  });
+
+  it("should handle empty list", () => {
+    expect(formatDatabaseUserList([])).toBe("No database users found.");
+  });
+});
+
+describe("formatDatabaseUser", () => {
+  it("should format a single database user with databases", () => {
+    const user: ForgeDatabaseUser = {
+      id: 1,
+      name: "forge",
+      status: "installed",
+      server_id: 1,
+      databases: [1, 2],
+      created_at: "2024-01-01",
+    };
+
+    const result = formatDatabaseUser(user);
+    expect(result).toContain("Database User: forge (ID: 1)");
+    expect(result).toContain("Status: installed");
+    expect(result).toContain("Databases: 1, 2");
+    expect(result).toContain("Created: 2024-01-01");
+  });
+
+  it("should show 'none' when no databases are assigned", () => {
+    const user: ForgeDatabaseUser = {
+      id: 2,
+      name: "readonly",
+      status: "installed",
+      server_id: 1,
+      databases: [],
+      created_at: "2024-01-01",
+    };
+
+    const result = formatDatabaseUser(user);
+    expect(result).toContain("Databases: none");
   });
 });
 
