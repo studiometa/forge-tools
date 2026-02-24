@@ -6,10 +6,19 @@ import type {
   ServersResponse,
 } from "@studiometa/forge-api";
 
+import { AsyncPaginatedIterator } from "../pagination.ts";
 import { SitesCollection, SiteResource } from "./sites.ts";
 import { DatabasesCollection } from "./databases.ts";
 import { DaemonsCollection } from "./daemons.ts";
 import { BaseCollection } from "./base.ts";
+
+/**
+ * Options for listing servers.
+ */
+export interface ServerListOptions {
+  /** Page number to fetch (1-indexed). */
+  page?: number;
+}
 
 /**
  * Collection of servers.
@@ -35,16 +44,37 @@ export class ServersCollection extends BaseCollection {
   }
 
   /**
-   * List all servers.
+   * List servers.
    *
    * @example
    * ```ts
    * const servers = await forge.servers.list();
+   *
+   * // Fetch a specific page:
+   * const page2 = await forge.servers.list({ page: 2 });
    * ```
    */
-  async list(): Promise<ForgeServer[]> {
-    const response = await this.client.get<ServersResponse>("/servers");
+  async list(options: ServerListOptions = {}): Promise<ForgeServer[]> {
+    const query = options.page !== undefined ? `?page=${options.page}` : "";
+    const response = await this.client.get<ServersResponse>(`/servers${query}`);
     return response.servers;
+  }
+
+  /**
+   * Iterate over all servers across all pages.
+   *
+   * @example
+   * ```ts
+   * for await (const server of forge.servers.all()) {
+   *   console.log(server);
+   * }
+   *
+   * // Or collect all at once:
+   * const servers = await forge.servers.all().toArray();
+   * ```
+   */
+  all(options: Omit<ServerListOptions, "page"> = {}): AsyncPaginatedIterator<ForgeServer> {
+    return new AsyncPaginatedIterator<ForgeServer>((page) => this.list({ ...options, page }));
   }
 
   /**

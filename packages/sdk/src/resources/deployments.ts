@@ -6,6 +6,15 @@ import type {
 } from "@studiometa/forge-api";
 
 import { BaseCollection } from "./base.ts";
+import { AsyncPaginatedIterator } from "../pagination.ts";
+
+/**
+ * Options for listing deployments.
+ */
+export interface DeploymentListOptions {
+  /** Page number to fetch (1-indexed). */
+  page?: number;
+}
 
 /**
  * Collection of deployments for a site.
@@ -32,16 +41,37 @@ export class DeploymentsCollection extends BaseCollection {
   }
 
   /**
-   * List all deployments for this site.
+   * List deployments for this site.
    *
    * @example
    * ```ts
    * const deployments = await forge.server(123).site(456).deployments.list();
+   *
+   * // Fetch a specific page:
+   * const page2 = await forge.server(123).site(456).deployments.list({ page: 2 });
    * ```
    */
-  async list(): Promise<ForgeDeployment[]> {
-    const response = await this.client.get<DeploymentsResponse>(this.basePath);
+  async list(options: DeploymentListOptions = {}): Promise<ForgeDeployment[]> {
+    const query = options.page !== undefined ? `?page=${options.page}` : "";
+    const response = await this.client.get<DeploymentsResponse>(`${this.basePath}${query}`);
     return response.deployments;
+  }
+
+  /**
+   * Iterate over all deployments across all pages.
+   *
+   * @example
+   * ```ts
+   * for await (const deployment of forge.server(123).site(456).deployments.all()) {
+   *   console.log(deployment);
+   * }
+   *
+   * // Or collect all at once:
+   * const deployments = await forge.server(123).site(456).deployments.all().toArray();
+   * ```
+   */
+  all(options: Omit<DeploymentListOptions, "page"> = {}): AsyncPaginatedIterator<ForgeDeployment> {
+    return new AsyncPaginatedIterator<ForgeDeployment>((page) => this.list({ ...options, page }));
   }
 
   /**

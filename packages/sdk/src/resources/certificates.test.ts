@@ -1,7 +1,8 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { HttpClient } from "@studiometa/forge-api";
 
+import { AsyncPaginatedIterator } from "../pagination.ts";
 import { CertificatesCollection } from "./certificates.ts";
 
 function createTrackingClient(): {
@@ -38,6 +39,14 @@ describe("CertificatesCollection", () => {
 
     await collection.list();
     expect(calls[0]!.url).toContain("/servers/123/sites/456/certificates");
+  });
+
+  it("should list certificates with page option", async () => {
+    const { client, calls } = createTrackingClient();
+    const collection = new CertificatesCollection(client, 123, 456);
+
+    await collection.list({ page: 2 });
+    expect(calls[0]!.url).toContain("/servers/123/sites/456/certificates?page=2");
   });
 
   it("should get a certificate", async () => {
@@ -81,5 +90,31 @@ describe("CertificatesCollection", () => {
     await collection.activate(789);
     expect(calls[0]!.method).toBe("POST");
     expect(calls[0]!.url).toContain("/certificates/789/activate");
+  });
+
+  it("should return an AsyncPaginatedIterator from all()", () => {
+    const { client } = createTrackingClient();
+    const collection = new CertificatesCollection(client, 123, 456);
+
+    const iter = collection.all();
+    expect(iter).toBeInstanceOf(AsyncPaginatedIterator);
+  });
+
+  it("should iterate all certificates across pages via all()", async () => {
+    const page1 = Array.from({ length: 200 }, (_, i) => ({ id: i + 1 }) as never);
+    const page2 = [{ id: 201 } as never];
+    const { client } = createTrackingClient();
+    const collection = new CertificatesCollection(client, 123, 456);
+
+    const listSpy = vi
+      .spyOn(collection, "list")
+      .mockResolvedValueOnce(page1)
+      .mockResolvedValueOnce(page2);
+
+    const results = await collection.all().toArray();
+
+    expect(results).toHaveLength(201);
+    expect(listSpy).toHaveBeenCalledWith({ page: 1 });
+    expect(listSpy).toHaveBeenCalledWith({ page: 2 });
   });
 });

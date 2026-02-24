@@ -7,6 +7,15 @@ import type {
 } from "@studiometa/forge-api";
 
 import { BaseCollection } from "./base.ts";
+import { AsyncPaginatedIterator } from "../pagination.ts";
+
+/**
+ * Options for listing daemons.
+ */
+export interface DaemonListOptions {
+  /** Page number to fetch (1-indexed). */
+  page?: number;
+}
 
 /**
  * Collection of daemons (background processes) on a server.
@@ -32,16 +41,37 @@ export class DaemonsCollection extends BaseCollection {
   }
 
   /**
-   * List all daemons on this server.
+   * List daemons on this server.
    *
    * @example
    * ```ts
    * const daemons = await forge.server(123).daemons.list();
+   *
+   * // Fetch a specific page:
+   * const page2 = await forge.server(123).daemons.list({ page: 2 });
    * ```
    */
-  async list(): Promise<ForgeDaemon[]> {
-    const response = await this.client.get<DaemonsResponse>(this.basePath);
+  async list(options: DaemonListOptions = {}): Promise<ForgeDaemon[]> {
+    const query = options.page !== undefined ? `?page=${options.page}` : "";
+    const response = await this.client.get<DaemonsResponse>(`${this.basePath}${query}`);
     return response.daemons;
+  }
+
+  /**
+   * Iterate over all daemons across all pages.
+   *
+   * @example
+   * ```ts
+   * for await (const daemon of forge.server(123).daemons.all()) {
+   *   console.log(daemon);
+   * }
+   *
+   * // Or collect all at once:
+   * const daemons = await forge.server(123).daemons.all().toArray();
+   * ```
+   */
+  all(options: Omit<DaemonListOptions, "page"> = {}): AsyncPaginatedIterator<ForgeDaemon> {
+    return new AsyncPaginatedIterator<ForgeDaemon>((page) => this.list({ ...options, page }));
   }
 
   /**
