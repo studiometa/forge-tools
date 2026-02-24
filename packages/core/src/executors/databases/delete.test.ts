@@ -12,6 +12,5 @@ describe("deleteDatabase", () => {
 
     expect(deleteMock).toHaveBeenCalledWith("/servers/1/databases/7");
     expect(result.data).toBeUndefined();
-    expect(result.text).toContain("deleted");
   });
 });

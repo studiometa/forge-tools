@@ -8,10 +8,8 @@ describe("rebootServer", () => {
     const postMock = vi.fn(async () => undefined);
     const ctx = createTestExecutorContext({ client: { post: postMock } as never });
 
-    const result = await rebootServer({ server_id: "123" }, ctx);
+    await rebootServer({ server_id: "123" }, ctx);
 
     expect(postMock).toHaveBeenCalledWith("/servers/123/reboot");
-    expect(result.text).toContain("reboot");
-    expect(result.text).toContain("123");
   });
 });

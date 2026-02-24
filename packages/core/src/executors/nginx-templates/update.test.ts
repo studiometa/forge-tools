@@ -22,7 +22,5 @@ describe("updateNginxTemplate", () => {
     );
 
     expect(result.data.name).toBe("updated-php");
-    expect(result.text).toContain("updated");
-    expect(result.text).toContain("updated-php");
   });
 });

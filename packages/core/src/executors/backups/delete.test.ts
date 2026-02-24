@@ -12,6 +12,5 @@ describe("deleteBackupConfig", () => {
 
     expect(deleteMock).toHaveBeenCalledWith("/servers/1/backup-configs/3");
     expect(result.data).toBeUndefined();
-    expect(result.text).toContain("deleted");
   });
 });

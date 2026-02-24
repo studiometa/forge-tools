@@ -24,8 +24,5 @@ describe("getCertificate", () => {
     const result = await getCertificate({ server_id: "1", site_id: "2", id: "10" }, ctx);
 
     expect(result.data.domain).toBe("example.com");
-    expect(result.text).toContain("example.com");
-    expect(result.text).toContain("letsencrypt");
-    expect(result.text).toContain("installed");
   });
 });

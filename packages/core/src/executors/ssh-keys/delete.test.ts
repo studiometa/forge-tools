@@ -12,6 +12,5 @@ describe("deleteSshKey", () => {
 
     expect(deleteMock).toHaveBeenCalledWith("/servers/1/keys/12");
     expect(result.data).toBeUndefined();
-    expect(result.text).toContain("deleted");
   });
 });

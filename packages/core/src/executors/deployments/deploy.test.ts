@@ -13,10 +13,8 @@ describe("deploySite", () => {
       } as never,
     });
 
-    const result = await deploySite({ server_id: "123", site_id: "456" }, ctx);
+    await deploySite({ server_id: "123", site_id: "456" }, ctx);
 
     expect(postMock).toHaveBeenCalledWith("/servers/123/sites/456/deployment/deploy");
-    expect(result.text).toContain("Deployment triggered");
-    expect(result.text).toContain("456");
   });
 });

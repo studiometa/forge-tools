@@ -17,6 +17,5 @@ describe("updateEnv", () => {
       content: "APP_ENV=production",
     });
     expect(result.data).toBeUndefined();
-    expect(result.text).toContain("updated");
   });
 });

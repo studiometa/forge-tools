@@ -22,7 +22,5 @@ describe("createRedirectRule", () => {
     );
 
     expect(result.data.from).toBe("/old");
-    expect(result.text).toContain("/old");
-    expect(result.text).toContain("/new");
   });
 });

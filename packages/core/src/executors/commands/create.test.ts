@@ -22,7 +22,5 @@ describe("createCommand", () => {
     );
 
     expect(result.data.command).toBe("php artisan cache:clear");
-    expect(result.text).toContain("php artisan cache:clear");
-    expect(result.text).toContain("running");
   });
 });

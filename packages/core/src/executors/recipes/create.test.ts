@@ -22,7 +22,5 @@ describe("createRecipe", () => {
     );
 
     expect(result.data.name).toBe("deploy-script");
-    expect(result.text).toContain("deploy-script");
-    expect(result.text).toContain("8");
   });
 });

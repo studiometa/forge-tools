@@ -23,8 +23,5 @@ describe("getRecipe", () => {
     const result = await getRecipe({ id: "8" }, ctx);
 
     expect(result.data.name).toBe("deploy-script");
-    expect(result.text).toContain("deploy-script");
-    expect(result.text).toContain("root");
-    expect(result.text).toContain("echo hello");
   });
 });

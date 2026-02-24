@@ -18,8 +18,6 @@ describe("listSshKeys", () => {
     const result = await listSshKeys({ server_id: "123" }, ctx);
 
     expect(result.data).toHaveLength(1);
-    expect(result.text).toContain("Deploy Key");
-    expect(result.text).toContain("1 SSH key(s)");
   });
 
   it("should handle empty list", async () => {
@@ -32,6 +30,5 @@ describe("listSshKeys", () => {
     const result = await listSshKeys({ server_id: "123" }, ctx);
 
     expect(result.data).toHaveLength(0);
-    expect(result.text).toContain("No SSH keys");
   });
 });

@@ -24,8 +24,5 @@ describe("getCommand", () => {
     const result = await getCommand({ server_id: "1", site_id: "2", id: "1" }, ctx);
 
     expect(result.data.command).toBe("php artisan migrate");
-    expect(result.text).toContain("php artisan migrate");
-    expect(result.text).toContain("finished");
-    expect(result.text).toContain("forge");
   });
 });

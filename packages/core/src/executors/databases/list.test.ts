@@ -14,7 +14,6 @@ describe("listDatabases", () => {
     });
     const result = await listDatabases({ server_id: "1" }, ctx);
     expect(result.data).toHaveLength(1);
-    expect(result.text).toContain("myapp");
   });
 
   it("should handle empty list", async () => {
@@ -23,6 +22,5 @@ describe("listDatabases", () => {
     });
     const result = await listDatabases({ server_id: "1" }, ctx);
     expect(result.data).toHaveLength(0);
-    expect(result.text).toContain("No databases");
   });
 });

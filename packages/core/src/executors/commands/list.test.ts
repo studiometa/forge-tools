@@ -20,8 +20,6 @@ describe("listCommands", () => {
     const result = await listCommands({ server_id: "1", site_id: "2" }, ctx);
 
     expect(result.data).toHaveLength(1);
-    expect(result.text).toContain("1 command(s)");
-    expect(result.text).toContain("migrate");
   });
 
   it("should handle empty list", async () => {
@@ -32,6 +30,5 @@ describe("listCommands", () => {
     const result = await listCommands({ server_id: "1", site_id: "2" }, ctx);
 
     expect(result.data).toHaveLength(0);
-    expect(result.text).toContain("No commands");
   });
 });

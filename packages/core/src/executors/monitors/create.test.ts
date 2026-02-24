@@ -22,8 +22,5 @@ describe("createMonitor", () => {
     );
 
     expect(result.data.type).toBe("disk");
-    expect(result.text).toContain("disk");
-    expect(result.text).toContain("gte");
-    expect(result.text).toContain("80");
   });
 });

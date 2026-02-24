@@ -14,6 +14,5 @@ describe("runRecipe", () => {
       servers: [1, 2, 3],
     });
     expect(result.data).toBeUndefined();
-    expect(result.text).toContain("3 server(s)");
   });
 });

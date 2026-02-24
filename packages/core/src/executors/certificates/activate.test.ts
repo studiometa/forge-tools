@@ -12,6 +12,5 @@ describe("activateCertificate", () => {
 
     expect(postMock).toHaveBeenCalledWith("/servers/1/sites/2/certificates/3/activate", {});
     expect(result.data).toBeUndefined();
-    expect(result.text).toContain("activated");
   });
 });

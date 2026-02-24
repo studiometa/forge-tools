@@ -29,9 +29,6 @@ describe("listCertificates", () => {
     });
     const result = await listCertificates({ server_id: "1", site_id: "2" }, ctx);
     expect(result.data).toHaveLength(2);
-    expect(result.text).toContain("example.com");
-    expect(result.text).toContain("active");
-    expect(result.text).toContain("inactive");
   });
 
   it("should handle empty list", async () => {
@@ -40,6 +37,5 @@ describe("listCertificates", () => {
     });
     const result = await listCertificates({ server_id: "1", site_id: "2" }, ctx);
     expect(result.data).toHaveLength(0);
-    expect(result.text).toContain("No certificates");
   });
 });

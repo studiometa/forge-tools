@@ -14,7 +14,6 @@ describe("listRecipes", () => {
     });
     const result = await listRecipes({} as Record<string, never>, ctx);
     expect(result.data).toHaveLength(1);
-    expect(result.text).toContain("Clear caches");
   });
 
   it("should handle empty list", async () => {
@@ -23,6 +22,5 @@ describe("listRecipes", () => {
     });
     const result = await listRecipes({} as Record<string, never>, ctx);
     expect(result.data).toHaveLength(0);
-    expect(result.text).toContain("No recipes");
   });
 });

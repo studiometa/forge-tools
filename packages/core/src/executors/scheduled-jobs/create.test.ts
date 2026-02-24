@@ -22,7 +22,5 @@ describe("createScheduledJob", () => {
     );
 
     expect(result.data.command).toBe("php artisan inspire");
-    expect(result.text).toContain("php artisan inspire");
-    expect(result.text).toContain("daily");
   });
 });

@@ -19,7 +19,5 @@ describe("createSite", () => {
     );
 
     expect(result.data.name).toBe("example.com");
-    expect(result.text).toContain("example.com");
-    expect(result.text).toContain("123");
   });
 });

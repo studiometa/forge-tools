@@ -12,6 +12,5 @@ describe("deleteRedirectRule", () => {
 
     expect(deleteMock).toHaveBeenCalledWith("/servers/1/sites/2/redirect-rules/9");
     expect(result.data).toBeUndefined();
-    expect(result.text).toContain("deleted");
   });
 });

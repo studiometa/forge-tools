@@ -56,6 +56,16 @@ describe("handleCommands", () => {
     expect(result.content[0]!.text).toContain("cache:clear");
   });
 
+  it("should get a command", async () => {
+    const result = await handleCommands(
+      "get",
+      { resource: "commands", action: "get", server_id: "1", site_id: "2", id: "1" },
+      createMockContext(),
+    );
+    expect(result.isError).toBeUndefined();
+    expect(result.content[0]!.text).toContain("migrate");
+  });
+
   it("should require server_id and site_id", async () => {
     const result = await handleCommands(
       "list",

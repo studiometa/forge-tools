@@ -25,8 +25,5 @@ describe("getMonitor", () => {
     const result = await getMonitor({ server_id: "1", id: "4" }, ctx);
 
     expect(result.data.type).toBe("disk");
-    expect(result.text).toContain("disk");
-    expect(result.text).toContain("OK");
-    expect(result.text).toContain("5");
   });
 });

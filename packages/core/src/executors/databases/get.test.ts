@@ -23,7 +23,5 @@ describe("getDatabase", () => {
     const result = await getDatabase({ server_id: "1", id: "7" }, ctx);
 
     expect(result.data.name).toBe("myapp");
-    expect(result.text).toContain("myapp");
-    expect(result.text).toContain("installed");
   });
 });

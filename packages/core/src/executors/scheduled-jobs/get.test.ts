@@ -26,9 +26,5 @@ describe("getScheduledJob", () => {
     const result = await getScheduledJob({ server_id: "1", id: "1" }, ctx);
 
     expect(result.data.command).toBe("php artisan schedule:run");
-    expect(result.text).toContain("schedule:run");
-    expect(result.text).toContain("minutely");
-    expect(result.text).toContain("* * * * *");
-    expect(result.text).toContain("forge");
   });
 });

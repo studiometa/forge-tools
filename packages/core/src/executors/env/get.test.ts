@@ -12,6 +12,5 @@ describe("getEnv", () => {
     });
     const result = await getEnv({ server_id: "1", site_id: "2" }, ctx);
     expect(result.data).toContain("APP_ENV=production");
-    expect(result.text).toContain("Environment variables");
   });
 });

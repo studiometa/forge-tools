@@ -23,7 +23,5 @@ describe("getSshKey", () => {
     const result = await getSshKey({ server_id: "1", id: "12" }, ctx);
 
     expect(result.data.name).toBe("deploy-key");
-    expect(result.text).toContain("deploy-key");
-    expect(result.text).toContain("installed");
   });
 });

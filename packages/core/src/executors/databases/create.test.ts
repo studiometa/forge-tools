@@ -19,7 +19,5 @@ describe("createDatabase", () => {
     const result = await createDatabase({ server_id: "1", name: "myapp" }, ctx);
 
     expect(result.data.name).toBe("myapp");
-    expect(result.text).toContain("myapp");
-    expect(result.text).toContain("7");
   });
 });

@@ -22,7 +22,5 @@ describe("getNginxTemplate", () => {
     const result = await getNginxTemplate({ server_id: "1", id: "6" }, ctx);
 
     expect(result.data.name).toBe("custom-php");
-    expect(result.text).toContain("custom-php");
-    expect(result.text).toContain("server { listen 80; }");
   });
 });

@@ -22,7 +22,5 @@ describe("createDaemon", () => {
     );
 
     expect(result.data.command).toBe("node server.js");
-    expect(result.text).toContain("node server.js");
-    expect(result.text).toContain("5");
   });
 });

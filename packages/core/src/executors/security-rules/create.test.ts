@@ -22,7 +22,5 @@ describe("createSecurityRule", () => {
     );
 
     expect(result.data.name).toBe("Restrict Admin");
-    expect(result.text).toContain("Restrict Admin");
-    expect(result.text).toContain("11");
   });
 });
