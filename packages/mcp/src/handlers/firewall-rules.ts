@@ -8,6 +8,7 @@ import {
 import type { ForgeFirewallRule } from "@studiometa/forge-api";
 
 import { formatFirewallRule, formatFirewallRuleList } from "../formatters.ts";
+import { getFirewallRuleHints } from "../hints.ts";
 import { createResourceHandler } from "./factory.ts";
 
 export const handleFirewallRules = createResourceHandler({
@@ -24,6 +25,10 @@ export const handleFirewallRules = createResourceHandler({
     get: getFirewallRule,
     create: createFirewallRule,
     delete: deleteFirewallRule,
+  },
+  hints: (data, id) => {
+    const rule = data as ForgeFirewallRule;
+    return getFirewallRuleHints(String(rule.server_id), id);
   },
   formatResult: (action, data, args) => {
     switch (action) {

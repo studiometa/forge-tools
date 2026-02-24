@@ -9,6 +9,7 @@ import {
 import type { ForgeNginxTemplate } from "@studiometa/forge-api";
 
 import { formatNginxTemplate, formatNginxTemplateList } from "../formatters.ts";
+import { getNginxTemplateHints } from "../hints.ts";
 import { createResourceHandler } from "./factory.ts";
 
 export const handleNginxTemplates = createResourceHandler({
@@ -27,6 +28,10 @@ export const handleNginxTemplates = createResourceHandler({
     create: createNginxTemplate,
     update: updateNginxTemplate,
     delete: deleteNginxTemplate,
+  },
+  hints: (data, id) => {
+    const template = data as ForgeNginxTemplate;
+    return getNginxTemplateHints(String(template.server_id), id);
   },
   formatResult: (action, data, args) => {
     switch (action) {

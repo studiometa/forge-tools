@@ -3,6 +3,7 @@ import { createSite, deleteSite, getSite, listSites } from "@studiometa/forge-co
 import type { ForgeSite } from "@studiometa/forge-api";
 
 import { formatSite, formatSiteList } from "../formatters.ts";
+import { getSiteHints } from "../hints.ts";
 import { createResourceHandler } from "./factory.ts";
 
 export const handleSites = createResourceHandler({
@@ -19,6 +20,10 @@ export const handleSites = createResourceHandler({
     get: getSite,
     create: createSite,
     delete: deleteSite,
+  },
+  hints: (data, id) => {
+    const site = data as ForgeSite;
+    return getSiteHints(String(site.server_id), id);
   },
   mapOptions: (action, args) => {
     switch (action) {

@@ -21,11 +21,13 @@ function createMockContext(): HandlerContext {
           ],
           rule: {
             id: 1,
+            server_id: 1,
             name: "SSH",
             port: 22,
             type: "allow",
             ip_address: "0.0.0.0",
             status: "created",
+            created_at: "2024-01-01",
           },
         }),
         post: async () => ({
@@ -102,5 +104,21 @@ describe("handleFirewallRules", () => {
       createMockContext(),
     );
     expect(result.isError).toBe(true);
+  });
+
+  it("should inject hints on get when includeHints=true", async () => {
+    const ctx = createMockContext();
+    ctx.compact = false;
+    ctx.includeHints = true;
+
+    const result = await handleFirewallRules(
+      "get",
+      { resource: "firewall-rules", action: "get", server_id: "1", id: "1" },
+      ctx,
+    );
+    expect(result.isError).toBeUndefined();
+    const parsed = JSON.parse(result.content[0]!.text);
+    expect(parsed._hints).toBeDefined();
+    expect(parsed._hints.related_resources).toBeDefined();
   });
 });

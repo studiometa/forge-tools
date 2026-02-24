@@ -3,6 +3,7 @@ import { createSshKey, deleteSshKey, getSshKey, listSshKeys } from "@studiometa/
 import type { ForgeSshKey } from "@studiometa/forge-api";
 
 import { formatSshKey, formatSshKeyList } from "../formatters.ts";
+import { getSshKeyHints } from "../hints.ts";
 import { createResourceHandler } from "./factory.ts";
 
 export const handleSshKeys = createResourceHandler({
@@ -19,6 +20,10 @@ export const handleSshKeys = createResourceHandler({
     get: getSshKey,
     create: createSshKey,
     delete: deleteSshKey,
+  },
+  hints: (data, id) => {
+    const key = data as ForgeSshKey;
+    return getSshKeyHints(String(key.server_id), id);
   },
   formatResult: (action, data, args) => {
     switch (action) {

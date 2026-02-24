@@ -14,6 +14,8 @@ export interface ToolResult {
 export interface HandlerContext {
   executorContext: ExecutorContext;
   compact: boolean;
+  /** Whether to include contextual hints in get responses (default: false) */
+  includeHints?: boolean;
 }
 
 /**

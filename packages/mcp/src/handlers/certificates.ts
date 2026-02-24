@@ -9,6 +9,7 @@ import {
 import type { ForgeCertificate } from "@studiometa/forge-api";
 
 import { formatCertificate, formatCertificateList } from "../formatters.ts";
+import { getCertificateHints } from "../hints.ts";
 import { createResourceHandler } from "./factory.ts";
 
 export const handleCertificates = createResourceHandler({
@@ -27,6 +28,10 @@ export const handleCertificates = createResourceHandler({
     create: createCertificate,
     delete: deleteCertificate,
     activate: activateCertificate,
+  },
+  hints: (data, id) => {
+    const cert = data as ForgeCertificate;
+    return getCertificateHints(String(cert.server_id), String(cert.site_id), id);
   },
   formatResult: (action, data, args) => {
     switch (action) {
