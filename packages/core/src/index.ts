@@ -5,6 +5,7 @@ export { ACTIONS, RESOURCES } from "./constants.ts";
 export type { Action, Resource } from "./constants.ts";
 export { createTestExecutorContext } from "./context.ts";
 export type { ExecutorContext, ExecutorResult } from "./context.ts";
+export type { Executor } from "./executors/types.ts";
 
 // Servers
 export {
@@ -14,9 +15,22 @@ export {
   listServers,
   rebootServer,
 } from "./executors/servers/index.ts";
+export type {
+  CreateServerOptions,
+  DeleteServerOptions,
+  GetServerOptions,
+  ListServersOptions,
+  RebootServerOptions,
+} from "./executors/servers/index.ts";
 
 // Sites
 export { createSite, deleteSite, getSite, listSites } from "./executors/sites/index.ts";
+export type {
+  CreateSiteOptions,
+  DeleteSiteOptions,
+  GetSiteOptions,
+  ListSitesOptions,
+} from "./executors/sites/index.ts";
 
 // Deployments
 export {
@@ -25,6 +39,13 @@ export {
   getDeploymentScript,
   listDeployments,
   updateDeploymentScript,
+} from "./executors/deployments/index.ts";
+export type {
+  DeploySiteOptions,
+  GetDeploymentOutputOptions,
+  GetDeploymentScriptOptions,
+  ListDeploymentsOptions,
+  UpdateDeploymentScriptOptions,
 } from "./executors/deployments/index.ts";
 
 // Certificates
@@ -35,6 +56,13 @@ export {
   getCertificate,
   listCertificates,
 } from "./executors/certificates/index.ts";
+export type {
+  ActivateCertificateOptions,
+  CreateCertificateOptions,
+  DeleteCertificateOptions,
+  GetCertificateOptions,
+  ListCertificatesOptions,
+} from "./executors/certificates/index.ts";
 
 // Databases
 export {
@@ -42,6 +70,12 @@ export {
   deleteDatabase,
   getDatabase,
   listDatabases,
+} from "./executors/databases/index.ts";
+export type {
+  CreateDatabaseOptions,
+  DeleteDatabaseOptions,
+  GetDatabaseOptions,
+  ListDatabasesOptions,
 } from "./executors/databases/index.ts";
 
 // Daemons
@@ -52,6 +86,13 @@ export {
   listDaemons,
   restartDaemon,
 } from "./executors/daemons/index.ts";
+export type {
+  CreateDaemonOptions,
+  DeleteDaemonOptions,
+  GetDaemonOptions,
+  ListDaemonsOptions,
+  RestartDaemonOptions,
+} from "./executors/daemons/index.ts";
 
 // Firewall Rules
 export {
@@ -60,9 +101,21 @@ export {
   getFirewallRule,
   listFirewallRules,
 } from "./executors/firewall-rules/index.ts";
+export type {
+  CreateFirewallRuleOptions,
+  DeleteFirewallRuleOptions,
+  GetFirewallRuleOptions,
+  ListFirewallRulesOptions,
+} from "./executors/firewall-rules/index.ts";
 
 // SSH Keys
 export { createSshKey, deleteSshKey, getSshKey, listSshKeys } from "./executors/ssh-keys/index.ts";
+export type {
+  CreateSshKeyOptions,
+  DeleteSshKeyOptions,
+  GetSshKeyOptions,
+  ListSshKeysOptions,
+} from "./executors/ssh-keys/index.ts";
 
 // Security Rules
 export {
@@ -70,6 +123,12 @@ export {
   deleteSecurityRule,
   getSecurityRule,
   listSecurityRules,
+} from "./executors/security-rules/index.ts";
+export type {
+  CreateSecurityRuleOptions,
+  DeleteSecurityRuleOptions,
+  GetSecurityRuleOptions,
+  ListSecurityRulesOptions,
 } from "./executors/security-rules/index.ts";
 
 // Redirect Rules
@@ -79,6 +138,12 @@ export {
   getRedirectRule,
   listRedirectRules,
 } from "./executors/redirect-rules/index.ts";
+export type {
+  CreateRedirectRuleOptions,
+  DeleteRedirectRuleOptions,
+  GetRedirectRuleOptions,
+  ListRedirectRulesOptions,
+} from "./executors/redirect-rules/index.ts";
 
 // Monitors
 export {
@@ -86,6 +151,12 @@ export {
   deleteMonitor,
   getMonitor,
   listMonitors,
+} from "./executors/monitors/index.ts";
+export type {
+  CreateMonitorOptions,
+  DeleteMonitorOptions,
+  GetMonitorOptions,
+  ListMonitorsOptions,
 } from "./executors/monitors/index.ts";
 
 // Nginx Templates
@@ -96,12 +167,21 @@ export {
   listNginxTemplates,
   updateNginxTemplate,
 } from "./executors/nginx-templates/index.ts";
+export type {
+  CreateNginxTemplateOptions,
+  DeleteNginxTemplateOptions,
+  GetNginxTemplateOptions,
+  ListNginxTemplatesOptions,
+  UpdateNginxTemplateOptions,
+} from "./executors/nginx-templates/index.ts";
 
 // Env
 export { getEnv, updateEnv } from "./executors/env/index.ts";
+export type { GetEnvOptions, UpdateEnvOptions } from "./executors/env/index.ts";
 
 // Nginx Config
 export { getNginxConfig, updateNginxConfig } from "./executors/nginx/index.ts";
+export type { GetNginxConfigOptions, UpdateNginxConfigOptions } from "./executors/nginx/index.ts";
 
 // Recipes
 export {
@@ -111,6 +191,13 @@ export {
   listRecipes,
   runRecipe,
 } from "./executors/recipes/index.ts";
+export type {
+  CreateRecipeOptions,
+  DeleteRecipeOptions,
+  GetRecipeOptions,
+  ListRecipesOptions,
+  RunRecipeOptions,
+} from "./executors/recipes/index.ts";
 
 // Backups
 export {
@@ -119,9 +206,20 @@ export {
   getBackupConfig,
   listBackupConfigs,
 } from "./executors/backups/index.ts";
+export type {
+  CreateBackupConfigOptions,
+  DeleteBackupConfigOptions,
+  GetBackupConfigOptions,
+  ListBackupConfigsOptions,
+} from "./executors/backups/index.ts";
 
 // Commands
 export { createCommand, getCommand, listCommands } from "./executors/commands/index.ts";
+export type {
+  CreateCommandOptions,
+  GetCommandOptions,
+  ListCommandsOptions,
+} from "./executors/commands/index.ts";
 
 // Scheduled Jobs
 export {
@@ -130,6 +228,13 @@ export {
   getScheduledJob,
   listScheduledJobs,
 } from "./executors/scheduled-jobs/index.ts";
+export type {
+  CreateScheduledJobOptions,
+  DeleteScheduledJobOptions,
+  GetScheduledJobOptions,
+  ListScheduledJobsOptions,
+} from "./executors/scheduled-jobs/index.ts";
 
 // User
 export { getUser } from "./executors/user/index.ts";
+export type { GetUserOptions } from "./executors/user/index.ts";
