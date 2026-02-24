@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { UserInputError } from "../errors.ts";
 import { errorResult, inputErrorResult, jsonResult, sanitizeId } from "./utils.ts";
 
 describe("jsonResult", () => {
@@ -35,6 +36,22 @@ describe("inputErrorResult", () => {
     const result = inputErrorResult("Invalid input");
     expect(result.content[0]!.text).toContain("Invalid input");
     expect(result.content[0]!.text).not.toContain("Suggestion");
+  });
+
+  it("should render UserInputError formatted message", () => {
+    const error = new UserInputError("Missing field", ["Hint A", "Hint B"]);
+    const result = inputErrorResult(error);
+    expect(result.isError).toBe(true);
+    expect(result.content[0]!.text).toContain("**Input Error:** Missing field");
+    expect(result.content[0]!.text).toContain("- Hint A");
+    expect(result.content[0]!.text).toContain("- Hint B");
+  });
+
+  it("should render UserInputError without hints", () => {
+    const error = new UserInputError("Simple error");
+    const result = inputErrorResult(error);
+    expect(result.isError).toBe(true);
+    expect(result.content[0]!.text).toBe("**Input Error:** Simple error");
   });
 });
 

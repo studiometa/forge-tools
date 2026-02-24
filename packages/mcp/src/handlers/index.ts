@@ -36,6 +36,7 @@ import { handleSshKeys } from "./ssh-keys.ts";
 import { handleUser } from "./user.ts";
 import { isForgeApiError } from "@studiometa/forge-api";
 
+import { isUserInputError } from "../errors.ts";
 import { errorResult } from "./utils.ts";
 
 export type { ToolResult } from "./types.ts";
@@ -150,6 +151,9 @@ export async function executeToolWithCredentials(
       handlerContext,
     );
   } catch (error) {
+    if (isUserInputError(error)) {
+      return errorResult(error.toFormattedMessage());
+    }
     if (isForgeApiError(error)) {
       return errorResult(`Forge API error (${error.status}): ${error.message}`);
     }

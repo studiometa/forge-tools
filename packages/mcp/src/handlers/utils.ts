@@ -1,5 +1,7 @@
 import type { ToolResult } from "./types.ts";
 
+import { UserInputError } from "../errors.ts";
+
 /**
  * Create a successful JSON result.
  * Accepts a string or an object (which will be JSON-serialized).
@@ -32,10 +34,18 @@ export function errorResult(message: string): ToolResult {
 }
 
 /**
- * Create an input error result with suggestions.
+ * Create an input error result from a UserInputError or a plain message with an optional suggestion.
+ *
+ * When a UserInputError is passed, its formatted message (including hints) is used.
+ * When a plain string is passed, the optional suggestion is appended.
  */
-export function inputErrorResult(message: string, suggestion?: string): ToolResult {
-  const text = suggestion ? `Error: ${message}\n\nSuggestion: ${suggestion}` : `Error: ${message}`;
+export function inputErrorResult(error: UserInputError | string, suggestion?: string): ToolResult {
+  let text: string;
+  if (error instanceof UserInputError) {
+    text = error.toFormattedMessage();
+  } else {
+    text = suggestion ? `Error: ${error}\n\nSuggestion: ${suggestion}` : `Error: ${error}`;
+  }
   return {
     content: [{ type: "text", text }],
     isError: true,
