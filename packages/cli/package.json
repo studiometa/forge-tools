@@ -1,0 +1,64 @@
+{
+  "name": "@studiometa/forge-cli",
+  "version": "0.1.0",
+  "description": "CLI tool for managing Laravel Forge servers, sites, and deployments",
+  "keywords": [
+    "ai-agent",
+    "api",
+    "automation",
+    "cli",
+    "forge",
+    "laravel",
+    "typescript"
+  ],
+  "license": "MIT",
+  "author": "Studio Meta",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/studiometa/forge-tools",
+    "directory": "packages/cli"
+  },
+  "bin": {
+    "forge-cli": "./dist/cli.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "dev": "vite build --watch",
+    "build": "vite build && tsc --emitDeclarationOnly",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:ci": "vitest run --coverage",
+    "lint": "oxlint src",
+    "format": "oxfmt --write src",
+    "format:check": "oxfmt --check src",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@studiometa/forge-api": "*",
+    "@studiometa/forge-core": "*"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "@vitest/coverage-v8": "^4.1.0-beta.4",
+    "typescript": "^5.7.3",
+    "vite": "^8.0.0-beta.14",
+    "vitest": "^4.1.0-beta.4"
+  },
+  "engines": {
+    "node": ">=24.0.0"
+  }
+}
