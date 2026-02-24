@@ -1,10 +1,6 @@
 /**
  * All supported resources.
  * Single source of truth — MCP schema and handlers derive from this.
- *
- * Only includes resources with implemented executors and handlers.
- * Deferred resources (backups, commands, scheduled-jobs, logs)
- * will be added when their executors are implemented.
  */
 export const RESOURCES = [
   "servers",
@@ -22,6 +18,10 @@ export const RESOURCES = [
   "nginx-templates",
   "monitors",
   "recipes",
+  "backups",
+  "commands",
+  "scheduled-jobs",
+  "user",
 ] as const;
 
 export type Resource = (typeof RESOURCES)[number];

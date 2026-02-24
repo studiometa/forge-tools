@@ -13,7 +13,9 @@ import { RESOURCES } from "@studiometa/forge-core";
 
 import type { CommonArgs, HandlerContext, ToolResult } from "./types.ts";
 
+import { handleBackups } from "./backups.ts";
 import { handleCertificates } from "./certificates.ts";
+import { handleCommands } from "./commands.ts";
 import { handleDaemons } from "./daemons.ts";
 import { handleDatabases } from "./databases.ts";
 import { handleDeployments } from "./deployments.ts";
@@ -25,11 +27,13 @@ import { handleNginxConfig } from "./nginx-config.ts";
 import { handleNginxTemplates } from "./nginx-templates.ts";
 import { handleRecipes } from "./recipes.ts";
 import { handleRedirectRules } from "./redirect-rules.ts";
+import { handleScheduledJobs } from "./scheduled-jobs.ts";
 import { handleSchema, handleSchemaOverview } from "./schema.ts";
 import { handleSecurityRules } from "./security-rules.ts";
 import { handleServers } from "./servers.ts";
 import { handleSites } from "./sites.ts";
 import { handleSshKeys } from "./ssh-keys.ts";
+import { handleUser } from "./user.ts";
 import { isForgeApiError } from "@studiometa/forge-api";
 
 import { errorResult } from "./utils.ts";
@@ -79,6 +83,14 @@ function routeToHandler(
       return handleNginxTemplates(action, args, ctx);
     case "recipes":
       return handleRecipes(action, args, ctx);
+    case "backups":
+      return handleBackups(action, args, ctx);
+    case "commands":
+      return handleCommands(action, args, ctx);
+    case "scheduled-jobs":
+      return handleScheduledJobs(action, args, ctx);
+    case "user":
+      return handleUser(action, args, ctx);
     default:
       return Promise.resolve(
         errorResult(

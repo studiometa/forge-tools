@@ -235,6 +235,69 @@ const RESOURCE_SCHEMAS: Record<string, ResourceSchemaData> = {
     },
   },
 
+  backups: {
+    actions: ["list", "get", "create", "delete"],
+    scope: "server",
+    required: {
+      list: ["server_id"],
+      get: ["server_id", "id"],
+      create: ["server_id", "provider", "credentials", "frequency", "databases"],
+      delete: ["server_id", "id"],
+    },
+    create: {
+      provider: { required: true, type: "string — s3, spaces, custom" },
+      credentials: { required: true, type: "object — provider credentials (key, secret, etc.)" },
+      frequency: { required: true, type: "string — daily, weekly, custom" },
+      databases: { required: true, type: "array — database IDs to back up" },
+      directory: { required: false, type: "string — backup directory" },
+      email: { required: false, type: "string — notification email" },
+      retention: { required: false, type: "number — backups to retain (default: 7)" },
+    },
+  },
+
+  commands: {
+    actions: ["list", "get", "create"],
+    scope: "site",
+    required: {
+      list: ["server_id", "site_id"],
+      get: ["server_id", "site_id", "id"],
+      create: ["server_id", "site_id", "command"],
+    },
+    create: {
+      command: { required: true, type: "string — shell command to execute" },
+    },
+  },
+
+  "scheduled-jobs": {
+    actions: ["list", "get", "create", "delete"],
+    scope: "server",
+    required: {
+      list: ["server_id"],
+      get: ["server_id", "id"],
+      create: ["server_id", "command"],
+      delete: ["server_id", "id"],
+    },
+    create: {
+      command: { required: true, type: "string — command to schedule" },
+      user: { required: false, type: "string — execution user (default: forge)" },
+      frequency: {
+        required: false,
+        type: "string — minutely, hourly, nightly, weekly, monthly, custom",
+      },
+      minute: { required: false, type: "string — cron minute field (custom frequency)" },
+      hour: { required: false, type: "string — cron hour field" },
+      day: { required: false, type: "string — cron day field" },
+      month: { required: false, type: "string — cron month field" },
+      weekday: { required: false, type: "string — cron weekday field" },
+    },
+  },
+
+  user: {
+    actions: ["get"],
+    scope: "global",
+    required: {},
+  },
+
   recipes: {
     actions: ["list", "get", "create", "delete", "run"],
     scope: "global",

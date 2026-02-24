@@ -3,8 +3,8 @@ import { describe, expect, it } from "vitest";
 import { ACTIONS, RESOURCES } from "./constants.ts";
 
 describe("constants", () => {
-  it("should export RESOURCES array with all 15 implemented resources", () => {
-    expect(RESOURCES).toHaveLength(15);
+  it("should export RESOURCES array with all 19 implemented resources", () => {
+    expect(RESOURCES).toHaveLength(19);
     expect(RESOURCES).toContain("servers");
     expect(RESOURCES).toContain("sites");
     expect(RESOURCES).toContain("deployments");
@@ -20,13 +20,10 @@ describe("constants", () => {
     expect(RESOURCES).toContain("nginx-templates");
     expect(RESOURCES).toContain("monitors");
     expect(RESOURCES).toContain("recipes");
-  });
-
-  it("should NOT include unimplemented resources", () => {
-    expect(RESOURCES).not.toContain("backups");
-    expect(RESOURCES).not.toContain("commands");
-    expect(RESOURCES).not.toContain("scheduled-jobs");
-    expect(RESOURCES).not.toContain("logs");
+    expect(RESOURCES).toContain("backups");
+    expect(RESOURCES).toContain("commands");
+    expect(RESOURCES).toContain("scheduled-jobs");
+    expect(RESOURCES).toContain("user");
   });
 
   it("should export ACTIONS array", () => {

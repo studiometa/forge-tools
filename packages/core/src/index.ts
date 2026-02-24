@@ -111,3 +111,25 @@ export {
   listRecipes,
   runRecipe,
 } from "./executors/recipes/index.ts";
+
+// Backups
+export {
+  createBackupConfig,
+  deleteBackupConfig,
+  getBackupConfig,
+  listBackupConfigs,
+} from "./executors/backups/index.ts";
+
+// Commands
+export { createCommand, getCommand, listCommands } from "./executors/commands/index.ts";
+
+// Scheduled Jobs
+export {
+  createScheduledJob,
+  deleteScheduledJob,
+  getScheduledJob,
+  listScheduledJobs,
+} from "./executors/scheduled-jobs/index.ts";
+
+// User
+export { getUser } from "./executors/user/index.ts";

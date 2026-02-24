@@ -476,6 +476,116 @@ const RESOURCE_HELP: Record<string, ResourceHelp> = {
     ],
   },
 
+  backups: {
+    description:
+      "Manage backup configurations — automated database backups to S3, Spaces, or other providers",
+    scope: "server (requires server_id)",
+    actions: {
+      list: "List backup configurations on a server",
+      get: "Get backup config details (databases, schedule, retention)",
+      create: "Create a new backup configuration",
+      delete: "Delete a backup configuration",
+    },
+    fields: {
+      provider: "Backup provider (s3, spaces, custom)",
+      credentials: "Provider credentials (keys, bucket, region)",
+      frequency: "Backup frequency (daily, weekly, custom)",
+      databases: "Array of database IDs to back up",
+      retention: "Number of backups to retain",
+    },
+    examples: [
+      {
+        description: "List backup configs",
+        params: { resource: "backups", action: "list", server_id: "123" },
+      },
+      {
+        description: "Get backup config details",
+        params: { resource: "backups", action: "get", server_id: "123", id: "456" },
+      },
+    ],
+  },
+
+  commands: {
+    description: "Execute and list site commands — run artisan commands or shell scripts on a site",
+    scope: "site (requires server_id + site_id)",
+    actions: {
+      list: "List commands executed on a site",
+      get: "Get command details and status",
+      create: "Execute a new command on the site",
+    },
+    fields: {
+      command: "Shell command to execute",
+    },
+    examples: [
+      {
+        description: "List commands",
+        params: { resource: "commands", action: "list", server_id: "123", site_id: "456" },
+      },
+      {
+        description: "Run a command",
+        params: {
+          resource: "commands",
+          action: "create",
+          server_id: "123",
+          site_id: "456",
+          command: "php artisan migrate --force",
+        },
+      },
+    ],
+  },
+
+  "scheduled-jobs": {
+    description: "Manage cron jobs (scheduled tasks) on a server",
+    scope: "server (requires server_id)",
+    actions: {
+      list: "List scheduled jobs on a server",
+      get: "Get job details (command, frequency, cron expression)",
+      create: "Create a new scheduled job",
+      delete: "Delete a scheduled job",
+    },
+    fields: {
+      command: "Shell command to schedule",
+      user: "Execution user (default: forge)",
+      frequency: "Frequency preset (minutely, hourly, nightly, weekly, monthly, custom)",
+      minute: "(custom frequency) Minute field",
+      hour: "(custom frequency) Hour field",
+      day: "(custom frequency) Day of month field",
+      month: "(custom frequency) Month field",
+      weekday: "(custom frequency) Day of week field",
+    },
+    examples: [
+      {
+        description: "List scheduled jobs",
+        params: { resource: "scheduled-jobs", action: "list", server_id: "123" },
+      },
+      {
+        description: "Create minutely scheduler",
+        params: {
+          resource: "scheduled-jobs",
+          action: "create",
+          server_id: "123",
+          command: "php /home/forge/app.com/artisan schedule:run",
+          frequency: "minutely",
+          user: "forge",
+        },
+      },
+    ],
+  },
+
+  user: {
+    description: "Get the currently authenticated Forge user profile",
+    scope: "global (no parent ID needed)",
+    actions: {
+      get: "Get the authenticated user's profile (name, email, connected services)",
+    },
+    examples: [
+      {
+        description: "Get user profile",
+        params: { resource: "user", action: "get" },
+      },
+    ],
+  },
+
   recipes: {
     description:
       "Manage and run server recipes — reusable bash scripts executed on one or more servers",

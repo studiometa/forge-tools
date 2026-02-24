@@ -120,4 +120,28 @@ describe("@studiometa/forge-core", () => {
     expect(core.getNginxConfig).toBeTypeOf("function");
     expect(core.updateNginxConfig).toBeTypeOf("function");
   });
+
+  it("should export backup executors", () => {
+    expect(core.listBackupConfigs).toBeTypeOf("function");
+    expect(core.getBackupConfig).toBeTypeOf("function");
+    expect(core.createBackupConfig).toBeTypeOf("function");
+    expect(core.deleteBackupConfig).toBeTypeOf("function");
+  });
+
+  it("should export command executors", () => {
+    expect(core.listCommands).toBeTypeOf("function");
+    expect(core.getCommand).toBeTypeOf("function");
+    expect(core.createCommand).toBeTypeOf("function");
+  });
+
+  it("should export scheduled job executors", () => {
+    expect(core.listScheduledJobs).toBeTypeOf("function");
+    expect(core.getScheduledJob).toBeTypeOf("function");
+    expect(core.createScheduledJob).toBeTypeOf("function");
+    expect(core.deleteScheduledJob).toBeTypeOf("function");
+  });
+
+  it("should export user executor", () => {
+    expect(core.getUser).toBeTypeOf("function");
+  });
 });

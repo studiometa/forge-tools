@@ -350,4 +350,40 @@ describe("E2E: executeToolWithCredentials", () => {
     );
     expect(result.isError).toBeUndefined();
   });
+
+  it("should route to backups handler", async () => {
+    const result = await executeToolWithCredentials(
+      "forge",
+      { resource: "backups", action: "help" },
+      creds,
+    );
+    expect(result.isError).toBeUndefined();
+  });
+
+  it("should route to commands handler", async () => {
+    const result = await executeToolWithCredentials(
+      "forge",
+      { resource: "commands", action: "help" },
+      creds,
+    );
+    expect(result.isError).toBeUndefined();
+  });
+
+  it("should route to scheduled-jobs handler", async () => {
+    const result = await executeToolWithCredentials(
+      "forge",
+      { resource: "scheduled-jobs", action: "help" },
+      creds,
+    );
+    expect(result.isError).toBeUndefined();
+  });
+
+  it("should route to user handler", async () => {
+    const result = await executeToolWithCredentials(
+      "forge",
+      { resource: "user", action: "help" },
+      creds,
+    );
+    expect(result.isError).toBeUndefined();
+  });
 });
