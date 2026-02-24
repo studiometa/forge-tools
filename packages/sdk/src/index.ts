@@ -11,6 +11,8 @@ export { DaemonsCollection } from "./resources/daemons.ts";
 export type { DaemonListOptions } from "./resources/daemons.ts";
 export { DatabasesCollection } from "./resources/databases.ts";
 export type { DatabaseListOptions } from "./resources/databases.ts";
+export { DatabaseUsersCollection } from "./resources/database-users.ts";
+export type { DatabaseUserListOptions } from "./resources/database-users.ts";
 export { DeploymentsCollection } from "./resources/deployments.ts";
 export type { DeploymentListOptions } from "./resources/deployments.ts";
 export { ServersCollection, ServerResource } from "./resources/servers.ts";
@@ -28,6 +30,7 @@ export type {
   CreateCertificateData,
   CreateDaemonData,
   CreateDatabaseData,
+  CreateDatabaseUserData,
   CreateFirewallRuleData,
   CreateMonitorData,
   CreateNginxTemplateData,
@@ -40,6 +43,7 @@ export type {
   ForgeCertificate,
   ForgeDaemon,
   ForgeDatabase,
+  ForgeDatabaseUser,
   ForgeDeployment,
   ForgeFirewallRule,
   ForgeMonitor,

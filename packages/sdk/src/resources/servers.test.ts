@@ -6,6 +6,7 @@ import { AsyncPaginatedIterator } from "../pagination.ts";
 import { ServersCollection, ServerResource } from "./servers.ts";
 import { SitesCollection, SiteResource } from "./sites.ts";
 import { DatabasesCollection } from "./databases.ts";
+import { DatabaseUsersCollection } from "./database-users.ts";
 import { DaemonsCollection } from "./daemons.ts";
 
 function createClient(body: unknown = {}): HttpClient {
@@ -154,6 +155,7 @@ describe("ServerResource", () => {
 
     expect(resource.sites).toBeInstanceOf(SitesCollection);
     expect(resource.databases).toBeInstanceOf(DatabasesCollection);
+    expect(resource.databaseUsers).toBeInstanceOf(DatabaseUsersCollection);
     expect(resource.daemons).toBeInstanceOf(DaemonsCollection);
   });
 
