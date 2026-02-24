@@ -5,6 +5,9 @@ import {
   listFirewallRules,
 } from "@studiometa/forge-core";
 
+import type { ForgeFirewallRule } from "@studiometa/forge-api";
+
+import { formatFirewallRule, formatFirewallRuleList } from "../formatters.ts";
 import { createResourceHandler } from "./factory.ts";
 
 export const handleFirewallRules = createResourceHandler({
@@ -21,5 +24,19 @@ export const handleFirewallRules = createResourceHandler({
     get: getFirewallRule,
     create: createFirewallRule,
     delete: deleteFirewallRule,
+  },
+  formatResult: (action, data, args) => {
+    switch (action) {
+      case "list":
+        return formatFirewallRuleList(data as ForgeFirewallRule[]);
+      case "get":
+        return formatFirewallRule(data as ForgeFirewallRule);
+      case "create":
+        return formatFirewallRule(data as ForgeFirewallRule);
+      case "delete":
+        return `Firewall rule ${args.id} deleted.`;
+      default:
+        return "Done.";
+    }
   },
 });

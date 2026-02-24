@@ -1,5 +1,6 @@
 import { getEnv, updateEnv } from "@studiometa/forge-core";
 
+import { formatEnv } from "../formatters.ts";
 import { createResourceHandler } from "./factory.ts";
 
 export const handleEnv = createResourceHandler({
@@ -18,4 +19,14 @@ export const handleEnv = createResourceHandler({
     site_id: args.site_id,
     content: args.content,
   }),
+  formatResult: (action, data) => {
+    switch (action) {
+      case "get":
+        return formatEnv(data as string);
+      case "update":
+        return "Environment variables updated.";
+      default:
+        return "Done.";
+    }
+  },
 });

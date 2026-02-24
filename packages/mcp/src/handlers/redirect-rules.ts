@@ -5,6 +5,9 @@ import {
   listRedirectRules,
 } from "@studiometa/forge-core";
 
+import type { ForgeRedirectRule } from "@studiometa/forge-api";
+
+import { formatRedirectRule, formatRedirectRuleList } from "../formatters.ts";
 import { createResourceHandler } from "./factory.ts";
 
 export const handleRedirectRules = createResourceHandler({
@@ -21,5 +24,19 @@ export const handleRedirectRules = createResourceHandler({
     get: getRedirectRule,
     create: createRedirectRule,
     delete: deleteRedirectRule,
+  },
+  formatResult: (action, data, args) => {
+    switch (action) {
+      case "list":
+        return formatRedirectRuleList(data as ForgeRedirectRule[]);
+      case "get":
+        return formatRedirectRule(data as ForgeRedirectRule);
+      case "create":
+        return formatRedirectRule(data as ForgeRedirectRule);
+      case "delete":
+        return `Redirect rule ${args.id} deleted.`;
+      default:
+        return "Done.";
+    }
   },
 });

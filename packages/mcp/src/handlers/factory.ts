@@ -34,6 +34,15 @@ export interface ResourceHandlerConfig {
 
   /** Map tool args to executor options. Defaults to pass-through. */
   mapOptions?: (action: string, args: CommonArgs) => Record<string, unknown>;
+
+  /**
+   * Format the executor result data into human-readable text for MCP output.
+   *
+   * Called with the executor result data and the tool args when compact mode
+   * is enabled. If not provided, the data is JSON-serialized.
+   */
+  // biome-ignore lint: formatter signatures vary per resource
+  formatResult?: (action: string, data: any, args: CommonArgs) => string;
 }
 
 /**
@@ -59,13 +68,18 @@ export interface ResourceHandlerConfig {
  *     create: createDatabase,
  *     delete: deleteDatabase,
  *   },
+ *   formatResult: (action, data) => {
+ *     if (action === 'list') return formatDatabaseList(data);
+ *     if (action === 'get') return formatDatabase(data);
+ *     return 'Done.';
+ *   },
  * });
  * ```
  */
 export function createResourceHandler(
   config: ResourceHandlerConfig,
 ): (action: string, args: CommonArgs, ctx: HandlerContext) => Promise<ToolResult> {
-  const { resource, actions, requiredFields = {}, executors, mapOptions } = config;
+  const { resource, actions, requiredFields = {}, executors, mapOptions, formatResult } = config;
 
   return async (action: string, args: CommonArgs, ctx: HandlerContext): Promise<ToolResult> => {
     // Validate action
@@ -111,9 +125,15 @@ export function createResourceHandler(
 
     // Format result
     if (result.data === undefined) {
-      return jsonResult(result.text);
+      // Void result (delete, activate, etc.) — use formatter or generic message
+      const text = formatResult ? formatResult(action, undefined, args) : "Done.";
+      return jsonResult(text);
     }
 
-    return jsonResult(ctx.compact ? result.text : result.data);
+    if (ctx.compact && formatResult) {
+      return jsonResult(formatResult(action, result.data, args));
+    }
+
+    return jsonResult(result.data);
   };
 }

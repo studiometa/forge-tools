@@ -6,6 +6,9 @@ import {
   rebootServer,
 } from "@studiometa/forge-core";
 
+import type { ForgeServer } from "@studiometa/forge-api";
+
+import { formatServer, formatServerList } from "../formatters.ts";
 import { createResourceHandler } from "./factory.ts";
 
 export const handleServers = createResourceHandler({
@@ -41,6 +44,22 @@ export const handleServers = createResourceHandler({
         };
       default:
         return {};
+    }
+  },
+  formatResult: (action, data, args) => {
+    switch (action) {
+      case "list":
+        return formatServerList(data as ForgeServer[]);
+      case "get":
+        return formatServer(data as ForgeServer);
+      case "create":
+        return formatServer(data as ForgeServer);
+      case "delete":
+        return `Server ${args.id} deleted.`;
+      case "reboot":
+        return `Server ${args.id} reboot initiated.`;
+      default:
+        return "Done.";
     }
   },
 });
