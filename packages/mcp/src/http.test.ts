@@ -17,14 +17,7 @@ vi.mock("./handlers/index.ts", () => ({
 }));
 
 import { executeToolWithCredentials } from "./handlers/index.ts";
-import {
-  createMcpServer,
-  handleMcpRequest,
-  createHealthApp,
-  SessionManager,
-  getSessionManager,
-  resetSessionManager,
-} from "./http.ts";
+import { createMcpServer, handleMcpRequest, createHealthApp, SessionManager } from "./http.ts";
 import { VERSION } from "./version.ts";
 
 /**
@@ -60,6 +53,50 @@ function parseSSEMessages(text: string): Array<Record<string, unknown>> {
   }
 
   return messages;
+}
+
+/**
+ * Create a test HTTP server wired to a fresh SessionManager.
+ * Returns the server, base URL, and session manager for assertions.
+ */
+async function createTestServer(
+  sessions?: SessionManager,
+): Promise<{ server: HttpServer; baseUrl: string; sessions: SessionManager }> {
+  const mgr = sessions ?? new SessionManager();
+  const healthApp = createHealthApp();
+  const healthHandler = toNodeHandler(healthApp);
+
+  const server = createServer(async (req, res) => {
+    const url = req.url ?? "/";
+
+    if (url === "/mcp" || url.startsWith("/mcp?")) {
+      await handleMcpRequest(req, res, mgr);
+      return;
+    }
+
+    healthHandler(req, res);
+  });
+
+  const baseUrl = await new Promise<string>((resolve) => {
+    server.listen(0, "127.0.0.1", () => {
+      const address = server.address();
+      if (address && typeof address === "object") {
+        resolve(`http://127.0.0.1:${address.port}`);
+      }
+    });
+  });
+
+  return { server, baseUrl, sessions: mgr };
+}
+
+/**
+ * Close a test server and its sessions.
+ */
+async function closeTestServer(server: HttpServer, sessions: SessionManager): Promise<void> {
+  await sessions.closeAll();
+  await new Promise<void>((resolve) => {
+    server.close(() => resolve());
+  });
 }
 
 /**
@@ -143,8 +180,6 @@ describe("SessionManager", () => {
     });
     const server = createMcpServer();
 
-    // Manually set sessionId by connecting (it's set during handleRequest,
-    // but for unit test we can use Object.defineProperty)
     Object.defineProperty(transport, "sessionId", {
       get: () => "test-session-id",
     });
@@ -259,41 +294,19 @@ describe("createHealthApp", () => {
 describe("Streamable HTTP MCP endpoint", () => {
   let server: HttpServer;
   let baseUrl: string;
+  let sessions: SessionManager;
 
   const validToken = "test-forge-api-token-1234";
 
   beforeAll(async () => {
-    server = createServer(async (req, res) => {
-      const url = req.url ?? "/";
-
-      if (url === "/mcp" || url.startsWith("/mcp?")) {
-        await handleMcpRequest(req, res);
-        return;
-      }
-
-      res.writeHead(404);
-      res.end("Not found");
-    });
-
-    await new Promise<void>((resolve) => {
-      server.listen(0, "127.0.0.1", () => {
-        const address = server.address();
-        if (address && typeof address === "object") {
-          baseUrl = `http://127.0.0.1:${address.port}`;
-        }
-        resolve();
-      });
-    });
+    const ctx = await createTestServer();
+    server = ctx.server;
+    baseUrl = ctx.baseUrl;
+    sessions = ctx.sessions;
   });
 
   afterAll(async () => {
-    const manager = getSessionManager();
-    await manager.closeAll();
-    resetSessionManager();
-
-    await new Promise<void>((resolve) => {
-      server.close(() => resolve());
-    });
+    await closeTestServer(server, sessions);
   });
 
   beforeEach(() => {
@@ -649,44 +662,19 @@ describe("Streamable HTTP MCP endpoint", () => {
 describe("Full server integration", () => {
   let server: HttpServer;
   let baseUrl: string;
+  let sessions: SessionManager;
 
   const validToken = "integration-test-token-5678";
 
   beforeAll(async () => {
-    resetSessionManager();
-    const healthApp = createHealthApp();
-    const healthHandler = toNodeHandler(healthApp);
-
-    server = createServer(async (req, res) => {
-      const url = req.url ?? "/";
-
-      if (url === "/mcp" || url.startsWith("/mcp?")) {
-        await handleMcpRequest(req, res);
-        return;
-      }
-
-      healthHandler(req, res);
-    });
-
-    await new Promise<void>((resolve) => {
-      server.listen(0, "127.0.0.1", () => {
-        const address = server.address();
-        if (address && typeof address === "object") {
-          baseUrl = `http://127.0.0.1:${address.port}`;
-        }
-        resolve();
-      });
-    });
+    const ctx = await createTestServer();
+    server = ctx.server;
+    baseUrl = ctx.baseUrl;
+    sessions = ctx.sessions;
   });
 
   afterAll(async () => {
-    const manager = getSessionManager();
-    await manager.closeAll();
-    resetSessionManager();
-
-    await new Promise<void>((resolve) => {
-      server.close(() => resolve());
-    });
+    await closeTestServer(server, sessions);
   });
 
   beforeEach(() => {

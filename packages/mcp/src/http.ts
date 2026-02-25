@@ -7,7 +7,7 @@
  * Architecture:
  * - Stateful mode with per-session transport+server pairs (multi-tenant)
  * - Auth via Bearer token → authInfo.token → handler extra.authInfo
- * - Session manager maps session IDs to transport+server instances
+ * - Session manager (injected) maps session IDs to transport+server instances
  * - Health/status endpoints handled by h3, MCP endpoint by the SDK transport
  */
 
@@ -22,80 +22,11 @@ import { createApp, defineEventHandler, type H3 } from "h3";
 import { parseAuthHeader } from "./auth.ts";
 import { executeToolWithCredentials } from "./handlers/index.ts";
 import { INSTRUCTIONS } from "./instructions.ts";
+import { SessionManager } from "./sessions.ts";
 import { TOOLS } from "./tools.ts";
 import { VERSION } from "./version.ts";
 
-/**
- * A managed session: transport + MCP server pair.
- */
-interface ManagedSession {
-  transport: StreamableHTTPServerTransport;
-  server: Server;
-  createdAt: number;
-}
-
-/**
- * Session manager for multi-tenant Streamable HTTP transport.
- *
- * Each MCP client session gets its own transport + server pair.
- * Sessions are identified by UUID and tracked in a Map.
- */
-export class SessionManager {
-  private sessions = new Map<string, ManagedSession>();
-
-  /**
-   * Register a session after its ID has been assigned by the transport.
-   */
-  register(transport: StreamableHTTPServerTransport, server: Server): void {
-    const sessionId = transport.sessionId;
-    if (sessionId) {
-      this.sessions.set(sessionId, {
-        transport,
-        server,
-        createdAt: Date.now(),
-      });
-    }
-  }
-
-  /**
-   * Look up a session by its ID.
-   */
-  get(sessionId: string): ManagedSession | undefined {
-    return this.sessions.get(sessionId);
-  }
-
-  /**
-   * Remove a session.
-   */
-  async remove(sessionId: string): Promise<void> {
-    const session = this.sessions.get(sessionId);
-    if (session) {
-      this.sessions.delete(sessionId);
-      await session.transport.close();
-      await session.server.close();
-    }
-  }
-
-  /**
-   * Get the number of active sessions.
-   */
-  get size(): number {
-    return this.sessions.size;
-  }
-
-  /**
-   * Close all sessions and clean up.
-   */
-  async closeAll(): Promise<void> {
-    const promises: Promise<void>[] = [];
-    for (const [, session] of this.sessions) {
-      promises.push(session.transport.close());
-      promises.push(session.server.close());
-    }
-    await Promise.all(promises);
-    this.sessions.clear();
-  }
-}
+export { SessionManager } from "./sessions.ts";
 
 /**
  * Create a configured MCP Server instance for HTTP transport.
@@ -156,26 +87,6 @@ export function createMcpServer(): Server {
   return server;
 }
 
-/** Singleton session manager for the HTTP server */
-let _sessionManager: SessionManager | undefined;
-
-/**
- * Get or create the session manager singleton.
- */
-export function getSessionManager(): SessionManager {
-  if (!_sessionManager) {
-    _sessionManager = new SessionManager();
-  }
-  return _sessionManager;
-}
-
-/**
- * Reset the session manager (for testing).
- */
-export function resetSessionManager(): void {
-  _sessionManager = undefined;
-}
-
 /**
  * Handle an MCP request using the Streamable HTTP transport.
  *
@@ -185,8 +96,13 @@ export function resetSessionManager(): void {
  *
  * @param req - Node.js IncomingMessage
  * @param res - Node.js ServerResponse
+ * @param sessions - Session manager instance (injected)
  */
-export async function handleMcpRequest(req: IncomingMessage, res: ServerResponse): Promise<void> {
+export async function handleMcpRequest(
+  req: IncomingMessage,
+  res: ServerResponse,
+  sessions: SessionManager,
+): Promise<void> {
   // Extract and validate auth
   const authHeader = req.headers.authorization;
   const credentials = parseAuthHeader(authHeader);
@@ -216,12 +132,11 @@ export async function handleMcpRequest(req: IncomingMessage, res: ServerResponse
     scopes: [],
   };
 
-  const sessionManager = getSessionManager();
   const sessionId = req.headers["mcp-session-id"] as string | undefined;
 
   if (sessionId) {
     // Existing session — route to its transport
-    const session = sessionManager.get(sessionId);
+    const session = sessions.get(sessionId);
     if (!session) {
       res.writeHead(404, { "Content-Type": "application/json" });
       res.end(
@@ -254,7 +169,7 @@ export async function handleMcpRequest(req: IncomingMessage, res: ServerResponse
   transport.onclose = () => {
     const sid = transport.sessionId;
     if (sid) {
-      sessionManager.remove(sid).catch(() => {
+      sessions.remove(sid).catch(() => {
         // Ignore cleanup errors
       });
     }
@@ -265,12 +180,22 @@ export async function handleMcpRequest(req: IncomingMessage, res: ServerResponse
 
   // After handling, register the session if the transport got a session ID
   if (transport.sessionId) {
-    sessionManager.register(transport, server);
+    sessions.register(transport, server);
   } else {
     // No session was created (e.g., invalid request) — clean up
     await transport.close();
     await server.close();
   }
+}
+
+/**
+ * Create a request handler bound to a SessionManager instance.
+ * Convenience factory for server.ts.
+ */
+export function createMcpRequestHandler(
+  sessions: SessionManager,
+): (req: IncomingMessage, res: ServerResponse) => Promise<void> {
+  return (req, res) => handleMcpRequest(req, res, sessions);
 }
 
 /**

@@ -23,7 +23,8 @@
 import { toNodeHandler } from "h3/node";
 import { createServer, type Server } from "node:http";
 
-import { createHealthApp, handleMcpRequest } from "./http.ts";
+import { createHealthApp, createMcpRequestHandler } from "./http.ts";
+import { SessionManager } from "./sessions.ts";
 import { VERSION } from "./version.ts";
 
 const DEFAULT_PORT = 3000;
@@ -37,6 +38,8 @@ export function startHttpServer(
   host: string = DEFAULT_HOST,
 ): Promise<Server> {
   return new Promise((resolve) => {
+    const sessions = new SessionManager();
+    const handleMcp = createMcpRequestHandler(sessions);
     const healthApp = createHealthApp();
     const healthHandler = toNodeHandler(healthApp);
 
@@ -45,7 +48,7 @@ export function startHttpServer(
 
       // Route /mcp to MCP Streamable HTTP transport
       if (url === "/mcp" || url.startsWith("/mcp?")) {
-        await handleMcpRequest(req, res);
+        await handleMcp(req, res);
         return;
       }
 
