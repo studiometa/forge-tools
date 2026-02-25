@@ -62,7 +62,7 @@ function parseSSEMessages(text: string): Array<Record<string, unknown>> {
 async function createTestServer(
   sessions?: SessionManager,
 ): Promise<{ server: HttpServer; baseUrl: string; sessions: SessionManager }> {
-  const mgr = sessions ?? new SessionManager();
+  const mgr = sessions ?? new SessionManager({ ttl: 0 });
   const healthApp = createHealthApp();
   const healthHandler = toNodeHandler(healthApp);
 
