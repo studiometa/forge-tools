@@ -23,8 +23,7 @@
 import { toNodeHandler } from "h3/node";
 import { createServer, type Server } from "node:http";
 
-import { createHealthApp } from "./streamable-http.ts";
-import { handleMcpRequest } from "./streamable-http.ts";
+import { createHealthApp, handleMcpRequest } from "./http.ts";
 import { VERSION } from "./version.ts";
 
 const DEFAULT_PORT = 3000;
