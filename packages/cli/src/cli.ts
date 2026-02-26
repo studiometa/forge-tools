@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import { handleBackupsCommand, showBackupsHelp } from "./commands/backups/index.ts";
+import { handleCompletionCommand, showCompletionHelp } from "./commands/completion.ts";
 import { handleCertificatesCommand, showCertificatesHelp } from "./commands/certificates/index.ts";
 import { handleCommandsCommand, showCommandsHelp } from "./commands/commands/index.ts";
 import { handleConfigCommand, showConfigHelp } from "./commands/config.ts";
@@ -156,6 +157,11 @@ ${colors.bold("COMMANDS:")}
     list, ls            List all recipes
     get <id>            Get recipe details
     run <id>            Run a recipe (requires --servers)
+
+  completion          Generate shell completion script
+    bash                Install Bash completion
+    zsh                 Install Zsh completion
+    fish                Install Fish completion
 
 ${colors.bold("OPTIONS:")}
   --token <token>     Forge API token (overrides config and env)
@@ -479,6 +485,14 @@ async function main(): Promise<void> {
           positional,
           options as Record<string, string | boolean | string[]>,
         );
+        break;
+
+      case "completion":
+        if (wantsHelp || !subcommand) {
+          showCompletionHelp();
+          process.exit(0);
+        }
+        handleCompletionCommand(subcommand, options as Record<string, string | boolean | string[]>);
         break;
 
       default:
