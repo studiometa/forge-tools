@@ -56,6 +56,8 @@ import { RESOURCES, ACTIONS } from "@studiometa/forge-core";
 
 - `listDeployments({ server_id, site_id }, ctx)` — List deployments
 - `deploySite({ server_id, site_id }, ctx)` — Trigger deployment
+- `deploySiteAndWait({ server_id, site_id, timeout_ms?, poll_interval_ms? }, ctx)` — Deploy and poll until complete, returns `DeployResult` with status, log, and elapsed time
+- `getDeploymentLog({ server_id, site_id }, ctx)` — Get the latest deployment log
 - `getDeploymentOutput({ server_id, site_id, deployment_id }, ctx)` — Get output
 - `getDeploymentScript({ server_id, site_id }, ctx)` — Get deploy script
 - `updateDeploymentScript({ server_id, site_id, content }, ctx)` — Update script

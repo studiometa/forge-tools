@@ -105,11 +105,9 @@ Use `action: "schema"` for a compact machine-readable spec:
 // 2. Find the site (forge tool — read)
 { "resource": "sites", "action": "list", "server_id": "123" }
 
-// 3. Deploy (forge_write tool — write)
+// 3. Deploy (forge_write tool — write, blocks until complete)
 { "resource": "deployments", "action": "deploy", "server_id": "123", "site_id": "456" }
-
-// 4. Check deployment status (forge tool — read)
-{ "resource": "deployments", "action": "list", "server_id": "123", "site_id": "456" }
+// Returns: deployment status, log output, and elapsed time
 ```
 
 ### Check Server Status
