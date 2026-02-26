@@ -43,10 +43,27 @@ describe("handleConfigureTool", () => {
     expect(text).not.toContain("test-token-1234");
   });
 
+  it("should include structuredContent on success", () => {
+    const result = handleConfigureTool({ apiToken: "test-token-1234" });
+    expect(result.structuredContent).toEqual({
+      success: true,
+      message: "Laravel Forge API token configured successfully",
+      apiToken: "***1234",
+    });
+  });
+
   it("should reject empty token", () => {
     const result = handleConfigureTool({ apiToken: "" });
     expect(result.isError).toBe(true);
     expect(result.content[0]!.text).toContain("required");
+  });
+
+  it("should include structuredContent on error", () => {
+    const result = handleConfigureTool({ apiToken: "" });
+    expect(result.structuredContent).toEqual({
+      success: false,
+      error: "apiToken is required and must be a non-empty string.",
+    });
   });
 
   it("should reject whitespace-only token", () => {
@@ -73,12 +90,29 @@ describe("handleGetConfigTool", () => {
     expect(text).toContain("not configured");
   });
 
+  it("should include structuredContent when not configured", () => {
+    const result = handleGetConfigTool();
+    expect(result.structuredContent).toEqual({
+      apiToken: "not configured",
+      configured: false,
+    });
+  });
+
   it("should show masked token when env var is set", () => {
     process.env.FORGE_API_TOKEN = "env-token-5678";
     const result = handleGetConfigTool();
     const text = result.content[0]!.text;
     expect(text).toContain("***5678");
     expect(text).toContain("configured");
+  });
+
+  it("should include structuredContent when configured", () => {
+    process.env.FORGE_API_TOKEN = "env-token-5678";
+    const result = handleGetConfigTool();
+    expect(result.structuredContent).toEqual({
+      apiToken: "***5678",
+      configured: true,
+    });
   });
 });
 
@@ -149,6 +183,10 @@ describe("handleToolCall", () => {
     const result = await handleToolCall("unknown_tool", { resource: "servers", action: "list" });
     expect(result.isError).toBe(true);
     expect(result.content[0]!.text).toContain("Unknown tool");
+    expect(result.structuredContent).toEqual({
+      success: false,
+      error: 'Unknown tool "unknown_tool".',
+    });
   });
 
   it("should reject forge_write in read-only mode", async () => {
@@ -160,6 +198,14 @@ describe("handleToolCall", () => {
     );
     expect(result.isError).toBe(true);
     expect(result.content[0]!.text).toContain("read-only mode");
+    expect(result.structuredContent?.success).toBe(false);
+  });
+
+  it("should include structuredContent on auth error", async () => {
+    const result = await handleToolCall("forge", { resource: "servers", action: "list" });
+    expect(result.isError).toBe(true);
+    expect(result.structuredContent?.success).toBe(false);
+    expect(result.structuredContent?.error).toContain("not configured");
   });
 
   it("should allow forge reads in read-only mode", async () => {

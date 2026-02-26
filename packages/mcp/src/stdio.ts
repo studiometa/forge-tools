@@ -30,27 +30,31 @@ export function handleConfigureTool(args: { apiToken: string }): ToolResult {
           text: "Error: apiToken is required and must be a non-empty string.",
         },
       ],
+      structuredContent: {
+        success: false,
+        error: "apiToken is required and must be a non-empty string.",
+      },
       isError: true,
     };
   }
 
   setToken(args.apiToken);
 
+  const maskedToken = `***${args.apiToken.slice(-4)}`;
+  const data = {
+    success: true,
+    message: "Laravel Forge API token configured successfully",
+    apiToken: maskedToken,
+  };
+
   return {
     content: [
       {
         type: "text",
-        text: JSON.stringify(
-          {
-            success: true,
-            message: "Laravel Forge API token configured successfully",
-            apiToken: `***${args.apiToken.slice(-4)}`,
-          },
-          null,
-          2,
-        ),
+        text: JSON.stringify(data, null, 2),
       },
     ],
+    structuredContent: data,
   };
 }
 
@@ -60,20 +64,19 @@ export function handleConfigureTool(args: { apiToken: string }): ToolResult {
 export function handleGetConfigTool(): ToolResult {
   const token = getToken();
 
+  const data = {
+    apiToken: token ? `***${token.slice(-4)}` : "not configured",
+    configured: !!token,
+  };
+
   return {
     content: [
       {
         type: "text",
-        text: JSON.stringify(
-          {
-            apiToken: token ? `***${token.slice(-4)}` : "not configured",
-            configured: !!token,
-          },
-          null,
-          2,
-        ),
+        text: JSON.stringify(data, null, 2),
       },
     ],
+    structuredContent: data,
   };
 }
 
@@ -115,6 +118,10 @@ export async function handleToolCall(
           text: "Error: Server is running in read-only mode. Write operations are disabled.",
         },
       ],
+      structuredContent: {
+        success: false,
+        error: "Server is running in read-only mode. Write operations are disabled.",
+      },
       isError: true,
     };
   }
@@ -130,6 +137,11 @@ export async function handleToolCall(
             text: 'Error: Forge API token not configured. Use "forge_configure" tool or set FORGE_API_TOKEN environment variable.',
           },
         ],
+        structuredContent: {
+          success: false,
+          error:
+            'Forge API token not configured. Use "forge_configure" tool or set FORGE_API_TOKEN environment variable.',
+        },
         isError: true,
       };
     }
@@ -144,6 +156,7 @@ export async function handleToolCall(
         text: `Error: Unknown tool "${name}".`,
       },
     ],
+    structuredContent: { success: false, error: `Unknown tool "${name}".` },
     isError: true,
   };
 }

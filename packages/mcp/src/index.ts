@@ -81,6 +81,7 @@ export function createStdioServer(options?: StdioServerOptions): Server {
       const message = error instanceof Error ? error.message : String(error);
       return {
         content: [{ type: "text" as const, text: `Error: ${message}` }],
+        structuredContent: { success: false, error: message },
         isError: true,
       };
     }

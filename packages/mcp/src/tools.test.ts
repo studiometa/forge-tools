@@ -21,9 +21,22 @@ describe("TOOLS", () => {
   describe("forge (read tool)", () => {
     const forgeTool = TOOLS.find((t) => t.name === "forge")!;
 
+    it("should have a top-level title", () => {
+      expect(forgeTool.title).toBe("Laravel Forge");
+    });
+
     it("should be annotated as read-only", () => {
       expect(forgeTool.annotations?.readOnlyHint).toBe(true);
       expect(forgeTool.annotations?.destructiveHint).toBe(false);
+    });
+
+    it("should have an outputSchema with success field", () => {
+      expect(forgeTool.outputSchema).toBeDefined();
+      expect(forgeTool.outputSchema!.type).toBe("object");
+      expect(forgeTool.outputSchema!.required).toContain("success");
+      expect(forgeTool.outputSchema!.properties).toHaveProperty("success");
+      expect(forgeTool.outputSchema!.properties).toHaveProperty("result");
+      expect(forgeTool.outputSchema!.properties).toHaveProperty("error");
     });
 
     it("should only allow read actions", () => {
@@ -65,9 +78,19 @@ describe("TOOLS", () => {
   describe("forge_write (write tool)", () => {
     const writeToolDef = TOOLS.find((t) => t.name === "forge_write")!;
 
+    it("should have a top-level title", () => {
+      expect(writeToolDef.title).toBe("Laravel Forge (Write)");
+    });
+
     it("should be annotated as destructive", () => {
       expect(writeToolDef.annotations?.readOnlyHint).toBe(false);
       expect(writeToolDef.annotations?.destructiveHint).toBe(true);
+    });
+
+    it("should have an outputSchema with success field", () => {
+      expect(writeToolDef.outputSchema).toBeDefined();
+      expect(writeToolDef.outputSchema!.type).toBe("object");
+      expect(writeToolDef.outputSchema!.required).toContain("success");
     });
 
     it("should only allow write actions", () => {
@@ -194,5 +217,32 @@ describe("STDIO_ONLY_TOOLS", () => {
     const names = STDIO_ONLY_TOOLS.map((t) => t.name);
     expect(names).toContain("forge_configure");
     expect(names).toContain("forge_get_config");
+  });
+
+  it("should have top-level titles on all stdio tools", () => {
+    for (const tool of STDIO_ONLY_TOOLS) {
+      expect(tool.title).toBeDefined();
+      expect(tool.title!.length).toBeGreaterThan(0);
+    }
+  });
+
+  it("should have outputSchema on all stdio tools", () => {
+    for (const tool of STDIO_ONLY_TOOLS) {
+      expect(tool.outputSchema).toBeDefined();
+      expect(tool.outputSchema!.type).toBe("object");
+    }
+  });
+
+  it("forge_configure outputSchema should have success and message fields", () => {
+    const tool = STDIO_ONLY_TOOLS.find((t) => t.name === "forge_configure")!;
+    expect(tool.outputSchema!.properties).toHaveProperty("success");
+    expect(tool.outputSchema!.properties).toHaveProperty("message");
+    expect(tool.outputSchema!.properties).toHaveProperty("apiToken");
+  });
+
+  it("forge_get_config outputSchema should have configured and apiToken fields", () => {
+    const tool = STDIO_ONLY_TOOLS.find((t) => t.name === "forge_get_config")!;
+    expect(tool.outputSchema!.properties).toHaveProperty("configured");
+    expect(tool.outputSchema!.properties).toHaveProperty("apiToken");
   });
 });

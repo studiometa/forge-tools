@@ -15,6 +15,23 @@ describe("jsonResult", () => {
     const result = jsonResult({ name: "test", value: 42 });
     expect(result.content[0]!.text).toBe('{\n  "name": "test",\n  "value": 42\n}');
   });
+
+  it("should include structuredContent with success envelope for string data", () => {
+    const result = jsonResult("Hello");
+    expect(result.structuredContent).toEqual({ success: true, result: "Hello" });
+  });
+
+  it("should include structuredContent with success envelope for object data", () => {
+    const data = { name: "test", value: 42 };
+    const result = jsonResult(data);
+    expect(result.structuredContent).toEqual({ success: true, result: data });
+  });
+
+  it("should include structuredContent with success envelope for array data", () => {
+    const data = [{ id: 1 }, { id: 2 }];
+    const result = jsonResult(data);
+    expect(result.structuredContent).toEqual({ success: true, result: data });
+  });
 });
 
 describe("errorResult", () => {
@@ -22,6 +39,11 @@ describe("errorResult", () => {
     const result = errorResult("Something failed");
     expect(result.content[0]!.text).toContain("Error:");
     expect(result.isError).toBe(true);
+  });
+
+  it("should include structuredContent with error envelope", () => {
+    const result = errorResult("Something failed");
+    expect(result.structuredContent).toEqual({ success: false, error: "Something failed" });
   });
 });
 
@@ -45,6 +67,17 @@ describe("inputErrorResult", () => {
     expect(result.content[0]!.text).toContain("**Input Error:** Missing field");
     expect(result.content[0]!.text).toContain("- Hint A");
     expect(result.content[0]!.text).toContain("- Hint B");
+  });
+
+  it("should include structuredContent with error envelope for string", () => {
+    const result = inputErrorResult("Invalid input", "Try this instead");
+    expect(result.structuredContent).toEqual({ success: false, error: "Invalid input" });
+  });
+
+  it("should include structuredContent with error message from UserInputError", () => {
+    const error = new UserInputError("Missing field", ["Hint A"]);
+    const result = inputErrorResult(error);
+    expect(result.structuredContent).toEqual({ success: false, error: "Missing field" });
   });
 
   it("should render UserInputError without hints", () => {

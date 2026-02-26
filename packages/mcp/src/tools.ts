@@ -1,14 +1,6 @@
-import { RESOURCES } from "@studiometa/forge-core";
+import type { Tool } from "@modelcontextprotocol/sdk/types.js";
 
-/**
- * Tool type matching MCP SDK expectations.
- */
-interface Tool {
-  name: string;
-  description: string;
-  annotations?: Record<string, unknown>;
-  inputSchema: Record<string, unknown>;
-}
+import { RESOURCES } from "@studiometa/forge-core";
 
 /**
  * Read-only actions — safe operations that don't modify server state.
@@ -48,21 +40,59 @@ export function isReadAction(action: string): action is ReadAction {
 }
 
 /**
+ * Output schema shared by all forge tools.
+ *
+ * All tools return a consistent envelope:
+ * - success: true/false
+ * - result: the resource data (shape varies by resource and action)
+ * - error: error message (only when success is false)
+ *
+ * The `result` field contains resource-specific data:
+ * - list actions → array of resource objects
+ * - get actions → single resource object (or string for env/nginx/scripts)
+ * - help/schema → documentation text or schema object
+ * - write actions → confirmation message or updated resource
+ */
+const OUTPUT_SCHEMA = {
+  type: "object" as const,
+  properties: {
+    success: {
+      type: "boolean" as const,
+      description: "Whether the operation succeeded",
+    } as object,
+    result: {
+      description:
+        "Operation result — shape varies by resource and action (array for list, object for get, string for text content)",
+    } as object,
+    error: {
+      type: "string" as const,
+      description: "Error message (only present on failure)",
+    } as object,
+  },
+  required: ["success"],
+};
+
+/**
  * Shared input schema properties used by both forge and forge_write tools.
  */
 const SHARED_INPUT_PROPERTIES = {
   resource: {
-    type: "string",
+    type: "string" as const,
     enum: [...RESOURCES],
+    description: "Forge resource to operate on",
   },
-  id: { type: "string", description: "Resource ID" },
-  server_id: { type: "string", description: "Server ID (required for most resources)" },
-  site_id: { type: "string", description: "Site ID (required for site-level resources)" },
+  id: { type: "string" as const, description: "Resource ID (for get, delete, update actions)" },
+  server_id: { type: "string" as const, description: "Server ID (required for most resources)" },
+  site_id: {
+    type: "string" as const,
+    description:
+      "Site ID (required for site-level resources: deployments, env, certificates, etc.)",
+  },
   compact: {
-    type: "boolean",
+    type: "boolean" as const,
     description: "Compact output (default: true for list, false for get)",
   },
-} as const;
+};
 
 /**
  * Read-only tool for querying Forge resources.
@@ -72,6 +102,7 @@ const SHARED_INPUT_PROPERTIES = {
  */
 const FORGE_READ_TOOL: Tool = {
   name: "forge",
+  title: "Laravel Forge",
   description: [
     "Laravel Forge API — read operations.",
     `Resources: ${RESOURCES.join(", ")}.`,
@@ -88,17 +119,18 @@ const FORGE_READ_TOOL: Tool = {
     openWorldHint: true,
   },
   inputSchema: {
-    type: "object",
+    type: "object" as const,
     properties: {
       ...SHARED_INPUT_PROPERTIES,
       action: {
-        type: "string",
+        type: "string" as const,
         enum: [...READ_ACTIONS],
-        description: 'Use "help" for resource documentation',
+        description: 'Read action to perform. Use "help" for resource documentation.',
       },
     },
     required: ["resource", "action"],
   },
+  outputSchema: OUTPUT_SCHEMA,
 };
 
 /**
@@ -109,6 +141,7 @@ const FORGE_READ_TOOL: Tool = {
  */
 const FORGE_WRITE_TOOL: Tool = {
   name: "forge_write",
+  title: "Laravel Forge (Write)",
   description: [
     "Laravel Forge API — write operations (create, update, delete, deploy, reboot, etc.).",
     `Resources: ${RESOURCES.join(", ")}.`,
@@ -125,58 +158,117 @@ const FORGE_WRITE_TOOL: Tool = {
     openWorldHint: true,
   },
   inputSchema: {
-    type: "object",
+    type: "object" as const,
     properties: {
       ...SHARED_INPUT_PROPERTIES,
       action: {
-        type: "string",
+        type: "string" as const,
         enum: [...WRITE_ACTIONS],
         description: "Write action to perform",
       },
       // Server fields
-      name: { type: "string" },
-      provider: { type: "string" },
-      region: { type: "string" },
-      size: { type: "string" },
-      credential_id: { type: "string" },
-      type: { type: "string" },
+      name: {
+        type: "string" as const,
+        description: "Resource name (servers, databases, daemons, etc.)",
+      },
+      provider: {
+        type: "string" as const,
+        description: "Server provider (e.g. ocean2, linode, aws)",
+      },
+      region: { type: "string" as const, description: "Server region (e.g. nyc3, us-east-1)" },
+      size: { type: "string" as const, description: "Server size (e.g. s-1vcpu-1gb)" },
+      credential_id: {
+        type: "string" as const,
+        description: "Provider credential ID for server creation",
+      },
+      type: {
+        type: "string" as const,
+        description:
+          "Resource type (e.g. app, web, worker for servers; mysql, postgres for databases; disk_usage, used_memory for monitors)",
+      },
       // Site fields
-      domain: { type: "string" },
-      project_type: { type: "string" },
-      directory: { type: "string" },
+      domain: { type: "string" as const, description: "Site domain name (e.g. example.com)" },
+      project_type: {
+        type: "string" as const,
+        description: "Site project type (e.g. php, html, symfony, laravel)",
+      },
+      directory: {
+        type: "string" as const,
+        description: "Web directory relative to site root (e.g. /public)",
+      },
       // Content fields (env, nginx, deployment script)
-      content: { type: "string", description: "Content for env, nginx, or deployment script" },
+      content: {
+        type: "string" as const,
+        description: "Content body for env variables, nginx config, or deployment script updates",
+      },
       // Daemon fields
-      command: { type: "string", description: "Shell command (daemons, recipes)" },
-      user: { type: "string", description: "Execution user (daemons, recipes)" },
+      command: {
+        type: "string" as const,
+        description:
+          "Shell command to execute (daemons: background process command; recipes: bash script inline; commands: site command)",
+      },
+      user: {
+        type: "string" as const,
+        description: "Unix user to run as (daemons, scheduled jobs; e.g. forge, root)",
+      },
       // Firewall fields
-      port: { type: ["string", "number"], description: "Port number or range (firewall rules)" },
-      ip_address: { type: "string", description: "IP address (firewall rules)" },
+      port: {
+        type: ["string", "number"] as unknown as string,
+        description: "Port number or range (firewall rules, e.g. 80 or 8000-9000)",
+      },
+      ip_address: {
+        type: "string" as const,
+        description: "IP address to allow/block (firewall rules, e.g. 192.168.1.1)",
+      },
       // SSH key fields
-      key: { type: "string", description: "Public SSH key content" },
+      key: {
+        type: "string" as const,
+        description: "Public SSH key content (ssh-rsa ... or ssh-ed25519 ...)",
+      },
       // Redirect fields
-      from: { type: "string", description: "Source path (redirect rules)" },
-      to: { type: "string", description: "Destination URL (redirect rules)" },
+      from: {
+        type: "string" as const,
+        description: "Source path for redirect rules (e.g. /old-page)",
+      },
+      to: {
+        type: "string" as const,
+        description: "Destination URL for redirect rules (e.g. /new-page)",
+      },
       // Security rule fields
       credentials: {
-        type: "array",
-        description: "Credentials array [{username, password}] (security rules)",
-        items: { type: "object" },
+        type: "array" as const,
+        description: "HTTP basic auth credentials for security rules [{username, password}]",
+        items: { type: "object" as const },
       },
       // Monitor fields
-      operator: { type: "string", description: "Comparison operator (monitors)" },
-      threshold: { type: "number", description: "Threshold value (monitors)" },
-      minutes: { type: "number", description: "Check interval in minutes (monitors)" },
+      operator: {
+        type: "string" as const,
+        description: "Comparison operator for monitors (e.g. gte, lte)",
+      },
+      threshold: {
+        type: "number" as const,
+        description: "Threshold value that triggers the monitor alert",
+      },
+      minutes: {
+        type: "number" as const,
+        description: "Check interval in minutes for monitors (e.g. 5)",
+      },
+      // Scheduled job fields
+      frequency: {
+        type: "string" as const,
+        description: "Cron frequency for scheduled jobs (e.g. minutely, hourly, nightly, custom)",
+      },
       // Recipe fields
-      script: { type: "string", description: "Bash script content (recipes)" },
+      script: { type: "string" as const, description: "Bash script content for recipes" },
       servers: {
-        type: "array",
-        description: "Server IDs to run recipe on",
-        items: { type: "number" },
+        type: "array" as const,
+        description: "Server IDs to run a recipe on (e.g. [123, 456])",
+        items: { type: "number" as const },
       },
     },
     required: ["resource", "action"],
   },
+  outputSchema: OUTPUT_SCHEMA,
 };
 
 /**
@@ -215,7 +307,9 @@ export function getTools(options?: GetToolsOptions): Tool[] {
 export const STDIO_ONLY_TOOLS: Tool[] = [
   {
     name: "forge_configure",
-    description: "Configure Laravel Forge API token",
+    title: "Configure Forge",
+    description:
+      "Configure Laravel Forge API token. The token is stored locally in the XDG config directory.",
     annotations: {
       title: "Configure Forge",
       readOnlyHint: false,
@@ -224,16 +318,26 @@ export const STDIO_ONLY_TOOLS: Tool[] = [
       openWorldHint: false,
     },
     inputSchema: {
-      type: "object",
+      type: "object" as const,
       properties: {
-        apiToken: { type: "string", description: "Your Laravel Forge API token" },
+        apiToken: { type: "string" as const, description: "Your Laravel Forge API token" },
       },
       required: ["apiToken"],
+    },
+    outputSchema: {
+      type: "object" as const,
+      properties: {
+        success: { type: "boolean" as const },
+        message: { type: "string" as const, description: "Confirmation message" },
+        apiToken: { type: "string" as const, description: "Masked API token (last 4 chars)" },
+      },
+      required: ["success"],
     },
   },
   {
     name: "forge_get_config",
-    description: "Get current Forge configuration",
+    title: "Get Forge Config",
+    description: "Get current Forge configuration (shows masked token and config status).",
     annotations: {
       title: "Get Forge Config",
       readOnlyHint: true,
@@ -242,8 +346,16 @@ export const STDIO_ONLY_TOOLS: Tool[] = [
       openWorldHint: false,
     },
     inputSchema: {
-      type: "object",
+      type: "object" as const,
       properties: {},
+    },
+    outputSchema: {
+      type: "object" as const,
+      properties: {
+        apiToken: { type: "string" as const, description: "Masked API token or 'not configured'" },
+        configured: { type: "boolean" as const, description: "Whether a token is configured" },
+      },
+      required: ["configured"],
     },
   },
 ];
