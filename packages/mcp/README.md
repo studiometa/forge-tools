@@ -88,6 +88,7 @@ Mutating operations. Annotated `destructiveHint: true` so MCP clients always pro
 
 ```json
 { "resource": "deployments", "action": "deploy", "server_id": "123", "site_id": "456" }
+// deploy blocks until complete, returning: status, deployment log, elapsed time
 { "resource": "servers", "action": "reboot", "id": "123" }
 { "resource": "daemons", "action": "create", "server_id": "123", "command": "php artisan queue:work" }
 ```

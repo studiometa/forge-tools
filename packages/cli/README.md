@@ -63,6 +63,7 @@ forge-cli <command> [subcommand] [options]
 | `redirect-rules`  |         | List, get, create, delete redirect rules for a site  |
 | `recipes`         |         | List, get, run recipes                               |
 | `user`            |         | Get the authenticated user's profile                 |
+| `completion`      |         | Install shell completion (bash, zsh, fish)           |
 
 Run `forge-cli <command> --help` for detailed usage of each command.
 
@@ -132,6 +133,8 @@ forge-cli deployments list --server <id> --site <id>    # List deployments
 forge-cli deployments deploy --server <id> --site <id>  # Trigger a deployment
 ```
 
+The `deploy` command waits for deployment to complete, showing live progress. On completion it prints the deployment log and elapsed time.
+
 ### `databases` (`db`) — Manage databases
 
 ```bash
@@ -190,6 +193,19 @@ forge-cli recipes list                                          # List all recip
 forge-cli recipes get <id>                                      # Get recipe details
 forge-cli recipes run <id> --servers 123,456                    # Run recipe on servers
 ```
+
+### `completion` — Shell completion
+
+```bash
+forge-cli completion bash           # Install Bash completion
+forge-cli completion zsh            # Install Zsh completion
+forge-cli completion fish           # Install Fish completion
+forge-cli completion bash --print   # Print script without installing
+```
+
+## Audit Logging
+
+All write operations (`deploy`, `create`, `delete`, `reboot`, `restart`, `update`, `run`, `activate`) are automatically logged to `~/.config/forge-tools/audit.log`. Override the path with the `FORGE_AUDIT_LOG` environment variable. Sensitive fields (tokens, passwords) are redacted.
 
 ## Global Options
 
