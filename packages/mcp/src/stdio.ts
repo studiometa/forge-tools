@@ -76,6 +76,11 @@ export function handleGetConfigTool(): ToolResult {
 
 /**
  * Handle a tool call request.
+ *
+ * Routes to the appropriate handler based on tool name:
+ * - forge_configure / forge_get_config — stdio-only config tools
+ * - forge — read-only operations (list, get, help, schema)
+ * - forge_write — write operations (create, update, delete, deploy, etc.)
  */
 export async function handleToolCall(
   name: string,
@@ -89,19 +94,31 @@ export async function handleToolCall(
     return handleGetConfigTool();
   }
 
-  // Get API token
-  const apiToken = getToken();
-  if (!apiToken) {
-    return {
-      content: [
-        {
-          type: "text",
-          text: 'Error: Forge API token not configured. Use "forge_configure" tool or set FORGE_API_TOKEN environment variable.',
-        },
-      ],
-      isError: true,
-    };
+  // Both forge and forge_write require authentication
+  if (name === "forge" || name === "forge_write") {
+    const apiToken = getToken();
+    if (!apiToken) {
+      return {
+        content: [
+          {
+            type: "text",
+            text: 'Error: Forge API token not configured. Use "forge_configure" tool or set FORGE_API_TOKEN environment variable.',
+          },
+        ],
+        isError: true,
+      };
+    }
+
+    return executeToolWithCredentials(name, args, { apiToken });
   }
 
-  return executeToolWithCredentials(name, args, { apiToken });
+  return {
+    content: [
+      {
+        type: "text",
+        text: `Error: Unknown tool "${name}".`,
+      },
+    ],
+    isError: true,
+  };
 }
