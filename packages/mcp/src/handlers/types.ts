@@ -2,9 +2,14 @@ import type { ExecutorContext } from "@studiometa/forge-core";
 
 /**
  * Result from MCP tool handlers.
+ *
+ * - `content` — human-readable text (always present)
+ * - `structuredContent` — machine-readable data matching the tool's `outputSchema`
+ * - `isError` — true when the result represents an error
  */
 export interface ToolResult {
   content: Array<{ type: "text"; text: string }>;
+  structuredContent?: Record<string, unknown>;
   isError?: boolean;
 }
 

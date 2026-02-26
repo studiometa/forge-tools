@@ -76,6 +76,10 @@ export function createMcpServer(options?: HttpServerOptions): Server {
             text: "Error: Authentication required. No token found in request.",
           },
         ],
+        structuredContent: {
+          success: false,
+          error: "Authentication required. No token found in request.",
+        },
         isError: true,
       };
     }
@@ -90,6 +94,10 @@ export function createMcpServer(options?: HttpServerOptions): Server {
             text: "Error: Server is running in read-only mode. Write operations are disabled.",
           },
         ],
+        structuredContent: {
+          success: false,
+          error: "Server is running in read-only mode. Write operations are disabled.",
+        },
         isError: true,
       };
     }
@@ -107,6 +115,7 @@ export function createMcpServer(options?: HttpServerOptions): Server {
       /* v8 ignore stop */
       return {
         content: [{ type: "text" as const, text: `Error: ${message}` }],
+        structuredContent: { success: false, error: message },
         isError: true,
       };
     }
