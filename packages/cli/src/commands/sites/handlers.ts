@@ -3,11 +3,12 @@ import { listSites, getSite } from "@studiometa/forge-core";
 import type { CommandContext } from "../../context.ts";
 
 import { exitWithValidationError, runCommand } from "../../error-handler.ts";
+import { resolveServerId } from "../../utils/resolve.ts";
 
 export async function sitesList(ctx: CommandContext): Promise<void> {
-  const server_id = String(ctx.options.server ?? "");
+  const server = String(ctx.options.server ?? "");
 
-  if (!server_id) {
+  if (!server) {
     exitWithValidationError(
       "server_id",
       "forge-cli sites list --server <server_id>",
@@ -18,6 +19,7 @@ export async function sitesList(ctx: CommandContext): Promise<void> {
   await runCommand(async () => {
     const token = ctx.getToken();
     const execCtx = ctx.createExecutorContext(token);
+    const server_id = await resolveServerId(server, execCtx);
     const result = await listSites({ server_id }, execCtx);
     ctx.formatter.output(result.data);
   }, ctx.formatter);
@@ -25,7 +27,7 @@ export async function sitesList(ctx: CommandContext): Promise<void> {
 
 export async function sitesGet(args: string[], ctx: CommandContext): Promise<void> {
   const [site_id] = args;
-  const server_id = String(ctx.options.server ?? "");
+  const server = String(ctx.options.server ?? "");
 
   if (!site_id) {
     exitWithValidationError(
@@ -35,7 +37,7 @@ export async function sitesGet(args: string[], ctx: CommandContext): Promise<voi
     );
   }
 
-  if (!server_id) {
+  if (!server) {
     exitWithValidationError(
       "server_id",
       "forge-cli sites get <site_id> --server <server_id>",
@@ -46,6 +48,7 @@ export async function sitesGet(args: string[], ctx: CommandContext): Promise<voi
   await runCommand(async () => {
     const token = ctx.getToken();
     const execCtx = ctx.createExecutorContext(token);
+    const server_id = await resolveServerId(server, execCtx);
     const result = await getSite({ server_id, site_id }, execCtx);
     ctx.formatter.output(result.data);
   }, ctx.formatter);

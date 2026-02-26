@@ -3,11 +3,12 @@ import { listDatabases, getDatabase } from "@studiometa/forge-core";
 import type { CommandContext } from "../../context.ts";
 
 import { exitWithValidationError, runCommand } from "../../error-handler.ts";
+import { resolveServerId } from "../../utils/resolve.ts";
 
 export async function databasesList(ctx: CommandContext): Promise<void> {
-  const server_id = String(ctx.options.server ?? "");
+  const server = String(ctx.options.server ?? "");
 
-  if (!server_id) {
+  if (!server) {
     exitWithValidationError(
       "server_id",
       "forge-cli databases list --server <server_id>",
@@ -18,6 +19,7 @@ export async function databasesList(ctx: CommandContext): Promise<void> {
   await runCommand(async () => {
     const token = ctx.getToken();
     const execCtx = ctx.createExecutorContext(token);
+    const server_id = await resolveServerId(server, execCtx);
     const result = await listDatabases({ server_id }, execCtx);
     ctx.formatter.output(result.data);
   }, ctx.formatter);
@@ -25,7 +27,7 @@ export async function databasesList(ctx: CommandContext): Promise<void> {
 
 export async function databasesGet(args: string[], ctx: CommandContext): Promise<void> {
   const [id] = args;
-  const server_id = String(ctx.options.server ?? "");
+  const server = String(ctx.options.server ?? "");
 
   if (!id) {
     exitWithValidationError(
@@ -35,7 +37,7 @@ export async function databasesGet(args: string[], ctx: CommandContext): Promise
     );
   }
 
-  if (!server_id) {
+  if (!server) {
     exitWithValidationError(
       "server_id",
       "forge-cli databases get <database_id> --server <server_id>",
@@ -46,6 +48,7 @@ export async function databasesGet(args: string[], ctx: CommandContext): Promise
   await runCommand(async () => {
     const token = ctx.getToken();
     const execCtx = ctx.createExecutorContext(token);
+    const server_id = await resolveServerId(server, execCtx);
     const result = await getDatabase({ server_id, id }, execCtx);
     ctx.formatter.output(result.data);
   }, ctx.formatter);
