@@ -57,7 +57,13 @@ export async function monitorsGet(args: string[], ctx: CommandContext): Promise<
     const server_id = await resolveServerId(server, execCtx);
     const result = await getMonitor({ server_id, id }, execCtx);
     ctx.formatter.outputOne(result.data, [
-      "id", "type", "operator", "threshold", "minutes", "state", "state_changed_at",
+      "id",
+      "type",
+      "operator",
+      "threshold",
+      "minutes",
+      "state",
+      "state_changed_at",
     ]);
   }, ctx.formatter);
 }
@@ -99,7 +105,12 @@ export async function monitorsCreate(ctx: CommandContext): Promise<void> {
     const server_id = await resolveServerId(server, execCtx);
     const result = await createMonitor({ server_id, type, operator, threshold, minutes }, execCtx);
     ctx.formatter.outputOne(result.data, [
-      "id", "type", "operator", "threshold", "minutes", "state",
+      "id",
+      "type",
+      "operator",
+      "threshold",
+      "minutes",
+      "state",
     ]);
   }, ctx.formatter);
 }

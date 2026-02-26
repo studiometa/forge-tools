@@ -41,8 +41,7 @@ export async function redirectRulesList(ctx: CommandContext): Promise<void> {
       result.data,
       ["id", "from", "to", "type"],
       "No redirect rules found.",
-      (r) =>
-        `${String(r.id).padEnd(8)} ${r.from.padEnd(30)} ${r.to.padEnd(30)} ${r.type}`,
+      (r) => `${String(r.id).padEnd(8)} ${r.from.padEnd(30)} ${r.to.padEnd(30)} ${r.type}`,
     );
   }, ctx.formatter);
 }

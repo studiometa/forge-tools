@@ -25,8 +25,7 @@ export async function daemonsList(ctx: CommandContext): Promise<void> {
       result.data,
       ["id", "command", "user", "status"],
       "No daemons found.",
-      (d) =>
-        `${String(d.id).padEnd(8)} ${d.command.padEnd(50)} ${d.user.padEnd(16)} ${d.status}`,
+      (d) => `${String(d.id).padEnd(8)} ${d.command.padEnd(50)} ${d.user.padEnd(16)} ${d.status}`,
     );
   }, ctx.formatter);
 }
@@ -57,7 +56,13 @@ export async function daemonsGet(args: string[], ctx: CommandContext): Promise<v
     const server_id = await resolveServerId(server, execCtx);
     const result = await getDaemon({ server_id, id }, execCtx);
     ctx.formatter.outputOne(result.data, [
-      "id", "command", "user", "directory", "processes", "status", "created_at",
+      "id",
+      "command",
+      "user",
+      "directory",
+      "processes",
+      "status",
+      "created_at",
     ]);
   }, ctx.formatter);
 }

@@ -58,9 +58,7 @@ export async function commandsGet(args: string[], ctx: CommandContext): Promise<
     const server_id = await resolveServerId(server, execCtx);
     const site_id = await resolveSiteId(site, server_id, execCtx);
     const result = await getCommand({ server_id, site_id, id }, execCtx);
-    ctx.formatter.outputOne(result.data, [
-      "id", "command", "status", "user_name", "created_at",
-    ]);
+    ctx.formatter.outputOne(result.data, ["id", "command", "status", "user_name", "created_at"]);
   }, ctx.formatter);
 }
 

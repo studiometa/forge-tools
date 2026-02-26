@@ -62,7 +62,13 @@ export async function backupsGet(args: string[], ctx: CommandContext): Promise<v
     const server_id = await resolveServerId(server, execCtx);
     const result = await getBackupConfig({ server_id, id }, execCtx);
     ctx.formatter.outputOne(result.data, [
-      "id", "provider", "provider_name", "frequency", "retention", "status", "last_backup_time",
+      "id",
+      "provider",
+      "provider_name",
+      "frequency",
+      "retention",
+      "status",
+      "last_backup_time",
     ]);
   }, ctx.formatter);
 }
@@ -111,7 +117,12 @@ export async function backupsCreate(ctx: CommandContext): Promise<void> {
       execCtx,
     );
     ctx.formatter.outputOne(result.data, [
-      "id", "provider", "provider_name", "frequency", "retention", "status",
+      "id",
+      "provider",
+      "provider_name",
+      "frequency",
+      "retention",
+      "status",
     ]);
   }, ctx.formatter);
 }

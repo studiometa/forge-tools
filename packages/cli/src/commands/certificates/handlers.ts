@@ -59,7 +59,14 @@ export async function certificatesGet(args: string[], ctx: CommandContext): Prom
     const site_id = await resolveSiteId(site, server_id, execCtx);
     const result = await getCertificate({ server_id, site_id, id }, execCtx);
     ctx.formatter.outputOne(result.data, [
-      "id", "domain", "type", "status", "request_status", "active", "existing", "created_at",
+      "id",
+      "domain",
+      "type",
+      "status",
+      "request_status",
+      "active",
+      "existing",
+      "created_at",
     ]);
   }, ctx.formatter);
 }

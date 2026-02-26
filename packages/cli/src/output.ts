@@ -78,7 +78,10 @@ export class OutputFormatter {
 
     // Default: padded columns
     const widths = columns.map((col) =>
-      Math.max(col.length, ...data.map((item) => String((item as Record<string, unknown>)[col] ?? "").length)),
+      Math.max(
+        col.length,
+        ...data.map((item) => String((item as Record<string, unknown>)[col] ?? "").length),
+      ),
     );
     for (const item of data) {
       const row = item as Record<string, unknown>;

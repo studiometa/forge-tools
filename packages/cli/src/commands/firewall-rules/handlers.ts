@@ -57,7 +57,13 @@ export async function firewallRulesGet(args: string[], ctx: CommandContext): Pro
     const server_id = await resolveServerId(server, execCtx);
     const result = await getFirewallRule({ server_id, id }, execCtx);
     ctx.formatter.outputOne(result.data, [
-      "id", "name", "port", "type", "ip_address", "status", "created_at",
+      "id",
+      "name",
+      "port",
+      "type",
+      "ip_address",
+      "status",
+      "created_at",
     ]);
   }, ctx.formatter);
 }
