@@ -7,4 +7,5 @@ export const handleEnvCommand = createCommandRouter({
     get: envGet,
     update: envUpdate,
   },
+  writeSubcommands: ["update"],
 });

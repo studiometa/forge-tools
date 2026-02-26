@@ -10,4 +10,5 @@ export const handleMonitorsCommand = createCommandRouter({
     create: monitorsCreate,
     delete: [monitorsDelete, "args"],
   },
+  writeSubcommands: ["create", "delete"],
 });

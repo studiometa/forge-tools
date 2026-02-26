@@ -9,4 +9,5 @@ export const handleCertificatesCommand = createCommandRouter({
     get: [certificatesGet, "args"],
     activate: [certificatesActivate, "args"],
   },
+  writeSubcommands: ["activate"],
 });

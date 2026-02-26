@@ -3,6 +3,10 @@
 
 export { ACTIONS, RESOURCES } from "./constants.ts";
 export type { Action, Resource } from "./constants.ts";
+
+// Audit logging
+export { createAuditLogger, sanitizeArgs, getAuditLogPath } from "./logger.ts";
+export type { AuditLogger, AuditLogEntry } from "./logger.ts";
 export { createTestExecutorContext } from "./context.ts";
 export type { ExecutorContext, ExecutorResult } from "./context.ts";
 export type { Executor } from "./executors/types.ts";

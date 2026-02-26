@@ -8,4 +8,5 @@ export const handleDeploymentsCommand = createCommandRouter({
     ls: deploymentsList,
     deploy: deploymentsDeploy,
   },
+  writeSubcommands: ["deploy"],
 });

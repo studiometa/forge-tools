@@ -15,4 +15,5 @@ export const handleSecurityRulesCommand = createCommandRouter({
     create: securityRulesCreate,
     delete: [securityRulesDelete, "args"],
   },
+  writeSubcommands: ["create", "delete"],
 });

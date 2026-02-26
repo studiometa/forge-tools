@@ -207,6 +207,10 @@ FORGE_READ_ONLY=true forge-mcp
 
 When enabled, only `forge` (read operations), `forge_configure`, and `forge_get_config` are registered.
 
+## Audit Logging
+
+All `forge_write` operations are automatically logged to `~/.config/forge-tools/audit.log` (configurable via `FORGE_AUDIT_LOG` env var). Sensitive fields (tokens, passwords) are redacted. Logging never interrupts operations.
+
 ## Tips for Efficient Usage
 
 1. **Use help first**: Call `action="help"` for any resource before using it

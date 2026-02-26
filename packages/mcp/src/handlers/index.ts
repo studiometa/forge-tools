@@ -7,10 +7,10 @@
  * - forge_write: write operations (create, update, delete, deploy, reboot, etc.)
  */
 
-import type { ExecutorContext } from "@studiometa/forge-core";
+import type { AuditLogger, ExecutorContext } from "@studiometa/forge-core";
 
 import { HttpClient } from "@studiometa/forge-api";
-import { RESOURCES } from "@studiometa/forge-core";
+import { createAuditLogger, RESOURCES } from "@studiometa/forge-core";
 
 import type { CommonArgs, HandlerContext, ToolResult } from "./types.ts";
 
@@ -46,6 +46,13 @@ export type { ToolResult } from "./types.ts";
 
 /** Valid resources derived from core constants */
 const VALID_RESOURCES = [...RESOURCES];
+
+// Lazy audit logger — initialized on first write call to avoid import-time side effects
+let _auditLogger: AuditLogger | null = null;
+function getAuditLogger(): AuditLogger {
+  if (!_auditLogger) _auditLogger = createAuditLogger("mcp");
+  return _auditLogger;
+}
 
 /**
  * Route to the appropriate resource handler.
@@ -167,22 +174,43 @@ export async function executeToolWithCredentials(
 
   // Route to resource handler with error catching
   try {
-    return await routeToHandler(
+    const result = await routeToHandler(
       resource,
       action,
       { resource, action, ...rest } as CommonArgs,
       handlerContext,
     );
+    if (name === "forge_write") {
+      getAuditLogger().log({
+        source: "mcp",
+        resource,
+        action,
+        args: rest as Record<string, unknown>,
+        status: result.isError ? "error" : "success",
+      });
+    }
+    return result;
   } catch (error) {
+    let errorMessage: string;
     if (isUserInputError(error)) {
-      return errorResult(error.toFormattedMessage());
+      errorMessage = error.toFormattedMessage();
+    } else if (isForgeApiError(error)) {
+      errorMessage = `Forge API error (${error.status}): ${error.message}`;
+    } else {
+      /* v8 ignore start */
+      errorMessage = error instanceof Error ? error.message : String(error);
+      /* v8 ignore stop */
     }
-    if (isForgeApiError(error)) {
-      return errorResult(`Forge API error (${error.status}): ${error.message}`);
+    if (name === "forge_write") {
+      getAuditLogger().log({
+        source: "mcp",
+        resource,
+        action,
+        args: rest as Record<string, unknown>,
+        status: "error",
+        error: errorMessage,
+      });
     }
-    /* v8 ignore start */
-    const message = error instanceof Error ? error.message : String(error);
-    /* v8 ignore stop */
-    return errorResult(message);
+    return errorResult(errorMessage);
   }
 }

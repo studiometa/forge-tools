@@ -128,6 +128,17 @@ Use `action: "help"` with any resource:
 | `forge_configure`  | Save API token to local config     |
 | `forge_get_config` | Show current config (token masked) |
 
+## Audit Logging
+
+All write operations (`forge_write` tool calls) are automatically logged for traceability:
+
+- **Default path**: `~/.config/forge-tools/audit.log`
+- **Override**: Set `FORGE_AUDIT_LOG` environment variable
+- **Format**: JSON lines (via pino) with timestamp, resource, action, sanitized args, and status
+- **Safety**: Logging never interrupts operations — silent on failure
+
+The CLI also logs write commands to the same audit log.
+
 ## Getting Your API Token
 
 1. Log into [Laravel Forge](https://forge.laravel.com)
