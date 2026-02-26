@@ -307,16 +307,52 @@ describe("E2E: executeToolWithCredentials", () => {
     expect(result.isError).toBeUndefined();
   });
 
-  it("should handle ForgeApiError", async () => {
-    // We need to test the error catch path — use a resource that will make an API call
-    // The mock returns empty servers list, so "get" with a non-matching path should work
-    // Actually let's test with an action that requires API but the mock throws
+  it("should handle delete via forge_write tool", async () => {
+    const result = await executeToolWithCredentials(
+      "forge_write",
+      { resource: "servers", action: "delete", id: "999" },
+      creds,
+    );
+    // The mock delete returns undefined which is fine for delete operations
+    expect(result.isError).toBeUndefined();
+  });
+
+  it("should reject write action on forge (read) tool", async () => {
     const result = await executeToolWithCredentials(
       "forge",
       { resource: "servers", action: "delete", id: "999" },
       creds,
     );
-    // The mock delete returns undefined which is fine for delete operations
+    expect(result.isError).toBe(true);
+    expect(result.content[0]!.text).toContain("write operation");
+    expect(result.content[0]!.text).toContain("forge_write");
+  });
+
+  it("should reject read action on forge_write tool", async () => {
+    const result = await executeToolWithCredentials(
+      "forge_write",
+      { resource: "servers", action: "list" },
+      creds,
+    );
+    expect(result.isError).toBe(true);
+    expect(result.content[0]!.text).toContain("read operation");
+    expect(result.content[0]!.text).toContain('"forge" tool');
+  });
+
+  it("should handle create via forge_write tool", async () => {
+    const result = await executeToolWithCredentials(
+      "forge_write",
+      {
+        resource: "servers",
+        action: "create",
+        provider: "ocean2",
+        name: "test",
+        type: "app",
+        region: "nyc1",
+        credential_id: "1",
+      },
+      creds,
+    );
     expect(result.isError).toBeUndefined();
   });
 

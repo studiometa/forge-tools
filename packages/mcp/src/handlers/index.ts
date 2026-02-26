@@ -2,8 +2,9 @@
  * Tool execution handlers for Forge MCP server.
  * Shared between stdio and HTTP transports.
  *
- * Single consolidated tool for minimal token overhead:
- * - forge: resource + action based API
+ * Two tools with clear separation:
+ * - forge: read-only operations (list, get, help, schema)
+ * - forge_write: write operations (create, update, delete, deploy, reboot, etc.)
  */
 
 import type { ExecutorContext } from "@studiometa/forge-core";
@@ -38,6 +39,7 @@ import { handleUser } from "./user.ts";
 import { isForgeApiError } from "@studiometa/forge-api";
 
 import { isUserInputError } from "../errors.ts";
+import { isWriteAction, isReadAction } from "../tools.ts";
 import { errorResult } from "./utils.ts";
 
 export type { ToolResult } from "./types.ts";
@@ -109,9 +111,10 @@ function routeToHandler(
  * Execute a tool call with provided credentials.
  *
  * This is the main entry point shared between stdio and HTTP transports.
+ * Validates that the action matches the tool (read vs write).
  */
 export async function executeToolWithCredentials(
-  _name: string,
+  name: string,
   args: Record<string, unknown>,
   credentials: { apiToken: string },
 ): Promise<ToolResult> {
@@ -119,6 +122,17 @@ export async function executeToolWithCredentials(
 
   if (!resource || !action) {
     return errorResult('Missing required fields: "resource" and "action".');
+  }
+
+  // Validate action matches the tool
+  if (name === "forge" && isWriteAction(action)) {
+    return errorResult(
+      `Action "${action}" is a write operation. Use the "forge_write" tool instead.`,
+    );
+  }
+
+  if (name === "forge_write" && isReadAction(action)) {
+    return errorResult(`Action "${action}" is a read operation. Use the "forge" tool instead.`);
   }
 
   // Help is available for all resources (doesn't need API)

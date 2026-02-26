@@ -7,10 +7,11 @@ MCP (Model Context Protocol) server for [Laravel Forge](https://forge.laravel.co
 
 ## Features
 
-- Single unified `forge` tool — minimal token overhead
+- **Two tools with clear safety split** — `forge` (read) and `forge_write` (write)
+- MCP clients auto-approve `forge` reads, always prompt for `forge_write` writes
 - Resource/action routing from centralized constants
 - Built-in help system — `action=help` for any resource
-- Stdio transport for local use
+- Stdio and Streamable HTTP transports
 - Configuration tools for interactive token setup
 
 ## Installation
@@ -42,37 +43,52 @@ Add to your Claude Desktop config:
 
 Alternatively, omit the `env` block and ask Claude to configure credentials using the `forge_configure` tool.
 
-## The `forge` Tool
+## Tools
 
-A single unified tool with `resource` + `action` routing:
+### `forge` — Read Operations
+
+Safe, read-only queries. Annotated `readOnlyHint: true` so MCP clients can auto-approve.
+
+**Actions**: `list`, `get`, `help`, `schema`
 
 ```json
 { "resource": "servers", "action": "list" }
 { "resource": "servers", "action": "get", "id": "123" }
 { "resource": "sites", "action": "list", "server_id": "123" }
-{ "resource": "deployments", "action": "deploy", "server_id": "123", "site_id": "456" }
 { "resource": "servers", "action": "help" }
+```
+
+### `forge_write` — Write Operations
+
+Mutating operations. Annotated `destructiveHint: true` so MCP clients always prompt for confirmation.
+
+**Actions**: `create`, `update`, `delete`, `deploy`, `reboot`, `restart`, `activate`, `run`
+
+```json
+{ "resource": "deployments", "action": "deploy", "server_id": "123", "site_id": "456" }
+{ "resource": "servers", "action": "reboot", "id": "123" }
+{ "resource": "daemons", "action": "create", "server_id": "123", "command": "php artisan queue:work" }
 ```
 
 ### Resources & Actions
 
-| Resource        | Actions                             | Required Fields            |
-| --------------- | ----------------------------------- | -------------------------- |
-| servers         | list, get, create, delete, reboot   | id (for get/delete/reboot) |
-| sites           | list, get, create, delete           | server_id                  |
-| deployments     | list, deploy, get, update           | server_id, site_id         |
-| env             | get, update                         | server_id, site_id         |
-| nginx           | get, update                         | server_id, site_id         |
-| certificates    | list, get, create, delete, activate | server_id, site_id         |
-| databases       | list, get, create, delete           | server_id                  |
-| daemons         | list, get, create, delete, restart  | server_id                  |
-| firewall-rules  | list, get, create, delete           | server_id                  |
-| ssh-keys        | list, get, create, delete           | server_id                  |
-| security-rules  | list, get, create, delete           | server_id, site_id         |
-| redirect-rules  | list, get, create, delete           | server_id, site_id         |
-| monitors        | list, get, create, delete           | server_id                  |
-| nginx-templates | list, get, create, update, delete   | server_id                  |
-| recipes         | list, get, create, delete, run      | id (for get/delete/run)    |
+| Resource        | Read Actions | Write Actions            | Required Fields            |
+| --------------- | ------------ | ------------------------ | -------------------------- |
+| servers         | list, get    | create, delete, reboot   | id (for get/delete/reboot) |
+| sites           | list, get    | create, delete           | server_id                  |
+| deployments     | list         | deploy, update           | server_id, site_id         |
+| env             | get          | update                   | server_id, site_id         |
+| nginx           | get          | update                   | server_id, site_id         |
+| certificates    | list, get    | create, delete, activate | server_id, site_id         |
+| databases       | list, get    | create, delete           | server_id                  |
+| daemons         | list, get    | create, delete, restart  | server_id                  |
+| firewall-rules  | list, get    | create, delete           | server_id                  |
+| ssh-keys        | list, get    | create, delete           | server_id                  |
+| security-rules  | list, get    | create, delete           | server_id, site_id         |
+| redirect-rules  | list, get    | create, delete           | server_id, site_id         |
+| monitors        | list, get    | create, delete           | server_id                  |
+| nginx-templates | list, get    | create, update, delete   | server_id                  |
+| recipes         | list, get    | create, delete, run      | id (for get/delete/run)    |
 
 ### Discovery
 

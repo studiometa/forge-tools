@@ -87,6 +87,11 @@ Add to your Claude Desktop config:
 }
 ```
 
+Two tools with a clear safety split:
+
+- **`forge`** — read-only operations (`list`, `get`, `help`, `schema`) — auto-approvable
+- **`forge_write`** — write operations (`create`, `delete`, `deploy`, `reboot`, etc.) — always requires confirmation
+
 ## Getting Your API Token
 
 1. Log into [Laravel Forge](https://forge.laravel.com)
