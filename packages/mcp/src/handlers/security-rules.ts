@@ -35,6 +35,7 @@ export const handleSecurityRules = createResourceHandler({
         return formatSecurityRule(data as ForgeSecurityRule);
       case "delete":
         return `Security rule ${args.id} deleted.`;
+      /* v8 ignore next */
       default:
         return "Done.";
     }

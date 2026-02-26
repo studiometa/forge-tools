@@ -20,9 +20,7 @@ export abstract class CliError extends Error {
     super(message);
     this.name = this.constructor.name;
 
-    if (Error.captureStackTrace) {
-      Error.captureStackTrace(this, this.constructor);
-    }
+    Error.captureStackTrace?.(this, this.constructor);
   }
 
   toJSON(): Record<string, unknown> {

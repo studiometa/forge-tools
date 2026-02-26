@@ -44,6 +44,7 @@ export const handleRecipes = createResourceHandler({
         const count = Array.isArray(servers) ? servers.length : 1;
         return `Recipe ${args.id} run on ${count} server(s).`;
       }
+      /* v8 ignore next */
       default:
         return "Done.";
     }

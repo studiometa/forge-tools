@@ -163,3 +163,23 @@ describe("daemonsRestart", () => {
     expect(processExitSpy).toHaveBeenCalledWith(3);
   });
 });
+
+describe("daemonsList — human format lineFormat", () => {
+  beforeEach(() => {
+    vi.spyOn(console, "log").mockImplementation(() => {});
+    vi.spyOn(console, "error").mockImplementation(() => {});
+  });
+  afterEach(() => vi.restoreAllMocks());
+
+  it("should render human format with lineFormat callback", async () => {
+    const { listDaemons } = await import("@studiometa/forge-core");
+    vi.mocked(listDaemons).mockResolvedValue({ data: [mockDaemon] });
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "human", server: "10" },
+    });
+    await daemonsList(ctx);
+    expect(vi.mocked(console.log)).toHaveBeenCalled();
+  });
+});

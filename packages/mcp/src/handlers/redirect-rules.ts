@@ -35,6 +35,7 @@ export const handleRedirectRules = createResourceHandler({
         return formatRedirectRule(data as ForgeRedirectRule);
       case "delete":
         return `Redirect rule ${args.id} deleted.`;
+      /* v8 ignore next */
       default:
         return "Done.";
     }

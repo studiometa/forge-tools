@@ -1,5 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 
+vi.mock("node:os", () => ({
+  homedir: () => "/home/test",
+  platform: () => "linux",
+}));
+
 import type { ConfigStoreFs } from "./config-store.ts";
 
 import { ConfigStore } from "./config-store.ts";
@@ -132,15 +137,47 @@ describe("ConfigStore", () => {
       expect(store.getPath()).toContain("forge-tools");
       expect(store.getPath()).toContain("config.json");
     });
+
+    it("should use XDG_CONFIG_HOME when set", () => {
+      const original = process.env.XDG_CONFIG_HOME;
+      try {
+        process.env.XDG_CONFIG_HOME = "/custom/xdg";
+        const fs = createMockFs();
+        // Create store AFTER setting env var so configPath is resolved with new value
+        const store = new ConfigStore("forge-tools", fs);
+        expect(store.getPath()).toContain("/custom/xdg");
+      } finally {
+        if (original === undefined) {
+          delete process.env.XDG_CONFIG_HOME;
+        } else {
+          process.env.XDG_CONFIG_HOME = original;
+        }
+      }
+    });
+  });
+
+  describe("set — dir already exists", () => {
+    it("should skip mkdir when directory already exists", () => {
+      const configPath = configStore_getPath("forge-tools");
+      const dir = configPath.substring(0, configPath.lastIndexOf("/"));
+      // Pre-populate the directory entry so existsSync(dir) returns true
+      const files: Record<string, string> = { [dir]: "dir-marker" };
+      const mockFs = createMockFs(files);
+      const store = new ConfigStore<{ apiToken: string }>("forge-tools", mockFs);
+
+      store.set({ apiToken: "tok" });
+      expect(mockFs.mkdirSync).not.toHaveBeenCalled();
+    });
   });
 });
 
 /**
- * Helper to get the expected config path (Linux only — tests run on Linux).
+ * Helper to get the expected config path.
+ * Since we mock platform() to return "linux" and homedir() to return "/home/test",
+ * this uses XDG_CONFIG_HOME if set, otherwise ~/.config.
  */
 function configStore_getPath(appName: string): string {
   const xdg = process.env.XDG_CONFIG_HOME;
-  const home = process.env.HOME ?? "/home/test";
-  const base = xdg ?? `${home}/.config`;
+  const base = xdg ?? "/home/test/.config";
   return `${base}/${appName}/config.json`;
 }

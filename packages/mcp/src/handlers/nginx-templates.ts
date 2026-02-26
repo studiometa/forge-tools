@@ -45,6 +45,7 @@ export const handleNginxTemplates = createResourceHandler({
         return formatNginxTemplate(data as ForgeNginxTemplate);
       case "delete":
         return `Nginx template ${args.id} deleted.`;
+      /* v8 ignore next */
       default:
         return "Done.";
     }

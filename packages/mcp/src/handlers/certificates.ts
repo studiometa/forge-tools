@@ -45,6 +45,7 @@ export const handleCertificates = createResourceHandler({
         return `Certificate ${args.id} deleted.`;
       case "activate":
         return `Certificate ${args.id} activated.`;
+      /* v8 ignore next */
       default:
         return "Done.";
     }

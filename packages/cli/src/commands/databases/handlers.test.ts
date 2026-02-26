@@ -106,3 +106,23 @@ describe("databasesGet", () => {
     expect(processExitSpy).toHaveBeenCalledWith(3);
   });
 });
+
+describe("databasesList — human format lineFormat", () => {
+  beforeEach(() => {
+    vi.spyOn(console, "log").mockImplementation(() => {});
+    vi.spyOn(console, "error").mockImplementation(() => {});
+  });
+  afterEach(() => vi.restoreAllMocks());
+
+  it("should render human format with lineFormat callback", async () => {
+    const { listDatabases } = await import("@studiometa/forge-core");
+    vi.mocked(listDatabases).mockResolvedValue({ data: [mockDb] });
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "human", server: "10" },
+    });
+    await databasesList(ctx);
+    expect(vi.mocked(console.log)).toHaveBeenCalled();
+  });
+});

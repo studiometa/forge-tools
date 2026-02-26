@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type { ForgeConfig } from "./types.ts";
 
-import { deleteToken, getToken, setToken } from "./config.ts";
+import { createConfigStore, deleteToken, getToken, setToken } from "./config.ts";
 import { ConfigStore } from "./utils/config-store.ts";
 
 function createMockStore(config: ForgeConfig | null = null) {
@@ -63,5 +63,13 @@ describe("deleteToken", () => {
     const store = createMockStore({ apiToken: "to-delete" });
     deleteToken(store);
     expect(store.delete).toHaveBeenCalled();
+  });
+});
+
+describe("createConfigStore", () => {
+  it("should return a ConfigStore instance when called without args", () => {
+    // createConfigStore() uses the real node:fs but we can just check the return type
+    const store = createConfigStore();
+    expect(store).toBeInstanceOf(ConfigStore);
   });
 });

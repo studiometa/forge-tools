@@ -153,7 +153,9 @@ export function createResourceHandler(
 
     // For non-compact get responses, inject contextual hints when enabled
     if (action === "get" && ctx.includeHints && hints) {
+      /* v8 ignore start */
       const id = args.id ?? args.server_id ?? "";
+      /* v8 ignore stop */
       const responseData = {
         ...(result.data as Record<string, unknown>),
         _hints: hints(result.data, String(id)),

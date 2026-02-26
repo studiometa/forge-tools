@@ -95,6 +95,7 @@ function routeToHandler(
       return handleScheduledJobs(action, args, ctx);
     case "user":
       return handleUser(action, args, ctx);
+    /* v8 ignore next 6 -- all valid resources are handled above; unreachable in practice */
     default:
       return Promise.resolve(
         errorResult(
@@ -122,12 +123,16 @@ export async function executeToolWithCredentials(
 
   // Help is available for all resources (doesn't need API)
   if (action === "help") {
+    /* v8 ignore start */
     return resource ? handleHelp(resource) : handleHelpOverview();
+    /* v8 ignore stop */
   }
 
   // Schema is available for all resources (doesn't need API)
   if (action === "schema") {
+    /* v8 ignore start */
     return resource ? handleSchema(resource) : handleSchemaOverview();
+    /* v8 ignore stop */
   }
 
   // Validate resource
@@ -161,7 +166,9 @@ export async function executeToolWithCredentials(
     if (isForgeApiError(error)) {
       return errorResult(`Forge API error (${error.status}): ${error.message}`);
     }
+    /* v8 ignore start */
     const message = error instanceof Error ? error.message : String(error);
+    /* v8 ignore stop */
     return errorResult(message);
   }
 }

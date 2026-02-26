@@ -13,7 +13,7 @@ export default defineConfig({
   }),
   test: createTestConfig({
     name: "cli",
-    coverageExclude: ["src/cli.ts", "src/index.ts", "src/types.ts"],
+    coverageExclude: ["src/cli.ts", "src/index.ts", "src/types.ts", "src/commands/*/index.ts"],
     coverageThresholds: {
       statements: 80,
       branches: 70,

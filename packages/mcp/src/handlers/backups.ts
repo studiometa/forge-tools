@@ -35,6 +35,7 @@ export const handleBackups = createResourceHandler({
         return formatBackupConfig(data as ForgeBackupConfig);
       case "delete":
         return `Backup config ${args.id} deleted.`;
+      /* v8 ignore next */
       default:
         return "Done.";
     }

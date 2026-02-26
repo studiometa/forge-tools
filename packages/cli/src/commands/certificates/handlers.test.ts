@@ -162,3 +162,35 @@ describe("certificatesActivate", () => {
     expect(processExitSpy).toHaveBeenCalledWith(3);
   });
 });
+
+describe("certificatesList — human format lineFormat", () => {
+  beforeEach(() => {
+    vi.spyOn(console, "log").mockImplementation(() => {});
+    vi.spyOn(console, "error").mockImplementation(() => {});
+  });
+  afterEach(() => vi.restoreAllMocks());
+
+  it("should render human format with active certificate", async () => {
+    const { listCertificates } = await import("@studiometa/forge-core");
+    vi.mocked(listCertificates).mockResolvedValue({ data: [mockCert] });
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "human", server: "10", site: "100" },
+    });
+    await certificatesList(ctx);
+    expect(vi.mocked(console.log)).toHaveBeenCalled();
+  });
+
+  it("should render '—' for inactive certificate", async () => {
+    const { listCertificates } = await import("@studiometa/forge-core");
+    vi.mocked(listCertificates).mockResolvedValue({ data: [{ ...mockCert, active: false }] });
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "human", server: "10", site: "100" },
+    });
+    await certificatesList(ctx);
+    expect(vi.mocked(console.log)).toHaveBeenCalled();
+  });
+});

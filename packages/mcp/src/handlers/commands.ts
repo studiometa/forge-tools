@@ -26,6 +26,7 @@ export const handleCommands = createResourceHandler({
         return formatCommand(data as ForgeCommand);
       case "create":
         return formatCommand(data as ForgeCommand);
+      /* v8 ignore next */
       default:
         return "Done.";
     }

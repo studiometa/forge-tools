@@ -95,6 +95,21 @@ describe("serversList", () => {
     expect(logSpy).toHaveBeenCalledWith(expect.stringContaining("my-server"));
   });
 
+  it("should show 'provisioning' for servers not yet ready", async () => {
+    const { listServers } = await import("@studiometa/forge-core");
+    vi.mocked(listServers).mockResolvedValue({ data: [{ ...mockServer, is_ready: false }] });
+
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "human" },
+    });
+
+    await serversList(ctx);
+    const logSpy = vi.mocked(console.log);
+    expect(logSpy).toHaveBeenCalledWith(expect.stringContaining("provisioning"));
+  });
+
   it("should list servers in table format", async () => {
     const { listServers } = await import("@studiometa/forge-core");
     vi.mocked(listServers).mockResolvedValue({ data: [mockServer] });
@@ -216,5 +231,46 @@ describe("serversReboot", () => {
 
     await serversReboot([], ctx).catch(() => {});
     expect(processExitSpy).toHaveBeenCalledWith(3);
+  });
+});
+
+describe("serversList — human format lineFormat", () => {
+  beforeEach(() => {
+    vi.spyOn(console, "log").mockImplementation(() => {});
+    vi.spyOn(console, "error").mockImplementation(() => {});
+  });
+  afterEach(() => vi.restoreAllMocks());
+
+  it("should render human format with lineFormat callback", async () => {
+    const { listServers } = await import("@studiometa/forge-core");
+    vi.mocked(listServers).mockResolvedValue({ data: [mockServer] });
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "human" },
+    });
+    await serversList(ctx);
+    expect(vi.mocked(console.log)).toHaveBeenCalled();
+  });
+
+  it("should use short flag 'f' as format fallback when format is not set", async () => {
+    const { listServers } = await import("@studiometa/forge-core");
+    vi.mocked(listServers).mockResolvedValue({ data: [mockServer] });
+    // Pass options with no format key but with f alias
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { f: "json" } as never,
+    });
+    await serversList(ctx);
+    expect(vi.mocked(console.log)).toHaveBeenCalled();
+  });
+
+  it("should default to human format when neither format nor f is set", async () => {
+    const { listServers } = await import("@studiometa/forge-core");
+    vi.mocked(listServers).mockResolvedValue({ data: [mockServer] });
+    const ctx = createTestContext({ token: "test", mockClient: {} as never, options: {} as never });
+    await serversList(ctx);
+    expect(vi.mocked(console.log)).toHaveBeenCalled();
   });
 });

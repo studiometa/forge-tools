@@ -175,4 +175,18 @@ describe("handleDeployments", () => {
     expect(result.isError).toBeUndefined();
     expect(result.content[0]!.text).toContain("updated");
   });
+
+  it("should list deployments in non-compact mode", async () => {
+    const ctx = createMockContext();
+    ctx.compact = false;
+    const result = await handleDeployments(
+      "list",
+      { resource: "deployments", action: "list", server_id: "123", site_id: "456" },
+      ctx,
+    );
+    expect(result.isError).toBeUndefined();
+    // non-compact returns raw data
+    const parsed = JSON.parse(result.content[0]!.text);
+    expect(Array.isArray(parsed)).toBe(true);
+  });
 });

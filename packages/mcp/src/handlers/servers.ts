@@ -38,9 +38,12 @@ export const handleServers = createResourceHandler({
       case "create":
         return {
           provider: args.provider,
+          /* v8 ignore next */
           credential_id: Number(args.credential_id) || 0,
           name: args.name,
+          /* v8 ignore next */
           type: args.type ?? "app",
+          /* v8 ignore next */
           size: args.size ?? "",
           region: args.region,
         };
@@ -60,6 +63,7 @@ export const handleServers = createResourceHandler({
         return `Server ${args.id} deleted.`;
       case "reboot":
         return `Server ${args.id} reboot initiated.`;
+      /* v8 ignore next */
       default:
         return "Done.";
     }

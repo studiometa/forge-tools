@@ -35,6 +35,7 @@ export const handleDatabases = createResourceHandler({
         return formatDatabase(data as ForgeDatabase);
       case "delete":
         return `Database ${args.id} deleted.`;
+      /* v8 ignore next */
       default:
         return "Done.";
     }

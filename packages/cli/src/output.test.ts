@@ -233,6 +233,26 @@ describe("OutputFormatter", () => {
       const calls = consoleLogSpy.mock.calls.map((c) => c[0] as string);
       expect(calls.some((c) => c.startsWith("custom:alpha"))).toBe(true);
     });
+
+    it("should render default padded columns when no lineFormat", () => {
+      const formatter = new OutputFormatter("human");
+      formatter.outputList(data, ["id", "name", "status"], "No items.");
+      const calls = consoleLogSpy.mock.calls.map((c) => c[0] as string);
+      // Should have two rows with id and name padded
+      expect(calls).toHaveLength(2);
+      expect(calls[0]).toContain("alpha");
+      expect(calls[1]).toContain("beta");
+    });
+
+    it("should handle null/undefined values in default columns", () => {
+      const formatter = new OutputFormatter("human");
+      const withNull = [
+        { id: 1, name: null as unknown as string, status: undefined as unknown as string },
+      ];
+      formatter.outputList(withNull, ["id", "name", "status"], "No items.");
+      const calls = consoleLogSpy.mock.calls.map((c) => c[0] as string);
+      expect(calls).toHaveLength(1);
+    });
   });
 
   describe("outputOne()", () => {
@@ -265,6 +285,15 @@ describe("OutputFormatter", () => {
       formatter.outputOne({ id: 1, tags: [{ name: "web" }] }, ["id", "tags"]);
       const calls = consoleLogSpy.mock.calls.map((c) => c[0] as string);
       expect(calls.some((c) => c.includes("[{"))).toBe(true);
+    });
+
+    it("should stringify null values as empty string in human format", () => {
+      const formatter = new OutputFormatter("human");
+      formatter.outputOne({ id: 1, name: null as unknown as string }, ["id", "name"]);
+      const calls = consoleLogSpy.mock.calls.map((c) => c[0] as string);
+      expect(calls).toHaveLength(2);
+      // null → String(null ?? "") → ""
+      expect(calls[1]).not.toContain("null");
     });
 
     it("should use all keys when fields not specified", () => {

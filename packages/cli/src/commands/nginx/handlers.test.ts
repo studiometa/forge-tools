@@ -56,6 +56,20 @@ describe("nginxGet", () => {
     await nginxGet(ctx).catch(() => {});
     expect(processExitSpy).toHaveBeenCalledWith(3);
   });
+
+  it("should output raw config in human format", async () => {
+    const { getNginxConfig } = await import("@studiometa/forge-core");
+    vi.mocked(getNginxConfig).mockResolvedValue({ data: "server { listen 80; }" });
+
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "human", server: "10", site: "100" },
+    });
+
+    await nginxGet(ctx);
+    expect(vi.mocked(console.log)).toHaveBeenCalledWith("server { listen 80; }");
+  });
 });
 
 describe("nginxUpdate", () => {

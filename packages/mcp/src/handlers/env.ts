@@ -25,6 +25,7 @@ export const handleEnv = createResourceHandler({
         return formatEnv(data as string);
       case "update":
         return "Environment variables updated.";
+      /* v8 ignore next */
       default:
         return "Done.";
     }

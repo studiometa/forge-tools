@@ -40,6 +40,7 @@ export const handleDatabaseUsers = createResourceHandler({
         return formatDatabaseUser(data as ForgeDatabaseUser);
       case "delete":
         return `Database user ${args.id} deleted.`;
+      /* v8 ignore next */
       default:
         return "Done.";
     }

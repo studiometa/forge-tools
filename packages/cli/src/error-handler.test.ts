@@ -7,6 +7,7 @@ import {
   getExitCode,
   handleError,
   runCommand,
+  exitWithConfigError,
   exitWithValidationError,
 } from "./error-handler.ts";
 
@@ -138,5 +139,28 @@ describe("exitWithValidationError", () => {
       // process.exit is mocked so exitWithValidationError throws
     }
     expect(processExitSpy).toHaveBeenCalledWith(ExitCode.VALIDATION_ERROR);
+  });
+});
+
+describe("exitWithConfigError", () => {
+  let processExitSpy: ReturnType<typeof vi.spyOn>;
+
+  beforeEach(() => {
+    processExitSpy = vi.spyOn(process, "exit").mockImplementation(() => undefined as never);
+    vi.spyOn(console, "error").mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("should call process.exit with CONFIG_ERROR code", () => {
+    const formatter = new OutputFormatter("human", true);
+    try {
+      exitWithConfigError(formatter);
+    } catch {
+      // process.exit is mocked
+    }
+    expect(processExitSpy).toHaveBeenCalledWith(ExitCode.CONFIG_ERROR);
   });
 });

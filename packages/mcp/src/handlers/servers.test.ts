@@ -117,6 +117,22 @@ describe("handleServers", () => {
     expect(result.isError).toBeUndefined();
   });
 
+  it("should create a server with defaults for credential_id and size", async () => {
+    const result = await handleServers(
+      "create",
+      {
+        resource: "servers",
+        action: "create",
+        provider: "hetzner",
+        name: "web-1",
+        type: "app",
+        region: "eu",
+      },
+      createMockContext(),
+    );
+    expect(result.isError).toBeUndefined();
+  });
+
   it("should inject hints on get when includeHints=true", async () => {
     const ctx = createMockContext();
     ctx.compact = false;

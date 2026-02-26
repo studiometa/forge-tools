@@ -105,6 +105,16 @@ describe("handleRecipes", () => {
     expect(result.isError).toBe(true);
   });
 
+  it("should run a recipe on a single server (non-array servers)", async () => {
+    const result = await handleRecipes(
+      "run",
+      { resource: "recipes", action: "run", id: "1", servers: 99 },
+      createMockContext(),
+    );
+    expect(result.isError).toBeUndefined();
+    expect(result.content[0]!.text).toContain("1 server(s)");
+  });
+
   it("should inject hints on get when includeHints=true", async () => {
     const ctx = createMockContext();
     ctx.compact = false;

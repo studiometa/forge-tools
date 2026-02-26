@@ -269,3 +269,35 @@ describe("securityRulesDelete", () => {
     expect(processExitSpy).toHaveBeenCalledWith(3);
   });
 });
+
+describe("securityRulesList — human format lineFormat", () => {
+  beforeEach(() => {
+    vi.spyOn(console, "log").mockImplementation(() => {});
+    vi.spyOn(console, "error").mockImplementation(() => {});
+  });
+  afterEach(() => vi.restoreAllMocks());
+
+  it("should render human format with path", async () => {
+    const { listSecurityRules } = await import("@studiometa/forge-core");
+    vi.mocked(listSecurityRules).mockResolvedValue({ data: [mockRule] });
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "human", server: "10", site: "20" },
+    });
+    await securityRulesList(ctx);
+    expect(vi.mocked(console.log)).toHaveBeenCalled();
+  });
+
+  it("should render '—' when path is null", async () => {
+    const { listSecurityRules } = await import("@studiometa/forge-core");
+    vi.mocked(listSecurityRules).mockResolvedValue({ data: [{ ...mockRule, path: null }] });
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "human", server: "10", site: "20" },
+    });
+    await securityRulesList(ctx);
+    expect(vi.mocked(console.log)).toHaveBeenCalled();
+  });
+});

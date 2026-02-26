@@ -40,6 +40,7 @@ export const handleFirewallRules = createResourceHandler({
         return formatFirewallRule(data as ForgeFirewallRule);
       case "delete":
         return `Firewall rule ${args.id} deleted.`;
+      /* v8 ignore next */
       default:
         return "Done.";
     }

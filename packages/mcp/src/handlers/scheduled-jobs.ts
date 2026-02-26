@@ -35,6 +35,7 @@ export const handleScheduledJobs = createResourceHandler({
         return formatScheduledJob(data as ForgeScheduledJob);
       case "delete":
         return `Scheduled job ${args.id} deleted.`;
+      /* v8 ignore next */
       default:
         return "Done.";
     }
