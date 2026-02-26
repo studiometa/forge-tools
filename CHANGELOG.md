@@ -80,6 +80,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Add `forge-cli` to root README and create `packages/cli/README.md` [[#39], [a4a43f5]]
   - Add CLI commands for backups, commands, scheduled-jobs, user, monitors, nginx-templates, security-rules, redirect-rules [[#42], [9865cd7]]
   - Add database-users CLI commands [[#40], [191271f]]
+  - Add smart `--server` and `--site` resolution by name or partial match [[#48], [131275c]]
 
 - **Infrastructure**:
   - Monorepo with npm workspaces (api → sdk → core → mcp)
@@ -123,3 +124,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [a4a43f5]: https://github.com/studiometa/forge-tools/commit/a4a43f5
 [9865cd7]: https://github.com/studiometa/forge-tools/commit/9865cd7
 [ee55bfe]: https://github.com/studiometa/forge-tools/commit/ee55bfe
+[#48]: https://github.com/studiometa/forge-tools/pull/48
+[131275c]: https://github.com/studiometa/forge-tools/commit/131275c

@@ -3,31 +3,34 @@ import { createCommand, getCommand, listCommands } from "@studiometa/forge-core"
 import type { CommandContext } from "../../context.ts";
 
 import { exitWithValidationError, runCommand } from "../../error-handler.ts";
+import { resolveServerId, resolveSiteId } from "../../utils/resolve.ts";
 
-function requireServerAndSite(
+function requireServerAndSiteRaw(
   ctx: CommandContext,
   usage: string,
-): { server_id: string; site_id: string } {
-  const server_id = String(ctx.options.server ?? "");
-  const site_id = String(ctx.options.site ?? "");
+): { server: string; site: string } {
+  const server = String(ctx.options.server ?? "");
+  const site = String(ctx.options.site ?? "");
 
-  if (!server_id) {
+  if (!server) {
     exitWithValidationError("server_id", usage, ctx.formatter);
   }
-  if (!site_id) {
+  if (!site) {
     exitWithValidationError("site_id", usage, ctx.formatter);
   }
 
-  return { server_id, site_id };
+  return { server, site };
 }
 
 export async function commandsList(ctx: CommandContext): Promise<void> {
   const usage = "forge-cli commands list --server <server_id> --site <site_id>";
-  const { server_id, site_id } = requireServerAndSite(ctx, usage);
+  const { server, site } = requireServerAndSiteRaw(ctx, usage);
 
   await runCommand(async () => {
     const token = ctx.getToken();
     const execCtx = ctx.createExecutorContext(token);
+    const server_id = await resolveServerId(server, execCtx);
+    const site_id = await resolveSiteId(site, server_id, execCtx);
     const result = await listCommands({ server_id, site_id }, execCtx);
     ctx.formatter.output(result.data);
   }, ctx.formatter);
@@ -41,11 +44,13 @@ export async function commandsGet(args: string[], ctx: CommandContext): Promise<
     exitWithValidationError("command_id", usage, ctx.formatter);
   }
 
-  const { server_id, site_id } = requireServerAndSite(ctx, usage);
+  const { server, site } = requireServerAndSiteRaw(ctx, usage);
 
   await runCommand(async () => {
     const token = ctx.getToken();
     const execCtx = ctx.createExecutorContext(token);
+    const server_id = await resolveServerId(server, execCtx);
+    const site_id = await resolveSiteId(site, server_id, execCtx);
     const result = await getCommand({ server_id, site_id, id }, execCtx);
     ctx.formatter.output(result.data);
   }, ctx.formatter);
@@ -54,7 +59,7 @@ export async function commandsGet(args: string[], ctx: CommandContext): Promise<
 export async function commandsCreate(ctx: CommandContext): Promise<void> {
   const usage =
     "forge-cli commands create --server <server_id> --site <site_id> --command <command>";
-  const { server_id, site_id } = requireServerAndSite(ctx, usage);
+  const { server, site } = requireServerAndSiteRaw(ctx, usage);
   const command = String(ctx.options.command ?? "");
 
   if (!command) {
@@ -64,6 +69,8 @@ export async function commandsCreate(ctx: CommandContext): Promise<void> {
   await runCommand(async () => {
     const token = ctx.getToken();
     const execCtx = ctx.createExecutorContext(token);
+    const server_id = await resolveServerId(server, execCtx);
+    const site_id = await resolveSiteId(site, server_id, execCtx);
     const result = await createCommand({ server_id, site_id, command }, execCtx);
     ctx.formatter.output(result.data);
   }, ctx.formatter);

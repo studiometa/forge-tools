@@ -8,11 +8,12 @@ import {
 import type { CommandContext } from "../../context.ts";
 
 import { exitWithValidationError, runCommand } from "../../error-handler.ts";
+import { resolveServerId } from "../../utils/resolve.ts";
 
 export async function backupsList(ctx: CommandContext): Promise<void> {
-  const server_id = String(ctx.options.server ?? "");
+  const server = String(ctx.options.server ?? "");
 
-  if (!server_id) {
+  if (!server) {
     exitWithValidationError(
       "server_id",
       "forge-cli backups list --server <server_id>",
@@ -23,6 +24,7 @@ export async function backupsList(ctx: CommandContext): Promise<void> {
   await runCommand(async () => {
     const token = ctx.getToken();
     const execCtx = ctx.createExecutorContext(token);
+    const server_id = await resolveServerId(server, execCtx);
     const result = await listBackupConfigs({ server_id }, execCtx);
     ctx.formatter.output(result.data);
   }, ctx.formatter);
@@ -30,7 +32,7 @@ export async function backupsList(ctx: CommandContext): Promise<void> {
 
 export async function backupsGet(args: string[], ctx: CommandContext): Promise<void> {
   const [id] = args;
-  const server_id = String(ctx.options.server ?? "");
+  const server = String(ctx.options.server ?? "");
 
   if (!id) {
     exitWithValidationError(
@@ -40,7 +42,7 @@ export async function backupsGet(args: string[], ctx: CommandContext): Promise<v
     );
   }
 
-  if (!server_id) {
+  if (!server) {
     exitWithValidationError(
       "server_id",
       "forge-cli backups get <backup_id> --server <server_id>",
@@ -51,13 +53,14 @@ export async function backupsGet(args: string[], ctx: CommandContext): Promise<v
   await runCommand(async () => {
     const token = ctx.getToken();
     const execCtx = ctx.createExecutorContext(token);
+    const server_id = await resolveServerId(server, execCtx);
     const result = await getBackupConfig({ server_id, id }, execCtx);
     ctx.formatter.output(result.data);
   }, ctx.formatter);
 }
 
 export async function backupsCreate(ctx: CommandContext): Promise<void> {
-  const server_id = String(ctx.options.server ?? "");
+  const server = String(ctx.options.server ?? "");
   const provider = String(ctx.options.provider ?? "");
   const frequency = String(ctx.options.frequency ?? "");
   const databasesRaw = ctx.options.databases;
@@ -67,7 +70,7 @@ export async function backupsCreate(ctx: CommandContext): Promise<void> {
       ? [Number(databasesRaw)]
       : [];
 
-  if (!server_id) {
+  if (!server) {
     exitWithValidationError(
       "server_id",
       "forge-cli backups create --server <server_id> --provider <provider> --frequency <frequency>",
@@ -94,6 +97,7 @@ export async function backupsCreate(ctx: CommandContext): Promise<void> {
   await runCommand(async () => {
     const token = ctx.getToken();
     const execCtx = ctx.createExecutorContext(token);
+    const server_id = await resolveServerId(server, execCtx);
     const result = await createBackupConfig(
       { server_id, provider, frequency, credentials: {}, databases },
       execCtx,
@@ -104,7 +108,7 @@ export async function backupsCreate(ctx: CommandContext): Promise<void> {
 
 export async function backupsDelete(args: string[], ctx: CommandContext): Promise<void> {
   const [id] = args;
-  const server_id = String(ctx.options.server ?? "");
+  const server = String(ctx.options.server ?? "");
 
   if (!id) {
     exitWithValidationError(
@@ -114,7 +118,7 @@ export async function backupsDelete(args: string[], ctx: CommandContext): Promis
     );
   }
 
-  if (!server_id) {
+  if (!server) {
     exitWithValidationError(
       "server_id",
       "forge-cli backups delete <backup_id> --server <server_id>",
@@ -125,6 +129,7 @@ export async function backupsDelete(args: string[], ctx: CommandContext): Promis
   await runCommand(async () => {
     const token = ctx.getToken();
     const execCtx = ctx.createExecutorContext(token);
+    const server_id = await resolveServerId(server, execCtx);
     await deleteBackupConfig({ server_id, id }, execCtx);
     ctx.formatter.success(`Backup configuration ${id} deleted.`);
   }, ctx.formatter);

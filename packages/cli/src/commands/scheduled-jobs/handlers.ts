@@ -8,11 +8,12 @@ import {
 import type { CommandContext } from "../../context.ts";
 
 import { exitWithValidationError, runCommand } from "../../error-handler.ts";
+import { resolveServerId } from "../../utils/resolve.ts";
 
 export async function scheduledJobsList(ctx: CommandContext): Promise<void> {
-  const server_id = String(ctx.options.server ?? "");
+  const server = String(ctx.options.server ?? "");
 
-  if (!server_id) {
+  if (!server) {
     exitWithValidationError(
       "server_id",
       "forge-cli scheduled-jobs list --server <server_id>",
@@ -23,6 +24,7 @@ export async function scheduledJobsList(ctx: CommandContext): Promise<void> {
   await runCommand(async () => {
     const token = ctx.getToken();
     const execCtx = ctx.createExecutorContext(token);
+    const server_id = await resolveServerId(server, execCtx);
     const result = await listScheduledJobs({ server_id }, execCtx);
     ctx.formatter.output(result.data);
   }, ctx.formatter);
@@ -30,7 +32,7 @@ export async function scheduledJobsList(ctx: CommandContext): Promise<void> {
 
 export async function scheduledJobsGet(args: string[], ctx: CommandContext): Promise<void> {
   const [id] = args;
-  const server_id = String(ctx.options.server ?? "");
+  const server = String(ctx.options.server ?? "");
 
   if (!id) {
     exitWithValidationError(
@@ -40,7 +42,7 @@ export async function scheduledJobsGet(args: string[], ctx: CommandContext): Pro
     );
   }
 
-  if (!server_id) {
+  if (!server) {
     exitWithValidationError(
       "server_id",
       "forge-cli scheduled-jobs get <job_id> --server <server_id>",
@@ -51,16 +53,17 @@ export async function scheduledJobsGet(args: string[], ctx: CommandContext): Pro
   await runCommand(async () => {
     const token = ctx.getToken();
     const execCtx = ctx.createExecutorContext(token);
+    const server_id = await resolveServerId(server, execCtx);
     const result = await getScheduledJob({ server_id, id }, execCtx);
     ctx.formatter.output(result.data);
   }, ctx.formatter);
 }
 
 export async function scheduledJobsCreate(ctx: CommandContext): Promise<void> {
-  const server_id = String(ctx.options.server ?? "");
+  const server = String(ctx.options.server ?? "");
   const command = String(ctx.options.command ?? "");
 
-  if (!server_id) {
+  if (!server) {
     exitWithValidationError(
       "server_id",
       "forge-cli scheduled-jobs create --server <server_id> --command <command>",
@@ -79,6 +82,7 @@ export async function scheduledJobsCreate(ctx: CommandContext): Promise<void> {
   await runCommand(async () => {
     const token = ctx.getToken();
     const execCtx = ctx.createExecutorContext(token);
+    const server_id = await resolveServerId(server, execCtx);
     const result = await createScheduledJob({ server_id, command }, execCtx);
     ctx.formatter.output(result.data);
   }, ctx.formatter);
@@ -86,7 +90,7 @@ export async function scheduledJobsCreate(ctx: CommandContext): Promise<void> {
 
 export async function scheduledJobsDelete(args: string[], ctx: CommandContext): Promise<void> {
   const [id] = args;
-  const server_id = String(ctx.options.server ?? "");
+  const server = String(ctx.options.server ?? "");
 
   if (!id) {
     exitWithValidationError(
@@ -96,7 +100,7 @@ export async function scheduledJobsDelete(args: string[], ctx: CommandContext): 
     );
   }
 
-  if (!server_id) {
+  if (!server) {
     exitWithValidationError(
       "server_id",
       "forge-cli scheduled-jobs delete <job_id> --server <server_id>",
@@ -107,6 +111,7 @@ export async function scheduledJobsDelete(args: string[], ctx: CommandContext): 
   await runCommand(async () => {
     const token = ctx.getToken();
     const execCtx = ctx.createExecutorContext(token);
+    const server_id = await resolveServerId(server, execCtx);
     await deleteScheduledJob({ server_id, id }, execCtx);
     ctx.formatter.success(`Scheduled job ${id} deleted.`);
   }, ctx.formatter);
