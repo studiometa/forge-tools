@@ -81,6 +81,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Add CLI commands for backups, commands, scheduled-jobs, user, monitors, nginx-templates, security-rules, redirect-rules [[#42], [9865cd7]]
   - Add database-users CLI commands [[#40], [191271f]]
   - Add smart `--server` and `--site` resolution by name or partial match [[#48], [131275c]]
+  - Add `OutputFormatter` with `outputList()`, `outputOne()`, `isJson()` for human/table/json output [[#50], [04468e9]]
 
 - **Infrastructure**:
   - Monorepo with npm workspaces (api → sdk → core → mcp)
@@ -125,4 +126,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [9865cd7]: https://github.com/studiometa/forge-tools/commit/9865cd7
 [ee55bfe]: https://github.com/studiometa/forge-tools/commit/ee55bfe
 [#48]: https://github.com/studiometa/forge-tools/pull/48
+[#50]: https://github.com/studiometa/forge-tools/pull/50
 [131275c]: https://github.com/studiometa/forge-tools/commit/131275c
+[04468e9]: https://github.com/studiometa/forge-tools/commit/04468e9
