@@ -40,6 +40,7 @@ Build order matters — packages depend on each other:
 ```
 forge-api → forge-sdk
 forge-api → forge-core → forge-mcp
+                       → forge-cli
 ```
 
 The root `npm run build` handles this automatically.
@@ -52,7 +53,8 @@ forge-tools/
 │   ├── api/       # @studiometa/forge-api — HTTP client, types, config, rate limiter
 │   ├── sdk/       # @studiometa/forge-sdk — fluent chainable TypeScript SDK
 │   ├── core/      # @studiometa/forge-core — executor functions with DI
-│   └── mcp/       # @studiometa/forge-mcp — MCP server (stdio + HTTP)
+│   ├── mcp/       # @studiometa/forge-mcp — MCP server (stdio + HTTP)
+│   └── cli/       # @studiometa/forge-cli — CLI for humans and AI agents
 ├── CHANGELOG.md   # Single changelog for the entire monorepo
 ├── CLAUDE.md      # AI agent instructions
 └── package.json   # Root workspace config
@@ -111,9 +113,9 @@ A single `CHANGELOG.md` at the root covers all packages. Prefix entries with the
 ```markdown
 ## 0.2.0
 
-- **SDK**: Ajoute le support des databases
-- **MCP**: Corrige le rafraîchissement OAuth
-- **Core**: Ajoute les executors reports
+- **SDK**: Add support for databases
+- **MCP**: Fix OAuth token refresh
+- **Core**: Add report executors
 ```
 
 ## Pull Request Process
