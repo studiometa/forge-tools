@@ -7,6 +7,7 @@ import {
   TOOLS,
   isReadAction,
   isWriteAction,
+  getTools,
 } from "./tools.ts";
 
 describe("TOOLS", () => {
@@ -152,6 +153,38 @@ describe("isReadAction", () => {
 
   it("should return false for unknown actions", () => {
     expect(isReadAction("unknown")).toBe(false);
+  });
+});
+
+describe("getTools", () => {
+  it("should return both tools when no options provided", () => {
+    const tools = getTools();
+    const names = tools.map((t) => t.name);
+    expect(names).toContain("forge");
+    expect(names).toContain("forge_write");
+    expect(tools).toHaveLength(2);
+  });
+
+  it("should return both tools when readOnly is false", () => {
+    const tools = getTools({ readOnly: false });
+    const names = tools.map((t) => t.name);
+    expect(names).toContain("forge");
+    expect(names).toContain("forge_write");
+  });
+
+  it("should exclude forge_write when readOnly is true", () => {
+    const tools = getTools({ readOnly: true });
+    const names = tools.map((t) => t.name);
+    expect(names).toContain("forge");
+    expect(names).not.toContain("forge_write");
+    expect(tools).toHaveLength(1);
+  });
+
+  it("should return a copy, not the original array", () => {
+    const tools1 = getTools();
+    const tools2 = getTools();
+    expect(tools1).not.toBe(tools2);
+    expect(tools1).not.toBe(TOOLS);
   });
 });
 

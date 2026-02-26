@@ -8,12 +8,15 @@
  *
  * Usage:
  *   npx @studiometa/forge-mcp
+ *   npx @studiometa/forge-mcp --read-only
+ *   FORGE_READ_ONLY=true npx @studiometa/forge-mcp
  *
  * Or in Claude Desktop config:
  *   {
  *     "mcpServers": {
  *       "forge": {
  *         "command": "forge-mcp",
+ *         "args": ["--read-only"],
  *         "env": { "FORGE_API_TOKEN": "your-token" }
  *       }
  *     }
@@ -29,9 +32,26 @@ import { getAvailableTools, handleToolCall } from "./stdio.ts";
 import { VERSION } from "./version.ts";
 
 /**
+ * Options for the stdio MCP server.
+ */
+export interface StdioServerOptions {
+  /** When true, forge_write tool is not registered and write operations are rejected. */
+  readOnly?: boolean;
+}
+
+/**
+ * Parse read-only flag from process.argv and environment.
+ */
+export function parseReadOnlyFlag(): boolean {
+  return process.argv.includes("--read-only") || process.env.FORGE_READ_ONLY === "true";
+}
+
+/**
  * Create and configure the MCP server.
  */
-export function createStdioServer(): Server {
+export function createStdioServer(options?: StdioServerOptions): Server {
+  const readOnly = options?.readOnly ?? false;
+
   const server = new Server(
     {
       name: "forge-mcp",
@@ -46,14 +66,16 @@ export function createStdioServer(): Server {
   );
 
   server.setRequestHandler(ListToolsRequestSchema, async () => {
-    return { tools: getAvailableTools() };
+    return { tools: getAvailableTools({ readOnly }) };
   });
 
   server.setRequestHandler(CallToolRequestSchema, async (request) => {
     const { name, arguments: args } = request.params;
 
     try {
-      const result = await handleToolCall(name, (args as Record<string, unknown>) ?? {});
+      const result = await handleToolCall(name, (args as Record<string, unknown>) ?? {}, {
+        readOnly,
+      });
       return result as unknown as Record<string, unknown>;
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
@@ -70,11 +92,12 @@ export function createStdioServer(): Server {
 /**
  * Start the stdio server.
  */
-export async function startStdioServer(): Promise<void> {
-  const server = createStdioServer();
+export async function startStdioServer(options?: StdioServerOptions): Promise<void> {
+  const server = createStdioServer(options);
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.error(`Forge MCP server v${VERSION} running on stdio`);
+  const mode = options?.readOnly ? " (read-only)" : "";
+  console.error(`Forge MCP server v${VERSION} running on stdio${mode}`);
 }
 
 // Start server when run directly
@@ -84,7 +107,8 @@ const isMainModule =
   process.argv[1]?.endsWith("\\forge-mcp");
 
 if (isMainModule) {
-  startStdioServer().catch((error) => {
+  const readOnly = parseReadOnlyFlag();
+  startStdioServer({ readOnly }).catch((error) => {
     console.error("Fatal error:", error);
     process.exit(1);
   });

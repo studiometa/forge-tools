@@ -18,6 +18,15 @@ describe("getAvailableTools", () => {
     expect(names).toContain("forge_configure");
     expect(names).toContain("forge_get_config");
   });
+
+  it("should exclude forge_write in read-only mode", () => {
+    const tools = getAvailableTools({ readOnly: true });
+    const names = tools.map((t: { name: string }) => t.name);
+    expect(names).toContain("forge");
+    expect(names).not.toContain("forge_write");
+    expect(names).toContain("forge_configure");
+    expect(names).toContain("forge_get_config");
+  });
 });
 
 describe("handleConfigureTool", () => {
@@ -140,5 +149,37 @@ describe("handleToolCall", () => {
     const result = await handleToolCall("unknown_tool", { resource: "servers", action: "list" });
     expect(result.isError).toBe(true);
     expect(result.content[0]!.text).toContain("Unknown tool");
+  });
+
+  it("should reject forge_write in read-only mode", async () => {
+    setToken("test-token-5678");
+    const result = await handleToolCall(
+      "forge_write",
+      { resource: "servers", action: "create" },
+      { readOnly: true },
+    );
+    expect(result.isError).toBe(true);
+    expect(result.content[0]!.text).toContain("read-only mode");
+  });
+
+  it("should allow forge reads in read-only mode", async () => {
+    setToken("test-token-5678");
+    const result = await handleToolCall(
+      "forge",
+      { resource: "servers", action: "help" },
+      { readOnly: true },
+    );
+    expect(result.isError).toBeUndefined();
+    expect(result.content[0]!.text).toContain("servers");
+  });
+
+  it("should allow forge_configure in read-only mode", async () => {
+    const result = await handleToolCall(
+      "forge_configure",
+      { apiToken: "my-token-1234" },
+      { readOnly: true },
+    );
+    expect(result.isError).toBeUndefined();
+    expect(result.content[0]!.text).toContain("***1234");
   });
 });

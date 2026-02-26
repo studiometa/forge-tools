@@ -43,6 +43,28 @@ Add to your Claude Desktop config:
 
 Alternatively, omit the `env` block and ask Claude to configure credentials using the `forge_configure` tool.
 
+### Read-Only Mode
+
+To guarantee no write operations are possible at the server level:
+
+```json
+{
+  "mcpServers": {
+    "forge": {
+      "command": "forge-mcp",
+      "args": ["--read-only"],
+      "env": {
+        "FORGE_API_TOKEN": "your-api-token"
+      }
+    }
+  }
+}
+```
+
+Or via environment variable: `FORGE_READ_ONLY=true`.
+
+When enabled, the `forge_write` tool is not registered at all — only `forge`, `forge_configure`, and `forge_get_config` are available.
+
 ## Tools
 
 ### `forge` — Read Operations
