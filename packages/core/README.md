@@ -100,6 +100,34 @@ import { RESOURCES, ACTIONS } from "@studiometa/forge-core";
 
 - `listRecipes`, `getRecipe`, `createRecipe`, `deleteRecipe`, `runRecipe`
 
+## Audit Logging
+
+A shared audit logger for tracking write operations across MCP and CLI:
+
+```typescript
+import { createAuditLogger } from "@studiometa/forge-core";
+
+const logger = createAuditLogger("mcp"); // or 'cli'
+
+logger.log({
+  source: "mcp",
+  resource: "servers",
+  action: "reboot",
+  args: { id: "123" },
+  status: "success",
+});
+```
+
+- Logs JSON lines via [pino](https://github.com/pinojs/pino) to `~/.config/forge-tools/audit.log`
+- Override path with `FORGE_AUDIT_LOG` environment variable
+- Sensitive fields (`apiToken`, `token`, `password`, `secret`, `key`, `credentials`) are automatically redacted
+- Silent no-op on failure — never interrupts the actual operation
+
+### Utilities
+
+- `sanitizeArgs(args)` — Strip sensitive fields from an args object
+- `getAuditLogPath()` — Resolve the audit log file path
+
 ## Testing
 
 ```typescript
