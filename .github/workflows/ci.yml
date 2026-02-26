@@ -55,6 +55,7 @@ jobs:
             packages/sdk/dist/
             packages/core/dist/
             packages/mcp/dist/
+            packages/cli/dist/
 
   typecheck:
     name: Type Check
@@ -106,19 +107,49 @@ jobs:
       - name: Run tests with coverage
         run: npm run test:ci
 
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        if: ${{ !cancelled() }}
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./packages/api/coverage/lcov.info,./packages/sdk/coverage/lcov.info,./packages/core/coverage/lcov.info,./packages/mcp/coverage/lcov.info,./packages/cli/coverage/lcov.info
+          fail_ci_if_error: false
+          flags: unittests
+          name: codecov-umbrella
+
+      - name: Upload test results to Codecov
+        uses: codecov/codecov-action@v5
+        if: ${{ !cancelled() }}
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./packages/api/test-results/junit.xml,./packages/sdk/test-results/junit.xml,./packages/core/test-results/junit.xml,./packages/mcp/test-results/junit.xml,./packages/cli/test-results/junit.xml
+          report_type: test_results
+
       - name: Generate coverage summary
         if: ${{ !cancelled() }}
         run: |
           echo "## Test Coverage Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
-          for pkg in api sdk core mcp; do
+          for pkg in api sdk core mcp cli; do
             echo "### @studiometa/forge-$pkg" >> $GITHUB_STEP_SUMMARY
             echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
             cat packages/$pkg/coverage/coverage-summary.json | jq -r '.total | "Statements: \(.statements.pct)%\nBranches: \(.branches.pct)%\nFunctions: \(.functions.pct)%\nLines: \(.lines.pct)%"' >> $GITHUB_STEP_SUMMARY || echo "Coverage summary not available" >> $GITHUB_STEP_SUMMARY
             echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
           done
+
+      - name: Upload coverage artifacts
+        uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: coverage
+          path: |
+            packages/api/coverage/
+            packages/sdk/coverage/
+            packages/core/coverage/
+            packages/mcp/coverage/
+            packages/cli/coverage/
 
   semgrep:
     name: Semgrep Security Scan
