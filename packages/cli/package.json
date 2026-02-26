@@ -1,6 +1,6 @@
 {
   "name": "@studiometa/forge-cli",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "CLI tool for managing Laravel Forge servers, sites, and deployments",
   "keywords": [
     "ai-agent",

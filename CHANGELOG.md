@@ -5,32 +5,40 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## 0.2.0 - 2026.02.27
 
 ### Added
 
 - **MCP**: Split `forge` tool into `forge` (read-only) and `forge_write` (write) with MCP annotations for auto-approval [[#55], [51f3aed]]
 - **MCP**: Add `--read-only` flag to MCP server — disables `forge_write` tool entirely [[#58], [9a3732c]]
+- **MCP**: Add top-level `title`, `outputSchema`, and `structuredContent` to all tools per MCP SDK best practices [[#62], [8e29993]]
+- **MCP**: Use SDK `Tool` type instead of local interface for type safety [[#62], [8e29993]]
 - **Core**: Add pino audit logging for write operations (MCP + CLI), configurable via `FORGE_AUDIT_LOG` env var [[#56], [a11ba9b]]
-- **CLI**: Add `completion` command with bash, zsh, and fish shell completion scripts [[#60], [5ab4fe0]]
 - **Core**: Add `deploySiteAndWait` executor — polls deployment status and returns log on completion [[#59], [94f069f]]
 - **Core**: Add `getDeploymentLog` executor for fetching latest deployment log [[#59], [94f069f]]
+- **CLI**: Add `completion` command with bash, zsh, and fish shell completion scripts [[#60], [5ab4fe0]]
 
 ### Changed
 
 - **MCP**: `deploy` action now blocks until deployment completes and returns the deployment log [[#59], [94f069f]]
 - **CLI**: `deployments deploy` now shows live progress and prints deployment log on completion [[#59], [94f069f]]
 
+### Breaking
+
+- **MCP**: The single `forge` tool is now split into `forge` (read) and `forge_write` (write). Clients calling `forge` with write actions (`create`, `delete`, `deploy`, etc.) must switch to `forge_write`. [[#55], [51f3aed]]
+
 [#55]: https://github.com/studiometa/forge-tools/pull/55
 [#56]: https://github.com/studiometa/forge-tools/pull/56
 [#58]: https://github.com/studiometa/forge-tools/pull/58
 [#59]: https://github.com/studiometa/forge-tools/pull/59
 [#60]: https://github.com/studiometa/forge-tools/pull/60
+[#62]: https://github.com/studiometa/forge-tools/pull/62
 [51f3aed]: https://github.com/studiometa/forge-tools/commit/51f3aed
 [9a3732c]: https://github.com/studiometa/forge-tools/commit/9a3732c
 [a11ba9b]: https://github.com/studiometa/forge-tools/commit/a11ba9b
 [5ab4fe0]: https://github.com/studiometa/forge-tools/commit/5ab4fe0
 [94f069f]: https://github.com/studiometa/forge-tools/commit/94f069f
+[8e29993]: https://github.com/studiometa/forge-tools/commit/8e29993
 
 ## v0.1.0 - 2026.02.26
 
