@@ -125,3 +125,37 @@ describe("deploymentsDeploy", () => {
     expect(processExitSpy).toHaveBeenCalledWith(3);
   });
 });
+
+describe("deploymentsList — human format lineFormat", () => {
+  beforeEach(() => {
+    vi.spyOn(console, "log").mockImplementation(() => {});
+    vi.spyOn(console, "error").mockImplementation(() => {});
+  });
+  afterEach(() => vi.restoreAllMocks());
+
+  it("should render human format with commit_hash", async () => {
+    const { listDeployments } = await import("@studiometa/forge-core");
+    vi.mocked(listDeployments).mockResolvedValue({ data: [mockDeployment] });
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "human", server: "10", site: "100" },
+    });
+    await deploymentsList(ctx);
+    expect(vi.mocked(console.log)).toHaveBeenCalled();
+  });
+
+  it("should render '—' when commit_hash is null", async () => {
+    const { listDeployments } = await import("@studiometa/forge-core");
+    vi.mocked(listDeployments).mockResolvedValue({
+      data: [{ ...mockDeployment, commit_hash: null }],
+    });
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "human", server: "10", site: "100" },
+    });
+    await deploymentsList(ctx);
+    expect(vi.mocked(console.log)).toHaveBeenCalled();
+  });
+});

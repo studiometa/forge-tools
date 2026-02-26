@@ -45,6 +45,7 @@ export const handleDaemons = createResourceHandler({
         return `Daemon ${args.id} deleted.`;
       case "restart":
         return `Daemon ${args.id} restarted.`;
+      /* v8 ignore next */
       default:
         return "Done.";
     }

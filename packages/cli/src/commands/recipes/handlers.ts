@@ -9,7 +9,12 @@ export async function recipesList(ctx: CommandContext): Promise<void> {
     const token = ctx.getToken();
     const execCtx = ctx.createExecutorContext(token);
     const result = await listRecipes({}, execCtx);
-    ctx.formatter.output(result.data);
+    ctx.formatter.outputList(
+      result.data,
+      ["id", "name", "user", "created_at"],
+      "No recipes found.",
+      (r) => `${String(r.id).padEnd(8)} ${r.name.padEnd(40)} ${r.user.padEnd(16)} ${r.created_at}`,
+    );
   }, ctx.formatter);
 }
 
@@ -24,7 +29,7 @@ export async function recipesGet(args: string[], ctx: CommandContext): Promise<v
     const token = ctx.getToken();
     const execCtx = ctx.createExecutorContext(token);
     const result = await getRecipe({ id }, execCtx);
-    ctx.formatter.output(result.data);
+    ctx.formatter.outputOne(result.data, ["id", "name", "user", "created_at", "script"]);
   }, ctx.formatter);
 }
 

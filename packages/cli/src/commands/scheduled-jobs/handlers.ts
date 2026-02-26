@@ -26,7 +26,13 @@ export async function scheduledJobsList(ctx: CommandContext): Promise<void> {
     const execCtx = ctx.createExecutorContext(token);
     const server_id = await resolveServerId(server, execCtx);
     const result = await listScheduledJobs({ server_id }, execCtx);
-    ctx.formatter.output(result.data);
+    ctx.formatter.outputList(
+      result.data,
+      ["id", "command", "frequency", "status"],
+      "No scheduled jobs found.",
+      (j) =>
+        `${String(j.id).padEnd(8)} ${j.command.padEnd(50)} ${j.frequency.padEnd(12)} ${j.status}`,
+    );
   }, ctx.formatter);
 }
 
@@ -55,7 +61,15 @@ export async function scheduledJobsGet(args: string[], ctx: CommandContext): Pro
     const execCtx = ctx.createExecutorContext(token);
     const server_id = await resolveServerId(server, execCtx);
     const result = await getScheduledJob({ server_id, id }, execCtx);
-    ctx.formatter.output(result.data);
+    ctx.formatter.outputOne(result.data, [
+      "id",
+      "command",
+      "user",
+      "frequency",
+      "cron",
+      "status",
+      "created_at",
+    ]);
   }, ctx.formatter);
 }
 
@@ -84,7 +98,15 @@ export async function scheduledJobsCreate(ctx: CommandContext): Promise<void> {
     const execCtx = ctx.createExecutorContext(token);
     const server_id = await resolveServerId(server, execCtx);
     const result = await createScheduledJob({ server_id, command }, execCtx);
-    ctx.formatter.output(result.data);
+    ctx.formatter.outputOne(result.data, [
+      "id",
+      "command",
+      "user",
+      "frequency",
+      "cron",
+      "status",
+      "created_at",
+    ]);
   }, ctx.formatter);
 }
 

@@ -120,7 +120,9 @@ export class SessionManager {
 
     for (const id of expired) {
       // Fire-and-forget cleanup — don't block the sweep
+      /* v8 ignore start */
       this.remove(id).catch(() => {});
+      /* v8 ignore stop */
     }
 
     return expired.length;

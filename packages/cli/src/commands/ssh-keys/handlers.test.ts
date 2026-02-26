@@ -106,3 +106,23 @@ describe("sshKeysGet", () => {
     expect(processExitSpy).toHaveBeenCalledWith(3);
   });
 });
+
+describe("sshKeysList — human format lineFormat", () => {
+  beforeEach(() => {
+    vi.spyOn(console, "log").mockImplementation(() => {});
+    vi.spyOn(console, "error").mockImplementation(() => {});
+  });
+  afterEach(() => vi.restoreAllMocks());
+
+  it("should render human format with lineFormat callback", async () => {
+    const { listSshKeys } = await import("@studiometa/forge-core");
+    vi.mocked(listSshKeys).mockResolvedValue({ data: [mockKey] });
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "human", server: "10" },
+    });
+    await sshKeysList(ctx);
+    expect(vi.mocked(console.log)).toHaveBeenCalled();
+  });
+});

@@ -106,6 +106,25 @@ describe("HttpClient", () => {
       expect(result.servers[0]!.name).toBe("web-1");
     });
 
+    it("should use globalThis.fetch when no fetch option is provided", async () => {
+      const mockResponse = {
+        ok: true,
+        status: 200,
+        headers: new Headers({ "content-type": "application/json" }),
+        json: async () => ({ servers: [] }),
+        text: async () => "[]",
+      } as Response;
+      const originalFetch = globalThis.fetch;
+      globalThis.fetch = async () => mockResponse;
+      try {
+        const client = new HttpClient({ token: "test-token", rateLimit: { maxRetries: 0 } });
+        const result = await client.get("/servers");
+        expect(result).toEqual({ servers: [] });
+      } finally {
+        globalThis.fetch = originalFetch;
+      }
+    });
+
     it("should use default base URL", async () => {
       const { fetch, calls } = createSequenceFetch([{ body: {} }]);
       const client = new HttpClient({ ...defaultOptions, fetch });
@@ -252,6 +271,102 @@ describe("HttpClient", () => {
       } catch (error) {
         const apiError = error as ForgeApiError;
         expect(apiError.message).toContain("Insufficient permissions");
+      }
+    });
+
+    it("should provide default message for 401 when body has no message", async () => {
+      const mockFetch = createMockFetch({ status: 401, body: {} });
+      const client = new HttpClient({ ...defaultOptions, fetch: mockFetch });
+
+      try {
+        await client.get("/servers");
+      } catch (error) {
+        const apiError = error as ForgeApiError;
+        expect(apiError.message).toContain("Invalid API token");
+      }
+    });
+
+    it("should provide default message for 404 when body has no message", async () => {
+      const mockFetch = createMockFetch({ status: 404, body: {} });
+      const client = new HttpClient({ ...defaultOptions, fetch: mockFetch });
+
+      try {
+        await client.get("/servers");
+      } catch (error) {
+        const apiError = error as ForgeApiError;
+        expect(apiError.message).toContain("not found");
+      }
+    });
+
+    it("should provide default message for 422 when body has no message", async () => {
+      const mockFetch = createMockFetch({ status: 422, body: {} });
+      const client = new HttpClient({ ...defaultOptions, fetch: mockFetch });
+
+      try {
+        await client.post("/servers", {});
+      } catch (error) {
+        const apiError = error as ForgeApiError;
+        expect(apiError.message).toContain("Validation error");
+      }
+    });
+
+    it("should provide message for 429 status with no body message", async () => {
+      const mockFetch = createMockFetch({ status: 429, body: {}, headers: {} });
+      const client = new HttpClient({ ...defaultOptions, fetch: mockFetch });
+
+      try {
+        await client.get("/servers");
+      } catch (error) {
+        const apiError = error as ForgeApiError;
+        expect(apiError.message).toContain("Rate limit exceeded");
+      }
+    });
+
+    it("should provide message for 500 status with no body message", async () => {
+      const mockFetch = createMockFetch({ status: 500, body: {} });
+      const client = new HttpClient({ ...defaultOptions, fetch: mockFetch });
+
+      try {
+        await client.get("/servers");
+      } catch (error) {
+        const apiError = error as ForgeApiError;
+        expect(apiError.message).toContain("server error");
+      }
+    });
+
+    it("should provide generic message for unknown status codes", async () => {
+      const mockFetch = createMockFetch({ status: 502, body: {} });
+      const client = new HttpClient({ ...defaultOptions, fetch: mockFetch });
+
+      try {
+        await client.get("/servers");
+      } catch (error) {
+        const apiError = error as ForgeApiError;
+        expect(apiError.message).toBe("Forge API error (HTTP 502)");
+      }
+    });
+
+    it("should set body to null when both json() and text() throw", async () => {
+      const mockFetch = async (_url: string | URL | Request) =>
+        ({
+          ok: false,
+          status: 503,
+          headers: new Headers({ "content-type": "text/plain" }),
+          json: async () => {
+            throw new Error("not JSON");
+          },
+          text: async () => {
+            throw new Error("not text");
+          },
+        }) as Response;
+      const client = new HttpClient({ ...defaultOptions, fetch: mockFetch });
+
+      try {
+        await client.get("/servers");
+      } catch (error) {
+        const apiError = error as ForgeApiError;
+        expect(apiError.status).toBe(503);
+        expect(apiError.body).toBeNull();
       }
     });
   });

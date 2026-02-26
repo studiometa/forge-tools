@@ -1091,6 +1091,20 @@ describe("formatUser", () => {
     expect(result).toContain("GitHub: not connected");
     expect(result).toContain("2FA: disabled");
   });
+
+  it("should show GitLab as connected when connected_to_gitlab is true", () => {
+    const user: ForgeUser = {
+      id: 2,
+      name: "GitLab User",
+      email: "gl@example.com",
+      connected_to_github: false,
+      connected_to_gitlab: true,
+      two_factor_enabled: false,
+    } as ForgeUser;
+
+    const result = formatUser(user);
+    expect(result).toContain("GitLab: connected");
+  });
 });
 
 // ── Generic helpers ──────────────────────────────────

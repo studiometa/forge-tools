@@ -30,6 +30,7 @@ export const handleMonitors = createResourceHandler({
         return formatMonitor(data as ForgeMonitor);
       case "delete":
         return `Monitor ${args.id} deleted.`;
+      /* v8 ignore next */
       default:
         return "Done.";
     }

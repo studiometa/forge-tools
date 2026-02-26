@@ -31,7 +31,11 @@ export async function nginxGet(ctx: CommandContext): Promise<void> {
     const server_id = await resolveServerId(server, execCtx);
     const site_id = await resolveSiteId(site, server_id, execCtx);
     const result = await getNginxConfig({ server_id, site_id }, execCtx);
-    ctx.formatter.output(result.data);
+    if (ctx.formatter.isJson()) {
+      console.log(JSON.stringify({ content: result.data }));
+    } else {
+      console.log(result.data);
+    }
   }, ctx.formatter);
 }
 

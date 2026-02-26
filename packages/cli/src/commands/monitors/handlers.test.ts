@@ -235,3 +235,46 @@ describe("monitorsDelete", () => {
     expect(processExitSpy).toHaveBeenCalledWith(3);
   });
 });
+
+describe("monitorsCreate — default threshold/minutes to 0", () => {
+  beforeEach(() => {
+    vi.spyOn(console, "log").mockImplementation(() => {});
+    vi.spyOn(console, "error").mockImplementation(() => {});
+  });
+  afterEach(() => vi.restoreAllMocks());
+
+  it("should default threshold and minutes to 0 when not provided", async () => {
+    const { createMonitor } = await import("@studiometa/forge-core");
+    vi.mocked(createMonitor).mockResolvedValue({ data: mockMonitor });
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "json", server: "10", type: "cpu_load", operator: ">=" },
+    });
+    await monitorsCreate(ctx);
+    expect(vi.mocked(createMonitor)).toHaveBeenCalledWith(
+      expect.objectContaining({ threshold: 0, minutes: 0 }),
+      expect.anything(),
+    );
+  });
+});
+
+describe("monitorsList — human format lineFormat", () => {
+  beforeEach(() => {
+    vi.spyOn(console, "log").mockImplementation(() => {});
+    vi.spyOn(console, "error").mockImplementation(() => {});
+  });
+  afterEach(() => vi.restoreAllMocks());
+
+  it("should render human format with lineFormat callback", async () => {
+    const { listMonitors } = await import("@studiometa/forge-core");
+    vi.mocked(listMonitors).mockResolvedValue({ data: [mockMonitor] });
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "human", server: "10" },
+    });
+    await monitorsList(ctx);
+    expect(vi.mocked(console.log)).toHaveBeenCalled();
+  });
+});

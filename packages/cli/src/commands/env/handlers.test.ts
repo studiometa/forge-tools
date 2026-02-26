@@ -56,6 +56,20 @@ describe("envGet", () => {
     await envGet(ctx).catch(() => {});
     expect(processExitSpy).toHaveBeenCalledWith(3);
   });
+
+  it("should output raw content in human format", async () => {
+    const { getEnv } = await import("@studiometa/forge-core");
+    vi.mocked(getEnv).mockResolvedValue({ data: "APP_ENV=production" });
+
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "human", server: "10", site: "100" },
+    });
+
+    await envGet(ctx);
+    expect(vi.mocked(console.log)).toHaveBeenCalledWith("APP_ENV=production");
+  });
 });
 
 describe("envUpdate", () => {

@@ -21,7 +21,13 @@ export async function monitorsList(ctx: CommandContext): Promise<void> {
     const execCtx = ctx.createExecutorContext(token);
     const server_id = await resolveServerId(server, execCtx);
     const result = await listMonitors({ server_id }, execCtx);
-    ctx.formatter.output(result.data);
+    ctx.formatter.outputList(
+      result.data,
+      ["id", "type", "operator", "threshold", "state"],
+      "No monitors found.",
+      (m) =>
+        `${String(m.id).padEnd(8)} ${m.type.padEnd(20)} ${m.operator.padEnd(8)} ${String(m.threshold).padEnd(6)} ${m.state}`,
+    );
   }, ctx.formatter);
 }
 
@@ -50,7 +56,15 @@ export async function monitorsGet(args: string[], ctx: CommandContext): Promise<
     const execCtx = ctx.createExecutorContext(token);
     const server_id = await resolveServerId(server, execCtx);
     const result = await getMonitor({ server_id, id }, execCtx);
-    ctx.formatter.output(result.data);
+    ctx.formatter.outputOne(result.data, [
+      "id",
+      "type",
+      "operator",
+      "threshold",
+      "minutes",
+      "state",
+      "state_changed_at",
+    ]);
   }, ctx.formatter);
 }
 
@@ -90,7 +104,14 @@ export async function monitorsCreate(ctx: CommandContext): Promise<void> {
     const execCtx = ctx.createExecutorContext(token);
     const server_id = await resolveServerId(server, execCtx);
     const result = await createMonitor({ server_id, type, operator, threshold, minutes }, execCtx);
-    ctx.formatter.output(result.data);
+    ctx.formatter.outputOne(result.data, [
+      "id",
+      "type",
+      "operator",
+      "threshold",
+      "minutes",
+      "state",
+    ]);
   }, ctx.formatter);
 }
 

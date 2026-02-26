@@ -21,7 +21,13 @@ export async function sitesList(ctx: CommandContext): Promise<void> {
     const execCtx = ctx.createExecutorContext(token);
     const server_id = await resolveServerId(server, execCtx);
     const result = await listSites({ server_id }, execCtx);
-    ctx.formatter.output(result.data);
+    ctx.formatter.outputList(
+      result.data,
+      ["id", "name", "status", "php_version"],
+      "No sites found.",
+      (s) =>
+        `${String(s.id).padEnd(8)} ${s.name.padEnd(40)} ${s.status.padEnd(12)} ${s.php_version}`,
+    );
   }, ctx.formatter);
 }
 
@@ -50,6 +56,18 @@ export async function sitesGet(args: string[], ctx: CommandContext): Promise<voi
     const execCtx = ctx.createExecutorContext(token);
     const server_id = await resolveServerId(server, execCtx);
     const result = await getSite({ server_id, site_id }, execCtx);
-    ctx.formatter.output(result.data);
+    ctx.formatter.outputOne(result.data, [
+      "id",
+      "name",
+      "status",
+      "php_version",
+      "project_type",
+      "repository",
+      "repository_branch",
+      "quick_deploy",
+      "deployment_status",
+      "is_secured",
+      "created_at",
+    ]);
   }, ctx.formatter);
 }

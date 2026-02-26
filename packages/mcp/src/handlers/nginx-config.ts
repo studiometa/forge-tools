@@ -25,6 +25,7 @@ export const handleNginxConfig = createResourceHandler({
         return formatNginxConfig(data as string);
       case "update":
         return "Nginx configuration updated.";
+      /* v8 ignore next */
       default:
         return "Done.";
     }

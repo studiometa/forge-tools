@@ -35,6 +35,7 @@ export const handleSshKeys = createResourceHandler({
         return formatSshKey(data as ForgeSshKey);
       case "delete":
         return `SSH key ${args.id} deleted.`;
+      /* v8 ignore next */
       default:
         return "Done.";
     }

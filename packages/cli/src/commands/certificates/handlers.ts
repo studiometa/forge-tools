@@ -32,7 +32,13 @@ export async function certificatesList(ctx: CommandContext): Promise<void> {
     const server_id = await resolveServerId(server, execCtx);
     const site_id = await resolveSiteId(site, server_id, execCtx);
     const result = await listCertificates({ server_id, site_id }, execCtx);
-    ctx.formatter.output(result.data);
+    ctx.formatter.outputList(
+      result.data,
+      ["id", "domain", "type", "status", "active"],
+      "No certificates found.",
+      (c) =>
+        `${String(c.id).padEnd(8)} ${c.domain.padEnd(40)} ${c.type.padEnd(10)} ${c.status.padEnd(12)} ${c.active ? "active" : "—"}`,
+    );
   }, ctx.formatter);
 }
 
@@ -52,7 +58,16 @@ export async function certificatesGet(args: string[], ctx: CommandContext): Prom
     const server_id = await resolveServerId(server, execCtx);
     const site_id = await resolveSiteId(site, server_id, execCtx);
     const result = await getCertificate({ server_id, site_id, id }, execCtx);
-    ctx.formatter.output(result.data);
+    ctx.formatter.outputOne(result.data, [
+      "id",
+      "domain",
+      "type",
+      "status",
+      "request_status",
+      "active",
+      "existing",
+      "created_at",
+    ]);
   }, ctx.formatter);
 }
 

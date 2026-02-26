@@ -37,7 +37,12 @@ export async function redirectRulesList(ctx: CommandContext): Promise<void> {
     const server_id = await resolveServerId(server, execCtx);
     const site_id = await resolveSiteId(site, server_id, execCtx);
     const result = await listRedirectRules({ server_id, site_id }, execCtx);
-    ctx.formatter.output(result.data);
+    ctx.formatter.outputList(
+      result.data,
+      ["id", "from", "to", "type"],
+      "No redirect rules found.",
+      (r) => `${String(r.id).padEnd(8)} ${r.from.padEnd(30)} ${r.to.padEnd(30)} ${r.type}`,
+    );
   }, ctx.formatter);
 }
 
@@ -57,7 +62,7 @@ export async function redirectRulesGet(args: string[], ctx: CommandContext): Pro
     const server_id = await resolveServerId(server, execCtx);
     const site_id = await resolveSiteId(site, server_id, execCtx);
     const result = await getRedirectRule({ server_id, site_id, id }, execCtx);
-    ctx.formatter.output(result.data);
+    ctx.formatter.outputOne(result.data, ["id", "from", "to", "type", "created_at"]);
   }, ctx.formatter);
 }
 
@@ -82,7 +87,7 @@ export async function redirectRulesCreate(ctx: CommandContext): Promise<void> {
     const server_id = await resolveServerId(server, execCtx);
     const site_id = await resolveSiteId(site, server_id, execCtx);
     const result = await createRedirectRule({ server_id, site_id, from, to }, execCtx);
-    ctx.formatter.output(result.data);
+    ctx.formatter.outputOne(result.data, ["id", "from", "to", "type", "created_at"]);
   }, ctx.formatter);
 }
 

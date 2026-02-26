@@ -149,3 +149,23 @@ describe("recipesRun", () => {
     expect(processExitSpy).toHaveBeenCalledWith(3);
   });
 });
+
+describe("recipesList — human format lineFormat", () => {
+  beforeEach(() => {
+    vi.spyOn(console, "log").mockImplementation(() => {});
+    vi.spyOn(console, "error").mockImplementation(() => {});
+  });
+  afterEach(() => vi.restoreAllMocks());
+
+  it("should render human format with lineFormat callback", async () => {
+    const { listRecipes } = await import("@studiometa/forge-core");
+    vi.mocked(listRecipes).mockResolvedValue({ data: [mockRecipe] });
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "human" },
+    });
+    await recipesList(ctx);
+    expect(vi.mocked(console.log)).toHaveBeenCalled();
+  });
+});

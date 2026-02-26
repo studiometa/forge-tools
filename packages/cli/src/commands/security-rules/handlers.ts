@@ -37,7 +37,12 @@ export async function securityRulesList(ctx: CommandContext): Promise<void> {
     const server_id = await resolveServerId(server, execCtx);
     const site_id = await resolveSiteId(site, server_id, execCtx);
     const result = await listSecurityRules({ server_id, site_id }, execCtx);
-    ctx.formatter.output(result.data);
+    ctx.formatter.outputList(
+      result.data,
+      ["id", "name", "path"],
+      "No security rules found.",
+      (r) => `${String(r.id).padEnd(8)} ${r.name.padEnd(30)} ${r.path ?? "—"}`,
+    );
   }, ctx.formatter);
 }
 
@@ -57,7 +62,7 @@ export async function securityRulesGet(args: string[], ctx: CommandContext): Pro
     const server_id = await resolveServerId(server, execCtx);
     const site_id = await resolveSiteId(site, server_id, execCtx);
     const result = await getSecurityRule({ server_id, site_id, id }, execCtx);
-    ctx.formatter.output(result.data);
+    ctx.formatter.outputOne(result.data, ["id", "name", "path", "credentials", "created_at"]);
   }, ctx.formatter);
 }
 
@@ -77,7 +82,7 @@ export async function securityRulesCreate(ctx: CommandContext): Promise<void> {
     const server_id = await resolveServerId(server, execCtx);
     const site_id = await resolveSiteId(site, server_id, execCtx);
     const result = await createSecurityRule({ server_id, site_id, name, credentials: [] }, execCtx);
-    ctx.formatter.output(result.data);
+    ctx.formatter.outputOne(result.data, ["id", "name", "path", "created_at"]);
   }, ctx.formatter);
 }
 

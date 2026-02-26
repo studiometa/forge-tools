@@ -21,7 +21,12 @@ export async function databasesList(ctx: CommandContext): Promise<void> {
     const execCtx = ctx.createExecutorContext(token);
     const server_id = await resolveServerId(server, execCtx);
     const result = await listDatabases({ server_id }, execCtx);
-    ctx.formatter.output(result.data);
+    ctx.formatter.outputList(
+      result.data,
+      ["id", "name", "status"],
+      "No databases found.",
+      (db) => `${String(db.id).padEnd(8)} ${db.name.padEnd(30)} ${db.status}`,
+    );
   }, ctx.formatter);
 }
 
@@ -50,6 +55,6 @@ export async function databasesGet(args: string[], ctx: CommandContext): Promise
     const execCtx = ctx.createExecutorContext(token);
     const server_id = await resolveServerId(server, execCtx);
     const result = await getDatabase({ server_id, id }, execCtx);
-    ctx.formatter.output(result.data);
+    ctx.formatter.outputOne(result.data, ["id", "name", "status", "created_at"]);
   }, ctx.formatter);
 }

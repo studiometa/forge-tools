@@ -27,7 +27,12 @@ export async function nginxTemplatesList(ctx: CommandContext): Promise<void> {
     const execCtx = ctx.createExecutorContext(token);
     const server_id = await resolveServerId(server, execCtx);
     const result = await listNginxTemplates({ server_id }, execCtx);
-    ctx.formatter.output(result.data);
+    ctx.formatter.outputList(
+      result.data,
+      ["id", "name", "created_at"],
+      "No Nginx templates found.",
+      (t) => `${String(t.id).padEnd(8)} ${t.name.padEnd(40)} ${t.created_at}`,
+    );
   }, ctx.formatter);
 }
 
@@ -56,7 +61,7 @@ export async function nginxTemplatesGet(args: string[], ctx: CommandContext): Pr
     const execCtx = ctx.createExecutorContext(token);
     const server_id = await resolveServerId(server, execCtx);
     const result = await getNginxTemplate({ server_id, id }, execCtx);
-    ctx.formatter.output(result.data);
+    ctx.formatter.outputOne(result.data, ["id", "name", "created_at", "content"]);
   }, ctx.formatter);
 }
 
@@ -94,7 +99,7 @@ export async function nginxTemplatesCreate(ctx: CommandContext): Promise<void> {
     const execCtx = ctx.createExecutorContext(token);
     const server_id = await resolveServerId(server, execCtx);
     const result = await createNginxTemplate({ server_id, name, content }, execCtx);
-    ctx.formatter.output(result.data);
+    ctx.formatter.outputOne(result.data, ["id", "name", "created_at"]);
   }, ctx.formatter);
 }
 
@@ -125,7 +130,7 @@ export async function nginxTemplatesUpdate(args: string[], ctx: CommandContext):
     const name = ctx.options.name ? String(ctx.options.name) : undefined;
     const content = ctx.options.content ? String(ctx.options.content) : undefined;
     const result = await updateNginxTemplate({ server_id, id, name, content }, execCtx);
-    ctx.formatter.output(result.data);
+    ctx.formatter.outputOne(result.data, ["id", "name", "created_at"]);
   }, ctx.formatter);
 }
 

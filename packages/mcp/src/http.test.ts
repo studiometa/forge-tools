@@ -17,7 +17,13 @@ vi.mock("./handlers/index.ts", () => ({
 }));
 
 import { executeToolWithCredentials } from "./handlers/index.ts";
-import { createMcpServer, handleMcpRequest, createHealthApp, SessionManager } from "./http.ts";
+import {
+  createMcpServer,
+  handleMcpRequest,
+  createHealthApp,
+  createMcpRequestHandler,
+  SessionManager,
+} from "./http.ts";
 import { VERSION } from "./version.ts";
 
 /**
@@ -661,5 +667,14 @@ describe("Full server integration", () => {
       { resource: "user", action: "get" },
       { apiToken: validToken },
     );
+  });
+});
+
+describe("createMcpRequestHandler", () => {
+  it("should return a function that delegates to handleMcpRequest", () => {
+    const sessions = new SessionManager({ ttl: 0 });
+    const handler = createMcpRequestHandler(sessions);
+    expect(typeof handler).toBe("function");
+    sessions.closeAll();
   });
 });

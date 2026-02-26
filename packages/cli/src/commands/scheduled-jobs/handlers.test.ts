@@ -226,3 +226,23 @@ describe("scheduledJobsDelete", () => {
     expect(processExitSpy).toHaveBeenCalledWith(3);
   });
 });
+
+describe("scheduledJobsList — human format lineFormat", () => {
+  beforeEach(() => {
+    vi.spyOn(console, "log").mockImplementation(() => {});
+    vi.spyOn(console, "error").mockImplementation(() => {});
+  });
+  afterEach(() => vi.restoreAllMocks());
+
+  it("should render human format with lineFormat callback", async () => {
+    const { listScheduledJobs } = await import("@studiometa/forge-core");
+    vi.mocked(listScheduledJobs).mockResolvedValue({ data: [mockJob] });
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "human", server: "10" },
+    });
+    await scheduledJobsList(ctx);
+    expect(vi.mocked(console.log)).toHaveBeenCalled();
+  });
+});

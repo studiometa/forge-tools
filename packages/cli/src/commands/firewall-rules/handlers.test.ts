@@ -109,3 +109,35 @@ describe("firewallRulesGet", () => {
     expect(processExitSpy).toHaveBeenCalledWith(3);
   });
 });
+
+describe("firewallRulesList — human format lineFormat", () => {
+  beforeEach(() => {
+    vi.spyOn(console, "log").mockImplementation(() => {});
+    vi.spyOn(console, "error").mockImplementation(() => {});
+  });
+  afterEach(() => vi.restoreAllMocks());
+
+  it("should render human format with ip_address", async () => {
+    const { listFirewallRules } = await import("@studiometa/forge-core");
+    vi.mocked(listFirewallRules).mockResolvedValue({ data: [mockRule] });
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "human", server: "10" },
+    });
+    await firewallRulesList(ctx);
+    expect(vi.mocked(console.log)).toHaveBeenCalled();
+  });
+
+  it("should render 'any' when ip_address is null", async () => {
+    const { listFirewallRules } = await import("@studiometa/forge-core");
+    vi.mocked(listFirewallRules).mockResolvedValue({ data: [{ ...mockRule, ip_address: null }] });
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "human", server: "10" },
+    });
+    await firewallRulesList(ctx);
+    expect(vi.mocked(console.log)).toHaveBeenCalled();
+  });
+});

@@ -100,4 +100,39 @@ describe("RateLimiter", () => {
       expect(delay).toBeGreaterThanOrEqual(1000);
     });
   });
+
+  describe("updateFromHeaders", () => {
+    it("should clear timestamps when API reports more capacity than local window", () => {
+      const limiter = new RateLimiter();
+      // Fake a full window locally
+      const now = Date.now();
+      for (let i = 0; i < 60; i++) {
+        (limiter as unknown as { timestamps: number[] }).timestamps.push(now - i * 100);
+      }
+      // API says 30 remaining — more than 60 - 60 = 0, so timestamps should clear
+      const headers = new Headers({ "x-ratelimit-remaining": "30" });
+      limiter.updateFromHeaders(headers);
+      expect((limiter as unknown as { timestamps: number[] }).timestamps).toHaveLength(0);
+    });
+
+    it("should not clear timestamps when API confirms low remaining capacity", () => {
+      const limiter = new RateLimiter();
+      const now = Date.now();
+      // Fill half the window
+      for (let i = 0; i < 30; i++) {
+        (limiter as unknown as { timestamps: number[] }).timestamps.push(now - i * 100);
+      }
+      // API says 0 remaining — not more than 60 - 30 = 30, so no clear
+      const headers = new Headers({ "x-ratelimit-remaining": "0" });
+      limiter.updateFromHeaders(headers);
+      expect((limiter as unknown as { timestamps: number[] }).timestamps).toHaveLength(30);
+    });
+
+    it("should be a no-op when header is absent", () => {
+      const limiter = new RateLimiter();
+      const headers = new Headers();
+      limiter.updateFromHeaders(headers);
+      expect((limiter as unknown as { timestamps: number[] }).timestamps).toHaveLength(0);
+    });
+  });
 });

@@ -40,6 +40,7 @@ export const handleSites = createResourceHandler({
         };
       case "delete":
         return { server_id: args.server_id, site_id: args.id };
+      /* v8 ignore next */
       default:
         return {};
     }
@@ -54,6 +55,7 @@ export const handleSites = createResourceHandler({
         return formatSite(data as ForgeSite);
       case "delete":
         return `Site ${args.id} deleted from server ${args.server_id}.`;
+      /* v8 ignore next */
       default:
         return "Done.";
     }

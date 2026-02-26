@@ -43,4 +43,9 @@ describe("parseAuthHeader", () => {
     const result = parseAuthHeader("Bearer pk_test_abc123XYZ");
     expect(result).toEqual({ apiToken: "pk_test_abc123XYZ" });
   });
+
+  it("returns null for Bearer with empty token after trimming", () => {
+    const result = parseAuthHeader("Bearer   ");
+    expect(result).toBeNull();
+  });
 });
