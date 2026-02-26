@@ -1,91 +1,210 @@
 /**
- * HTTP transport handlers for Forge MCP Server
+ * Streamable HTTP transport for Forge MCP Server
  *
- * This module contains the app/router creation logic for the HTTP transport.
- * The actual server startup is in server.ts.
+ * Implements the official MCP Streamable HTTP transport specification (2025-03-26)
+ * using the SDK's StreamableHTTPServerTransport.
+ *
+ * Architecture:
+ * - Stateful mode with per-session transport+server pairs (multi-tenant)
+ * - Auth via Bearer token → authInfo.token → handler extra.authInfo
+ * - Session manager (injected) maps session IDs to transport+server instances
+ * - Health/status endpoints handled by h3, MCP endpoint by the SDK transport
  */
 
-import {
-  createApp,
-  defineEventHandler,
-  readBody,
-  getHeader,
-  setResponseHeader,
-  setResponseStatus,
-  type H3,
-} from "h3";
+import { randomUUID } from "node:crypto";
+import type { IncomingMessage, ServerResponse } from "node:http";
+
+import { Server } from "@modelcontextprotocol/sdk/server/index.js";
+import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
+import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprotocol/sdk/types.js";
+import { createApp, defineEventHandler, type H3 } from "h3";
 
 import { parseAuthHeader } from "./auth.ts";
 import { executeToolWithCredentials } from "./handlers/index.ts";
 import { INSTRUCTIONS } from "./instructions.ts";
+import { SessionManager } from "./sessions.ts";
 import { TOOLS } from "./tools.ts";
 import { VERSION } from "./version.ts";
 
-/**
- * JSON-RPC error response
- */
-export function jsonRpcError(
-  code: number,
-  message: string,
-  id: string | number | null = null,
-): { jsonrpc: string; error: { code: number; message: string }; id: string | number | null } {
-  return {
-    jsonrpc: "2.0",
-    error: { code, message },
-    id,
-  };
-}
+export { SessionManager } from "./sessions.ts";
 
 /**
- * JSON-RPC success response
+ * Create a configured MCP Server instance for HTTP transport.
+ *
+ * Unlike stdio, HTTP mode does NOT include forge_configure/forge_get_config
+ * because credentials come from the Authorization header per-request.
  */
-export function jsonRpcSuccess(
-  result: unknown,
-  id: string | number | null = null,
-): { jsonrpc: string; result: unknown; id: string | number | null } {
-  return {
-    jsonrpc: "2.0",
-    result,
-    id,
-  };
-}
-
-/**
- * Handle the initialize JSON-RPC method
- */
-export function handleInitialize(): {
-  protocolVersion: string;
-  serverInfo: { name: string; version: string };
-  capabilities: { tools: Record<string, never> };
-  instructions: string;
-} {
-  return {
-    protocolVersion: "2024-11-05",
-    serverInfo: {
+export function createMcpServer(): Server {
+  const server = new Server(
+    {
       name: "forge-mcp",
       version: VERSION,
     },
-    capabilities: {
-      tools: {},
+    {
+      capabilities: {
+        tools: {},
+      },
+      instructions: INSTRUCTIONS,
     },
-    instructions: INSTRUCTIONS,
+  );
+
+  server.setRequestHandler(ListToolsRequestSchema, async () => {
+    return { tools: TOOLS };
+  });
+
+  server.setRequestHandler(CallToolRequestSchema, async (request, extra) => {
+    const { name, arguments: args } = request.params;
+    const token = extra.authInfo?.token;
+
+    if (!token) {
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: "Error: Authentication required. No token found in request.",
+          },
+        ],
+        isError: true,
+      };
+    }
+
+    try {
+      const result = await executeToolWithCredentials(
+        name,
+        (args as Record<string, unknown>) ?? {},
+        { apiToken: token },
+      );
+      return result as unknown as Record<string, unknown>;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      return {
+        content: [{ type: "text" as const, text: `Error: ${message}` }],
+        isError: true,
+      };
+    }
+  });
+
+  return server;
+}
+
+/**
+ * Handle an MCP request using the Streamable HTTP transport.
+ *
+ * Routes requests based on whether they have a session ID:
+ * - No session ID + initialize request → create new session
+ * - Has session ID → route to existing session's transport
+ *
+ * @param req - Node.js IncomingMessage
+ * @param res - Node.js ServerResponse
+ * @param sessions - Session manager instance (injected)
+ */
+export async function handleMcpRequest(
+  req: IncomingMessage,
+  res: ServerResponse,
+  sessions: SessionManager,
+): Promise<void> {
+  // Extract and validate auth
+  const authHeader = req.headers.authorization;
+  const credentials = parseAuthHeader(authHeader);
+
+  if (!credentials) {
+    res.writeHead(401, { "Content-Type": "application/json" });
+    res.end(
+      JSON.stringify({
+        jsonrpc: "2.0",
+        error: {
+          code: -32001,
+          message: "Authentication required. Provide a Bearer token with your Forge API token.",
+        },
+        id: null,
+      }),
+    );
+    return;
+  }
+
+  // Inject auth info for the SDK transport
+  const authenticatedReq = req as IncomingMessage & {
+    auth?: { token: string; clientId: string; scopes: string[] };
   };
+  authenticatedReq.auth = {
+    token: credentials.apiToken,
+    clientId: "forge-http-client",
+    scopes: [],
+  };
+
+  const sessionId = req.headers["mcp-session-id"] as string | undefined;
+
+  if (sessionId) {
+    // Existing session — route to its transport
+    const session = sessions.get(sessionId);
+    if (!session) {
+      res.writeHead(404, { "Content-Type": "application/json" });
+      res.end(
+        JSON.stringify({
+          jsonrpc: "2.0",
+          error: {
+            code: -32000,
+            message: "Session not found. The session may have expired or been terminated.",
+          },
+          id: null,
+        }),
+      );
+      return;
+    }
+
+    await session.transport.handleRequest(authenticatedReq, res);
+    return;
+  }
+
+  // No session ID — this should be an initialize request.
+  // Create a new transport + server pair.
+  const transport = new StreamableHTTPServerTransport({
+    sessionIdGenerator: () => randomUUID(),
+  });
+
+  const server = createMcpServer();
+  await server.connect(transport);
+
+  // Set up cleanup on close
+  transport.onclose = () => {
+    const sid = transport.sessionId;
+    if (sid) {
+      sessions.remove(sid).catch(() => {
+        // Ignore cleanup errors
+      });
+    }
+  };
+
+  // Handle the request (this will set transport.sessionId during initialize)
+  await transport.handleRequest(authenticatedReq, res);
+
+  // After handling, register the session if the transport got a session ID
+  if (transport.sessionId) {
+    sessions.register(transport, server);
+  } else {
+    // No session was created (e.g., invalid request) — clean up
+    await transport.close();
+    await server.close();
+  }
 }
 
 /**
- * Handle the tools/list JSON-RPC method
+ * Create a request handler bound to a SessionManager instance.
+ * Convenience factory for server.ts.
  */
-export function handleToolsList(): { tools: typeof TOOLS } {
-  return { tools: TOOLS };
+export function createMcpRequestHandler(
+  sessions: SessionManager,
+): (req: IncomingMessage, res: ServerResponse) => Promise<void> {
+  return (req, res) => handleMcpRequest(req, res, sessions);
 }
 
 /**
- * Create the h3 application with all routes
+ * Create h3 app for health check and service info endpoints.
+ * The MCP endpoint is handled separately by handleMcpRequest.
  */
-export function createHttpApp(): H3 {
+export function createHealthApp(): H3 {
   const app = createApp();
 
-  // Health check endpoints
   app.get(
     "/",
     defineEventHandler(() => {
@@ -97,72 +216,6 @@ export function createHttpApp(): H3 {
     "/health",
     defineEventHandler(() => {
       return { status: "ok" };
-    }),
-  );
-
-  // MCP endpoint - handles JSON-RPC over HTTP
-  app.post(
-    "/mcp",
-    defineEventHandler(async (event) => {
-      // Parse authorization header
-      const authHeader = getHeader(event, "authorization");
-      const credentials = parseAuthHeader(authHeader);
-
-      if (!credentials) {
-        setResponseHeader(event, "Content-Type", "application/json");
-        setResponseStatus(event, 401);
-        return jsonRpcError(
-          -32001,
-          "Authentication required. Provide a Bearer token with your Forge API token.",
-        );
-      }
-
-      setResponseHeader(event, "Content-Type", "application/json");
-
-      // Parse JSON-RPC request
-      let body: { method?: string; params?: unknown; id?: string | number };
-      try {
-        body = (await readBody(event)) as {
-          method?: string;
-          params?: unknown;
-          id?: string | number;
-        };
-      } catch {
-        setResponseStatus(event, 400);
-        return jsonRpcError(-32700, "Parse error: Invalid JSON");
-      }
-
-      if (!body || typeof body !== "object") {
-        setResponseStatus(event, 400);
-        return jsonRpcError(-32700, "Parse error: Invalid JSON");
-      }
-
-      const { method, params, id } = body;
-
-      try {
-        if (method === "initialize") {
-          return jsonRpcSuccess(handleInitialize(), id ?? null);
-        }
-
-        if (method === "tools/list") {
-          return jsonRpcSuccess(handleToolsList(), id ?? null);
-        }
-
-        if (method === "tools/call") {
-          const { name, arguments: args } = params as {
-            name: string;
-            arguments?: Record<string, unknown>;
-          };
-          const result = await executeToolWithCredentials(name, args || {}, credentials);
-          return jsonRpcSuccess(result, id ?? null);
-        }
-
-        // Unknown method
-        return jsonRpcError(-32601, `Method not found: ${method}`, id ?? null);
-      } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        return jsonRpcError(-32603, `Internal error: ${message}`, id ?? null);
-      }
     }),
   );
 
