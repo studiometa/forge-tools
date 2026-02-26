@@ -1,5 +1,5 @@
 import {
-  deploySite,
+  deploySiteAndWait,
   getDeploymentOutput,
   getDeploymentScript,
   listDeployments,
@@ -56,8 +56,8 @@ export async function handleDeployments(
     }
 
     case "deploy": {
-      await deploySite(opts, ctx.executorContext);
-      return jsonResult(formatDeployAction(args.site_id, args.server_id));
+      const deployResult = await deploySiteAndWait(opts, ctx.executorContext);
+      return jsonResult(formatDeployAction(args.site_id, args.server_id, deployResult.data));
     }
 
     case "get": {

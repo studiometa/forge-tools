@@ -1,4 +1,4 @@
-import { listDeployments, deploySite } from "@studiometa/forge-core";
+import { listDeployments, deploySiteAndWait } from "@studiometa/forge-core";
 
 import type { CommandContext } from "../../context.ts";
 
@@ -66,7 +66,31 @@ export async function deploymentsDeploy(ctx: CommandContext): Promise<void> {
     const execCtx = ctx.createExecutorContext(token);
     const server_id = await resolveServerId(server, execCtx);
     const site_id = await resolveSiteId(site, server_id, execCtx);
-    await deploySite({ server_id, site_id }, execCtx);
-    ctx.formatter.success(`Deployment triggered for site ${site_id}.`);
+
+    const result = await deploySiteAndWait(
+      {
+        server_id,
+        site_id,
+        onProgress: ({ status, elapsed_ms }) => {
+          process.stderr.write(`\rDeploying… ${status} (${(elapsed_ms / 1000).toFixed(1)}s)`);
+        },
+      },
+      execCtx,
+    );
+
+    // Clear the progress line
+    process.stderr.write("\n");
+
+    const elapsedSec = (result.data.elapsed_ms / 1000).toFixed(1);
+
+    if (result.data.status === "success") {
+      ctx.formatter.success(`Deployment succeeded for site ${site_id} (${elapsedSec}s).`);
+    } else {
+      ctx.formatter.success(`Deployment failed for site ${site_id} (${elapsedSec}s).`);
+    }
+
+    if (result.data.log) {
+      ctx.formatter.output(result.data.log);
+    }
   }, ctx.formatter);
 }
