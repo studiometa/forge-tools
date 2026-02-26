@@ -21,7 +21,12 @@ export async function sshKeysList(ctx: CommandContext): Promise<void> {
     const execCtx = ctx.createExecutorContext(token);
     const server_id = await resolveServerId(server, execCtx);
     const result = await listSshKeys({ server_id }, execCtx);
-    ctx.formatter.output(result.data);
+    ctx.formatter.outputList(
+      result.data,
+      ["id", "name", "status"],
+      "No SSH keys found.",
+      (k) => `${String(k.id).padEnd(8)} ${k.name.padEnd(30)} ${k.status}`,
+    );
   }, ctx.formatter);
 }
 
@@ -50,6 +55,6 @@ export async function sshKeysGet(args: string[], ctx: CommandContext): Promise<v
     const execCtx = ctx.createExecutorContext(token);
     const server_id = await resolveServerId(server, execCtx);
     const result = await getSshKey({ server_id, id }, execCtx);
-    ctx.formatter.output(result.data);
+    ctx.formatter.outputOne(result.data, ["id", "name", "status", "created_at"]);
   }, ctx.formatter);
 }

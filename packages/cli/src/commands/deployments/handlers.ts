@@ -31,7 +31,13 @@ export async function deploymentsList(ctx: CommandContext): Promise<void> {
     const server_id = await resolveServerId(server, execCtx);
     const site_id = await resolveSiteId(site, server_id, execCtx);
     const result = await listDeployments({ server_id, site_id }, execCtx);
-    ctx.formatter.output(result.data);
+    ctx.formatter.outputList(
+      result.data,
+      ["id", "status", "commit_hash", "started_at"],
+      "No deployments found.",
+      (d) =>
+        `${String(d.id).padEnd(8)} ${d.status.padEnd(12)} ${(d.commit_hash ?? "—").padEnd(10)} ${d.started_at}`,
+    );
   }, ctx.formatter);
 }
 

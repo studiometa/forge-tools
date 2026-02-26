@@ -178,4 +178,99 @@ describe("OutputFormatter", () => {
       expect(output).toContain("✓");
     });
   });
+
+  describe("isJson()", () => {
+    it("should return true for json format", () => {
+      expect(new OutputFormatter("json").isJson()).toBe(true);
+    });
+
+    it("should return false for human format", () => {
+      expect(new OutputFormatter("human").isJson()).toBe(false);
+    });
+
+    it("should return false for table format", () => {
+      expect(new OutputFormatter("table").isJson()).toBe(false);
+    });
+  });
+
+  describe("outputList()", () => {
+    const data = [
+      { id: 1, name: "alpha", status: "active" },
+      { id: 2, name: "beta", status: "inactive" },
+    ];
+
+    it("should output JSON array in json format", () => {
+      const formatter = new OutputFormatter("json");
+      formatter.outputList(data, ["id", "name", "status"], "No items.");
+      expect(consoleLogSpy).toHaveBeenCalledWith(JSON.stringify(data, null, 2));
+    });
+
+    it("should output a table in table format", () => {
+      const formatter = new OutputFormatter("table");
+      formatter.outputList(data, ["id", "name"], "No items.");
+      const calls = consoleLogSpy.mock.calls.map((c) => c[0] as string);
+      expect(calls.some((c) => c.includes("name"))).toBe(true);
+      expect(calls.some((c) => c.includes("alpha"))).toBe(true);
+    });
+
+    it("should show empty message in human format when no items", () => {
+      const formatter = new OutputFormatter("human");
+      formatter.outputList([], ["id", "name"], "No items found.");
+      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining("No items found."));
+    });
+
+    it("should render padded columns in human format", () => {
+      const formatter = new OutputFormatter("human");
+      formatter.outputList(data, ["id", "name", "status"], "No items.");
+      const calls = consoleLogSpy.mock.calls.map((c) => c[0] as string);
+      expect(calls.some((c) => c.includes("alpha"))).toBe(true);
+      expect(calls.some((c) => c.includes("beta"))).toBe(true);
+    });
+
+    it("should use custom lineFormat when provided", () => {
+      const formatter = new OutputFormatter("human");
+      formatter.outputList(data, ["id", "name"], "No items.", (item) => `custom:${item.name}`);
+      const calls = consoleLogSpy.mock.calls.map((c) => c[0] as string);
+      expect(calls.some((c) => c.startsWith("custom:alpha"))).toBe(true);
+    });
+  });
+
+  describe("outputOne()", () => {
+    const item = { id: 1, name: "my-server", status: "active" };
+
+    it("should output JSON in json format", () => {
+      const formatter = new OutputFormatter("json");
+      formatter.outputOne(item);
+      expect(consoleLogSpy).toHaveBeenCalledWith(JSON.stringify(item, null, 2));
+    });
+
+    it("should output key/value table in table format", () => {
+      const formatter = new OutputFormatter("table");
+      formatter.outputOne(item, ["id", "name"]);
+      const calls = consoleLogSpy.mock.calls.map((c) => c[0] as string);
+      expect(calls.some((c) => c.includes("field"))).toBe(true);
+      expect(calls.some((c) => c.includes("name"))).toBe(true);
+    });
+
+    it("should output key: value lines in human format", () => {
+      const formatter = new OutputFormatter("human");
+      formatter.outputOne(item, ["id", "name", "status"]);
+      const calls = consoleLogSpy.mock.calls.map((c) => c[0] as string);
+      expect(calls.some((c) => c.includes("my-server"))).toBe(true);
+      expect(calls.some((c) => c.includes("active"))).toBe(true);
+    });
+
+    it("should serialize object values as JSON in human format", () => {
+      const formatter = new OutputFormatter("human");
+      formatter.outputOne({ id: 1, tags: [{ name: "web" }] }, ["id", "tags"]);
+      const calls = consoleLogSpy.mock.calls.map((c) => c[0] as string);
+      expect(calls.some((c) => c.includes("[{"))).toBe(true);
+    });
+
+    it("should use all keys when fields not specified", () => {
+      const formatter = new OutputFormatter("human");
+      formatter.outputOne(item);
+      expect(consoleLogSpy).toHaveBeenCalledTimes(3);
+    });
+  });
 });

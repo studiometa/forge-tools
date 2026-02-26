@@ -21,7 +21,13 @@ export async function firewallRulesList(ctx: CommandContext): Promise<void> {
     const execCtx = ctx.createExecutorContext(token);
     const server_id = await resolveServerId(server, execCtx);
     const result = await listFirewallRules({ server_id }, execCtx);
-    ctx.formatter.output(result.data);
+    ctx.formatter.outputList(
+      result.data,
+      ["id", "name", "port", "type", "ip_address", "status"],
+      "No firewall rules found.",
+      (r) =>
+        `${String(r.id).padEnd(8)} ${r.name.padEnd(20)} ${String(r.port).padEnd(8)} ${r.type.padEnd(8)} ${(r.ip_address ?? "any").padEnd(16)} ${r.status}`,
+    );
   }, ctx.formatter);
 }
 
@@ -50,6 +56,8 @@ export async function firewallRulesGet(args: string[], ctx: CommandContext): Pro
     const execCtx = ctx.createExecutorContext(token);
     const server_id = await resolveServerId(server, execCtx);
     const result = await getFirewallRule({ server_id, id }, execCtx);
-    ctx.formatter.output(result.data);
+    ctx.formatter.outputOne(result.data, [
+      "id", "name", "port", "type", "ip_address", "status", "created_at",
+    ]);
   }, ctx.formatter);
 }

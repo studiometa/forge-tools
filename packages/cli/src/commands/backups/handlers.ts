@@ -26,7 +26,13 @@ export async function backupsList(ctx: CommandContext): Promise<void> {
     const execCtx = ctx.createExecutorContext(token);
     const server_id = await resolveServerId(server, execCtx);
     const result = await listBackupConfigs({ server_id }, execCtx);
-    ctx.formatter.output(result.data);
+    ctx.formatter.outputList(
+      result.data,
+      ["id", "provider_name", "frequency", "status"],
+      "No backup configurations found.",
+      (b) =>
+        `${String(b.id).padEnd(8)} ${b.provider_name.padEnd(20)} ${b.frequency.padEnd(12)} ${b.status}`,
+    );
   }, ctx.formatter);
 }
 
@@ -55,7 +61,9 @@ export async function backupsGet(args: string[], ctx: CommandContext): Promise<v
     const execCtx = ctx.createExecutorContext(token);
     const server_id = await resolveServerId(server, execCtx);
     const result = await getBackupConfig({ server_id, id }, execCtx);
-    ctx.formatter.output(result.data);
+    ctx.formatter.outputOne(result.data, [
+      "id", "provider", "provider_name", "frequency", "retention", "status", "last_backup_time",
+    ]);
   }, ctx.formatter);
 }
 
@@ -102,7 +110,9 @@ export async function backupsCreate(ctx: CommandContext): Promise<void> {
       { server_id, provider, frequency, credentials: {}, databases },
       execCtx,
     );
-    ctx.formatter.output(result.data);
+    ctx.formatter.outputOne(result.data, [
+      "id", "provider", "provider_name", "frequency", "retention", "status",
+    ]);
   }, ctx.formatter);
 }
 
