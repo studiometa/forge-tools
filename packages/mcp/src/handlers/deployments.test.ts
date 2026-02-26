@@ -8,11 +8,27 @@ function createMockContext(): HandlerContext {
   return {
     executorContext: {
       client: {
-        get: async () => ({
-          deployments: [
-            { id: 1, status: "deployed", commit_hash: "abc1234", started_at: "2024-01-01" },
-          ],
-        }),
+        get: async (url: string) => {
+          if ((url as string).endsWith("/deployment/log")) {
+            return "Build succeeded.";
+          }
+          if ((url as string).endsWith("/deployments")) {
+            return {
+              deployments: [
+                { id: 1, status: "finished", commit_hash: "abc1234", started_at: "2024-01-01" },
+              ],
+            };
+          }
+          if ((url as string).endsWith("/deployments")) {
+            return {
+              deployments: [
+                { id: 1, status: "deployed", commit_hash: "abc1234", started_at: "2024-01-01" },
+              ],
+            };
+          }
+          // site poll — return null deployment_status immediately (done)
+          return { site: { id: 456, deployment_status: null } };
+        },
         post: async () => ({}),
         put: async () => ({}),
       } as never,
@@ -79,23 +95,47 @@ describe("handleDeployments", () => {
   });
 
   it("should list deployments", async () => {
+    const ctx: HandlerContext = {
+      executorContext: {
+        client: {
+          get: async () => ({
+            deployments: [
+              { id: 1, status: "deployed", commit_hash: "abc1234", started_at: "2024-01-01" },
+            ],
+          }),
+        } as never,
+      },
+      compact: true,
+    };
     const result = await handleDeployments(
       "list",
       { resource: "deployments", action: "list", server_id: "123", site_id: "456" },
-      createMockContext(),
+      ctx,
     );
     expect(result.isError).toBeUndefined();
     expect(result.content[0]!.text).toContain("deployment");
   });
 
-  it("should deploy a site", async () => {
+  it("should deploy a site and return result with log", async () => {
     const result = await handleDeployments(
       "deploy",
       { resource: "deployments", action: "deploy", server_id: "123", site_id: "456" },
       createMockContext(),
     );
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("Deployment triggered");
+    expect(result.content[0]!.text).toContain("Deployment");
+    expect(result.content[0]!.text).toContain("456");
+  });
+
+  it("should show success status and log in deploy result", async () => {
+    const result = await handleDeployments(
+      "deploy",
+      { resource: "deployments", action: "deploy", server_id: "123", site_id: "456" },
+      createMockContext(),
+    );
+    expect(result.isError).toBeUndefined();
+    expect(result.content[0]!.text).toContain("succeeded");
+    expect(result.content[0]!.text).toContain("Build succeeded.");
   });
 
   it("should handle unknown action", async () => {
@@ -177,8 +217,18 @@ describe("handleDeployments", () => {
   });
 
   it("should list deployments in non-compact mode", async () => {
-    const ctx = createMockContext();
-    ctx.compact = false;
+    const ctx: HandlerContext = {
+      executorContext: {
+        client: {
+          get: async () => ({
+            deployments: [
+              { id: 1, status: "deployed", commit_hash: "abc1234", started_at: "2024-01-01" },
+            ],
+          }),
+        } as never,
+      },
+      compact: false,
+    };
     const result = await handleDeployments(
       "list",
       { resource: "deployments", action: "list", server_id: "123", site_id: "456" },

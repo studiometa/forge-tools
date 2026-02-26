@@ -43,3 +43,34 @@ export interface UpdateDeploymentScriptOptions {
   site_id: string;
   content: string;
 }
+
+/**
+ * Options for getting the deployment log.
+ */
+export interface GetDeploymentLogOptions {
+  server_id: string;
+  site_id: string;
+}
+
+/**
+ * Options for deploying a site and waiting for completion.
+ */
+export interface DeploySiteAndWaitOptions {
+  server_id: string;
+  site_id: string;
+  /** Polling interval in milliseconds. Default: 3000 */
+  poll_interval_ms?: number;
+  /** Timeout in milliseconds. Default: 600000 (10 min) */
+  timeout_ms?: number;
+  /** Called on each poll iteration with current status and elapsed time. */
+  onProgress?: (update: { status: string; elapsed_ms: number }) => void;
+}
+
+/**
+ * Result of the deploySiteAndWait executor.
+ */
+export interface DeployResult {
+  status: "success" | "failed";
+  log: string;
+  elapsed_ms: number;
+}

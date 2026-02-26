@@ -156,10 +156,32 @@ export function formatDeploymentList(deployments: ForgeDeployment[]): string {
 }
 
 /**
- * Format a deployment action result (deploy/update-script).
+ * Format a deployment action result.
+ *
+ * When a `DeployResult` is provided the output includes status, elapsed time,
+ * and the deployment log.  When called with just IDs (legacy) it falls back to
+ * the simple confirmation message so existing tests keep passing.
  */
-export function formatDeployAction(siteId: string, serverId: string): string {
-  return `Deployment triggered for site ${siteId} on server ${serverId}.`;
+export function formatDeployAction(
+  siteId: string,
+  serverId: string,
+  result?: { status: "success" | "failed"; log: string; elapsed_ms: number },
+): string {
+  if (!result) {
+    return `Deployment triggered for site ${siteId} on server ${serverId}.`;
+  }
+
+  const elapsedSec = (result.elapsed_ms / 1000).toFixed(1);
+  const statusLabel = result.status === "success" ? "✓ succeeded" : "✗ failed";
+  const lines = [
+    `Deployment ${statusLabel} for site ${siteId} on server ${serverId} (${elapsedSec}s).`,
+  ];
+
+  if (result.log) {
+    lines.push("", "Deployment log:", result.log);
+  }
+
+  return lines.join("\n");
 }
 
 /**

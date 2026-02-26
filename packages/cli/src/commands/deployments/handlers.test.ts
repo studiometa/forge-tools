@@ -7,7 +7,7 @@ import { deploymentsList, deploymentsDeploy } from "./handlers.ts";
 
 vi.mock("@studiometa/forge-core", () => ({
   listDeployments: vi.fn(),
-  deploySite: vi.fn(),
+  deploySiteAndWait: vi.fn(),
 }));
 
 const mockDeployment: ForgeDeployment = {
@@ -76,20 +76,40 @@ describe("deploymentsList", () => {
 
 describe("deploymentsDeploy", () => {
   let processExitSpy: ReturnType<typeof vi.spyOn>;
+  let stderrSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
     processExitSpy = vi.spyOn(process, "exit").mockImplementation(() => undefined as never);
     vi.spyOn(console, "log").mockImplementation(() => {});
     vi.spyOn(console, "error").mockImplementation(() => {});
+    stderrSpy = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
   });
 
-  it("should trigger deployment", async () => {
-    const { deploySite } = await import("@studiometa/forge-core");
-    vi.mocked(deploySite).mockResolvedValue({ data: undefined as never });
+  it("should trigger deployment and display success result", async () => {
+    const { deploySiteAndWait } = await import("@studiometa/forge-core");
+    vi.mocked(deploySiteAndWait).mockResolvedValue({
+      data: { status: "success", log: "Build succeeded.", elapsed_ms: 3000 },
+    });
+
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "human", server: "10", site: "100" },
+    });
+
+    await deploymentsDeploy(ctx);
+    expect(vi.mocked(console.log)).toHaveBeenCalledWith(expect.stringContaining("succeeded"));
+  });
+
+  it("should display deployment log after success", async () => {
+    const { deploySiteAndWait } = await import("@studiometa/forge-core");
+    vi.mocked(deploySiteAndWait).mockResolvedValue({
+      data: { status: "success", log: "Build succeeded.\nDone.", elapsed_ms: 5000 },
+    });
 
     const ctx = createTestContext({
       token: "test",
@@ -99,8 +119,44 @@ describe("deploymentsDeploy", () => {
 
     await deploymentsDeploy(ctx);
     expect(vi.mocked(console.log)).toHaveBeenCalledWith(
-      expect.stringContaining("Deployment triggered"),
+      expect.stringContaining("Build succeeded."),
     );
+  });
+
+  it("should display failed status when deployment fails", async () => {
+    const { deploySiteAndWait } = await import("@studiometa/forge-core");
+    vi.mocked(deploySiteAndWait).mockResolvedValue({
+      data: { status: "failed", log: "Error: npm install failed.", elapsed_ms: 2000 },
+    });
+
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "human", server: "10", site: "100" },
+    });
+
+    await deploymentsDeploy(ctx);
+    expect(vi.mocked(console.log)).toHaveBeenCalledWith(expect.stringContaining("failed"));
+  });
+
+  it("should call onProgress during polling", async () => {
+    const { deploySiteAndWait } = await import("@studiometa/forge-core");
+    // Capture the onProgress callback and call it
+    vi.mocked(deploySiteAndWait).mockImplementation(async (opts) => {
+      if (opts.onProgress) {
+        opts.onProgress({ status: "deploying", elapsed_ms: 1000 });
+      }
+      return { data: { status: "success", log: "Done.", elapsed_ms: 3000 } };
+    });
+
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "human", server: "10", site: "100" },
+    });
+
+    await deploymentsDeploy(ctx);
+    expect(stderrSpy).toHaveBeenCalledWith(expect.stringContaining("deploying"));
   });
 
   it("should exit with error when no server_id", async () => {

@@ -39,13 +39,18 @@ export type {
 // Deployments
 export {
   deploySite,
+  deploySiteAndWait,
+  getDeploymentLog,
   getDeploymentOutput,
   getDeploymentScript,
   listDeployments,
   updateDeploymentScript,
 } from "./executors/deployments/index.ts";
 export type {
+  DeployResult,
+  DeploySiteAndWaitOptions,
   DeploySiteOptions,
+  GetDeploymentLogOptions,
   GetDeploymentOutputOptions,
   GetDeploymentScriptOptions,
   ListDeploymentsOptions,

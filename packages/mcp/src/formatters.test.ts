@@ -373,9 +373,43 @@ describe("formatDeploymentList", () => {
 });
 
 describe("formatDeployAction", () => {
-  it("should format a deploy action confirmation", () => {
+  it("should format a deploy action confirmation (legacy, no result)", () => {
     const result = formatDeployAction("10", "1");
     expect(result).toContain("Deployment triggered for site 10 on server 1.");
+  });
+
+  it("should format a successful deploy result with log", () => {
+    const result = formatDeployAction("10", "1", {
+      status: "success",
+      log: "Build succeeded.",
+      elapsed_ms: 5000,
+    });
+    expect(result).toContain("succeeded");
+    expect(result).toContain("site 10");
+    expect(result).toContain("server 1");
+    expect(result).toContain("5.0s");
+    expect(result).toContain("Build succeeded.");
+  });
+
+  it("should format a failed deploy result", () => {
+    const result = formatDeployAction("10", "1", {
+      status: "failed",
+      log: "Error: npm install failed.",
+      elapsed_ms: 2500,
+    });
+    expect(result).toContain("failed");
+    expect(result).toContain("2.5s");
+    expect(result).toContain("Error: npm install failed.");
+  });
+
+  it("should format a deploy result with empty log gracefully", () => {
+    const result = formatDeployAction("10", "1", {
+      status: "success",
+      log: "",
+      elapsed_ms: 1000,
+    });
+    expect(result).toContain("succeeded");
+    expect(result).not.toContain("Deployment log:");
   });
 });
 
