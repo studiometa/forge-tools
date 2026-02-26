@@ -17,10 +17,7 @@ import { ValidationError } from "../errors.ts";
  *   - 0 matches → ValidationError listing available servers
  *   - 2+ matches → ValidationError listing ambiguous matches
  */
-export async function resolveServerId(
-  value: string,
-  execCtx: ExecutorContext,
-): Promise<string> {
+export async function resolveServerId(value: string, execCtx: ExecutorContext): Promise<string> {
   if (/^\d+$/.test(value)) {
     return value;
   }
@@ -41,11 +38,9 @@ export async function resolveServerId(
 
   if (partial.length === 0) {
     const available = servers.map((s) => `  ${s.name} (${s.id})`).join("\n");
-    throw new ValidationError(
-      `No server found matching "${value}"`,
-      "server",
-      [`Available servers:\n${available}`],
-    );
+    throw new ValidationError(`No server found matching "${value}"`, "server", [
+      `Available servers:\n${available}`,
+    ]);
   }
 
   if (partial.length > 1) {
@@ -93,11 +88,9 @@ export async function resolveSiteId(
 
   if (partial.length === 0) {
     const available = sites.map((s) => `  ${s.name} (${s.id})`).join("\n");
-    throw new ValidationError(
-      `No site found matching "${value}" on server ${serverId}`,
-      "site",
-      [`Available sites:\n${available}`],
-    );
+    throw new ValidationError(`No site found matching "${value}" on server ${serverId}`, "site", [
+      `Available sites:\n${available}`,
+    ]);
   }
 
   if (partial.length > 1) {
