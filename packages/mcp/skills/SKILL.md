@@ -37,6 +37,7 @@ forge(resource, action, [parameters...])
 | `nginx`           | `get`, `update`                               | site   |
 | `certificates`    | `list`, `get`, `create`, `delete`, `activate` | site   |
 | `databases`       | `list`, `get`, `create`, `delete`             | server |
+| `database-users`  | `list`, `get`, `create`, `delete`             | server |
 | `daemons`         | `list`, `get`, `create`, `delete`, `restart`  | server |
 | `firewall-rules`  | `list`, `get`, `create`, `delete`             | server |
 | `ssh-keys`        | `list`, `get`, `create`, `delete`             | server |

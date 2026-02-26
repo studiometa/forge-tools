@@ -40,20 +40,29 @@ forge-cli config delete
 forge-cli <command> [subcommand] [options]
 ```
 
-| Command          | Alias   | Description                                       |
-| ---------------- | ------- | ------------------------------------------------- |
-| `config`         |         | Manage CLI configuration (`set`, `get`, `delete`) |
-| `servers`        | `s`     | List, get, reboot servers                         |
-| `sites`          |         | List, get sites on a server                       |
-| `deployments`    | `d`     | List deployments, trigger deploys                 |
-| `databases`      | `db`    | List, get databases on a server                   |
-| `daemons`        |         | List, get, restart daemons on a server            |
-| `env`            |         | Get, update environment variables for a site      |
-| `nginx`          |         | Get, update Nginx configuration for a site        |
-| `certificates`   | `certs` | List, get, activate SSL certificates for a site   |
-| `firewall-rules` | `fw`    | List, get firewall rules on a server              |
-| `ssh-keys`       |         | List, get SSH keys on a server                    |
-| `recipes`        |         | List, get, run recipes                            |
+| Command           | Alias   | Description                                           |
+| ----------------- | ------- | ----------------------------------------------------- |
+| `config`          |         | Manage CLI configuration (`set`, `get`, `delete`)     |
+| `servers`         | `s`     | List, get, reboot servers                             |
+| `sites`           |         | List, get sites on a server                           |
+| `deployments`     | `d`     | List deployments, trigger deploys                     |
+| `databases`       | `db`    | List, get databases on a server                       |
+| `database-users`  |         | List, get, create, delete database users on a server  |
+| `daemons`         |         | List, get, restart daemons on a server                |
+| `backups`         |         | List, get, create, delete backup configs on a server  |
+| `commands`        |         | List, get, create commands on a server                |
+| `scheduled-jobs`  |         | List, get, create, delete scheduled jobs on a server  |
+| `monitors`        |         | List, get, create, delete monitors on a server        |
+| `env`             |         | Get, update environment variables for a site          |
+| `nginx`           |         | Get, update Nginx configuration for a site            |
+| `nginx-templates` |         | List, get, create, update, delete Nginx templates     |
+| `certificates`    | `certs` | List, get, activate SSL certificates for a site       |
+| `firewall-rules`  | `fw`    | List, get firewall rules on a server                  |
+| `ssh-keys`        |         | List, get SSH keys on a server                        |
+| `security-rules`  |         | List, get, create, delete security rules for a site   |
+| `redirect-rules`  |         | List, get, create, delete redirect rules for a site   |
+| `recipes`         |         | List, get, run recipes                                |
+| `user`            |         | Get the authenticated user's profile                  |
 
 Run `forge-cli <command> --help` for detailed usage of each command.
 
