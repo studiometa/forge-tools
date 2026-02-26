@@ -15,4 +15,5 @@ export const handleRedirectRulesCommand = createCommandRouter({
     create: redirectRulesCreate,
     delete: [redirectRulesDelete, "args"],
   },
+  writeSubcommands: ["create", "delete"],
 });

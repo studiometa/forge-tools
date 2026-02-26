@@ -10,4 +10,5 @@ export const handleBackupsCommand = createCommandRouter({
     create: backupsCreate,
     delete: [backupsDelete, "args"],
   },
+  writeSubcommands: ["create", "delete"],
 });

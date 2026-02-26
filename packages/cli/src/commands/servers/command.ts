@@ -9,4 +9,5 @@ export const handleServersCommand = createCommandRouter({
     get: [serversGet, "args"],
     reboot: [serversReboot, "args"],
   },
+  writeSubcommands: ["reboot"],
 });

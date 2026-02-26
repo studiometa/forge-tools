@@ -9,4 +9,5 @@ export const handleDaemonsCommand = createCommandRouter({
     get: [daemonsGet, "args"],
     restart: [daemonsRestart, "args"],
   },
+  writeSubcommands: ["restart"],
 });

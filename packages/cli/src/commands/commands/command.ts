@@ -9,4 +9,5 @@ export const handleCommandsCommand = createCommandRouter({
     get: [commandsGet, "args"],
     create: commandsCreate,
   },
+  writeSubcommands: ["create"],
 });

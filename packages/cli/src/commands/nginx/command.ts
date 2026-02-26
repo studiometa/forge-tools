@@ -7,4 +7,5 @@ export const handleNginxCommand = createCommandRouter({
     get: nginxGet,
     update: nginxUpdate,
   },
+  writeSubcommands: ["update"],
 });

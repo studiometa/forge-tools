@@ -15,4 +15,5 @@ export const handleDatabaseUsersCommand = createCommandRouter({
     create: databaseUsersCreate,
     delete: [databaseUsersDelete, "args"],
   },
+  writeSubcommands: ["create", "delete"],
 });

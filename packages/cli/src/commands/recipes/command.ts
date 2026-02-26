@@ -9,4 +9,5 @@ export const handleRecipesCommand = createCommandRouter({
     get: [recipesGet, "args"],
     run: [recipesRun, "args"],
   },
+  writeSubcommands: ["run"],
 });

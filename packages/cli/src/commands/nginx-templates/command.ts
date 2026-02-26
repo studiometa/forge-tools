@@ -17,4 +17,5 @@ export const handleNginxTemplatesCommand = createCommandRouter({
     update: [nginxTemplatesUpdate, "args"],
     delete: [nginxTemplatesDelete, "args"],
   },
+  writeSubcommands: ["create", "update", "delete"],
 });

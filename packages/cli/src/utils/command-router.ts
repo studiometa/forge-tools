@@ -24,6 +24,7 @@ import type { OutputFormat } from "../types.ts";
 
 import { createContext } from "../context.ts";
 import { OutputFormatter } from "../output.ts";
+import { getCliAuditLogger } from "../audit.ts";
 
 /**
  * Handler that only receives context (e.g., list commands)
@@ -48,6 +49,11 @@ export interface CommandRouterConfig {
   resource: string;
   /** Map of subcommand names to handlers */
   handlers: Record<string, Handler>;
+  /**
+   * Set of subcommand names that are write operations.
+   * These will be recorded in the audit log on success or failure.
+   */
+  writeSubcommands?: ReadonlyArray<string>;
 }
 
 /**
@@ -71,12 +77,44 @@ export function createCommandRouter(config: CommandRouterConfig) {
       return; // Unreachable in production, but needed for tests where process.exit is mocked
     }
 
-    if (Array.isArray(handler)) {
-      // ArgsHandler - receives args and context
-      await handler[0](args, ctx);
+    const isWrite = config.writeSubcommands?.includes(subcommand) ?? false;
+
+    if (isWrite) {
+      // Sanitized args for audit log (strip token)
+      const { token: _token, ...safeOptions } = options as Record<string, unknown>;
+      try {
+        if (Array.isArray(handler)) {
+          await handler[0](args, ctx);
+        } else {
+          await handler(ctx);
+        }
+        getCliAuditLogger().log({
+          source: "cli",
+          resource: config.resource,
+          action: subcommand,
+          args: safeOptions,
+          status: "success",
+        });
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : String(err);
+        getCliAuditLogger().log({
+          source: "cli",
+          resource: config.resource,
+          action: subcommand,
+          args: safeOptions,
+          status: "error",
+          error: errorMessage,
+        });
+        throw err;
+      }
     } else {
-      // ListHandler - receives only context
-      await handler(ctx);
+      if (Array.isArray(handler)) {
+        // ArgsHandler - receives args and context
+        await handler[0](args, ctx);
+      } else {
+        // ListHandler - receives only context
+        await handler(ctx);
+      }
     }
   };
 }

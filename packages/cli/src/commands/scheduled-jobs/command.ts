@@ -15,4 +15,5 @@ export const handleScheduledJobsCommand = createCommandRouter({
     create: scheduledJobsCreate,
     delete: [scheduledJobsDelete, "args"],
   },
+  writeSubcommands: ["create", "delete"],
 });
