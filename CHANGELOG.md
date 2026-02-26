@@ -67,6 +67,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Pi skill (SKILL.md) with full resource reference and workflow examples
   - Add `UserInputError` class and `ErrorMessages` constants [[#27], [c45f7a4]]
   - Add HTTP transport (h3) alongside existing stdio transport [[#29], [9858b48]]
+  - Replace custom HTTP transport with official MCP Streamable HTTP transport (protocol 2025-03-26) [[#47], [ee55bfe]]
+  - Add `SessionManager` with TTL-based cleanup for multi-tenant session management [[#47], [ee55bfe]]
   - Wire contextual hints end-to-end in `HandlerContext` and `createResourceHandler` [[#32], [7499b1a]]
   - Add database-users MCP handler [[#40], [191271f]]
 
@@ -105,6 +107,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [#40]: https://github.com/studiometa/forge-tools/pull/40
 [#41]: https://github.com/studiometa/forge-tools/pull/41
 [#42]: https://github.com/studiometa/forge-tools/pull/42
+[#47]: https://github.com/studiometa/forge-tools/pull/47
 [0af82b6]: https://github.com/studiometa/forge-tools/commit/0af82b6
 [1f3c637]: https://github.com/studiometa/forge-tools/commit/1f3c637
 [1fc9788]: https://github.com/studiometa/forge-tools/commit/1fc9788
@@ -119,3 +122,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [47826e1]: https://github.com/studiometa/forge-tools/commit/47826e1
 [a4a43f5]: https://github.com/studiometa/forge-tools/commit/a4a43f5
 [9865cd7]: https://github.com/studiometa/forge-tools/commit/9865cd7
+[ee55bfe]: https://github.com/studiometa/forge-tools/commit/ee55bfe
