@@ -189,6 +189,27 @@ const FORGE_WRITE_TOOL: Tool = {
 export const TOOLS: Tool[] = [FORGE_READ_TOOL, FORGE_WRITE_TOOL];
 
 /**
+ * Options for filtering available tools.
+ */
+export interface GetToolsOptions {
+  /** When true, only read-only tools are returned (forge_write is excluded). */
+  readOnly?: boolean;
+}
+
+/**
+ * Get the list of core tools, optionally filtered.
+ *
+ * In read-only mode, forge_write is excluded entirely — it won't appear
+ * in the tool listing and cannot be called.
+ */
+export function getTools(options?: GetToolsOptions): Tool[] {
+  if (options?.readOnly) {
+    return TOOLS.filter((t) => t.name !== "forge_write");
+  }
+  return [...TOOLS];
+}
+
+/**
  * Additional tools only available in stdio mode.
  */
 export const STDIO_ONLY_TOOLS: Tool[] = [

@@ -23,10 +23,18 @@ import { parseAuthHeader } from "./auth.ts";
 import { executeToolWithCredentials } from "./handlers/index.ts";
 import { INSTRUCTIONS } from "./instructions.ts";
 import { SessionManager } from "./sessions.ts";
-import { TOOLS } from "./tools.ts";
+import { getTools } from "./tools.ts";
 import { VERSION } from "./version.ts";
 
 export { SessionManager } from "./sessions.ts";
+
+/**
+ * Options for the HTTP MCP server.
+ */
+export interface HttpServerOptions {
+  /** When true, forge_write tool is not registered and write operations are rejected. */
+  readOnly?: boolean;
+}
 
 /**
  * Create a configured MCP Server instance for HTTP transport.
@@ -34,7 +42,10 @@ export { SessionManager } from "./sessions.ts";
  * Unlike stdio, HTTP mode does NOT include forge_configure/forge_get_config
  * because credentials come from the Authorization header per-request.
  */
-export function createMcpServer(): Server {
+export function createMcpServer(options?: HttpServerOptions): Server {
+  const readOnly = options?.readOnly ?? false;
+  const tools = getTools({ readOnly });
+
   const server = new Server(
     {
       name: "forge-mcp",
@@ -49,7 +60,7 @@ export function createMcpServer(): Server {
   );
 
   server.setRequestHandler(ListToolsRequestSchema, async () => {
-    return { tools: TOOLS };
+    return { tools };
   });
 
   server.setRequestHandler(CallToolRequestSchema, async (request, extra) => {
@@ -69,6 +80,19 @@ export function createMcpServer(): Server {
       };
     }
     /* v8 ignore stop */
+
+    // Reject write operations in read-only mode
+    if (readOnly && name === "forge_write") {
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: "Error: Server is running in read-only mode. Write operations are disabled.",
+          },
+        ],
+        isError: true,
+      };
+    }
 
     try {
       const result = await executeToolWithCredentials(
@@ -101,11 +125,13 @@ export function createMcpServer(): Server {
  * @param req - Node.js IncomingMessage
  * @param res - Node.js ServerResponse
  * @param sessions - Session manager instance (injected)
+ * @param options - Server options (read-only mode, etc.)
  */
 export async function handleMcpRequest(
   req: IncomingMessage,
   res: ServerResponse,
   sessions: SessionManager,
+  options?: HttpServerOptions,
 ): Promise<void> {
   // Extract and validate auth
   const authHeader = req.headers.authorization;
@@ -166,7 +192,7 @@ export async function handleMcpRequest(
     sessionIdGenerator: () => randomUUID(),
   });
 
-  const server = createMcpServer();
+  const server = createMcpServer(options);
   await server.connect(transport);
 
   // Set up cleanup on close
@@ -202,9 +228,10 @@ export async function handleMcpRequest(
  */
 export function createMcpRequestHandler(
   sessions: SessionManager,
+  options?: HttpServerOptions,
 ): (req: IncomingMessage, res: ServerResponse) => Promise<void> {
   /* v8 ignore start */
-  return (req, res) => handleMcpRequest(req, res, sessions);
+  return (req, res) => handleMcpRequest(req, res, sessions, options);
   /* v8 ignore stop */
 }
 

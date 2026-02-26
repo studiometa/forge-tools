@@ -10,6 +10,8 @@
  *
  * Usage:
  *   forge-mcp-server
+ *   forge-mcp-server --read-only
+ *   FORGE_READ_ONLY=true forge-mcp-server
  *   PORT=3000 forge-mcp-server
  *
  * Endpoints:
@@ -24,6 +26,7 @@ import { toNodeHandler } from "h3/node";
 import { createServer, type Server } from "node:http";
 
 import { createHealthApp, createMcpRequestHandler } from "./http.ts";
+import { parseReadOnlyFlag } from "./index.ts";
 import { SessionManager } from "./sessions.ts";
 import { VERSION } from "./version.ts";
 
@@ -31,15 +34,25 @@ const DEFAULT_PORT = 3000;
 const DEFAULT_HOST = "0.0.0.0";
 
 /**
+ * Options for the HTTP server.
+ */
+export interface HttpStartOptions {
+  /** When true, forge_write tool is not registered. */
+  readOnly?: boolean;
+}
+
+/**
  * Start the HTTP server with Streamable HTTP transport.
  */
 export function startHttpServer(
   port: number = DEFAULT_PORT,
   host: string = DEFAULT_HOST,
+  options?: HttpStartOptions,
 ): Promise<Server> {
   return new Promise((resolve) => {
+    const readOnly = options?.readOnly ?? false;
     const sessions = new SessionManager();
-    const handleMcp = createMcpRequestHandler(sessions);
+    const handleMcp = createMcpRequestHandler(sessions, { readOnly });
     const healthApp = createHealthApp();
     const healthHandler = toNodeHandler(healthApp);
 
@@ -58,7 +71,8 @@ export function startHttpServer(
 
     server.listen(port, host, () => {
       const displayHost = host === "0.0.0.0" ? "localhost" : host;
-      console.log(`Forge MCP server v${VERSION}`);
+      const mode = readOnly ? " (read-only)" : "";
+      console.log(`Forge MCP server v${VERSION}${mode}`);
       console.log(`Node.js ${process.version}`);
       console.log("");
       console.log(`Running at http://${displayHost}:${port}`);
@@ -72,6 +86,10 @@ export function startHttpServer(
       console.log("Authentication:");
       console.log("  Bearer token in Authorization header");
       console.log("  Token format: your raw Forge API token");
+      if (readOnly) {
+        console.log("");
+        console.log("Mode: READ-ONLY (write operations disabled)");
+      }
       console.log("");
       resolve(server);
     });
@@ -87,8 +105,9 @@ const isMainModule =
 if (isMainModule) {
   const port = Number.parseInt(process.env.PORT || String(DEFAULT_PORT), 10);
   const host = process.env.HOST || DEFAULT_HOST;
+  const readOnly = parseReadOnlyFlag();
 
-  startHttpServer(port, host).catch((error) => {
+  startHttpServer(port, host, { readOnly }).catch((error) => {
     console.error("Fatal error:", error);
     process.exit(1);
   });

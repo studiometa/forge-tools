@@ -3,16 +3,19 @@ import { getToken, setToken } from "@studiometa/forge-api";
 import type { ToolResult } from "./handlers/types.ts";
 
 import { executeToolWithCredentials } from "./handlers/index.ts";
-import { STDIO_ONLY_TOOLS, TOOLS } from "./tools.ts";
+import { getTools, STDIO_ONLY_TOOLS } from "./tools.ts";
+import type { GetToolsOptions } from "./tools.ts";
 
 export type { ToolResult };
 
 /**
  * Get all available tools (including stdio-only configuration tools).
+ *
+ * @param options - Optional filtering. When `readOnly` is true, forge_write is excluded.
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function getAvailableTools(): any[] {
-  return [...TOOLS, ...STDIO_ONLY_TOOLS];
+export function getAvailableTools(options?: GetToolsOptions): any[] {
+  return [...getTools(options), ...STDIO_ONLY_TOOLS];
 }
 
 /**
@@ -75,6 +78,14 @@ export function handleGetConfigTool(): ToolResult {
 }
 
 /**
+ * Options for handleToolCall.
+ */
+export interface HandleToolCallOptions {
+  /** When true, forge_write is rejected with an error. */
+  readOnly?: boolean;
+}
+
+/**
  * Handle a tool call request.
  *
  * Routes to the appropriate handler based on tool name:
@@ -85,6 +96,7 @@ export function handleGetConfigTool(): ToolResult {
 export async function handleToolCall(
   name: string,
   args: Record<string, unknown>,
+  options?: HandleToolCallOptions,
 ): Promise<ToolResult> {
   if (name === "forge_configure") {
     return handleConfigureTool(args as { apiToken: string });
@@ -92,6 +104,19 @@ export async function handleToolCall(
 
   if (name === "forge_get_config") {
     return handleGetConfigTool();
+  }
+
+  // Reject forge_write in read-only mode
+  if (name === "forge_write" && options?.readOnly) {
+    return {
+      content: [
+        {
+          type: "text",
+          text: "Error: Server is running in read-only mode. Write operations are disabled.",
+        },
+      ],
+      isError: true,
+    };
   }
 
   // Both forge and forge_write require authentication
