@@ -195,6 +195,18 @@ Set `FORGE_API_TOKEN` environment variable, or use the `forge_configure` tool:
 3. Create a new token
 4. Copy the token (shown only once)
 
+## Read-Only Mode
+
+The server can run in read-only mode where the `forge_write` tool is not available at all:
+
+```bash
+forge-mcp --read-only
+# or
+FORGE_READ_ONLY=true forge-mcp
+```
+
+When enabled, only `forge` (read operations), `forge_configure`, and `forge_get_config` are registered.
+
 ## Tips for Efficient Usage
 
 1. **Use help first**: Call `action="help"` for any resource before using it
