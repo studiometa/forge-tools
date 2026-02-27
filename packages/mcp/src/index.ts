@@ -27,9 +27,13 @@ import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprotocol/sdk/types.js";
 
+import { parseReadOnlyFlag } from "./flags.ts";
 import { INSTRUCTIONS } from "./instructions.ts";
 import { getAvailableTools, handleToolCall } from "./stdio.ts";
 import { VERSION } from "./version.ts";
+
+// Re-export so consumers can still import from the main entry point
+export { parseReadOnlyFlag } from "./flags.ts";
 
 /**
  * Options for the stdio MCP server.
@@ -37,13 +41,6 @@ import { VERSION } from "./version.ts";
 export interface StdioServerOptions {
   /** When true, forge_write tool is not registered and write operations are rejected. */
   readOnly?: boolean;
-}
-
-/**
- * Parse read-only flag from process.argv and environment.
- */
-export function parseReadOnlyFlag(): boolean {
-  return process.argv.includes("--read-only") || process.env.FORGE_READ_ONLY === "true";
 }
 
 /**
