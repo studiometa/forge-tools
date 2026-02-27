@@ -263,6 +263,7 @@ export const tokenHandler = defineEventHandler(async (event: H3Event) => {
 
   if (contentType.includes("application/x-www-form-urlencoded")) {
     const rawBody = await readBody(event);
+    /* v8 ignore next 3 -- h3 pre-parses urlencoded bodies into objects */
     if (typeof rawBody === "string") {
       body = Object.fromEntries(new URLSearchParams(rawBody));
     } else {
