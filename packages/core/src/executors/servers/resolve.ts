@@ -1,5 +1,6 @@
 import type { ServersResponse } from "@studiometa/forge-api";
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
+import { matchByName } from "../../utils/name-matcher.ts";
 
 export interface ResolveServersOptions {
   query: string;
@@ -28,27 +29,15 @@ export async function resolveServers(
 ): Promise<ExecutorResult<ResolveResult>> {
   const response = await ctx.client.get<ServersResponse>("/servers");
   const servers = response.servers;
-  const lower = options.query.toLowerCase();
 
-  // Exact match first
-  const exact = servers.filter((s) => s.name.toLowerCase() === lower);
-  if (exact.length === 1) {
-    return {
-      data: {
-        query: options.query,
-        matches: [{ id: exact[0]!.id, name: exact[0]!.name }],
-        total: 1,
-      },
-    };
-  }
+  const match = matchByName(servers, options.query, (s) => s.name);
+  const matches = match.exact.length === 1 ? match.exact : match.partial;
 
-  // Partial match
-  const partial = servers.filter((s) => s.name.toLowerCase().includes(lower));
   return {
     data: {
       query: options.query,
-      matches: partial.map((s) => ({ id: s.id, name: s.name })),
-      total: partial.length,
+      matches: matches.map((s) => ({ id: s.id, name: s.name })),
+      total: matches.length,
     },
   };
 }

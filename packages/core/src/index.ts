@@ -4,6 +4,10 @@
 export { ACTIONS, RESOURCES } from "./constants.ts";
 export type { Action, Resource } from "./constants.ts";
 
+// Utilities
+export { matchByName } from "./utils/name-matcher.ts";
+export type { NameMatch } from "./utils/name-matcher.ts";
+
 // Audit logging
 export { createAuditLogger, sanitizeArgs, getAuditLogPath } from "./logger.ts";
 export type { AuditLogger, AuditLogEntry } from "./logger.ts";
