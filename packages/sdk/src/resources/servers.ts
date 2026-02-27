@@ -7,6 +7,7 @@ import type {
 } from "@studiometa/forge-api";
 
 import { AsyncPaginatedIterator } from "../pagination.ts";
+import { matchByName } from "../utils/name-matcher.ts";
 import { SitesCollection, SiteResource } from "./sites.ts";
 import { DatabasesCollection } from "./databases.ts";
 import { DatabaseUsersCollection } from "./database-users.ts";
@@ -18,6 +19,23 @@ import { FirewallRulesCollection } from "./firewall-rules.ts";
 import { SshKeysCollection } from "./ssh-keys.ts";
 import { NginxTemplatesCollection } from "./nginx-templates.ts";
 import { BaseCollection } from "./base.ts";
+
+/**
+ * A matched resource item with ID and name.
+ */
+export interface ResolveMatch {
+  id: number;
+  name: string;
+}
+
+/**
+ * Result of a resolve operation.
+ */
+export interface ResolveResult {
+  query: string;
+  matches: ResolveMatch[];
+  total: number;
+}
 
 /**
  * Options for listing servers.
@@ -152,6 +170,38 @@ export class ServersCollection extends BaseCollection {
    */
   async reboot(serverId: number): Promise<void> {
     await this.client.post(`/servers/${serverId}/reboot`);
+  }
+
+  /**
+   * Find servers by name using case-insensitive partial matching.
+   *
+   * If exactly one server matches the query exactly, only that server is returned.
+   * Otherwise all partial matches are returned.
+   *
+   * @param query - The search query to match against server names.
+   * @returns Resolve result with matching servers.
+   *
+   * @example
+   * ```ts
+   * // Find servers matching "prod"
+   * const result = await forge.servers.resolve('prod');
+   * // → { query: 'prod', matches: [{ id: 725393, name: 'wilo-grove-prod' }], total: 1 }
+   *
+   * // Use the result to access a server
+   * if (result.total === 1) {
+   *   const sites = await forge.server(result.matches[0].id).sites.list();
+   * }
+   * ```
+   */
+  async resolve(query: string): Promise<ResolveResult> {
+    const servers = await this.list();
+    const { exact, partial } = matchByName(servers, query, (s) => s.name);
+    const matches = exact.length === 1 ? exact : partial;
+    return {
+      query,
+      matches: matches.map((s) => ({ id: s.id, name: s.name })),
+      total: matches.length,
+    };
   }
 }
 

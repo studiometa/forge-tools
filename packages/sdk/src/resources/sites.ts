@@ -7,6 +7,8 @@ import type {
 } from "@studiometa/forge-api";
 
 import { AsyncPaginatedIterator } from "../pagination.ts";
+import { matchByName } from "../utils/name-matcher.ts";
+import type { ResolveResult } from "./servers.ts";
 import { DeploymentsCollection } from "./deployments.ts";
 import { CertificatesCollection } from "./certificates.ts";
 import { CommandsCollection } from "./commands.ts";
@@ -132,6 +134,33 @@ export class SitesCollection extends BaseCollection {
    */
   async delete(siteId: number): Promise<void> {
     await this.client.delete(`${this.basePath}/${siteId}`);
+  }
+
+  /**
+   * Find sites by domain name using case-insensitive partial matching.
+   *
+   * If exactly one site matches the query exactly, only that site is returned.
+   * Otherwise all partial matches are returned.
+   *
+   * @param query - The search query to match against site domain names.
+   * @returns Resolve result with matching sites.
+   *
+   * @example
+   * ```ts
+   * // Find sites matching "example"
+   * const result = await forge.server(123).sites.resolve('example');
+   * // → { query: 'example', matches: [{ id: 456, name: 'example.com' }], total: 1 }
+   * ```
+   */
+  async resolve(query: string): Promise<ResolveResult> {
+    const sites = await this.list();
+    const { exact, partial } = matchByName(sites, query, (s) => s.name);
+    const matches = exact.length === 1 ? exact : partial;
+    return {
+      query,
+      matches: matches.map((s) => ({ id: s.id, name: s.name })),
+      total: matches.length,
+    };
   }
 }
 
