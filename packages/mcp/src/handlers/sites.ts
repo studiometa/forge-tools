@@ -1,6 +1,7 @@
-import { createSite, deleteSite, getSite, listSites } from "@studiometa/forge-core";
+import { createSite, deleteSite, getSite, listSites, resolveSites } from "@studiometa/forge-core";
 
 import type { ForgeSite } from "@studiometa/forge-api";
+import type { ResolveSiteResult } from "@studiometa/forge-core";
 
 import { formatSite, formatSiteList } from "../formatters.ts";
 import { getSiteHints } from "../hints.ts";
@@ -10,18 +11,20 @@ import type { CommonArgs, HandlerContext, ToolResult } from "./types.ts";
 
 const _handleSites = createResourceHandler({
   resource: "sites",
-  actions: ["list", "get", "create", "delete"],
+  actions: ["list", "get", "create", "delete", "resolve"],
   requiredFields: {
     list: ["server_id"],
     get: ["server_id", "id"],
     create: ["server_id", "domain"],
     delete: ["server_id", "id"],
+    resolve: ["server_id", "query"],
   },
   executors: {
     list: listSites,
     get: getSite,
     create: createSite,
     delete: deleteSite,
+    resolve: resolveSites,
   },
   hints: (data, id) => {
     const site = data as ForgeSite;
@@ -42,6 +45,8 @@ const _handleSites = createResourceHandler({
         };
       case "delete":
         return { server_id: args.server_id, site_id: args.id };
+      case "resolve":
+        return { server_id: args.server_id, query: args.query };
       /* v8 ignore next */
       default:
         return {};
@@ -57,6 +62,13 @@ const _handleSites = createResourceHandler({
         return formatSite(data as ForgeSite);
       case "delete":
         return `Site ${args.id} deleted from server ${args.server_id}.`;
+      case "resolve": {
+        const result = data as ResolveSiteResult;
+        if (result.total === 0)
+          return `No sites matching "${result.query}" on server ${args.server_id}.`;
+        const lines = result.matches.map((m) => `• ${m.name} (ID: ${m.id})`);
+        return `${result.total} site(s) matching "${result.query}" on server ${args.server_id}:\n${lines.join("\n")}`;
+      }
       /* v8 ignore next */
       default:
         return "Done.";

@@ -175,4 +175,58 @@ describe("handleServers", () => {
     expect(data.sites).toBeDefined();
     expect(data.databases).toBeDefined();
   });
+
+  it("should resolve servers by name (partial match)", async () => {
+    const ctx: HandlerContext = {
+      executorContext: {
+        client: {
+          get: async () => ({
+            servers: [
+              { id: 1, name: "prod-web-1" },
+              { id: 2, name: "prod-web-2" },
+              { id: 3, name: "staging-web-1" },
+            ],
+          }),
+        } as never,
+      },
+      compact: true,
+    };
+    const result = await handleServers(
+      "resolve",
+      { resource: "servers", action: "resolve", query: "prod" },
+      ctx,
+    );
+    expect(result.isError).toBeUndefined();
+    expect(result.content[0]!.text).toContain("prod-web-1");
+    expect(result.content[0]!.text).toContain("prod-web-2");
+    expect(result.content[0]!.text).toContain("2 server(s)");
+  });
+
+  it("should resolve servers — no matches", async () => {
+    const ctx: HandlerContext = {
+      executorContext: {
+        client: {
+          get: async () => ({ servers: [{ id: 1, name: "staging-web-1" }] }),
+        } as never,
+      },
+      compact: true,
+    };
+    const result = await handleServers(
+      "resolve",
+      { resource: "servers", action: "resolve", query: "prod" },
+      ctx,
+    );
+    expect(result.isError).toBeUndefined();
+    expect(result.content[0]!.text).toContain('No servers matching "prod"');
+  });
+
+  it("should require query for resolve", async () => {
+    const result = await handleServers(
+      "resolve",
+      { resource: "servers", action: "resolve" },
+      createMockContext(),
+    );
+    expect(result.isError).toBe(true);
+    expect(result.content[0]!.text).toContain("query");
+  });
 });

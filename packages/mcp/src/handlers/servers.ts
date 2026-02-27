@@ -4,9 +4,11 @@ import {
   getServer,
   listServers,
   rebootServer,
+  resolveServers,
 } from "@studiometa/forge-core";
 
 import type { ForgeServer } from "@studiometa/forge-api";
+import type { ResolveResult } from "@studiometa/forge-core";
 
 import { formatServer, formatServerList } from "../formatters.ts";
 import { getServerHints } from "../hints.ts";
@@ -16,12 +18,13 @@ import type { CommonArgs, HandlerContext, ToolResult } from "./types.ts";
 
 const _handleServers = createResourceHandler({
   resource: "servers",
-  actions: ["list", "get", "create", "delete", "reboot"],
+  actions: ["list", "get", "create", "delete", "reboot", "resolve"],
   requiredFields: {
     get: ["id"],
     create: ["provider", "name", "type", "region"],
     delete: ["id"],
     reboot: ["id"],
+    resolve: ["query"],
   },
   executors: {
     list: listServers,
@@ -29,6 +32,7 @@ const _handleServers = createResourceHandler({
     create: createServer,
     delete: deleteServer,
     reboot: rebootServer,
+    resolve: resolveServers,
   },
   hints: (_data, id) => getServerHints(id),
   mapOptions: (action, args) => {
@@ -49,6 +53,8 @@ const _handleServers = createResourceHandler({
           size: args.size ?? "",
           region: args.region,
         };
+      case "resolve":
+        return { query: args.query };
       default:
         return {};
     }
@@ -65,6 +71,12 @@ const _handleServers = createResourceHandler({
         return `Server ${args.id} deleted.`;
       case "reboot":
         return `Server ${args.id} reboot initiated.`;
+      case "resolve": {
+        const result = data as ResolveResult;
+        if (result.total === 0) return `No servers matching "${result.query}".`;
+        const lines = result.matches.map((m) => `• ${m.name} (ID: ${m.id})`);
+        return `${result.total} server(s) matching "${result.query}":\n${lines.join("\n")}`;
+      }
       /* v8 ignore next */
       default:
         return "Done.";
