@@ -122,8 +122,8 @@ describe("TOOLS", () => {
 });
 
 describe("READ_ACTIONS", () => {
-  it("should contain list, get, help, schema", () => {
-    expect([...READ_ACTIONS]).toEqual(["list", "get", "help", "schema"]);
+  it("should contain list, get, help, schema, context", () => {
+    expect([...READ_ACTIONS]).toEqual(["list", "get", "help", "schema", "context"]);
   });
 });
 

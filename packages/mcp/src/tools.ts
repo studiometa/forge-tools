@@ -5,7 +5,7 @@ import { RESOURCES } from "@studiometa/forge-core";
 /**
  * Read-only actions — safe operations that don't modify server state.
  */
-export const READ_ACTIONS = ["list", "get", "help", "schema"] as const;
+export const READ_ACTIONS = ["list", "get", "help", "schema", "context"] as const;
 
 /**
  * Write actions — operations that modify server state.
@@ -108,6 +108,7 @@ const FORGE_READ_TOOL: Tool = {
     `Resources: ${RESOURCES.join(", ")}.`,
     `Actions: ${[...READ_ACTIONS].join(", ")}.`,
     "Discovery: action=help with any resource for filters and examples.",
+    "Context: action=context on servers or sites fetches all sub-resources in one call.",
     "Server operations require id. Site operations require server_id.",
     "Deployment operations require server_id and site_id.",
   ].join("\n"),

@@ -110,4 +110,44 @@ describe("handleSites", () => {
     expect(parsed._hints).toBeDefined();
     expect(parsed._hints.related_resources).toBeDefined();
   });
+
+  it("should handle context action", async () => {
+    const ctx: HandlerContext = {
+      executorContext: {
+        client: {
+          get: async (url: string) => {
+            if (url.match(/\/servers\/\d+\/sites\/\d+\/deployments$/))
+              return { deployments: [{ id: 1 }, { id: 2 }] };
+            if (url.match(/\/servers\/\d+\/sites\/\d+\/certificates$/)) return { certificates: [] };
+            if (url.match(/\/servers\/\d+\/sites\/\d+\/redirect-rules$/))
+              return { redirect_rules: [] };
+            if (url.match(/\/servers\/\d+\/sites\/\d+\/security-rules$/))
+              return { security_rules: [] };
+            if (url.match(/\/servers\/\d+\/sites\/\d+$/))
+              return {
+                site: {
+                  id: 1,
+                  name: "example.com",
+                  server_id: 1,
+                  project_type: "php",
+                  status: "installed",
+                },
+              };
+            return {};
+          },
+        } as never,
+      },
+      compact: false,
+    };
+    const result = await handleSites(
+      "context",
+      { resource: "sites", action: "context", server_id: "1", id: "1" },
+      ctx,
+    );
+    expect(result.isError).toBeUndefined();
+    const data = JSON.parse(result.content[0]!.text);
+    expect(data.site).toBeDefined();
+    expect(data.deployments).toBeDefined();
+    expect(data.certificates).toBeDefined();
+  });
 });

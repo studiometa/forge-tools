@@ -4,9 +4,11 @@ import type { ForgeSite } from "@studiometa/forge-api";
 
 import { formatSite, formatSiteList } from "../formatters.ts";
 import { getSiteHints } from "../hints.ts";
+import { handleSiteContext } from "./context.ts";
 import { createResourceHandler } from "./factory.ts";
+import type { CommonArgs, HandlerContext, ToolResult } from "./types.ts";
 
-export const handleSites = createResourceHandler({
+const _handleSites = createResourceHandler({
   resource: "sites",
   actions: ["list", "get", "create", "delete"],
   requiredFields: {
@@ -61,3 +63,18 @@ export const handleSites = createResourceHandler({
     }
   },
 });
+
+/**
+ * Handle sites resource actions, intercepting the `context` action
+ * for rich single-call resource fetching.
+ */
+export async function handleSites(
+  action: string,
+  args: CommonArgs,
+  ctx: HandlerContext,
+): Promise<ToolResult> {
+  if (action === "context") {
+    return handleSiteContext(args, ctx);
+  }
+  return _handleSites(action, args, ctx);
+}

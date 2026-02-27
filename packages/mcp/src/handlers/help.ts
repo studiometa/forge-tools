@@ -28,6 +28,8 @@ const RESOURCE_HELP: Record<string, ResourceHelp> = {
       create: "Provision a new server (requires provider, type, region, name)",
       delete: "Delete a server by ID (irreversible)",
       reboot: "Reboot a server by ID",
+      context:
+        "Get full server context: server details + all sub-resources (sites, databases, database users, daemons, firewall rules, scheduled jobs) in one call",
     },
     fields: {
       id: "Server ID",
@@ -48,6 +50,10 @@ const RESOURCE_HELP: Record<string, ResourceHelp> = {
         description: "Reboot a server",
         params: { resource: "servers", action: "reboot", id: "123" },
       },
+      {
+        description: "Get full server context (server + all sub-resources)",
+        params: { resource: "servers", action: "context", id: "123" },
+      },
     ],
   },
 
@@ -59,6 +65,8 @@ const RESOURCE_HELP: Record<string, ResourceHelp> = {
       get: "Get a single site by ID",
       create: "Create a new site (requires domain, project_type)",
       delete: "Delete a site by ID",
+      context:
+        "Get full site context: site details + recent deployments (last 5) + certificates + redirect rules + security rules in one call",
     },
     fields: {
       id: "Site ID",
@@ -88,6 +96,10 @@ const RESOURCE_HELP: Record<string, ResourceHelp> = {
           project_type: "php",
           directory: "/public",
         },
+      },
+      {
+        description: "Get full site context (site + deployments + certificates + rules)",
+        params: { resource: "sites", action: "context", server_id: "123", id: "456" },
       },
     ],
   },
