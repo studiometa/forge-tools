@@ -43,6 +43,7 @@ export const ACTIONS = [
   "restart",
   "activate",
   "run",
+  "resolve",
   "help",
   "schema",
   "context",

@@ -150,4 +150,58 @@ describe("handleSites", () => {
     expect(data.deployments).toBeDefined();
     expect(data.certificates).toBeDefined();
   });
+
+  it("should resolve sites by domain name (partial match)", async () => {
+    const ctx: HandlerContext = {
+      executorContext: {
+        client: {
+          get: async () => ({
+            sites: [
+              { id: 1, name: "example.com" },
+              { id: 2, name: "api.example.com" },
+              { id: 3, name: "staging.myapp.io" },
+            ],
+          }),
+        } as never,
+      },
+      compact: true,
+    };
+    const result = await handleSites(
+      "resolve",
+      { resource: "sites", action: "resolve", server_id: "123", query: "example" },
+      ctx,
+    );
+    expect(result.isError).toBeUndefined();
+    expect(result.content[0]!.text).toContain("example.com");
+    expect(result.content[0]!.text).toContain("api.example.com");
+    expect(result.content[0]!.text).toContain("2 site(s)");
+  });
+
+  it("should resolve sites — no matches", async () => {
+    const ctx: HandlerContext = {
+      executorContext: {
+        client: {
+          get: async () => ({ sites: [{ id: 1, name: "staging.myapp.io" }] }),
+        } as never,
+      },
+      compact: true,
+    };
+    const result = await handleSites(
+      "resolve",
+      { resource: "sites", action: "resolve", server_id: "123", query: "example" },
+      ctx,
+    );
+    expect(result.isError).toBeUndefined();
+    expect(result.content[0]!.text).toContain('No sites matching "example"');
+  });
+
+  it("should require server_id and query for resolve", async () => {
+    const result = await handleSites(
+      "resolve",
+      { resource: "sites", action: "resolve", server_id: "1" },
+      createMockContext(),
+    );
+    expect(result.isError).toBe(true);
+    expect(result.content[0]!.text).toContain("query");
+  });
 });

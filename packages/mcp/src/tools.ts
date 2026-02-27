@@ -5,7 +5,7 @@ import { RESOURCES } from "@studiometa/forge-core";
 /**
  * Read-only actions — safe operations that don't modify server state.
  */
-export const READ_ACTIONS = ["list", "get", "help", "schema", "context"] as const;
+export const READ_ACTIONS = ["list", "get", "resolve", "help", "schema", "context"] as const;
 
 /**
  * Write actions — operations that modify server state.
@@ -92,6 +92,11 @@ const SHARED_INPUT_PROPERTIES = {
     type: "boolean" as const,
     description: "Compact output (default: true for list, false for get)",
   },
+  query: {
+    type: "string" as const,
+    description:
+      "Search query for resolve action (matches by name, case-insensitive partial match)",
+  },
 };
 
 /**
@@ -112,6 +117,7 @@ const FORGE_READ_TOOL: Tool = {
     "Server operations require id. Site operations require server_id.",
     "Deployment operations require server_id and site_id.",
     "Batch: use resource=batch action=run with an operations array to execute multiple reads in one call.",
+    "resolve: find resources by name (partial, case-insensitive) — provide query field.",
   ].join("\n"),
   annotations: {
     title: "Laravel Forge",
