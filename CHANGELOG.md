@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.2.3 - 2026.02.27
+
+### Added
+
+- **MCP**: Add OAuth 2.1 with PKCE support for Claude Desktop compatibility — stateless design using AES-256-GCM encrypted tokens, no server-side storage required [[#67], [4200898]]
+- **MCP**: Add `/.well-known/oauth-authorization-server` (RFC 8414), `/.well-known/oauth-protected-resource` (RFC 9728), `/register` (RFC 7591), `/authorize`, `/token` endpoints [[#67], [4200898]]
+- **MCP**: Add `WWW-Authenticate` header on 401 responses pointing to protected resource metadata [[#67], [4200898]]
+- **MCP**: Add `OAUTH_SECRET` env var for AES-256-GCM encryption key [[#67], [4200898]]
+- **MCP**: Support base64-encoded OAuth access tokens in `parseAuthHeader` (backwards compatible with raw tokens) [[#67], [4200898]]
+
+[#67]: https://github.com/studiometa/forge-tools/pull/67
+[4200898]: https://github.com/studiometa/forge-tools/commit/4200898
+
 ## 0.2.2 - 2026.02.27
 
 ### Fixed
