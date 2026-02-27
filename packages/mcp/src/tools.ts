@@ -82,11 +82,14 @@ const SHARED_INPUT_PROPERTIES = {
     description: "Forge resource to operate on",
   },
   id: { type: "string" as const, description: "Resource ID (for get, delete, update actions)" },
-  server_id: { type: "string" as const, description: "Server ID (required for most resources)" },
-  site_id: {
+  server_id: {
     type: "string" as const,
     description:
-      "Site ID (required for site-level resources: deployments, env, certificates, etc.)",
+      "Server ID or name (names are auto-resolved via partial match, requires unique match)",
+  },
+  site_id: {
+    type: "string" as const,
+    description: "Site ID or domain name (auto-resolved via partial match, requires server_id)",
   },
   compact: {
     type: "boolean" as const,
