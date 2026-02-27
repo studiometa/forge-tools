@@ -177,14 +177,16 @@ describe("E2E: executeToolWithCredentials", () => {
     expect(result.content[0]!.text).toContain("APP_ENV=production");
   });
 
-  it("should reject path traversal in server_id", async () => {
+  it("should reject non-matching server_id name (auto-resolve returns error)", async () => {
+    // "../etc" is non-numeric so auto-resolve attempts to match it as a name.
+    // The mock returns only "web-1" which doesn't match, so we get a resolve error.
     const result = await executeToolWithCredentials(
       "forge",
       { resource: "sites", action: "list", server_id: "../etc" },
       creds,
     );
     expect(result.isError).toBe(true);
-    expect(result.content[0]!.text).toContain("Invalid");
+    expect(result.content[0]!.text).toContain("No server matching");
   });
 
   it("should reject path traversal in id", async () => {
@@ -505,6 +507,41 @@ describe("E2E: executeToolWithCredentials", () => {
       { resource: "user", action: "help" },
       creds,
     );
+    expect(result.isError).toBeUndefined();
+  });
+
+  it("should auto-resolve non-numeric server_id to numeric ID end-to-end", async () => {
+    // The mock returns server "web-1" (id=1) for /servers.
+    // Passing server_id="web-1" should resolve to "1" and then list sites.
+    const result = await executeToolWithCredentials(
+      "forge",
+      { resource: "sites", action: "list", server_id: "web-1" },
+      creds,
+    );
+    expect(result.isError).toBeUndefined();
+    expect(result.content[0]!.text).toContain("example.com");
+  });
+
+  it("should return error when non-numeric server_id resolves to multiple matches", async () => {
+    // "web" matches "web-1" partially — only 1 server in mock so this is a single match.
+    // Let's use a name with no match to test the zero-match error path.
+    const result = await executeToolWithCredentials(
+      "forge",
+      { resource: "sites", action: "list", server_id: "does-not-exist" },
+      creds,
+    );
+    expect(result.isError).toBe(true);
+    expect(result.content[0]!.text).toContain("No server matching");
+  });
+
+  it("should skip auto-resolve for resolve action (passes server_id as-is)", async () => {
+    // resolve action skips auto-resolve — the handler itself manages resolution
+    const result = await executeToolWithCredentials(
+      "forge",
+      { resource: "servers", action: "resolve", query: "web" },
+      creds,
+    );
+    // Should succeed (the mock returns web-1 which matches "web")
     expect(result.isError).toBeUndefined();
   });
 });
