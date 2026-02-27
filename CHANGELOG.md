@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.2.2 - 2026.02.27
+
+### Fixed
+
+- **MCP**: Make dist entry points executable so npx can invoke them directly [[#65], [c4391f5]]
+
+[#65]: https://github.com/studiometa/forge-tools/pull/65
+[c4391f5]: https://github.com/studiometa/forge-tools/commit/c4391f5
+
 ## 0.2.1 - 2026.02.27
 
 ### Fixed
