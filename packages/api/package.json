@@ -1,6 +1,6 @@
 {
   "name": "@studiometa/forge-api",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "Laravel Forge API client — HTTP client, types, config storage, and rate limiting",
   "keywords": [
     "api",
