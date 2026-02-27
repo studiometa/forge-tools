@@ -28,11 +28,12 @@ console.log(result.data); // ForgeServer[]
 ```typescript
 import { RESOURCES, ACTIONS } from "@studiometa/forge-core";
 
-// RESOURCES: ['servers', 'sites', 'deployments', 'certificates', 'databases', 'daemons',
-//   'env', 'nginx', 'firewall-rules', 'ssh-keys', 'security-rules', 'redirect-rules',
-//   'nginx-templates', 'monitors', 'recipes']
+// RESOURCES: ['servers', 'sites', 'deployments', 'certificates', 'databases',
+//   'database-users', 'daemons', 'env', 'nginx', 'firewall-rules', 'ssh-keys',
+//   'security-rules', 'redirect-rules', 'nginx-templates', 'monitors', 'recipes',
+//   'backups', 'commands', 'scheduled-jobs', 'user', 'batch']
 // ACTIONS: ['list', 'get', 'create', 'update', 'delete', 'deploy', 'reboot', 'restart',
-//   'activate', 'run', 'help', 'schema']
+//   'activate', 'run', 'resolve', 'help', 'schema', 'context']
 ```
 
 ## Executors
@@ -44,6 +45,7 @@ import { RESOURCES, ACTIONS } from "@studiometa/forge-core";
 - `createServer(data, ctx)` — Create a server
 - `deleteServer({ server_id }, ctx)` — Delete a server
 - `rebootServer({ server_id }, ctx)` — Reboot a server
+- `resolveServers({ query }, ctx)` — Resolve servers by name (partial, case-insensitive); returns `ResolveResult` with `query`, `matches` (`id` + `name`), and `total`
 
 ### Sites
 
@@ -51,6 +53,7 @@ import { RESOURCES, ACTIONS } from "@studiometa/forge-core";
 - `getSite({ server_id, site_id }, ctx)` — Get a site
 - `createSite({ server_id, ...data }, ctx)` — Create a site
 - `deleteSite({ server_id, site_id }, ctx)` — Delete a site
+- `resolveSites({ server_id, query }, ctx)` — Resolve sites by domain name (partial, case-insensitive); returns `ResolveSiteResult` with `query`, `matches` (`id` + `name`), and `total`
 
 ### Deployments
 
@@ -69,6 +72,10 @@ import { RESOURCES, ACTIONS } from "@studiometa/forge-core";
 ### Databases
 
 - `listDatabases`, `getDatabase`, `createDatabase`, `deleteDatabase`
+
+### Database Users
+
+- `listDatabaseUsers`, `getDatabaseUser`, `createDatabaseUser`, `deleteDatabaseUser`
 
 ### Daemons
 
@@ -101,6 +108,47 @@ import { RESOURCES, ACTIONS } from "@studiometa/forge-core";
 ### Recipes
 
 - `listRecipes`, `getRecipe`, `createRecipe`, `deleteRecipe`, `runRecipe`
+
+### Backups
+
+- `listBackupConfigs`, `getBackupConfig`, `createBackupConfig`, `deleteBackupConfig`
+
+### Commands
+
+- `listCommands`, `getCommand`, `createCommand`
+
+### Scheduled Jobs
+
+- `listScheduledJobs`, `getScheduledJob`, `createScheduledJob`, `deleteScheduledJob`
+
+### User
+
+- `getUser(options, ctx)` — Get the authenticated user's profile
+
+## Utilities
+
+### `matchByName(items, query, getName)`
+
+Case-insensitive exact and partial name matching — used internally by `resolveServers` and `resolveSites`, but exported for reuse:
+
+```typescript
+import { matchByName } from "@studiometa/forge-core";
+
+const result = matchByName(servers, "my-server", (s) => s.name);
+// result.exact  — items whose name matches exactly (case-insensitive)
+// result.partial — items whose name contains the query (includes exact matches)
+```
+
+**Signature:**
+
+```typescript
+function matchByName<T>(items: T[], query: string, getName: (item: T) => string): NameMatch<T>;
+
+interface NameMatch<T> {
+  exact: T[];
+  partial: T[];
+}
+```
 
 ## Audit Logging
 

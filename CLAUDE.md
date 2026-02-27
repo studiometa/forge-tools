@@ -27,18 +27,20 @@ Instructions for AI agents contributing to this codebase.
   - `npm run version:patch` — bump patch
   - `npm run version:minor` — bump minor
   - `npm run version:major` — bump major
-- All 4 packages share the same version
+- All 5 packages share the same version
 - Version is injected at build time from package.json via `versionDefine()`
 
 ## Architecture
 
-4-package monorepo with clean dependency layering:
+5-package monorepo with clean dependency layering:
 
 ```
 forge-api   → (nothing)       # HTTP client, types, config, rate limiter
 forge-sdk   → forge-api       # PUBLIC: fluent chainable SDK (the hero package)
-forge-core  → forge-api       # Executors with DI for MCP
+forge-core  → forge-api       # Executors with DI for MCP and CLI
 forge-mcp   → forge-core      # MCP server (stdio transport)
+            → forge-api
+forge-cli   → forge-core      # CLI tool (human + AI agent use)
             → forge-api
 ```
 
@@ -46,8 +48,9 @@ forge-mcp   → forge-core      # MCP server (stdio transport)
 
 - **forge-api** (`packages/api`): `HttpClient` class (internal), TypeScript types for all Forge resources, `ForgeApiError`, `RateLimiter` (60 req/min sliding window + exponential backoff), `ConfigStore` (XDG-compliant config storage). Zero runtime dependencies. Node 18+ target (wide adoption).
 - **forge-sdk** (`packages/sdk`): `Forge` class with fluent chainable API (`forge.servers(123).sites(456).deploy()`). Thin wrapper over forge-api — delegates all HTTP. JSDoc on every public method. The hero package with standalone README.
-- **forge-core** (`packages/core`): Pure executor functions `(options, context) → ExecutorResult<T>`, `ExecutorContext` with DI, centralized constants (`RESOURCES`, `ACTIONS`). Same pattern as productive-core.
-- **forge-mcp** (`packages/mcp`): Two MCP tools — `forge` (read-only: `list`, `get`, `help`, `schema`) and `forge_write` (destructive: `create`, `update`, `delete`, `deploy`, `reboot`, etc.) with `resource` + `action` routing, `createResourceHandler()` factory, stdio and HTTP transports.
+- **forge-core** (`packages/core`): Pure executor functions `(options, context) → ExecutorResult<T>`, `ExecutorContext` with DI, centralized constants (`RESOURCES`, `ACTIONS`). Includes `matchByName` helper for auto-resolving resource names to numeric IDs. Same pattern as productive-core.
+- **forge-mcp** (`packages/mcp`): Two MCP tools — `forge` (read-only: `list`, `get`, `resolve`, `context`, `help`, `schema`) and `forge_write` (destructive: `create`, `update`, `delete`, `deploy`, `reboot`, `restart`, `activate`, `run`) with `resource` + `action` routing, `createResourceHandler()` factory, stdio and HTTP transports. Supports `batch` resource for multi-action calls. Auto-resolve middleware translates name strings to numeric IDs before dispatching.
+- **forge-cli** (`packages/cli`): CLI tool for managing Forge servers, sites, and more. Human-friendly output by default, `--format json` for scripting and AI agent use.
 
 ### Key Design Principles
 

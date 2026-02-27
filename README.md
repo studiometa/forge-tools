@@ -89,8 +89,14 @@ Add to your Claude Desktop config:
 
 Two tools with a clear safety split:
 
-- **`forge`** — read-only operations (`list`, `get`, `help`, `schema`) — auto-approvable
-- **`forge_write`** — write operations (`create`, `delete`, `deploy`, `reboot`, etc.) — always requires confirmation
+- **`forge`** — read-only operations (`list`, `get`, `resolve`, `context`, `help`, `schema`) — auto-approvable
+- **`forge_write`** — write operations (`create`, `update`, `delete`, `deploy`, `reboot`, `restart`, `activate`, `run`, `batch`, etc.) — always requires confirmation
+
+Key MCP features:
+
+- **Auto-resolve** — pass a server/site name instead of a numeric ID and the MCP server resolves it automatically
+- **Batch operations** — use the `batch` resource to run multiple actions in a single tool call
+- **Context dump** — the `context` action returns a structured snapshot of your Forge account for fast AI reasoning
 
 For a read-only setup (no writes possible), use `"args": ["--read-only"]` or `FORGE_READ_ONLY=true`.
 

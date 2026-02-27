@@ -71,13 +71,17 @@ When enabled, the `forge_write` tool is not registered at all — only `forge`, 
 
 Safe, read-only queries. Annotated `readOnlyHint: true` so MCP clients can auto-approve.
 
-**Actions**: `list`, `get`, `help`, `schema`
+**Actions**: `list`, `get`, `resolve`, `context`, `help`, `schema`
 
 ```json
 { "resource": "servers", "action": "list" }
 { "resource": "servers", "action": "get", "id": "123" }
 { "resource": "sites", "action": "list", "server_id": "123" }
 { "resource": "servers", "action": "help" }
+{ "resource": "servers", "action": "resolve", "query": "prod" }
+{ "resource": "servers", "action": "context", "id": "123" }
+{ "resource": "sites", "action": "context", "server_id": "123", "id": "456" }
+{ "resource": "batch", "action": "run", "operations": [{ "resource": "servers", "action": "list" }, { "resource": "recipes", "action": "list" }] }
 ```
 
 ### `forge_write` — Write Operations
@@ -95,31 +99,69 @@ Mutating operations. Annotated `destructiveHint: true` so MCP clients always pro
 
 ### Resources & Actions
 
-| Resource        | Read Actions | Write Actions            | Required Fields            |
-| --------------- | ------------ | ------------------------ | -------------------------- |
-| servers         | list, get    | create, delete, reboot   | id (for get/delete/reboot) |
-| sites           | list, get    | create, delete           | server_id                  |
-| deployments     | list         | deploy, update           | server_id, site_id         |
-| env             | get          | update                   | server_id, site_id         |
-| nginx           | get          | update                   | server_id, site_id         |
-| certificates    | list, get    | create, delete, activate | server_id, site_id         |
-| databases       | list, get    | create, delete           | server_id                  |
-| daemons         | list, get    | create, delete, restart  | server_id                  |
-| firewall-rules  | list, get    | create, delete           | server_id                  |
-| ssh-keys        | list, get    | create, delete           | server_id                  |
-| security-rules  | list, get    | create, delete           | server_id, site_id         |
-| redirect-rules  | list, get    | create, delete           | server_id, site_id         |
-| monitors        | list, get    | create, delete           | server_id                  |
-| nginx-templates | list, get    | create, update, delete   | server_id                  |
-| recipes         | list, get    | create, delete, run      | id (for get/delete/run)    |
+| Resource        | Read Actions                | Write Actions            | Required Fields            |
+| --------------- | --------------------------- | ------------------------ | -------------------------- |
+| servers         | list, get, resolve, context | create, delete, reboot   | id (for get/delete/reboot) |
+| sites           | list, get, resolve, context | create, delete           | server_id                  |
+| deployments     | list, get                   | deploy, update           | server_id, site_id         |
+| env             | get                         | update                   | server_id, site_id         |
+| nginx           | get                         | update                   | server_id, site_id         |
+| certificates    | list, get                   | create, delete, activate | server_id, site_id         |
+| databases       | list, get                   | create, delete           | server_id                  |
+| database-users  | list, get                   | create, delete           | server_id                  |
+| daemons         | list, get                   | create, delete, restart  | server_id                  |
+| firewall-rules  | list, get                   | create, delete           | server_id                  |
+| ssh-keys        | list, get                   | create, delete           | server_id                  |
+| security-rules  | list, get                   | create, delete           | server_id, site_id         |
+| redirect-rules  | list, get                   | create, delete           | server_id, site_id         |
+| monitors        | list, get                   | create, delete           | server_id                  |
+| nginx-templates | list, get                   | create, update, delete   | server_id                  |
+| scheduled-jobs  | list, get                   | create, delete           | server_id                  |
+| backups         | list, get                   | create, delete           | server_id                  |
+| commands        | list, get                   | create                   | server_id, site_id         |
+| recipes         | list, get                   | create, delete, run      | id (for get/delete/run)    |
+| user            | get                         | —                        | —                          |
+| batch           | run                         | —                        | operations array           |
+
+### Auto-Resolve: Names Instead of IDs
+
+The `server_id` and `site_id` fields accept **names** in addition to numeric IDs. When a non-numeric value is provided, it is resolved automatically via partial, case-insensitive match against the list of resources.
+
+- `server_id: "prod"` → resolves to the server whose name contains "prod" (must be unique)
+- `site_id: "example"` → resolves to the site whose domain contains "example" (requires `server_id`)
+
+Use `action: "resolve"` explicitly when you want to search before committing to an ID:
+
+```json
+{ "resource": "servers", "action": "resolve", "query": "prod" }
+{ "resource": "sites", "action": "resolve", "server_id": "123", "query": "example" }
+```
+
+Resolution fails (and returns an error) when the query matches zero or more than one resource — in that case, use the numeric ID directly.
 
 ### Discovery
 
-Use `action: "help"` with any resource:
+Use `action: "help"` with any resource, or `action: "context"` to fetch a resource and all its sub-resources in one call:
 
 ```json
 { "resource": "servers", "action": "help" }
 { "resource": "deployments", "action": "help" }
+{ "resource": "servers", "action": "context", "id": "123" }
+{ "resource": "sites", "action": "context", "server_id": "123", "id": "456" }
+```
+
+Use `resource: "batch"` to fan out multiple reads in a single round-trip (max 10 operations):
+
+```json
+{
+  "resource": "batch",
+  "action": "run",
+  "operations": [
+    { "resource": "servers", "action": "list" },
+    { "resource": "sites", "action": "list", "server_id": "123" },
+    { "resource": "recipes", "action": "list" }
+  ]
+}
 ```
 
 ## Stdio-Only Tools

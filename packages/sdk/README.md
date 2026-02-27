@@ -48,6 +48,7 @@ forge.servers.create({ ... })           // Create a server
 forge.servers.update(id, { ... })       // Update a server
 forge.servers.delete(id)                // Delete a server
 forge.servers.reboot(id)                // Reboot a server
+forge.servers.resolve('prod')           // Find servers by name
 
 // Resource with nested access
 forge.server(id).get()                  // Get server details
@@ -56,6 +57,26 @@ forge.server(id).delete()               // Delete server
 forge.server(id).sites.list()           // List sites on server
 forge.server(id).databases.list()       // List databases
 forge.server(id).daemons.list()         // List daemons
+```
+
+#### `servers.resolve(query)`
+
+Find servers by name using **case-insensitive partial matching**. If exactly one server matches the query exactly (whole name), only that server is returned — otherwise all partial matches are returned.
+
+```typescript
+const result = await forge.servers.resolve("prod");
+// → { query: 'prod', matches: [{ id: 725393, name: 'wilo-grove-prod' }], total: 1 }
+
+if (result.total === 1) {
+  const sites = await forge.server(result.matches[0].id).sites.list();
+} else if (result.total === 0) {
+  console.error("No server found for:", result.query);
+} else {
+  console.error(
+    "Ambiguous query, matched:",
+    result.matches.map((m) => m.name),
+  );
+}
 ```
 
 ### Sites
@@ -67,6 +88,7 @@ forge.server(id).sites.get(siteId)      // Get a site
 forge.server(id).sites.create({ domain: 'example.com', project_type: 'php' })
 forge.server(id).sites.update(siteId, { ... })
 forge.server(id).sites.delete(siteId)
+forge.server(id).sites.resolve('example') // Find sites by domain name
 
 // Resource with nested access
 forge.server(id).site(siteId).get()         // Get site details
@@ -76,6 +98,49 @@ forge.server(id).site(siteId).env.get()     // Get .env content
 forge.server(id).site(siteId).env.update('...')  // Update .env
 forge.server(id).site(siteId).nginx.get()   // Get Nginx config
 forge.server(id).site(siteId).nginx.update('...')  // Update Nginx
+```
+
+#### `sites.resolve(query)`
+
+Find sites by domain name using **case-insensitive partial matching**. Same priority logic as `servers.resolve()`: an exact match wins if there is exactly one, otherwise all partial matches are returned.
+
+```typescript
+const result = await forge.server(123).sites.resolve("example");
+// → { query: 'example', matches: [{ id: 456, name: 'example.com' }], total: 1 }
+
+if (result.total === 1) {
+  await forge.server(123).site(result.matches[0].id).deploy();
+} else if (result.total === 0) {
+  console.error("No site found for:", result.query);
+} else {
+  console.error(
+    "Ambiguous query, matched:",
+    result.matches.map((m) => m.name),
+  );
+}
+```
+
+### Types: `ResolveResult` and `ResolveMatch`
+
+Both `servers.resolve()` and `sites.resolve()` return a `ResolveResult`:
+
+```typescript
+interface ResolveMatch {
+  id: number; // Forge resource ID
+  name: string; // Server name or site domain
+}
+
+interface ResolveResult {
+  query: string; // The original search query
+  matches: ResolveMatch[]; // Matched resources (empty if none)
+  total: number; // Number of matches (0, 1, or many)
+}
+```
+
+Both types are exported from the package:
+
+```typescript
+import type { ResolveMatch, ResolveResult } from "@studiometa/forge-sdk";
 ```
 
 ### Deployments
@@ -159,13 +224,22 @@ import { Forge } from "@studiometa/forge-sdk";
 
 const forge = new Forge(process.env.FORGE_API_TOKEN);
 
-// Deploy after successful CI
-const sites = await forge.server(123).sites.list();
-const site = sites.find((s) => s.name === "myapp.com");
-if (site) {
-  await forge.server(123).site(site.id).deploy();
-  console.log("Deployment triggered!");
+// Deploy after successful CI using resolve() to find the server and site by name
+const serverResult = await forge.servers.resolve("prod");
+if (serverResult.total !== 1) {
+  console.error("Could not uniquely resolve server:", serverResult);
+  process.exit(1);
 }
+
+const serverId = serverResult.matches[0].id;
+const siteResult = await forge.server(serverId).sites.resolve("myapp.com");
+if (siteResult.total !== 1) {
+  console.error("Could not uniquely resolve site:", siteResult);
+  process.exit(1);
+}
+
+await forge.server(serverId).site(siteResult.matches[0].id).deploy();
+console.log("Deployment triggered!");
 ```
 
 ## Requirements
