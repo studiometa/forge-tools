@@ -507,4 +507,24 @@ describe("E2E: executeToolWithCredentials", () => {
     );
     expect(result.isError).toBeUndefined();
   });
+
+  it("should execute batch operations end-to-end", async () => {
+    const result = await executeToolWithCredentials(
+      "forge",
+      {
+        resource: "batch",
+        action: "run",
+        operations: [
+          { resource: "servers", action: "list" },
+          { resource: "sites", action: "list", server_id: "1" },
+        ],
+      },
+      creds,
+    );
+    expect(result.isError).toBeUndefined();
+    const data = JSON.parse(result.content[0]!.text);
+    expect(data._batch.total).toBe(2);
+    expect(data._batch.succeeded).toBe(2);
+    expect(data._batch.failed).toBe(0);
+  });
 });

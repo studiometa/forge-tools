@@ -81,6 +81,21 @@ describe("handleBatch", () => {
     expect(data.results).toEqual([]);
   });
 
+  it("should return error when operation is not an object", async () => {
+    const result = await handleBatch(
+      "run",
+      {
+        resource: "batch",
+        action: "run",
+        operations: [null],
+      } as CommonArgs,
+      mockCtx,
+      mockRouteToHandler,
+    );
+    expect(result.isError).toBe(true);
+    expect(result.content[0]!.text).toContain("must be an object");
+  });
+
   it("should return error when operation is missing resource field", async () => {
     const result = await handleBatch(
       "run",
