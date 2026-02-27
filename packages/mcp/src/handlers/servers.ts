@@ -10,9 +10,11 @@ import type { ForgeServer } from "@studiometa/forge-api";
 
 import { formatServer, formatServerList } from "../formatters.ts";
 import { getServerHints } from "../hints.ts";
+import { handleServerContext } from "./context.ts";
 import { createResourceHandler } from "./factory.ts";
+import type { CommonArgs, HandlerContext, ToolResult } from "./types.ts";
 
-export const handleServers = createResourceHandler({
+const _handleServers = createResourceHandler({
   resource: "servers",
   actions: ["list", "get", "create", "delete", "reboot"],
   requiredFields: {
@@ -69,3 +71,18 @@ export const handleServers = createResourceHandler({
     }
   },
 });
+
+/**
+ * Handle servers resource actions, intercepting the `context` action
+ * for rich single-call resource fetching.
+ */
+export async function handleServers(
+  action: string,
+  args: CommonArgs,
+  ctx: HandlerContext,
+): Promise<ToolResult> {
+  if (action === "context") {
+    return handleServerContext(args, ctx);
+  }
+  return _handleServers(action, args, ctx);
+}

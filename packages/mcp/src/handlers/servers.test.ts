@@ -144,4 +144,35 @@ describe("handleServers", () => {
     expect(parsed._hints).toBeDefined();
     expect(parsed._hints.related_resources).toBeDefined();
   });
+
+  it("should handle context action", async () => {
+    const ctx: HandlerContext = {
+      executorContext: {
+        client: {
+          get: async (url: string) => {
+            if (url.match(/\/servers\/\d+\/sites$/)) return { sites: [] };
+            if (url.match(/\/servers\/\d+\/databases$/)) return { databases: [] };
+            if (url.match(/\/servers\/\d+\/database-users$/)) return { users: [] };
+            if (url.match(/\/servers\/\d+\/daemons$/)) return { daemons: [] };
+            if (url.match(/\/servers\/\d+\/firewall-rules$/)) return { rules: [] };
+            if (url.match(/\/servers\/\d+\/scheduled-jobs$/)) return { jobs: [] };
+            if (url.match(/\/servers\/\d+$/))
+              return { server: { id: 1, name: "web-1", is_ready: true } };
+            return {};
+          },
+        } as never,
+      },
+      compact: false,
+    };
+    const result = await handleServers(
+      "context",
+      { resource: "servers", action: "context", id: "1" },
+      ctx,
+    );
+    expect(result.isError).toBeUndefined();
+    const data = JSON.parse(result.content[0]!.text);
+    expect(data.server).toBeDefined();
+    expect(data.sites).toBeDefined();
+    expect(data.databases).toBeDefined();
+  });
 });

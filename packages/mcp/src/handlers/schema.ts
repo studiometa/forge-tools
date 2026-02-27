@@ -23,13 +23,14 @@ interface ResourceSchemaData {
 
 const RESOURCE_SCHEMAS: Record<string, ResourceSchemaData> = {
   servers: {
-    actions: ["list", "get", "create", "delete", "reboot"],
+    actions: ["list", "get", "create", "delete", "reboot", "context"],
     scope: "global",
     required: {
       get: ["id"],
       create: ["provider", "type", "region", "name"],
       delete: ["id"],
       reboot: ["id"],
+      context: ["id"],
     },
     create: {
       provider: { required: true, type: "string — hetzner, ocean2, aws, etc." },
@@ -43,13 +44,14 @@ const RESOURCE_SCHEMAS: Record<string, ResourceSchemaData> = {
   },
 
   sites: {
-    actions: ["list", "get", "create", "delete"],
+    actions: ["list", "get", "create", "delete", "context"],
     scope: "server",
     required: {
       list: ["server_id"],
       get: ["server_id", "id"],
       create: ["server_id", "domain", "project_type"],
       delete: ["server_id", "id"],
+      context: ["server_id", "id"],
     },
     create: {
       domain: { required: true, type: "string — e.g. example.com" },
