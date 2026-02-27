@@ -15,6 +15,7 @@ import { createAuditLogger, RESOURCES } from "@studiometa/forge-core";
 import type { CommonArgs, HandlerContext, ToolResult } from "./types.ts";
 
 import { handleBackups } from "./backups.ts";
+import { handleBatch } from "./batch.ts";
 import { handleCertificates } from "./certificates.ts";
 import { handleCommands } from "./commands.ts";
 import { handleDaemons } from "./daemons.ts";
@@ -104,6 +105,8 @@ function routeToHandler(
       return handleScheduledJobs(action, args, ctx);
     case "user":
       return handleUser(action, args, ctx);
+    case "batch":
+      return handleBatch(action, args, ctx, routeToHandler);
     /* v8 ignore next 6 -- all valid resources are handled above; unreachable in practice */
     default:
       return Promise.resolve(
@@ -129,6 +132,30 @@ export async function executeToolWithCredentials(
 
   if (!resource || !action) {
     return errorResult('Missing required fields: "resource" and "action".');
+  }
+
+  // Batch resource is read-only even though it uses the "run" action name.
+  // Handle it early, before the write-action guard, to avoid misdirection.
+  if (resource === "batch") {
+    // Validate batch is only called from the forge (read) tool
+    if (name !== "forge") {
+      return errorResult(
+        'The "batch" resource is read-only and must be used with the "forge" tool, not "forge_write".',
+      );
+    }
+    // Validate resource is known before creating context
+    const client = new HttpClient({ token: credentials.apiToken });
+    const executorContext: ExecutorContext = { client };
+    const handlerContext: HandlerContext = {
+      executorContext,
+      compact: compact ?? true,
+    };
+    return routeToHandler(
+      resource,
+      action,
+      { resource, action, ...rest } as CommonArgs,
+      handlerContext,
+    );
   }
 
   // Validate action matches the tool

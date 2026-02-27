@@ -631,6 +631,31 @@ const RESOURCE_HELP: Record<string, ResourceHelp> = {
     ],
   },
 
+  batch: {
+    description:
+      "Execute multiple read operations in a single call — reduces round-trips for AI agents",
+    scope: "global (no parent ID needed)",
+    actions: {
+      run: "Execute a batch of read operations in parallel (max 10)",
+    },
+    fields: {
+      operations: "Array of operations [{resource, action, ...params}] (max 10)",
+    },
+    examples: [
+      {
+        description: "Batch: list servers + list sites on a server",
+        params: {
+          resource: "batch",
+          action: "run",
+          operations: [
+            { resource: "servers", action: "list" },
+            { resource: "sites", action: "list", server_id: "123" },
+          ],
+        },
+      },
+    ],
+  },
+
   recipes: {
     description:
       "Manage and run server recipes — reusable bash scripts executed on one or more servers",

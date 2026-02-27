@@ -23,6 +23,7 @@ export const RESOURCES = [
   "commands",
   "scheduled-jobs",
   "user",
+  "batch",
 ] as const;
 
 export type Resource = (typeof RESOURCES)[number];

@@ -111,6 +111,7 @@ const FORGE_READ_TOOL: Tool = {
     "Context: action=context on servers or sites fetches all sub-resources in one call.",
     "Server operations require id. Site operations require server_id.",
     "Deployment operations require server_id and site_id.",
+    "Batch: use resource=batch action=run with an operations array to execute multiple reads in one call.",
   ].join("\n"),
   annotations: {
     title: "Laravel Forge",
@@ -127,6 +128,19 @@ const FORGE_READ_TOOL: Tool = {
         type: "string" as const,
         enum: [...READ_ACTIONS],
         description: 'Read action to perform. Use "help" for resource documentation.',
+      },
+      operations: {
+        type: "array" as const,
+        description:
+          "Array of operations for batch execution (max 10). Each operation needs resource, action, and any additional params.",
+        items: {
+          type: "object" as const,
+          properties: {
+            resource: { type: "string" as const },
+            action: { type: "string" as const },
+          },
+          required: ["resource", "action"],
+        },
       },
     },
     required: ["resource", "action"],

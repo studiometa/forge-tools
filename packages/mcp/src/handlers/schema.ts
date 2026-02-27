@@ -316,6 +316,14 @@ const RESOURCE_SCHEMAS: Record<string, ResourceSchemaData> = {
     required: {},
   },
 
+  batch: {
+    actions: ["run"],
+    scope: "global",
+    required: {
+      run: ["operations"],
+    },
+  },
+
   recipes: {
     actions: ["list", "get", "create", "delete", "run"],
     scope: "global",
