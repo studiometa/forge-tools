@@ -5,6 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Added
+
+- **MCP**: Add `context` action for servers and sites — fetch resource with all related sub-resources in a single call [[#71], [c58145e]]
+- **MCP**: Add `resolve` action for servers and sites — name-based lookup with partial case-insensitive matching [[#72], [56ae8a9]]
+- **MCP**: Add `batch` resource with `run` action — execute up to 10 read operations in parallel with isolated error handling [[#73], [01cbf8a]]
+- **MCP**: Add auto-resolve middleware — non-numeric `server_id`/`site_id` values are transparently resolved to IDs by name [[#81], [d245035]]
+- **SDK**: Add `resolve()` method to `ServersCollection` and `SitesCollection` for name-based resource lookup [[#78], [9714cf5]]
+- **Core**: Extract `matchByName()` utility for shared exact/partial name matching logic [[#80], [4391239]]
+
+[#71]: https://github.com/studiometa/forge-tools/pull/71
+[c58145e]: https://github.com/studiometa/forge-tools/commit/c58145e
+[#72]: https://github.com/studiometa/forge-tools/pull/72
+[56ae8a9]: https://github.com/studiometa/forge-tools/commit/56ae8a9
+[#73]: https://github.com/studiometa/forge-tools/pull/73
+[01cbf8a]: https://github.com/studiometa/forge-tools/commit/01cbf8a
+[#78]: https://github.com/studiometa/forge-tools/pull/78
+[9714cf5]: https://github.com/studiometa/forge-tools/commit/9714cf5
+[#80]: https://github.com/studiometa/forge-tools/pull/80
+[4391239]: https://github.com/studiometa/forge-tools/commit/4391239
+[#81]: https://github.com/studiometa/forge-tools/pull/81
+[d245035]: https://github.com/studiometa/forge-tools/commit/d245035
+
 ## 0.2.3 - 2026.02.27
 
 ### Added
