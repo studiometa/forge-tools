@@ -4,6 +4,7 @@ import { HttpClient } from "@studiometa/forge-api";
 
 import { AsyncPaginatedIterator } from "../pagination.ts";
 import { SitesCollection, SiteResource, SiteEnvResource, SiteNginxResource } from "./sites.ts";
+import type { ResolveResult } from "./servers.ts";
 import { DeploymentsCollection } from "./deployments.ts";
 import { CertificatesCollection } from "./certificates.ts";
 import { CommandsCollection } from "./commands.ts";
@@ -42,6 +43,20 @@ function createTrackingClient(): {
   });
 
   return { client, calls };
+}
+
+function createClient(body: unknown = {}): HttpClient {
+  return new HttpClient({
+    token: "test",
+    fetch: async () =>
+      ({
+        ok: true,
+        status: 200,
+        headers: new Headers({ "content-type": "application/json" }),
+        json: async () => body,
+        text: async () => JSON.stringify(body),
+      }) as Response,
+  });
 }
 
 describe("SitesCollection", () => {
@@ -119,6 +134,62 @@ describe("SitesCollection", () => {
     expect(results).toHaveLength(201);
     expect(listSpy).toHaveBeenCalledWith({ page: 1 });
     expect(listSpy).toHaveBeenCalledWith({ page: 2 });
+  });
+
+  describe("resolve", () => {
+    it("should resolve sites by partial name", async () => {
+      const client = createClient({
+        sites: [
+          { id: 1, name: "example.com" },
+          { id: 2, name: "example.org" },
+          { id: 3, name: "staging.test.com" },
+        ],
+      });
+      const collection = new SitesCollection(client, 123);
+      const result: ResolveResult = await collection.resolve("example");
+
+      expect(result.query).toBe("example");
+      expect(result.total).toBe(2);
+      expect(result.matches).toEqual([
+        { id: 1, name: "example.com" },
+        { id: 2, name: "example.org" },
+      ]);
+    });
+
+    it("should return exact match as single result", async () => {
+      const client = createClient({
+        sites: [
+          { id: 1, name: "example.com" },
+          { id: 2, name: "example.com.extra" },
+        ],
+      });
+      const collection = new SitesCollection(client, 123);
+      const result = await collection.resolve("example.com");
+
+      expect(result.total).toBe(1);
+      expect(result.matches[0]!.id).toBe(1);
+    });
+
+    it("should return empty for no matches", async () => {
+      const client = createClient({
+        sites: [{ id: 1, name: "example.com" }],
+      });
+      const collection = new SitesCollection(client, 123);
+      const result = await collection.resolve("unknown");
+
+      expect(result.total).toBe(0);
+      expect(result.matches).toEqual([]);
+    });
+
+    it("should be case insensitive", async () => {
+      const client = createClient({
+        sites: [{ id: 1, name: "Example.Com" }],
+      });
+      const collection = new SitesCollection(client, 123);
+      const result = await collection.resolve("example");
+
+      expect(result.total).toBe(1);
+    });
   });
 });
 

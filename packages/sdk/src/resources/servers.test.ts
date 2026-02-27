@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import { HttpClient } from "@studiometa/forge-api";
 
 import { AsyncPaginatedIterator } from "../pagination.ts";
-import { ServersCollection, ServerResource } from "./servers.ts";
+import { ServersCollection, ServerResource, type ResolveResult } from "./servers.ts";
 import { SitesCollection, SiteResource } from "./sites.ts";
 import { DatabasesCollection } from "./databases.ts";
 import { DatabaseUsersCollection } from "./database-users.ts";
@@ -151,6 +151,58 @@ describe("ServersCollection", () => {
     expect(results).toHaveLength(201);
     expect(listSpy).toHaveBeenCalledWith({ page: 1 });
     expect(listSpy).toHaveBeenCalledWith({ page: 2 });
+  });
+
+  describe("resolve", () => {
+    it("should resolve servers by partial name", async () => {
+      const client = createClient({
+        servers: [
+          { id: 1, name: "prod-web-1" },
+          { id: 2, name: "prod-web-2" },
+          { id: 3, name: "staging-web-1" },
+        ],
+      });
+      const collection = new ServersCollection(client);
+      const result: ResolveResult = await collection.resolve("prod");
+
+      expect(result.query).toBe("prod");
+      expect(result.total).toBe(2);
+      expect(result.matches).toEqual([
+        { id: 1, name: "prod-web-1" },
+        { id: 2, name: "prod-web-2" },
+      ]);
+    });
+
+    it("should return exact match as single result", async () => {
+      const client = createClient({
+        servers: [
+          { id: 1, name: "prod" },
+          { id: 2, name: "prod-extra" },
+        ],
+      });
+      const collection = new ServersCollection(client);
+      const result = await collection.resolve("prod");
+
+      expect(result.total).toBe(1);
+      expect(result.matches[0]!.id).toBe(1);
+    });
+
+    it("should return empty for no matches", async () => {
+      const client = createClient({ servers: [{ id: 1, name: "prod-web-1" }] });
+      const collection = new ServersCollection(client);
+      const result = await collection.resolve("unknown");
+
+      expect(result.total).toBe(0);
+      expect(result.matches).toEqual([]);
+    });
+
+    it("should be case insensitive", async () => {
+      const client = createClient({ servers: [{ id: 1, name: "Prod-Web-1" }] });
+      const collection = new ServersCollection(client);
+      const result = await collection.resolve("prod");
+
+      expect(result.total).toBe(1);
+    });
   });
 });
 

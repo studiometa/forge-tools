@@ -34,7 +34,7 @@ export type { ScheduledJobListOptions } from "./resources/scheduled-jobs.ts";
 export { SecurityRulesCollection } from "./resources/security-rules.ts";
 export type { SecurityRuleListOptions } from "./resources/security-rules.ts";
 export { ServersCollection, ServerResource } from "./resources/servers.ts";
-export type { ServerListOptions } from "./resources/servers.ts";
+export type { ServerListOptions, ResolveMatch, ResolveResult } from "./resources/servers.ts";
 export { SshKeysCollection } from "./resources/ssh-keys.ts";
 export type { SshKeyListOptions } from "./resources/ssh-keys.ts";
 export {
