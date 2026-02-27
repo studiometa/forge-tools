@@ -99,6 +99,7 @@ export async function handleBatch(
           action: opAction,
           error:
             toolResult.structuredContent?.["error"] ??
+            /* v8 ignore next */
             toolResult.content[0]?.text ??
             "Unknown error",
         };
