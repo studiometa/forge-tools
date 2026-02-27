@@ -1,6 +1,19 @@
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { deleteToken, setToken } from "@studiometa/forge-api";
+// Mock forge-api config functions to prevent real filesystem access.
+// Uses importOriginal to preserve non-config exports (HttpClient, etc.)
+// that are needed by the handler layer.
+const mockGetToken = vi.fn<() => string | null>(() => null);
+const mockSetToken = vi.fn();
+
+vi.mock("@studiometa/forge-api", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@studiometa/forge-api")>();
+  return {
+    ...actual,
+    getToken: () => mockGetToken(),
+    setToken: (token: string) => mockSetToken(token),
+  };
+});
 
 import {
   getAvailableTools,
@@ -30,6 +43,10 @@ describe("getAvailableTools", () => {
 });
 
 describe("handleConfigureTool", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   afterEach(() => {
     delete process.env.FORGE_API_TOKEN;
   });
@@ -76,12 +93,12 @@ describe("handleConfigureTool", () => {
 describe("handleGetConfigTool", () => {
   beforeEach(() => {
     delete process.env.FORGE_API_TOKEN;
-    deleteToken();
+    vi.clearAllMocks();
+    mockGetToken.mockReturnValue(null);
   });
 
   afterEach(() => {
     delete process.env.FORGE_API_TOKEN;
-    deleteToken();
   });
 
   it("should show not configured when no token", () => {
@@ -98,8 +115,8 @@ describe("handleGetConfigTool", () => {
     });
   });
 
-  it("should show masked token when env var is set", () => {
-    process.env.FORGE_API_TOKEN = "env-token-5678";
+  it("should show masked token when token is available", () => {
+    mockGetToken.mockReturnValue("env-token-5678");
     const result = handleGetConfigTool();
     const text = result.content[0]!.text;
     expect(text).toContain("***5678");
@@ -107,7 +124,7 @@ describe("handleGetConfigTool", () => {
   });
 
   it("should include structuredContent when configured", () => {
-    process.env.FORGE_API_TOKEN = "env-token-5678";
+    mockGetToken.mockReturnValue("env-token-5678");
     const result = handleGetConfigTool();
     expect(result.structuredContent).toEqual({
       apiToken: "***5678",
@@ -119,12 +136,12 @@ describe("handleGetConfigTool", () => {
 describe("handleToolCall", () => {
   beforeEach(() => {
     delete process.env.FORGE_API_TOKEN;
-    deleteToken();
+    vi.clearAllMocks();
+    mockGetToken.mockReturnValue(null);
   });
 
   afterEach(() => {
     delete process.env.FORGE_API_TOKEN;
-    deleteToken();
   });
 
   it("should route forge_configure", async () => {
@@ -154,14 +171,14 @@ describe("handleToolCall", () => {
   });
 
   it("should delegate forge to executeToolWithCredentials with token", async () => {
-    setToken("test-token-5678");
+    mockGetToken.mockReturnValue("test-token-5678");
     const result = await handleToolCall("forge", { resource: "servers", action: "help" });
     expect(result.isError).toBeUndefined();
     expect(result.content[0]!.text).toContain("servers");
   });
 
   it("should delegate forge_write to executeToolWithCredentials with token", async () => {
-    setToken("test-token-5678");
+    mockGetToken.mockReturnValue("test-token-5678");
     // Use help via forge first, then try a write action
     // The write action will fail at the executor level (no real API), but the routing works
     const result = await handleToolCall("forge_write", {
@@ -190,7 +207,7 @@ describe("handleToolCall", () => {
   });
 
   it("should reject forge_write in read-only mode", async () => {
-    setToken("test-token-5678");
+    mockGetToken.mockReturnValue("test-token-5678");
     const result = await handleToolCall(
       "forge_write",
       { resource: "servers", action: "create" },
@@ -209,7 +226,7 @@ describe("handleToolCall", () => {
   });
 
   it("should allow forge reads in read-only mode", async () => {
-    setToken("test-token-5678");
+    mockGetToken.mockReturnValue("test-token-5678");
     const result = await handleToolCall(
       "forge",
       { resource: "servers", action: "help" },
