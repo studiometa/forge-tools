@@ -42,6 +42,7 @@ import { isForgeApiError } from "@studiometa/forge-api";
 import { isUserInputError } from "../errors.ts";
 import { isWriteAction, isReadAction } from "../tools.ts";
 import { errorResult } from "./utils.ts";
+import { autoResolveIds } from "./auto-resolve.ts";
 
 export type { ToolResult } from "./types.ts";
 
@@ -199,14 +200,17 @@ export async function executeToolWithCredentials(
     includeHints: action === "get",
   };
 
+  // Auto-resolve non-numeric server_id/site_id
+  const allArgs = { resource, action, ...rest } as CommonArgs;
+  const resolveResult = await autoResolveIds(allArgs, executorContext);
+  if (!resolveResult.ok) {
+    return resolveResult.error;
+  }
+  const resolvedArgs = resolveResult.args;
+
   // Route to resource handler with error catching
   try {
-    const result = await routeToHandler(
-      resource,
-      action,
-      { resource, action, ...rest } as CommonArgs,
-      handlerContext,
-    );
+    const result = await routeToHandler(resource, action, resolvedArgs, handlerContext);
     if (name === "forge_write") {
       getAuditLogger().log({
         source: "mcp",
