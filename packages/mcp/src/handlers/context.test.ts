@@ -131,4 +131,34 @@ describe("handleSiteContext", () => {
     expect(result.structuredContent).toBeDefined();
     expect(result.structuredContent?.success).toBe(true);
   });
+
+  it("handles non-array deployments data gracefully", async () => {
+    const ctx: HandlerContext = {
+      executorContext: {
+        client: {
+          get: async (url: string) => {
+            if (url.match(/\/servers\/\d+\/sites\/\d+\/deployments$/)) {
+              return { deployments: "none" }; // non-array
+            }
+            if (url.match(/\/servers\/\d+\/sites\/\d+\/certificates$/)) return { certificates: [] };
+            if (url.match(/\/servers\/\d+\/sites\/\d+\/redirect-rules$/))
+              return { redirect_rules: [] };
+            if (url.match(/\/servers\/\d+\/sites\/\d+\/security-rules$/))
+              return { security_rules: [] };
+            if (url.match(/\/servers\/\d+\/sites\/\d+$/))
+              return { site: { id: 1, name: "app.com" } };
+            return {};
+          },
+        } as never,
+      },
+      compact: false,
+    };
+    const result = await handleSiteContext(
+      { resource: "sites", action: "context", server_id: "1", id: "2" },
+      ctx,
+    );
+    expect(result.isError).toBeUndefined();
+    const data = JSON.parse(result.content[0]!.text);
+    expect(data.deployments).toBe("none");
+  });
 });
