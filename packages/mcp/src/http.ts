@@ -22,6 +22,14 @@ import { createApp, defineEventHandler, type H3 } from "h3";
 import { parseAuthHeader } from "./auth.ts";
 import { executeToolWithCredentials } from "./handlers/index.ts";
 import { INSTRUCTIONS } from "./instructions.ts";
+import {
+  oauthMetadataHandler,
+  protectedResourceHandler,
+  registerHandler,
+  authorizeGetHandler,
+  authorizePostHandler,
+  tokenHandler,
+} from "./oauth.ts";
 import { SessionManager } from "./sessions.ts";
 import { getTools } from "./tools.ts";
 import { VERSION } from "./version.ts";
@@ -147,7 +155,15 @@ export async function handleMcpRequest(
   const credentials = parseAuthHeader(authHeader);
 
   if (!credentials) {
-    res.writeHead(401, { "Content-Type": "application/json" });
+    // Build resource_metadata URL for the WWW-Authenticate header (RFC 9728)
+    const host = req.headers.host || "localhost:3000";
+    const protocol = (req.headers["x-forwarded-proto"] as string) || "http";
+    const resourceMetadataUrl = `${protocol}://${host}/.well-known/oauth-protected-resource`;
+
+    res.writeHead(401, {
+      "Content-Type": "application/json",
+      "WWW-Authenticate": `Bearer resource_metadata="${resourceMetadataUrl}"`,
+    });
     res.end(
       JSON.stringify({
         jsonrpc: "2.0",
@@ -245,12 +261,13 @@ export function createMcpRequestHandler(
 }
 
 /**
- * Create h3 app for health check and service info endpoints.
+ * Create h3 app for health check, service info, and OAuth endpoints.
  * The MCP endpoint is handled separately by handleMcpRequest.
  */
 export function createHealthApp(): H3 {
   const app = createApp();
 
+  // Service info & health
   app.get(
     "/",
     defineEventHandler(() => {
@@ -264,6 +281,14 @@ export function createHealthApp(): H3 {
       return { status: "ok" };
     }),
   );
+
+  // OAuth 2.1 endpoints
+  app.get("/.well-known/oauth-authorization-server", oauthMetadataHandler);
+  app.get("/.well-known/oauth-protected-resource", protectedResourceHandler);
+  app.post("/register", registerHandler);
+  app.get("/authorize", authorizeGetHandler);
+  app.post("/authorize", authorizePostHandler);
+  app.post("/token", tokenHandler);
 
   return app;
 }

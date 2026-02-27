@@ -10,7 +10,9 @@ export default defineConfig({
       index: "./src/index.ts",
       server: "./src/server.ts",
       auth: "./src/auth.ts",
+      crypto: "./src/crypto.ts",
       http: "./src/http.ts",
+      oauth: "./src/oauth.ts",
     },
     external: [
       /^@studiometa\/forge-api/,

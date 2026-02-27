@@ -215,6 +215,35 @@ describe("createHealthApp", () => {
     expect(response.status).toBe(200);
     expect(data).toEqual({ status: "ok" });
   });
+
+  // OAuth endpoints served by createHealthApp
+  it("GET /.well-known/oauth-authorization-server should return OAuth metadata", async () => {
+    const response = await fetch(`${baseUrl}/.well-known/oauth-authorization-server`);
+    expect(response.ok).toBe(true);
+    const data = await response.json();
+    expect(data.authorization_endpoint).toContain("/authorize");
+    expect(data.token_endpoint).toContain("/token");
+    expect(data.code_challenge_methods_supported).toEqual(["S256"]);
+  });
+
+  it("GET /.well-known/oauth-protected-resource should return resource metadata", async () => {
+    const response = await fetch(`${baseUrl}/.well-known/oauth-protected-resource`);
+    expect(response.ok).toBe(true);
+    const data = await response.json();
+    expect(data.resource).toContain("/mcp");
+    expect(data.bearer_methods_supported).toEqual(["header"]);
+  });
+
+  it("POST /register should register a client", async () => {
+    const response = await fetch(`${baseUrl}/register`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ client_name: "Test" }),
+    });
+    expect(response.status).toBe(201);
+    const data = await response.json();
+    expect(data.client_id).toBeTruthy();
+  });
 });
 
 // --------------------------------------------------------------------------
@@ -265,6 +294,30 @@ describe("Streamable HTTP MCP endpoint", () => {
       expect(response.status).toBe(401);
       expect(data.error.code).toBe(-32001);
       expect(data.error.message).toContain("Authentication required");
+    });
+
+    it("should include WWW-Authenticate header pointing to protected resource metadata", async () => {
+      const response = await fetch(`${baseUrl}/mcp`, {
+        method: "POST",
+        headers: MCP_HEADERS,
+        body: JSON.stringify({
+          jsonrpc: "2.0",
+          method: "initialize",
+          params: {
+            protocolVersion: "2025-03-26",
+            capabilities: {},
+            clientInfo: { name: "test", version: "1.0" },
+          },
+          id: 1,
+        }),
+      });
+
+      expect(response.status).toBe(401);
+      const wwwAuth = response.headers.get("www-authenticate");
+      expect(wwwAuth).toBeTruthy();
+      expect(wwwAuth).toContain("Bearer");
+      expect(wwwAuth).toContain("resource_metadata=");
+      expect(wwwAuth).toContain("/.well-known/oauth-protected-resource");
     });
 
     it("should return 401 with non-Bearer auth", async () => {

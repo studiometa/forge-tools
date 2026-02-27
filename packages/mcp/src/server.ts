@@ -4,22 +4,40 @@
  * Forge MCP Server - HTTP Transport (Streamable HTTP)
  *
  * Implements the official MCP Streamable HTTP transport specification.
- * Credentials are passed via Bearer token in the Authorization header.
+ * Supports both raw Bearer tokens and OAuth 2.1 with PKCE for
+ * Claude Desktop compatibility.
  *
- * Token format: raw Forge API token
+ * Token formats:
+ *   - Raw Forge API token (Bearer <token>)
+ *   - Base64-encoded token from OAuth flow (Bearer base64(<token>))
+ *
+ * Environment variables:
+ *   PORT          - HTTP port (default: 3000)
+ *   HOST          - Bind address (default: 0.0.0.0)
+ *   FORGE_READ_ONLY - Disable write operations (default: false)
+ *   OAUTH_SECRET  - AES-256-GCM encryption key for OAuth tokens.
+ *                   Required in production. A default is used if unset.
  *
  * Usage:
  *   forge-mcp-server
  *   forge-mcp-server --read-only
- *   FORGE_READ_ONLY=true forge-mcp-server
+ *   OAUTH_SECRET=my-secret forge-mcp-server
  *   PORT=3000 forge-mcp-server
  *
  * Endpoints:
- *   POST /mcp   - MCP Streamable HTTP (JSON-RPC messages)
- *   GET  /mcp   - MCP Streamable HTTP (SSE stream for server notifications)
- *   DELETE /mcp - MCP Streamable HTTP (session termination)
+ *   POST /mcp    - MCP Streamable HTTP (JSON-RPC messages)
+ *   GET  /mcp    - MCP Streamable HTTP (SSE stream for server notifications)
+ *   DELETE /mcp  - MCP Streamable HTTP (session termination)
  *   GET  /       - Service info
  *   GET  /health - Health check
+ *
+ * OAuth 2.1 endpoints (for Claude Desktop):
+ *   GET  /.well-known/oauth-authorization-server - OAuth metadata (RFC 8414)
+ *   GET  /.well-known/oauth-protected-resource   - Protected resource (RFC 9728)
+ *   POST /register  - Dynamic client registration (RFC 7591)
+ *   GET  /authorize - Login form
+ *   POST /authorize - Process login
+ *   POST /token     - Token exchange (PKCE)
  */
 
 import { toNodeHandler } from "h3/node";
@@ -85,7 +103,13 @@ export function startHttpServer(
       console.log("");
       console.log("Authentication:");
       console.log("  Bearer token in Authorization header");
-      console.log("  Token format: your raw Forge API token");
+      console.log("  Token format: raw Forge API token or OAuth 2.1 access token");
+      console.log("");
+      console.log("OAuth 2.1 (Claude Desktop):");
+      console.log(`  GET  http://${displayHost}:${port}/.well-known/oauth-authorization-server`);
+      console.log(`  POST http://${displayHost}:${port}/register`);
+      console.log(`  GET  http://${displayHost}:${port}/authorize`);
+      console.log(`  POST http://${displayHost}:${port}/token`);
       if (readOnly) {
         console.log("");
         console.log("Mode: READ-ONLY (write operations disabled)");
