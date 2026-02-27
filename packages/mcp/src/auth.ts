@@ -5,14 +5,9 @@
  * 1. Raw Forge API token (backwards compatible)
  * 2. Base64-encoded Forge API token (from OAuth flow)
  *
- * Detection heuristic: If the token decodes from base64 to valid UTF-8
- * and looks like a raw Forge token (no colons, no whitespace), we treat
- * the original token as raw. If it decodes to something that looks like
- * a different token, we use the decoded version.
- *
- * In practice, Forge API tokens are alphanumeric strings. The base64 OAuth
- * tokens are base64(apiToken). Since base64 encoding always produces a
- * different string than the input (padding, charset), we can distinguish them.
+ * Detection heuristic: decode the token from base64, then re-encode.
+ * If the re-encoded string matches the original, it's a real base64 token
+ * and we use the decoded value. Otherwise, we treat it as a raw token.
  */
 
 export interface ForgeCredentials {
@@ -20,34 +15,27 @@ export interface ForgeCredentials {
 }
 
 /**
- * Check if a string looks like a valid base64-encoded string.
- * Returns the decoded string if it is, null otherwise.
+ * Try to decode a base64-encoded token.
+ * Returns the decoded string if re-encoding produces the original, null otherwise.
+ *
+ * Buffer.from(str, 'base64') never throws — it silently ignores invalid chars.
+ * So this function cannot fail, no try/catch needed.
  */
 function tryDecodeBase64(token: string): string | null {
-  // Base64 strings only contain A-Z, a-z, 0-9, +, /, = (or base64url: -, _)
-  // But raw Forge tokens are also alphanumeric, so we need a better heuristic.
-  //
-  // Strategy: try to decode as base64. If re-encoding the decoded value
-  // produces the original token, it's base64-encoded.
-  try {
-    const decoded = Buffer.from(token, "base64").toString("utf-8");
+  const decoded = Buffer.from(token, "base64").toString("utf-8");
 
-    // Guard: decoded must be non-empty and different from input
-    /* v8 ignore next 3 -- Buffer.from('base64') always produces output for non-empty input */
-    if (!decoded || decoded === token) {
-      return null;
-    }
-
-    // Re-encode and compare — if it roundtrips, it's a real base64 token
-    const reEncoded = Buffer.from(decoded).toString("base64");
-    if (reEncoded === token) {
-      return decoded;
-    }
-
-    return null;
-  } catch /* v8 ignore next -- Buffer.from never throws for base64 */ {
+  // decoded must be non-empty and different from input
+  if (!decoded || decoded === token) {
     return null;
   }
+
+  // Re-encode and compare — if it roundtrips, it was genuinely base64
+  const reEncoded = Buffer.from(decoded).toString("base64");
+  if (reEncoded === token) {
+    return decoded;
+  }
+
+  return null;
 }
 
 /**

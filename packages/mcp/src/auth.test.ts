@@ -70,5 +70,20 @@ describe("parseAuthHeader", () => {
       const result = parseAuthHeader("Bearer not-valid-base64-token!");
       expect(result).toEqual({ apiToken: "not-valid-base64-token!" });
     });
+
+    it("keeps raw token when decoded equals the input (identity decode)", () => {
+      // Some short ASCII strings decode from base64 to themselves or produce
+      // the same string — these should be treated as raw tokens.
+      // "aa" in base64 decodes to binary that differs, but re-encode won't match "aa"
+      const result = parseAuthHeader("Bearer aa");
+      expect(result).toEqual({ apiToken: "aa" });
+    });
+
+    it("keeps raw token for single character that decodes to empty", () => {
+      // "A" decodes from base64 to a null byte, which is a non-printable char
+      // but not empty. The roundtrip won't match, so it stays as raw token.
+      const result = parseAuthHeader("Bearer A");
+      expect(result).toEqual({ apiToken: "A" });
+    });
   });
 });

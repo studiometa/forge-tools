@@ -258,20 +258,8 @@ export const authorizePostHandler = defineEventHandler(async (event: H3Event) =>
 export const tokenHandler = defineEventHandler(async (event: H3Event) => {
   setResponseHeader(event, "Content-Type", "application/json");
 
-  let body: Record<string, string>;
-  const contentType = getRequestHeader(event, "content-type") || "";
-
-  if (contentType.includes("application/x-www-form-urlencoded")) {
-    const rawBody = await readBody(event);
-    /* v8 ignore next 3 -- h3 pre-parses urlencoded bodies into objects */
-    if (typeof rawBody === "string") {
-      body = Object.fromEntries(new URLSearchParams(rawBody));
-    } else {
-      body = rawBody as Record<string, string>;
-    }
-  } else {
-    body = (await readBody(event)) as Record<string, string>;
-  }
+  // h3 auto-parses both JSON and URL-encoded bodies into objects
+  const body = (await readBody(event)) as Record<string, string>;
 
   const { grant_type, code, code_verifier, refresh_token } = body;
 
