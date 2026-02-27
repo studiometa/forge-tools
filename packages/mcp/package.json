@@ -41,9 +41,17 @@
       "types": "./dist/auth.d.ts",
       "import": "./dist/auth.js"
     },
+    "./crypto": {
+      "types": "./dist/crypto.d.ts",
+      "import": "./dist/crypto.js"
+    },
     "./http": {
       "types": "./dist/http.d.ts",
       "import": "./dist/http.js"
+    },
+    "./oauth": {
+      "types": "./dist/oauth.d.ts",
+      "import": "./dist/oauth.js"
     }
   },
   "publishConfig": {

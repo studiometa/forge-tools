@@ -48,4 +48,27 @@ describe("parseAuthHeader", () => {
     const result = parseAuthHeader("Bearer   ");
     expect(result).toBeNull();
   });
+
+  // OAuth base64-encoded access token tests
+  describe("base64-encoded access tokens (OAuth flow)", () => {
+    it("decodes a base64-encoded API token", () => {
+      const rawToken = "my-forge-api-token-1234";
+      const base64Token = Buffer.from(rawToken).toString("base64");
+      const result = parseAuthHeader(`Bearer ${base64Token}`);
+      expect(result).toEqual({ apiToken: rawToken });
+    });
+
+    it("decodes a base64-encoded token with special characters", () => {
+      const rawToken = "pk_test_abc123XYZ!@#";
+      const base64Token = Buffer.from(rawToken).toString("base64");
+      const result = parseAuthHeader(`Bearer ${base64Token}`);
+      expect(result).toEqual({ apiToken: rawToken });
+    });
+
+    it("keeps raw token when base64 roundtrip does not match", () => {
+      // A token that doesn't roundtrip as valid base64
+      const result = parseAuthHeader("Bearer not-valid-base64-token!");
+      expect(result).toEqual({ apiToken: "not-valid-base64-token!" });
+    });
+  });
 });
