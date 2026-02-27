@@ -26,7 +26,7 @@ import { toNodeHandler } from "h3/node";
 import { createServer, type Server } from "node:http";
 
 import { createHealthApp, createMcpRequestHandler } from "./http.ts";
-import { parseReadOnlyFlag } from "./index.ts";
+import { parseReadOnlyFlag } from "./flags.ts";
 import { SessionManager } from "./sessions.ts";
 import { VERSION } from "./version.ts";
 
