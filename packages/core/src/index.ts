@@ -18,6 +18,7 @@ export {
   getServer,
   listServers,
   rebootServer,
+  resolveServers,
 } from "./executors/servers/index.ts";
 export type {
   CreateServerOptions,
@@ -25,15 +26,27 @@ export type {
   GetServerOptions,
   ListServersOptions,
   RebootServerOptions,
+  ResolveServersOptions,
+  ResolveMatch,
+  ResolveResult,
 } from "./executors/servers/index.ts";
 
 // Sites
-export { createSite, deleteSite, getSite, listSites } from "./executors/sites/index.ts";
+export {
+  createSite,
+  deleteSite,
+  getSite,
+  listSites,
+  resolveSites,
+} from "./executors/sites/index.ts";
 export type {
   CreateSiteOptions,
   DeleteSiteOptions,
   GetSiteOptions,
   ListSitesOptions,
+  ResolveSitesOptions,
+  ResolveSiteMatch,
+  ResolveSiteResult,
 } from "./executors/sites/index.ts";
 
 // Deployments

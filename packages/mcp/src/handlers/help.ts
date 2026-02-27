@@ -28,6 +28,7 @@ const RESOURCE_HELP: Record<string, ResourceHelp> = {
       create: "Provision a new server (requires provider, type, region, name)",
       delete: "Delete a server by ID (irreversible)",
       reboot: "Reboot a server by ID",
+      resolve: "Find servers by name (partial, case-insensitive match)",
     },
     fields: {
       id: "Server ID",
@@ -48,6 +49,10 @@ const RESOURCE_HELP: Record<string, ResourceHelp> = {
         description: "Reboot a server",
         params: { resource: "servers", action: "reboot", id: "123" },
       },
+      {
+        description: "Find servers by name",
+        params: { resource: "servers", action: "resolve", query: "prod" },
+      },
     ],
   },
 
@@ -59,6 +64,7 @@ const RESOURCE_HELP: Record<string, ResourceHelp> = {
       get: "Get a single site by ID",
       create: "Create a new site (requires domain, project_type)",
       delete: "Delete a site by ID",
+      resolve: "Find sites by domain name (partial, case-insensitive match, requires server_id)",
     },
     fields: {
       id: "Site ID",
@@ -88,6 +94,10 @@ const RESOURCE_HELP: Record<string, ResourceHelp> = {
           project_type: "php",
           directory: "/public",
         },
+      },
+      {
+        description: "Find sites by domain name",
+        params: { resource: "sites", action: "resolve", server_id: "123", query: "example" },
       },
     ],
   },
