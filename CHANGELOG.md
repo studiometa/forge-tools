@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.2.1 - 2026.02.27
+
+### Fixed
+
+- **MCP**: Fix server not starting when invoked as `node dist/index.js` instead of via `.bin/forge-mcp` symlink [[#64], [2593508]]
+
+[#64]: https://github.com/studiometa/forge-tools/pull/64
+[2593508]: https://github.com/studiometa/forge-tools/commit/2593508
+
 ## 0.2.0 - 2026.02.27
 
 ### Added
