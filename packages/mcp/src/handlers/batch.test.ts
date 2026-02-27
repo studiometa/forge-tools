@@ -231,6 +231,70 @@ describe("handleBatch", () => {
     expect(data._batch.failed).toBe(2);
   });
 
+  it("should handle operation result without structuredContent", async () => {
+    const mockNoStructured = async (): Promise<ToolResult> => ({
+      content: [{ type: "text", text: "plain text result" }],
+    });
+
+    const result = await handleBatch(
+      "run",
+      {
+        resource: "batch",
+        action: "run",
+        operations: [{ resource: "servers", action: "list" }],
+      } as CommonArgs,
+      mockCtx,
+      mockNoStructured,
+    );
+    expect(result.isError).toBeUndefined();
+    const data = JSON.parse(result.content[0]!.text);
+    expect(data._batch.succeeded).toBe(1);
+    expect(data.results[0].data).toBe("plain text result");
+  });
+
+  it("should handle error result without structuredContent", async () => {
+    const mockErrorNoStructured = async (): Promise<ToolResult> => ({
+      content: [{ type: "text", text: "Error: something broke" }],
+      isError: true,
+    });
+
+    const result = await handleBatch(
+      "run",
+      {
+        resource: "batch",
+        action: "run",
+        operations: [{ resource: "servers", action: "list" }],
+      } as CommonArgs,
+      mockCtx,
+      mockErrorNoStructured,
+    );
+    expect(result.isError).toBeUndefined();
+    const data = JSON.parse(result.content[0]!.text);
+    expect(data._batch.failed).toBe(1);
+    expect(data.results[0].error).toBe("Error: something broke");
+  });
+
+  it("should handle non-Error rejection reason", async () => {
+    const mockStringReject = async (): Promise<ToolResult> => {
+      throw "string rejection";
+    };
+
+    const result = await handleBatch(
+      "run",
+      {
+        resource: "batch",
+        action: "run",
+        operations: [{ resource: "servers", action: "list" }],
+      } as CommonArgs,
+      mockCtx,
+      mockStringReject,
+    );
+    expect(result.isError).toBeUndefined();
+    const data = JSON.parse(result.content[0]!.text);
+    expect(data._batch.failed).toBe(1);
+    expect(data.results[0].error).toBe("string rejection");
+  });
+
   it("should allow exactly 10 operations (at the limit)", async () => {
     const operations = Array.from({ length: 10 }, () => ({
       resource: "servers",
