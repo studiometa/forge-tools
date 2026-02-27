@@ -5,10 +5,14 @@ import type { ForgeServer, ForgeSite } from "@studiometa/forge-api";
 import { resolveServerId, resolveSiteId } from "./resolve.ts";
 import { ValidationError } from "../errors.ts";
 
-vi.mock("@studiometa/forge-core", () => ({
-  listServers: vi.fn(),
-  listSites: vi.fn(),
-}));
+vi.mock("@studiometa/forge-core", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@studiometa/forge-core")>();
+  return {
+    listServers: vi.fn(),
+    listSites: vi.fn(),
+    matchByName: actual.matchByName,
+  };
+});
 
 const mockServer = (id: number, name: string): ForgeServer =>
   ({

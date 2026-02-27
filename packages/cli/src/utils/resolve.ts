@@ -4,7 +4,7 @@
  * Accepts numeric IDs (used as-is) or plain strings (resolved by name/partial match).
  */
 
-import { listServers, listSites } from "@studiometa/forge-core";
+import { listServers, listSites, matchByName } from "@studiometa/forge-core";
 import type { ExecutorContext } from "@studiometa/forge-core";
 import type { ForgeServer, ForgeSite } from "@studiometa/forge-api";
 import { ValidationError } from "../errors.ts";
@@ -25,16 +25,11 @@ export async function resolveServerId(value: string, execCtx: ExecutorContext): 
   const result = await listServers({}, execCtx);
   const servers = result.data as ForgeServer[];
 
-  const lower = value.toLowerCase();
+  const { exact, partial } = matchByName(servers, value, (s) => s.name);
 
-  // Exact match by name
-  const exact = servers.filter((s) => s.name.toLowerCase() === lower);
   if (exact.length === 1) {
     return String(exact[0].id);
   }
-
-  // Partial match
-  const partial = servers.filter((s) => s.name.toLowerCase().includes(lower));
 
   if (partial.length === 0) {
     const available = servers.map((s) => `  ${s.name} (${s.id})`).join("\n");
@@ -75,16 +70,11 @@ export async function resolveSiteId(
   const result = await listSites({ server_id: serverId }, execCtx);
   const sites = result.data as ForgeSite[];
 
-  const lower = value.toLowerCase();
+  const { exact, partial } = matchByName(sites, value, (s) => s.name);
 
-  // Exact match by domain
-  const exact = sites.filter((s) => s.name.toLowerCase() === lower);
   if (exact.length === 1) {
     return String(exact[0].id);
   }
-
-  // Partial match
-  const partial = sites.filter((s) => s.name.toLowerCase().includes(lower));
 
   if (partial.length === 0) {
     const available = sites.map((s) => `  ${s.name} (${s.id})`).join("\n");
