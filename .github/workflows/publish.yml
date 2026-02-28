@@ -31,6 +31,9 @@ jobs:
       - name: Run tests
         run: npm run test
 
+      - name: Sync inter-package versions
+        run: node scripts/sync-versions.js
+
       - name: Publish @studiometa/forge-api
         run: npm publish -w @studiometa/forge-api --provenance --access public
         env:
