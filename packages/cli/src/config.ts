@@ -1,5 +1,5 @@
 /**
- * Config loading for forge-cli.
+ * Config loading for forge.
  *
  * Resolution priority (highest to lowest):
  * 1. CLI arguments (--token)

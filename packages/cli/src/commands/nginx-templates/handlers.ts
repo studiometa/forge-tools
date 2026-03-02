@@ -17,7 +17,7 @@ export async function nginxTemplatesList(ctx: CommandContext): Promise<void> {
   if (!server) {
     exitWithValidationError(
       "server_id",
-      "forge-cli nginx-templates list --server <server_id>",
+      "forge nginx-templates list --server <server_id>",
       ctx.formatter,
     );
   }
@@ -43,7 +43,7 @@ export async function nginxTemplatesGet(args: string[], ctx: CommandContext): Pr
   if (!id) {
     exitWithValidationError(
       "template_id",
-      "forge-cli nginx-templates get <template_id> --server <server_id>",
+      "forge nginx-templates get <template_id> --server <server_id>",
       ctx.formatter,
     );
   }
@@ -51,7 +51,7 @@ export async function nginxTemplatesGet(args: string[], ctx: CommandContext): Pr
   if (!server) {
     exitWithValidationError(
       "server_id",
-      "forge-cli nginx-templates get <template_id> --server <server_id>",
+      "forge nginx-templates get <template_id> --server <server_id>",
       ctx.formatter,
     );
   }
@@ -73,7 +73,7 @@ export async function nginxTemplatesCreate(ctx: CommandContext): Promise<void> {
   if (!server) {
     exitWithValidationError(
       "server_id",
-      "forge-cli nginx-templates create --server <server_id> --name <name> --content <content>",
+      "forge nginx-templates create --server <server_id> --name <name> --content <content>",
       ctx.formatter,
     );
   }
@@ -81,7 +81,7 @@ export async function nginxTemplatesCreate(ctx: CommandContext): Promise<void> {
   if (!name) {
     exitWithValidationError(
       "name",
-      "forge-cli nginx-templates create --server <server_id> --name <name> --content <content>",
+      "forge nginx-templates create --server <server_id> --name <name> --content <content>",
       ctx.formatter,
     );
   }
@@ -89,7 +89,7 @@ export async function nginxTemplatesCreate(ctx: CommandContext): Promise<void> {
   if (!content) {
     exitWithValidationError(
       "content",
-      "forge-cli nginx-templates create --server <server_id> --name <name> --content <content>",
+      "forge nginx-templates create --server <server_id> --name <name> --content <content>",
       ctx.formatter,
     );
   }
@@ -110,7 +110,7 @@ export async function nginxTemplatesUpdate(args: string[], ctx: CommandContext):
   if (!id) {
     exitWithValidationError(
       "template_id",
-      "forge-cli nginx-templates update <template_id> --server <server_id>",
+      "forge nginx-templates update <template_id> --server <server_id>",
       ctx.formatter,
     );
   }
@@ -118,7 +118,7 @@ export async function nginxTemplatesUpdate(args: string[], ctx: CommandContext):
   if (!server) {
     exitWithValidationError(
       "server_id",
-      "forge-cli nginx-templates update <template_id> --server <server_id>",
+      "forge nginx-templates update <template_id> --server <server_id>",
       ctx.formatter,
     );
   }
@@ -141,7 +141,7 @@ export async function nginxTemplatesDelete(args: string[], ctx: CommandContext):
   if (!id) {
     exitWithValidationError(
       "template_id",
-      "forge-cli nginx-templates delete <template_id> --server <server_id>",
+      "forge nginx-templates delete <template_id> --server <server_id>",
       ctx.formatter,
     );
   }
@@ -149,7 +149,7 @@ export async function nginxTemplatesDelete(args: string[], ctx: CommandContext):
   if (!server) {
     exitWithValidationError(
       "server_id",
-      "forge-cli nginx-templates delete <template_id> --server <server_id>",
+      "forge nginx-templates delete <template_id> --server <server_id>",
       ctx.formatter,
     );
   }

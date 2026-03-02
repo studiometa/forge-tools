@@ -15,7 +15,7 @@ describe("showCompletionHelp", () => {
   it("should print help text", () => {
     const spy = vi.spyOn(console, "log").mockImplementation(() => {});
     showCompletionHelp();
-    expect(spy).toHaveBeenCalledWith(expect.stringContaining("forge-cli completion"));
+    expect(spy).toHaveBeenCalledWith(expect.stringContaining("forge completion"));
     spy.mockRestore();
   });
 
@@ -50,21 +50,19 @@ describe("handleCompletionCommand", () => {
   describe("--print flag", () => {
     it("should print bash script to stdout without installing", () => {
       handleCompletionCommand("bash", { print: true });
-      expect(stdoutWriteSpy).toHaveBeenCalledWith(expect.stringContaining("forge-cli"));
-      expect(stdoutWriteSpy).toHaveBeenCalledWith(
-        expect.stringContaining("_forge_cli_completions"),
-      );
+      expect(stdoutWriteSpy).toHaveBeenCalledWith(expect.stringContaining("forge"));
+      expect(stdoutWriteSpy).toHaveBeenCalledWith(expect.stringContaining("_forge_completions"));
     });
 
     it("should print zsh script to stdout without installing", () => {
       handleCompletionCommand("zsh", { print: true });
-      expect(stdoutWriteSpy).toHaveBeenCalledWith(expect.stringContaining("#compdef forge-cli"));
+      expect(stdoutWriteSpy).toHaveBeenCalledWith(expect.stringContaining("#compdef forge"));
     });
 
     it("should print fish script to stdout without installing", () => {
       handleCompletionCommand("fish", { print: true });
       expect(stdoutWriteSpy).toHaveBeenCalledWith(
-        expect.stringContaining("# Completions for forge-cli"),
+        expect.stringContaining("# Completions for forge"),
       );
     });
 
@@ -84,7 +82,7 @@ describe("handleCompletionCommand", () => {
         { recursive: true },
       );
       expect(writeFileSync).toHaveBeenCalledWith(
-        expect.stringContaining("forge-cli"),
+        expect.stringContaining("forge"),
         expect.any(String),
         "utf8",
       );
@@ -97,7 +95,7 @@ describe("handleCompletionCommand", () => {
         recursive: true,
       });
       expect(writeFileSync).toHaveBeenCalledWith(
-        expect.stringContaining("_forge-cli"),
+        expect.stringContaining("_forge"),
         expect.any(String),
         "utf8",
       );
@@ -110,7 +108,7 @@ describe("handleCompletionCommand", () => {
         recursive: true,
       });
       expect(writeFileSync).toHaveBeenCalledWith(
-        expect.stringContaining("forge-cli.fish"),
+        expect.stringContaining("forge.fish"),
         expect.any(String),
         "utf8",
       );

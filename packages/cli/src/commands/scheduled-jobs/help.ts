@@ -3,10 +3,10 @@ import { colors } from "../../utils/colors.ts";
 export function showScheduledJobsHelp(subcommand?: string): void {
   if (subcommand === "list" || subcommand === "ls") {
     console.log(`
-${colors.bold("forge-cli scheduled-jobs list")} - List scheduled jobs on a server
+${colors.bold("forge scheduled-jobs list")} - List scheduled jobs on a server
 
 ${colors.bold("USAGE:")}
-  forge-cli scheduled-jobs list --server <server_id> [options]
+  forge scheduled-jobs list --server <server_id> [options]
 
 ${colors.bold("OPTIONS:")}
   --server <id>       Server ID (required)
@@ -14,17 +14,17 @@ ${colors.bold("OPTIONS:")}
 `);
   } else if (subcommand === "get") {
     console.log(`
-${colors.bold("forge-cli scheduled-jobs get")} - Get scheduled job details
+${colors.bold("forge scheduled-jobs get")} - Get scheduled job details
 
 ${colors.bold("USAGE:")}
-  forge-cli scheduled-jobs get <job_id> --server <server_id> [options]
+  forge scheduled-jobs get <job_id> --server <server_id> [options]
 `);
   } else if (subcommand === "create") {
     console.log(`
-${colors.bold("forge-cli scheduled-jobs create")} - Create a new scheduled job
+${colors.bold("forge scheduled-jobs create")} - Create a new scheduled job
 
 ${colors.bold("USAGE:")}
-  forge-cli scheduled-jobs create --server <server_id> --command <command> [options]
+  forge scheduled-jobs create --server <server_id> --command <command> [options]
 
 ${colors.bold("OPTIONS:")}
   --server <id>         Server ID (required)
@@ -33,17 +33,17 @@ ${colors.bold("OPTIONS:")}
 `);
   } else if (subcommand === "delete") {
     console.log(`
-${colors.bold("forge-cli scheduled-jobs delete")} - Delete a scheduled job
+${colors.bold("forge scheduled-jobs delete")} - Delete a scheduled job
 
 ${colors.bold("USAGE:")}
-  forge-cli scheduled-jobs delete <job_id> --server <server_id> [options]
+  forge scheduled-jobs delete <job_id> --server <server_id> [options]
 `);
   } else {
     console.log(`
-${colors.bold("forge-cli scheduled-jobs")} - Manage scheduled jobs (cron)
+${colors.bold("forge scheduled-jobs")} - Manage scheduled jobs (cron)
 
 ${colors.bold("USAGE:")}
-  forge-cli scheduled-jobs <subcommand> [options]
+  forge scheduled-jobs <subcommand> [options]
 
 ${colors.bold("SUBCOMMANDS:")}
   list, ls            List scheduled jobs
@@ -55,7 +55,7 @@ ${colors.bold("OPTIONS:")}
   --server <id>       Server ID (required)
   -f, --format <fmt>  Output format: json, human, table
 
-Run ${colors.cyan("forge-cli scheduled-jobs <subcommand> --help")} for details.
+Run ${colors.cyan("forge scheduled-jobs <subcommand> --help")} for details.
 `);
   }
 }

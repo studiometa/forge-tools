@@ -10,7 +10,7 @@ import { colors } from "../utils/colors.ts";
 
 const BASH_COMPLETION = `#!/usr/bin/env bash
 
-_forge_cli_completions() {
+_forge_completions() {
   local cur prev commands subcommands options
 
   COMPREPLY=()
@@ -150,12 +150,12 @@ _forge_cli_completions() {
   return 0
 }
 
-complete -F _forge_cli_completions forge-cli
+complete -F _forge_completions forge
 `;
 
-const ZSH_COMPLETION = `#compdef forge-cli
+const ZSH_COMPLETION = `#compdef forge
 
-_forge_cli() {
+_forge() {
   local line state
 
   _arguments -C \\
@@ -453,199 +453,199 @@ _forge_cli() {
   esac
 }
 
-_forge_cli "$@"
+_forge "$@"
 `;
 
-const FISH_COMPLETION = `# Completions for forge-cli
+const FISH_COMPLETION = `# Completions for forge
 
 # Main commands
-complete -c forge-cli -f -n "__fish_use_subcommand" -a "config" -d "Manage CLI configuration"
-complete -c forge-cli -f -n "__fish_use_subcommand" -a "servers" -d "Manage servers"
-complete -c forge-cli -f -n "__fish_use_subcommand" -a "s" -d "Manage servers (alias)"
-complete -c forge-cli -f -n "__fish_use_subcommand" -a "sites" -d "Manage sites"
-complete -c forge-cli -f -n "__fish_use_subcommand" -a "deployments" -d "Manage deployments"
-complete -c forge-cli -f -n "__fish_use_subcommand" -a "d" -d "Manage deployments (alias)"
-complete -c forge-cli -f -n "__fish_use_subcommand" -a "databases" -d "Manage databases"
-complete -c forge-cli -f -n "__fish_use_subcommand" -a "db" -d "Manage databases (alias)"
-complete -c forge-cli -f -n "__fish_use_subcommand" -a "database-users" -d "Manage database users"
-complete -c forge-cli -f -n "__fish_use_subcommand" -a "daemons" -d "Manage daemons"
-complete -c forge-cli -f -n "__fish_use_subcommand" -a "env" -d "Manage environment variables"
-complete -c forge-cli -f -n "__fish_use_subcommand" -a "nginx" -d "Manage nginx configuration"
-complete -c forge-cli -f -n "__fish_use_subcommand" -a "certificates" -d "Manage SSL certificates"
-complete -c forge-cli -f -n "__fish_use_subcommand" -a "certs" -d "Manage SSL certificates (alias)"
-complete -c forge-cli -f -n "__fish_use_subcommand" -a "firewall-rules" -d "Manage firewall rules"
-complete -c forge-cli -f -n "__fish_use_subcommand" -a "fw" -d "Manage firewall rules (alias)"
-complete -c forge-cli -f -n "__fish_use_subcommand" -a "ssh-keys" -d "Manage SSH keys"
-complete -c forge-cli -f -n "__fish_use_subcommand" -a "backups" -d "Manage backup configurations"
-complete -c forge-cli -f -n "__fish_use_subcommand" -a "commands" -d "Manage site commands"
-complete -c forge-cli -f -n "__fish_use_subcommand" -a "scheduled-jobs" -d "Manage scheduled jobs"
-complete -c forge-cli -f -n "__fish_use_subcommand" -a "user" -d "Display authenticated user profile"
-complete -c forge-cli -f -n "__fish_use_subcommand" -a "monitors" -d "Manage server monitors"
-complete -c forge-cli -f -n "__fish_use_subcommand" -a "nginx-templates" -d "Manage Nginx templates"
-complete -c forge-cli -f -n "__fish_use_subcommand" -a "security-rules" -d "Manage site security rules"
-complete -c forge-cli -f -n "__fish_use_subcommand" -a "redirect-rules" -d "Manage site redirect rules"
-complete -c forge-cli -f -n "__fish_use_subcommand" -a "recipes" -d "Manage recipes"
-complete -c forge-cli -f -n "__fish_use_subcommand" -a "completion" -d "Generate shell completion script"
-complete -c forge-cli -f -n "__fish_use_subcommand" -a "help" -d "Show help"
+complete -c forge -f -n "__fish_use_subcommand" -a "config" -d "Manage CLI configuration"
+complete -c forge -f -n "__fish_use_subcommand" -a "servers" -d "Manage servers"
+complete -c forge -f -n "__fish_use_subcommand" -a "s" -d "Manage servers (alias)"
+complete -c forge -f -n "__fish_use_subcommand" -a "sites" -d "Manage sites"
+complete -c forge -f -n "__fish_use_subcommand" -a "deployments" -d "Manage deployments"
+complete -c forge -f -n "__fish_use_subcommand" -a "d" -d "Manage deployments (alias)"
+complete -c forge -f -n "__fish_use_subcommand" -a "databases" -d "Manage databases"
+complete -c forge -f -n "__fish_use_subcommand" -a "db" -d "Manage databases (alias)"
+complete -c forge -f -n "__fish_use_subcommand" -a "database-users" -d "Manage database users"
+complete -c forge -f -n "__fish_use_subcommand" -a "daemons" -d "Manage daemons"
+complete -c forge -f -n "__fish_use_subcommand" -a "env" -d "Manage environment variables"
+complete -c forge -f -n "__fish_use_subcommand" -a "nginx" -d "Manage nginx configuration"
+complete -c forge -f -n "__fish_use_subcommand" -a "certificates" -d "Manage SSL certificates"
+complete -c forge -f -n "__fish_use_subcommand" -a "certs" -d "Manage SSL certificates (alias)"
+complete -c forge -f -n "__fish_use_subcommand" -a "firewall-rules" -d "Manage firewall rules"
+complete -c forge -f -n "__fish_use_subcommand" -a "fw" -d "Manage firewall rules (alias)"
+complete -c forge -f -n "__fish_use_subcommand" -a "ssh-keys" -d "Manage SSH keys"
+complete -c forge -f -n "__fish_use_subcommand" -a "backups" -d "Manage backup configurations"
+complete -c forge -f -n "__fish_use_subcommand" -a "commands" -d "Manage site commands"
+complete -c forge -f -n "__fish_use_subcommand" -a "scheduled-jobs" -d "Manage scheduled jobs"
+complete -c forge -f -n "__fish_use_subcommand" -a "user" -d "Display authenticated user profile"
+complete -c forge -f -n "__fish_use_subcommand" -a "monitors" -d "Manage server monitors"
+complete -c forge -f -n "__fish_use_subcommand" -a "nginx-templates" -d "Manage Nginx templates"
+complete -c forge -f -n "__fish_use_subcommand" -a "security-rules" -d "Manage site security rules"
+complete -c forge -f -n "__fish_use_subcommand" -a "redirect-rules" -d "Manage site redirect rules"
+complete -c forge -f -n "__fish_use_subcommand" -a "recipes" -d "Manage recipes"
+complete -c forge -f -n "__fish_use_subcommand" -a "completion" -d "Generate shell completion script"
+complete -c forge -f -n "__fish_use_subcommand" -a "help" -d "Show help"
 
 # config subcommands
-complete -c forge-cli -f -n "__fish_seen_subcommand_from config" -a "set" -d "Save API token"
-complete -c forge-cli -f -n "__fish_seen_subcommand_from config" -a "get" -d "Show current token"
-complete -c forge-cli -f -n "__fish_seen_subcommand_from config" -a "delete" -d "Delete stored token"
+complete -c forge -f -n "__fish_seen_subcommand_from config" -a "set" -d "Save API token"
+complete -c forge -f -n "__fish_seen_subcommand_from config" -a "get" -d "Show current token"
+complete -c forge -f -n "__fish_seen_subcommand_from config" -a "delete" -d "Delete stored token"
 
 # servers subcommands
-complete -c forge-cli -f -n "__fish_seen_subcommand_from servers s" -a "list" -d "List all servers"
-complete -c forge-cli -f -n "__fish_seen_subcommand_from servers s" -a "ls" -d "List all servers (alias)"
-complete -c forge-cli -f -n "__fish_seen_subcommand_from servers s" -a "get" -d "Get server details"
-complete -c forge-cli -f -n "__fish_seen_subcommand_from servers s" -a "reboot" -d "Reboot a server"
+complete -c forge -f -n "__fish_seen_subcommand_from servers s" -a "list" -d "List all servers"
+complete -c forge -f -n "__fish_seen_subcommand_from servers s" -a "ls" -d "List all servers (alias)"
+complete -c forge -f -n "__fish_seen_subcommand_from servers s" -a "get" -d "Get server details"
+complete -c forge -f -n "__fish_seen_subcommand_from servers s" -a "reboot" -d "Reboot a server"
 
 # sites subcommands
-complete -c forge-cli -f -n "__fish_seen_subcommand_from sites" -a "list" -d "List sites"
-complete -c forge-cli -f -n "__fish_seen_subcommand_from sites" -a "ls" -d "List sites (alias)"
-complete -c forge-cli -f -n "__fish_seen_subcommand_from sites" -a "get" -d "Get site details"
+complete -c forge -f -n "__fish_seen_subcommand_from sites" -a "list" -d "List sites"
+complete -c forge -f -n "__fish_seen_subcommand_from sites" -a "ls" -d "List sites (alias)"
+complete -c forge -f -n "__fish_seen_subcommand_from sites" -a "get" -d "Get site details"
 
 # deployments subcommands
-complete -c forge-cli -f -n "__fish_seen_subcommand_from deployments d" -a "list" -d "List deployments"
-complete -c forge-cli -f -n "__fish_seen_subcommand_from deployments d" -a "ls" -d "List deployments (alias)"
-complete -c forge-cli -f -n "__fish_seen_subcommand_from deployments d" -a "deploy" -d "Trigger a deployment"
+complete -c forge -f -n "__fish_seen_subcommand_from deployments d" -a "list" -d "List deployments"
+complete -c forge -f -n "__fish_seen_subcommand_from deployments d" -a "ls" -d "List deployments (alias)"
+complete -c forge -f -n "__fish_seen_subcommand_from deployments d" -a "deploy" -d "Trigger a deployment"
 
 # databases subcommands
-complete -c forge-cli -f -n "__fish_seen_subcommand_from databases db" -a "list" -d "List databases"
-complete -c forge-cli -f -n "__fish_seen_subcommand_from databases db" -a "ls" -d "List databases (alias)"
-complete -c forge-cli -f -n "__fish_seen_subcommand_from databases db" -a "get" -d "Get database details"
+complete -c forge -f -n "__fish_seen_subcommand_from databases db" -a "list" -d "List databases"
+complete -c forge -f -n "__fish_seen_subcommand_from databases db" -a "ls" -d "List databases (alias)"
+complete -c forge -f -n "__fish_seen_subcommand_from databases db" -a "get" -d "Get database details"
 
 # database-users subcommands
-complete -c forge-cli -f -n "__fish_seen_subcommand_from database-users" -a "list" -d "List database users"
-complete -c forge-cli -f -n "__fish_seen_subcommand_from database-users" -a "ls" -d "List database users (alias)"
-complete -c forge-cli -f -n "__fish_seen_subcommand_from database-users" -a "get" -d "Get database user details"
-complete -c forge-cli -f -n "__fish_seen_subcommand_from database-users" -a "create" -d "Create a database user"
-complete -c forge-cli -f -n "__fish_seen_subcommand_from database-users" -a "delete" -d "Delete a database user"
+complete -c forge -f -n "__fish_seen_subcommand_from database-users" -a "list" -d "List database users"
+complete -c forge -f -n "__fish_seen_subcommand_from database-users" -a "ls" -d "List database users (alias)"
+complete -c forge -f -n "__fish_seen_subcommand_from database-users" -a "get" -d "Get database user details"
+complete -c forge -f -n "__fish_seen_subcommand_from database-users" -a "create" -d "Create a database user"
+complete -c forge -f -n "__fish_seen_subcommand_from database-users" -a "delete" -d "Delete a database user"
 
 # daemons subcommands
-complete -c forge-cli -f -n "__fish_seen_subcommand_from daemons" -a "list" -d "List daemons"
-complete -c forge-cli -f -n "__fish_seen_subcommand_from daemons" -a "ls" -d "List daemons (alias)"
-complete -c forge-cli -f -n "__fish_seen_subcommand_from daemons" -a "get" -d "Get daemon details"
-complete -c forge-cli -f -n "__fish_seen_subcommand_from daemons" -a "restart" -d "Restart a daemon"
+complete -c forge -f -n "__fish_seen_subcommand_from daemons" -a "list" -d "List daemons"
+complete -c forge -f -n "__fish_seen_subcommand_from daemons" -a "ls" -d "List daemons (alias)"
+complete -c forge -f -n "__fish_seen_subcommand_from daemons" -a "get" -d "Get daemon details"
+complete -c forge -f -n "__fish_seen_subcommand_from daemons" -a "restart" -d "Restart a daemon"
 
 # env subcommands
-complete -c forge-cli -f -n "__fish_seen_subcommand_from env" -a "get" -d "Get env variables"
-complete -c forge-cli -f -n "__fish_seen_subcommand_from env" -a "update" -d "Update env variables"
+complete -c forge -f -n "__fish_seen_subcommand_from env" -a "get" -d "Get env variables"
+complete -c forge -f -n "__fish_seen_subcommand_from env" -a "update" -d "Update env variables"
 
 # nginx subcommands
-complete -c forge-cli -f -n "__fish_seen_subcommand_from nginx" -a "get" -d "Get nginx config"
-complete -c forge-cli -f -n "__fish_seen_subcommand_from nginx" -a "update" -d "Update nginx config"
+complete -c forge -f -n "__fish_seen_subcommand_from nginx" -a "get" -d "Get nginx config"
+complete -c forge -f -n "__fish_seen_subcommand_from nginx" -a "update" -d "Update nginx config"
 
 # certificates subcommands
-complete -c forge-cli -f -n "__fish_seen_subcommand_from certificates certs" -a "list" -d "List certificates"
-complete -c forge-cli -f -n "__fish_seen_subcommand_from certificates certs" -a "ls" -d "List certificates (alias)"
-complete -c forge-cli -f -n "__fish_seen_subcommand_from certificates certs" -a "get" -d "Get certificate details"
-complete -c forge-cli -f -n "__fish_seen_subcommand_from certificates certs" -a "activate" -d "Activate a certificate"
+complete -c forge -f -n "__fish_seen_subcommand_from certificates certs" -a "list" -d "List certificates"
+complete -c forge -f -n "__fish_seen_subcommand_from certificates certs" -a "ls" -d "List certificates (alias)"
+complete -c forge -f -n "__fish_seen_subcommand_from certificates certs" -a "get" -d "Get certificate details"
+complete -c forge -f -n "__fish_seen_subcommand_from certificates certs" -a "activate" -d "Activate a certificate"
 
 # firewall-rules subcommands
-complete -c forge-cli -f -n "__fish_seen_subcommand_from firewall-rules fw" -a "list" -d "List firewall rules"
-complete -c forge-cli -f -n "__fish_seen_subcommand_from firewall-rules fw" -a "ls" -d "List firewall rules (alias)"
-complete -c forge-cli -f -n "__fish_seen_subcommand_from firewall-rules fw" -a "get" -d "Get firewall rule details"
+complete -c forge -f -n "__fish_seen_subcommand_from firewall-rules fw" -a "list" -d "List firewall rules"
+complete -c forge -f -n "__fish_seen_subcommand_from firewall-rules fw" -a "ls" -d "List firewall rules (alias)"
+complete -c forge -f -n "__fish_seen_subcommand_from firewall-rules fw" -a "get" -d "Get firewall rule details"
 
 # ssh-keys subcommands
-complete -c forge-cli -f -n "__fish_seen_subcommand_from ssh-keys" -a "list" -d "List SSH keys"
-complete -c forge-cli -f -n "__fish_seen_subcommand_from ssh-keys" -a "ls" -d "List SSH keys (alias)"
-complete -c forge-cli -f -n "__fish_seen_subcommand_from ssh-keys" -a "get" -d "Get SSH key details"
+complete -c forge -f -n "__fish_seen_subcommand_from ssh-keys" -a "list" -d "List SSH keys"
+complete -c forge -f -n "__fish_seen_subcommand_from ssh-keys" -a "ls" -d "List SSH keys (alias)"
+complete -c forge -f -n "__fish_seen_subcommand_from ssh-keys" -a "get" -d "Get SSH key details"
 
 # backups subcommands
-complete -c forge-cli -f -n "__fish_seen_subcommand_from backups" -a "list" -d "List backup configurations"
-complete -c forge-cli -f -n "__fish_seen_subcommand_from backups" -a "ls" -d "List backup configurations (alias)"
-complete -c forge-cli -f -n "__fish_seen_subcommand_from backups" -a "get" -d "Get backup configuration details"
-complete -c forge-cli -f -n "__fish_seen_subcommand_from backups" -a "create" -d "Create a backup configuration"
-complete -c forge-cli -f -n "__fish_seen_subcommand_from backups" -a "delete" -d "Delete a backup configuration"
+complete -c forge -f -n "__fish_seen_subcommand_from backups" -a "list" -d "List backup configurations"
+complete -c forge -f -n "__fish_seen_subcommand_from backups" -a "ls" -d "List backup configurations (alias)"
+complete -c forge -f -n "__fish_seen_subcommand_from backups" -a "get" -d "Get backup configuration details"
+complete -c forge -f -n "__fish_seen_subcommand_from backups" -a "create" -d "Create a backup configuration"
+complete -c forge -f -n "__fish_seen_subcommand_from backups" -a "delete" -d "Delete a backup configuration"
 
 # commands subcommands
-complete -c forge-cli -f -n "__fish_seen_subcommand_from commands" -a "list" -d "List commands"
-complete -c forge-cli -f -n "__fish_seen_subcommand_from commands" -a "ls" -d "List commands (alias)"
-complete -c forge-cli -f -n "__fish_seen_subcommand_from commands" -a "get" -d "Get command details"
-complete -c forge-cli -f -n "__fish_seen_subcommand_from commands" -a "create" -d "Execute a command"
+complete -c forge -f -n "__fish_seen_subcommand_from commands" -a "list" -d "List commands"
+complete -c forge -f -n "__fish_seen_subcommand_from commands" -a "ls" -d "List commands (alias)"
+complete -c forge -f -n "__fish_seen_subcommand_from commands" -a "get" -d "Get command details"
+complete -c forge -f -n "__fish_seen_subcommand_from commands" -a "create" -d "Execute a command"
 
 # scheduled-jobs subcommands
-complete -c forge-cli -f -n "__fish_seen_subcommand_from scheduled-jobs" -a "list" -d "List scheduled jobs"
-complete -c forge-cli -f -n "__fish_seen_subcommand_from scheduled-jobs" -a "ls" -d "List scheduled jobs (alias)"
-complete -c forge-cli -f -n "__fish_seen_subcommand_from scheduled-jobs" -a "get" -d "Get scheduled job details"
-complete -c forge-cli -f -n "__fish_seen_subcommand_from scheduled-jobs" -a "create" -d "Create a scheduled job"
-complete -c forge-cli -f -n "__fish_seen_subcommand_from scheduled-jobs" -a "delete" -d "Delete a scheduled job"
+complete -c forge -f -n "__fish_seen_subcommand_from scheduled-jobs" -a "list" -d "List scheduled jobs"
+complete -c forge -f -n "__fish_seen_subcommand_from scheduled-jobs" -a "ls" -d "List scheduled jobs (alias)"
+complete -c forge -f -n "__fish_seen_subcommand_from scheduled-jobs" -a "get" -d "Get scheduled job details"
+complete -c forge -f -n "__fish_seen_subcommand_from scheduled-jobs" -a "create" -d "Create a scheduled job"
+complete -c forge -f -n "__fish_seen_subcommand_from scheduled-jobs" -a "delete" -d "Delete a scheduled job"
 
 # user subcommands
-complete -c forge-cli -f -n "__fish_seen_subcommand_from user" -a "get" -d "Get the authenticated user profile"
+complete -c forge -f -n "__fish_seen_subcommand_from user" -a "get" -d "Get the authenticated user profile"
 
 # monitors subcommands
-complete -c forge-cli -f -n "__fish_seen_subcommand_from monitors" -a "list" -d "List monitors"
-complete -c forge-cli -f -n "__fish_seen_subcommand_from monitors" -a "ls" -d "List monitors (alias)"
-complete -c forge-cli -f -n "__fish_seen_subcommand_from monitors" -a "get" -d "Get monitor details"
-complete -c forge-cli -f -n "__fish_seen_subcommand_from monitors" -a "create" -d "Create a monitor"
-complete -c forge-cli -f -n "__fish_seen_subcommand_from monitors" -a "delete" -d "Delete a monitor"
+complete -c forge -f -n "__fish_seen_subcommand_from monitors" -a "list" -d "List monitors"
+complete -c forge -f -n "__fish_seen_subcommand_from monitors" -a "ls" -d "List monitors (alias)"
+complete -c forge -f -n "__fish_seen_subcommand_from monitors" -a "get" -d "Get monitor details"
+complete -c forge -f -n "__fish_seen_subcommand_from monitors" -a "create" -d "Create a monitor"
+complete -c forge -f -n "__fish_seen_subcommand_from monitors" -a "delete" -d "Delete a monitor"
 
 # nginx-templates subcommands
-complete -c forge-cli -f -n "__fish_seen_subcommand_from nginx-templates" -a "list" -d "List Nginx templates"
-complete -c forge-cli -f -n "__fish_seen_subcommand_from nginx-templates" -a "ls" -d "List Nginx templates (alias)"
-complete -c forge-cli -f -n "__fish_seen_subcommand_from nginx-templates" -a "get" -d "Get Nginx template details"
-complete -c forge-cli -f -n "__fish_seen_subcommand_from nginx-templates" -a "create" -d "Create a Nginx template"
-complete -c forge-cli -f -n "__fish_seen_subcommand_from nginx-templates" -a "update" -d "Update a Nginx template"
-complete -c forge-cli -f -n "__fish_seen_subcommand_from nginx-templates" -a "delete" -d "Delete a Nginx template"
+complete -c forge -f -n "__fish_seen_subcommand_from nginx-templates" -a "list" -d "List Nginx templates"
+complete -c forge -f -n "__fish_seen_subcommand_from nginx-templates" -a "ls" -d "List Nginx templates (alias)"
+complete -c forge -f -n "__fish_seen_subcommand_from nginx-templates" -a "get" -d "Get Nginx template details"
+complete -c forge -f -n "__fish_seen_subcommand_from nginx-templates" -a "create" -d "Create a Nginx template"
+complete -c forge -f -n "__fish_seen_subcommand_from nginx-templates" -a "update" -d "Update a Nginx template"
+complete -c forge -f -n "__fish_seen_subcommand_from nginx-templates" -a "delete" -d "Delete a Nginx template"
 
 # security-rules subcommands
-complete -c forge-cli -f -n "__fish_seen_subcommand_from security-rules" -a "list" -d "List security rules"
-complete -c forge-cli -f -n "__fish_seen_subcommand_from security-rules" -a "ls" -d "List security rules (alias)"
-complete -c forge-cli -f -n "__fish_seen_subcommand_from security-rules" -a "get" -d "Get security rule details"
-complete -c forge-cli -f -n "__fish_seen_subcommand_from security-rules" -a "create" -d "Create a security rule"
-complete -c forge-cli -f -n "__fish_seen_subcommand_from security-rules" -a "delete" -d "Delete a security rule"
+complete -c forge -f -n "__fish_seen_subcommand_from security-rules" -a "list" -d "List security rules"
+complete -c forge -f -n "__fish_seen_subcommand_from security-rules" -a "ls" -d "List security rules (alias)"
+complete -c forge -f -n "__fish_seen_subcommand_from security-rules" -a "get" -d "Get security rule details"
+complete -c forge -f -n "__fish_seen_subcommand_from security-rules" -a "create" -d "Create a security rule"
+complete -c forge -f -n "__fish_seen_subcommand_from security-rules" -a "delete" -d "Delete a security rule"
 
 # redirect-rules subcommands
-complete -c forge-cli -f -n "__fish_seen_subcommand_from redirect-rules" -a "list" -d "List redirect rules"
-complete -c forge-cli -f -n "__fish_seen_subcommand_from redirect-rules" -a "ls" -d "List redirect rules (alias)"
-complete -c forge-cli -f -n "__fish_seen_subcommand_from redirect-rules" -a "get" -d "Get redirect rule details"
-complete -c forge-cli -f -n "__fish_seen_subcommand_from redirect-rules" -a "create" -d "Create a redirect rule"
-complete -c forge-cli -f -n "__fish_seen_subcommand_from redirect-rules" -a "delete" -d "Delete a redirect rule"
+complete -c forge -f -n "__fish_seen_subcommand_from redirect-rules" -a "list" -d "List redirect rules"
+complete -c forge -f -n "__fish_seen_subcommand_from redirect-rules" -a "ls" -d "List redirect rules (alias)"
+complete -c forge -f -n "__fish_seen_subcommand_from redirect-rules" -a "get" -d "Get redirect rule details"
+complete -c forge -f -n "__fish_seen_subcommand_from redirect-rules" -a "create" -d "Create a redirect rule"
+complete -c forge -f -n "__fish_seen_subcommand_from redirect-rules" -a "delete" -d "Delete a redirect rule"
 
 # recipes subcommands
-complete -c forge-cli -f -n "__fish_seen_subcommand_from recipes" -a "list" -d "List all recipes"
-complete -c forge-cli -f -n "__fish_seen_subcommand_from recipes" -a "ls" -d "List all recipes (alias)"
-complete -c forge-cli -f -n "__fish_seen_subcommand_from recipes" -a "get" -d "Get recipe details"
-complete -c forge-cli -f -n "__fish_seen_subcommand_from recipes" -a "run" -d "Run a recipe"
+complete -c forge -f -n "__fish_seen_subcommand_from recipes" -a "list" -d "List all recipes"
+complete -c forge -f -n "__fish_seen_subcommand_from recipes" -a "ls" -d "List all recipes (alias)"
+complete -c forge -f -n "__fish_seen_subcommand_from recipes" -a "get" -d "Get recipe details"
+complete -c forge -f -n "__fish_seen_subcommand_from recipes" -a "run" -d "Run a recipe"
 
 # completion subcommands
-complete -c forge-cli -f -n "__fish_seen_subcommand_from completion" -a "bash" -d "Install Bash completion"
-complete -c forge-cli -f -n "__fish_seen_subcommand_from completion" -a "zsh" -d "Install Zsh completion"
-complete -c forge-cli -f -n "__fish_seen_subcommand_from completion" -a "fish" -d "Install Fish completion"
+complete -c forge -f -n "__fish_seen_subcommand_from completion" -a "bash" -d "Install Bash completion"
+complete -c forge -f -n "__fish_seen_subcommand_from completion" -a "zsh" -d "Install Zsh completion"
+complete -c forge -f -n "__fish_seen_subcommand_from completion" -a "fish" -d "Install Fish completion"
 
 # Global options
-complete -c forge-cli -l token -d "API token" -r
-complete -c forge-cli -l server -d "Server ID" -r
-complete -c forge-cli -l site -d "Site ID" -r
-complete -c forge-cli -s f -l format -d "Output format" -xa "json human table"
-complete -c forge-cli -l no-color -d "Disable colored output"
-complete -c forge-cli -s h -l help -d "Show help"
-complete -c forge-cli -s v -l version -d "Show version"
-complete -c forge-cli -l name -d "Name" -r
-complete -c forge-cli -l command -d "Command" -r
-complete -c forge-cli -l content -d "Content" -r
-complete -c forge-cli -l from -d "From" -r
-complete -c forge-cli -l to -d "To" -r
-complete -c forge-cli -l provider -d "Provider" -r
-complete -c forge-cli -l frequency -d "Frequency" -r
-complete -c forge-cli -l type -d "Type" -r
-complete -c forge-cli -l operator -d "Operator" -r
-complete -c forge-cli -l threshold -d "Threshold" -r
-complete -c forge-cli -l minutes -d "Minutes" -r
-complete -c forge-cli -l key -d "Key" -r
-complete -c forge-cli -l port -d "Port" -r
-complete -c forge-cli -l ip-address -d "IP address" -r
-complete -c forge-cli -l user -d "User" -r
-complete -c forge-cli -l script -d "Script" -r
-complete -c forge-cli -l servers -d "Servers" -r
-complete -c forge-cli -l domain -d "Domain" -r
-complete -c forge-cli -l password -d "Password" -r
-complete -c forge-cli -l credential-id -d "Credential ID" -r
-complete -c forge-cli -l region -d "Region" -r
-complete -c forge-cli -l size -d "Size" -r
-complete -c forge-cli -l project-type -d "Project type" -r
-complete -c forge-cli -l directory -d "Directory" -r
+complete -c forge -l token -d "API token" -r
+complete -c forge -l server -d "Server ID" -r
+complete -c forge -l site -d "Site ID" -r
+complete -c forge -s f -l format -d "Output format" -xa "json human table"
+complete -c forge -l no-color -d "Disable colored output"
+complete -c forge -s h -l help -d "Show help"
+complete -c forge -s v -l version -d "Show version"
+complete -c forge -l name -d "Name" -r
+complete -c forge -l command -d "Command" -r
+complete -c forge -l content -d "Content" -r
+complete -c forge -l from -d "From" -r
+complete -c forge -l to -d "To" -r
+complete -c forge -l provider -d "Provider" -r
+complete -c forge -l frequency -d "Frequency" -r
+complete -c forge -l type -d "Type" -r
+complete -c forge -l operator -d "Operator" -r
+complete -c forge -l threshold -d "Threshold" -r
+complete -c forge -l minutes -d "Minutes" -r
+complete -c forge -l key -d "Key" -r
+complete -c forge -l port -d "Port" -r
+complete -c forge -l ip-address -d "IP address" -r
+complete -c forge -l user -d "User" -r
+complete -c forge -l script -d "Script" -r
+complete -c forge -l servers -d "Servers" -r
+complete -c forge -l domain -d "Domain" -r
+complete -c forge -l password -d "Password" -r
+complete -c forge -l credential-id -d "Credential ID" -r
+complete -c forge -l region -d "Region" -r
+complete -c forge -l size -d "Size" -r
+complete -c forge -l project-type -d "Project type" -r
+complete -c forge -l directory -d "Directory" -r
 `;
 
 /**
@@ -656,12 +656,12 @@ function getCompletionPath(shell: string): string {
 
   switch (shell) {
     case "bash":
-      return join(home, ".local/share/bash-completion/completions/forge-cli");
+      return join(home, ".local/share/bash-completion/completions/forge");
     case "zsh":
-      return join(home, ".zfunc/_forge-cli");
+      return join(home, ".zfunc/_forge");
     case "fish": {
       const configHome = process.env["XDG_CONFIG_HOME"] ?? join(home, ".config");
-      return join(configHome, "fish/completions/forge-cli.fish");
+      return join(configHome, "fish/completions/forge.fish");
     }
     default:
       throw new Error(`Unknown shell: ${shell}`);
@@ -670,10 +670,10 @@ function getCompletionPath(shell: string): string {
 
 export function showCompletionHelp(): void {
   console.log(`
-${colors.bold("forge-cli completion")} - Install shell completion
+${colors.bold("forge completion")} - Install shell completion
 
 ${colors.bold("USAGE:")}
-  forge-cli completion <shell> [--print]
+  forge completion <shell> [--print]
 
 ${colors.bold("SHELLS:")}
   bash                Install Bash completion
@@ -689,27 +689,27 @@ ${colors.bold("INSTALLATION:")}
   shell to activate completions.
 
   ${colors.bold("Bash:")}
-    forge-cli completion bash
-    # Installs to: ~/.local/share/bash-completion/completions/forge-cli
+    forge completion bash
+    # Installs to: ~/.local/share/bash-completion/completions/forge
     # Then run: exec bash
 
   ${colors.bold("Zsh:")}
-    forge-cli completion zsh
-    # Installs to: ~/.zfunc/_forge-cli
+    forge completion zsh
+    # Installs to: ~/.zfunc/_forge
     # Ensure fpath includes ~/.zfunc (add to ~/.zshrc before compinit):
     #   fpath=(~/.zfunc $fpath)
     # Then run: exec zsh
 
   ${colors.bold("Fish:")}
-    forge-cli completion fish
-    # Installs to: ~/.config/fish/completions/forge-cli.fish
+    forge completion fish
+    # Installs to: ~/.config/fish/completions/forge.fish
     # Completions are loaded automatically
 
 ${colors.bold("PRINT ONLY:")}
   Use --print to output the script without installing:
 
-  forge-cli completion bash --print > my-completion.sh
-  forge-cli completion zsh --print | less
+  forge completion bash --print > my-completion.sh
+  forge completion zsh --print | less
 `);
 }
 
@@ -737,7 +737,7 @@ export function handleCompletionCommand(
       console.error(
         `${colors.red("✗")} Unknown shell: ${shell}. Supported shells: bash, zsh, fish`,
       );
-      console.error(`Run ${colors.cyan("forge-cli completion --help")} for usage information.`);
+      console.error(`Run ${colors.cyan("forge completion --help")} for usage information.`);
       process.exit(1);
       return;
   }

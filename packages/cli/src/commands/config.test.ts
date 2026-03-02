@@ -17,7 +17,7 @@ describe("showConfigHelp", () => {
   it("should print help text", () => {
     const spy = vi.spyOn(console, "log").mockImplementation(() => {});
     showConfigHelp();
-    expect(spy).toHaveBeenCalledWith(expect.stringContaining("forge-cli config"));
+    expect(spy).toHaveBeenCalledWith(expect.stringContaining("forge config"));
     spy.mockRestore();
   });
 });
@@ -105,7 +105,7 @@ describe("handleConfigCommand", () => {
   describe("unknown subcommand", () => {
     it("should show help for unknown subcommand", () => {
       handleConfigCommand("unknown", [], {});
-      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining("forge-cli config"));
+      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining("forge config"));
     });
   });
 });

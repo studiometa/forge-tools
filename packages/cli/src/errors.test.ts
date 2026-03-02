@@ -59,10 +59,10 @@ describe("ValidationError", () => {
   });
 
   it("should include field in JSON", () => {
-    const err = ValidationError.required("site_id", ["Usage: forge-cli sites get <site_id>"]);
+    const err = ValidationError.required("site_id", ["Usage: forge sites get <site_id>"]);
     const json = err.toJSON();
     expect(json.field).toBe("site_id");
-    expect(json.hints).toContain("Usage: forge-cli sites get <site_id>");
+    expect(json.hints).toContain("Usage: forge sites get <site_id>");
   });
 
   it("should create without hints", () => {

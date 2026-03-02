@@ -3,10 +3,10 @@ import { colors } from "../../utils/colors.ts";
 export function showSecurityRulesHelp(subcommand?: string): void {
   if (subcommand === "list" || subcommand === "ls") {
     console.log(`
-${colors.bold("forge-cli security-rules list")} - List security rules for a site
+${colors.bold("forge security-rules list")} - List security rules for a site
 
 ${colors.bold("USAGE:")}
-  forge-cli security-rules list --server <server_id> --site <site_id> [options]
+  forge security-rules list --server <server_id> --site <site_id> [options]
 
 ${colors.bold("OPTIONS:")}
   --server <id>       Server ID (required)
@@ -15,17 +15,17 @@ ${colors.bold("OPTIONS:")}
 `);
   } else if (subcommand === "get") {
     console.log(`
-${colors.bold("forge-cli security-rules get")} - Get security rule details
+${colors.bold("forge security-rules get")} - Get security rule details
 
 ${colors.bold("USAGE:")}
-  forge-cli security-rules get <rule_id> --server <server_id> --site <site_id> [options]
+  forge security-rules get <rule_id> --server <server_id> --site <site_id> [options]
 `);
   } else if (subcommand === "create") {
     console.log(`
-${colors.bold("forge-cli security-rules create")} - Create a new security rule
+${colors.bold("forge security-rules create")} - Create a new security rule
 
 ${colors.bold("USAGE:")}
-  forge-cli security-rules create --server <server_id> --site <site_id> --name <name> [options]
+  forge security-rules create --server <server_id> --site <site_id> --name <name> [options]
 
 ${colors.bold("OPTIONS:")}
   --server <id>         Server ID (required)
@@ -35,17 +35,17 @@ ${colors.bold("OPTIONS:")}
 `);
   } else if (subcommand === "delete") {
     console.log(`
-${colors.bold("forge-cli security-rules delete")} - Delete a security rule
+${colors.bold("forge security-rules delete")} - Delete a security rule
 
 ${colors.bold("USAGE:")}
-  forge-cli security-rules delete <rule_id> --server <server_id> --site <site_id> [options]
+  forge security-rules delete <rule_id> --server <server_id> --site <site_id> [options]
 `);
   } else {
     console.log(`
-${colors.bold("forge-cli security-rules")} - Manage site security rules
+${colors.bold("forge security-rules")} - Manage site security rules
 
 ${colors.bold("USAGE:")}
-  forge-cli security-rules <subcommand> [options]
+  forge security-rules <subcommand> [options]
 
 ${colors.bold("SUBCOMMANDS:")}
   list, ls            List security rules
@@ -58,7 +58,7 @@ ${colors.bold("OPTIONS:")}
   --site <id>         Site ID (required)
   -f, --format <fmt>  Output format: json, human, table
 
-Run ${colors.cyan("forge-cli security-rules <subcommand> --help")} for details.
+Run ${colors.cyan("forge security-rules <subcommand> --help")} for details.
 `);
   }
 }

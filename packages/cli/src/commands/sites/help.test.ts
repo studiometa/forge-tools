@@ -15,7 +15,7 @@ describe("showSitesHelp", () => {
 
   it("should show general help when no subcommand", () => {
     showSitesHelp();
-    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining("forge-cli sites"));
+    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining("forge sites"));
   });
 
   it("should show list help", () => {

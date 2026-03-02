@@ -16,7 +16,7 @@ export async function scheduledJobsList(ctx: CommandContext): Promise<void> {
   if (!server) {
     exitWithValidationError(
       "server_id",
-      "forge-cli scheduled-jobs list --server <server_id>",
+      "forge scheduled-jobs list --server <server_id>",
       ctx.formatter,
     );
   }
@@ -43,7 +43,7 @@ export async function scheduledJobsGet(args: string[], ctx: CommandContext): Pro
   if (!id) {
     exitWithValidationError(
       "job_id",
-      "forge-cli scheduled-jobs get <job_id> --server <server_id>",
+      "forge scheduled-jobs get <job_id> --server <server_id>",
       ctx.formatter,
     );
   }
@@ -51,7 +51,7 @@ export async function scheduledJobsGet(args: string[], ctx: CommandContext): Pro
   if (!server) {
     exitWithValidationError(
       "server_id",
-      "forge-cli scheduled-jobs get <job_id> --server <server_id>",
+      "forge scheduled-jobs get <job_id> --server <server_id>",
       ctx.formatter,
     );
   }
@@ -80,7 +80,7 @@ export async function scheduledJobsCreate(ctx: CommandContext): Promise<void> {
   if (!server) {
     exitWithValidationError(
       "server_id",
-      "forge-cli scheduled-jobs create --server <server_id> --command <command>",
+      "forge scheduled-jobs create --server <server_id> --command <command>",
       ctx.formatter,
     );
   }
@@ -88,7 +88,7 @@ export async function scheduledJobsCreate(ctx: CommandContext): Promise<void> {
   if (!command) {
     exitWithValidationError(
       "command",
-      "forge-cli scheduled-jobs create --server <server_id> --command <command>",
+      "forge scheduled-jobs create --server <server_id> --command <command>",
       ctx.formatter,
     );
   }
@@ -117,7 +117,7 @@ export async function scheduledJobsDelete(args: string[], ctx: CommandContext): 
   if (!id) {
     exitWithValidationError(
       "job_id",
-      "forge-cli scheduled-jobs delete <job_id> --server <server_id>",
+      "forge scheduled-jobs delete <job_id> --server <server_id>",
       ctx.formatter,
     );
   }
@@ -125,7 +125,7 @@ export async function scheduledJobsDelete(args: string[], ctx: CommandContext): 
   if (!server) {
     exitWithValidationError(
       "server_id",
-      "forge-cli scheduled-jobs delete <job_id> --server <server_id>",
+      "forge scheduled-jobs delete <job_id> --server <server_id>",
       ctx.formatter,
     );
   }

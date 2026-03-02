@@ -50,7 +50,7 @@ forge-cli   → forge-core      # CLI tool (human + AI agent use)
 - **forge-sdk** (`packages/sdk`): `Forge` class with fluent chainable API (`forge.servers(123).sites(456).deploy()`). Thin wrapper over forge-api — delegates all HTTP. JSDoc on every public method. The hero package with standalone README.
 - **forge-core** (`packages/core`): Pure executor functions `(options, context) → ExecutorResult<T>`, `ExecutorContext` with DI, centralized constants (`RESOURCES`, `ACTIONS`). Includes `matchByName` helper for auto-resolving resource names to numeric IDs. Same pattern as productive-core.
 - **forge-mcp** (`packages/mcp`): Two MCP tools — `forge` (read-only: `list`, `get`, `resolve`, `context`, `help`, `schema`) and `forge_write` (destructive: `create`, `update`, `delete`, `deploy`, `reboot`, `restart`, `activate`, `run`) with `resource` + `action` routing, `createResourceHandler()` factory, stdio and HTTP transports. Supports `batch` resource for multi-action calls. Auto-resolve middleware translates name strings to numeric IDs before dispatching.
-- **forge-cli** (`packages/cli`): CLI tool for managing Forge servers, sites, and more. Human-friendly output by default, `--format json` for scripting and AI agent use.
+- **forge-cli** (`packages/cli`): CLI tool for managing Forge servers, sites, and more. Binary is `forge`. Human-friendly output by default, `--format json` for scripting and AI agent use.
 
 ### Key Design Principles
 

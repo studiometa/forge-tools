@@ -16,7 +16,7 @@ export async function databaseUsersList(ctx: CommandContext): Promise<void> {
   if (!server) {
     exitWithValidationError(
       "server_id",
-      "forge-cli database-users list --server <server_id>",
+      "forge database-users list --server <server_id>",
       ctx.formatter,
     );
   }
@@ -42,7 +42,7 @@ export async function databaseUsersGet(args: string[], ctx: CommandContext): Pro
   if (!id) {
     exitWithValidationError(
       "user_id",
-      "forge-cli database-users get <user_id> --server <server_id>",
+      "forge database-users get <user_id> --server <server_id>",
       ctx.formatter,
     );
   }
@@ -50,7 +50,7 @@ export async function databaseUsersGet(args: string[], ctx: CommandContext): Pro
   if (!server) {
     exitWithValidationError(
       "server_id",
-      "forge-cli database-users get <user_id> --server <server_id>",
+      "forge database-users get <user_id> --server <server_id>",
       ctx.formatter,
     );
   }
@@ -78,7 +78,7 @@ export async function databaseUsersCreate(ctx: CommandContext): Promise<void> {
   if (!server) {
     exitWithValidationError(
       "server_id",
-      "forge-cli database-users create --server <server_id> --name <name> --password <password>",
+      "forge database-users create --server <server_id> --name <name> --password <password>",
       ctx.formatter,
     );
   }
@@ -86,7 +86,7 @@ export async function databaseUsersCreate(ctx: CommandContext): Promise<void> {
   if (!name) {
     exitWithValidationError(
       "name",
-      "forge-cli database-users create --server <server_id> --name <name> --password <password>",
+      "forge database-users create --server <server_id> --name <name> --password <password>",
       ctx.formatter,
     );
   }
@@ -94,7 +94,7 @@ export async function databaseUsersCreate(ctx: CommandContext): Promise<void> {
   if (!password) {
     exitWithValidationError(
       "password",
-      "forge-cli database-users create --server <server_id> --name <name> --password <password>",
+      "forge database-users create --server <server_id> --name <name> --password <password>",
       ctx.formatter,
     );
   }
@@ -118,7 +118,7 @@ export async function databaseUsersDelete(args: string[], ctx: CommandContext): 
   if (!id) {
     exitWithValidationError(
       "user_id",
-      "forge-cli database-users delete <user_id> --server <server_id>",
+      "forge database-users delete <user_id> --server <server_id>",
       ctx.formatter,
     );
   }
@@ -126,7 +126,7 @@ export async function databaseUsersDelete(args: string[], ctx: CommandContext): 
   if (!server) {
     exitWithValidationError(
       "server_id",
-      "forge-cli database-users delete <user_id> --server <server_id>",
+      "forge database-users delete <user_id> --server <server_id>",
       ctx.formatter,
     );
   }

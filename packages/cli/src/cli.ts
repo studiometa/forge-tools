@@ -48,10 +48,10 @@ const VERSION = __VERSION__;
 
 function showHelp(): void {
   console.log(`
-${colors.bold("forge-cli")} v${VERSION}
+${colors.bold("forge")} v${VERSION}
 
 ${colors.bold("USAGE:")}
-  forge-cli <command> [subcommand] [options]
+  forge <command> [subcommand] [options]
 
 ${colors.bold("COMMANDS:")}
   config              Manage CLI configuration
@@ -174,22 +174,22 @@ ${colors.bold("OPTIONS:")}
 
 ${colors.bold("EXAMPLES:")}
   # Configure API token
-  forge-cli config set YOUR_TOKEN
+  forge config set YOUR_TOKEN
 
   # Or pass token directly
-  forge-cli servers list --token YOUR_TOKEN
+  forge servers list --token YOUR_TOKEN
 
   # List all servers
-  forge-cli servers list
+  forge servers list
 
   # List sites on a server
-  forge-cli sites list --server 123
+  forge sites list --server 123
 
   # Deploy a site
-  forge-cli deployments deploy --server 123 --site 456
+  forge deployments deploy --server 123 --site 456
 
   # Get JSON output (for AI agents)
-  forge-cli servers list --format json
+  forge servers list --format json
 
 ${colors.bold("CREDENTIAL PRIORITY:")}
   1. CLI argument (--token)
@@ -497,7 +497,7 @@ async function main(): Promise<void> {
 
       default:
         console.error(colors.red(`Unknown command: ${mainCommand}`));
-        console.log(`Run ${colors.cyan("forge-cli --help")} for usage information`);
+        console.log(`Run ${colors.cyan("forge --help")} for usage information`);
         process.exit(1);
     }
   } catch (error) {

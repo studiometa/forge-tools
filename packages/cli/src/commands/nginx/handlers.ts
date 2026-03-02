@@ -12,7 +12,7 @@ export async function nginxGet(ctx: CommandContext): Promise<void> {
   if (!server) {
     exitWithValidationError(
       "server_id",
-      "forge-cli nginx get --server <server_id> --site <site_id>",
+      "forge nginx get --server <server_id> --site <site_id>",
       ctx.formatter,
     );
   }
@@ -20,7 +20,7 @@ export async function nginxGet(ctx: CommandContext): Promise<void> {
   if (!site) {
     exitWithValidationError(
       "site_id",
-      "forge-cli nginx get --server <server_id> --site <site_id>",
+      "forge nginx get --server <server_id> --site <site_id>",
       ctx.formatter,
     );
   }
@@ -47,7 +47,7 @@ export async function nginxUpdate(ctx: CommandContext): Promise<void> {
   if (!server) {
     exitWithValidationError(
       "server_id",
-      "forge-cli nginx update --server <server_id> --site <site_id> --content <content>",
+      "forge nginx update --server <server_id> --site <site_id> --content <content>",
       ctx.formatter,
     );
   }
@@ -55,7 +55,7 @@ export async function nginxUpdate(ctx: CommandContext): Promise<void> {
   if (!site) {
     exitWithValidationError(
       "site_id",
-      "forge-cli nginx update --server <server_id> --site <site_id> --content <content>",
+      "forge nginx update --server <server_id> --site <site_id> --content <content>",
       ctx.formatter,
     );
   }
@@ -63,7 +63,7 @@ export async function nginxUpdate(ctx: CommandContext): Promise<void> {
   if (!content) {
     exitWithValidationError(
       "content",
-      "forge-cli nginx update --server <server_id> --site <site_id> --content <content>",
+      "forge nginx update --server <server_id> --site <site_id> --content <content>",
       ctx.formatter,
     );
   }

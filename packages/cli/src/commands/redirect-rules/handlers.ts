@@ -28,7 +28,7 @@ function requireServerAndSiteRaw(
 }
 
 export async function redirectRulesList(ctx: CommandContext): Promise<void> {
-  const usage = "forge-cli redirect-rules list --server <server_id> --site <site_id>";
+  const usage = "forge redirect-rules list --server <server_id> --site <site_id>";
   const { server, site } = requireServerAndSiteRaw(ctx, usage);
 
   await runCommand(async () => {
@@ -48,7 +48,7 @@ export async function redirectRulesList(ctx: CommandContext): Promise<void> {
 
 export async function redirectRulesGet(args: string[], ctx: CommandContext): Promise<void> {
   const [id] = args;
-  const usage = "forge-cli redirect-rules get <rule_id> --server <server_id> --site <site_id>";
+  const usage = "forge redirect-rules get <rule_id> --server <server_id> --site <site_id>";
 
   if (!id) {
     exitWithValidationError("rule_id", usage, ctx.formatter);
@@ -68,7 +68,7 @@ export async function redirectRulesGet(args: string[], ctx: CommandContext): Pro
 
 export async function redirectRulesCreate(ctx: CommandContext): Promise<void> {
   const usage =
-    "forge-cli redirect-rules create --server <server_id> --site <site_id> --from <from> --to <to>";
+    "forge redirect-rules create --server <server_id> --site <site_id> --from <from> --to <to>";
   const { server, site } = requireServerAndSiteRaw(ctx, usage);
   const from = String(ctx.options.from ?? "");
   const to = String(ctx.options.to ?? "");
@@ -93,7 +93,7 @@ export async function redirectRulesCreate(ctx: CommandContext): Promise<void> {
 
 export async function redirectRulesDelete(args: string[], ctx: CommandContext): Promise<void> {
   const [id] = args;
-  const usage = "forge-cli redirect-rules delete <rule_id> --server <server_id> --site <site_id>";
+  const usage = "forge redirect-rules delete <rule_id> --server <server_id> --site <site_id>";
 
   if (!id) {
     exitWithValidationError("rule_id", usage, ctx.formatter);

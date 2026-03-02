@@ -1,5 +1,5 @@
 /**
- * Error types for forge-cli.
+ * Error types for forge.
  *
  * Provides specific error types for different failure scenarios with
  * recovery hints for both humans and AI agents.
@@ -53,7 +53,7 @@ export class ConfigError extends CliError {
     return new ConfigError("API token not configured", [
       "Set via CLI flag: --token <token>",
       "Set via environment: export FORGE_API_TOKEN=<token>",
-      "Set via config: forge-cli config set YOUR_TOKEN",
+      "Set via config: forge config set YOUR_TOKEN",
     ]);
   }
 }

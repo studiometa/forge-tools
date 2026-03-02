@@ -3,25 +3,25 @@ import { colors } from "../../utils/colors.ts";
 export function showSitesHelp(subcommand?: string): void {
   if (subcommand === "list" || subcommand === "ls") {
     console.log(`
-${colors.bold("forge-cli sites list")} - List sites on a server
+${colors.bold("forge sites list")} - List sites on a server
 
 ${colors.bold("USAGE:")}
-  forge-cli sites list --server <server_id> [options]
+  forge sites list --server <server_id> [options]
 
 ${colors.bold("OPTIONS:")}
   --server <id>       Server ID (required)
   -f, --format <fmt>  Output format: json, human, table
 
 ${colors.bold("EXAMPLES:")}
-  forge-cli sites list --server 123
-  forge-cli sites list --server 123 --format json
+  forge sites list --server 123
+  forge sites list --server 123 --format json
 `);
   } else if (subcommand === "get") {
     console.log(`
-${colors.bold("forge-cli sites get")} - Get site details
+${colors.bold("forge sites get")} - Get site details
 
 ${colors.bold("USAGE:")}
-  forge-cli sites get <site_id> --server <server_id> [options]
+  forge sites get <site_id> --server <server_id> [options]
 
 ${colors.bold("ARGUMENTS:")}
   <site_id>           Site ID (required)
@@ -32,10 +32,10 @@ ${colors.bold("OPTIONS:")}
 `);
   } else {
     console.log(`
-${colors.bold("forge-cli sites")} - Manage sites
+${colors.bold("forge sites")} - Manage sites
 
 ${colors.bold("USAGE:")}
-  forge-cli sites <subcommand> [options]
+  forge sites <subcommand> [options]
 
 ${colors.bold("SUBCOMMANDS:")}
   list, ls            List sites on a server
@@ -47,10 +47,10 @@ ${colors.bold("OPTIONS:")}
   -h, --help          Show help for a subcommand
 
 ${colors.bold("EXAMPLES:")}
-  forge-cli sites list --server 123
-  forge-cli sites get 456 --server 123
+  forge sites list --server 123
+  forge sites get 456 --server 123
 
-Run ${colors.cyan("forge-cli sites <subcommand> --help")} for subcommand details.
+Run ${colors.cyan("forge sites <subcommand> --help")} for subcommand details.
 `);
   }
 }
