@@ -1,6 +1,6 @@
 {
   "name": "@studiometa/forge-mcp",
-  "version": "0.2.5",
+  "version": "0.3.0",
   "description": "MCP server for Laravel Forge — Model Context Protocol integration for AI agents",
   "keywords": [
     "ai",

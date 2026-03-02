@@ -1,6 +1,6 @@
 {
   "name": "@studiometa/forge-tools",
-  "version": "0.2.5",
+  "version": "0.3.0",
   "private": true,
   "description": "Laravel Forge Tools — TypeScript SDK and MCP server for AI agents and humans",
   "keywords": [
