@@ -134,7 +134,7 @@ describe("exitWithValidationError", () => {
   it("should call process.exit with VALIDATION_ERROR code", () => {
     const formatter = new OutputFormatter("human", true);
     try {
-      exitWithValidationError("server_id", "forge-cli servers get <server_id>", formatter);
+      exitWithValidationError("server_id", "forge servers get <server_id>", formatter);
     } catch {
       // process.exit is mocked so exitWithValidationError throws
     }

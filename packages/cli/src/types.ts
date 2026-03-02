@@ -1,4 +1,4 @@
-// CLI-specific types for forge-cli
+// CLI-specific types for forge
 
 export type OutputFormat = "json" | "human" | "table";
 

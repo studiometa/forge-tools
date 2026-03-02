@@ -11,7 +11,7 @@ export async function firewallRulesList(ctx: CommandContext): Promise<void> {
   if (!server) {
     exitWithValidationError(
       "server_id",
-      "forge-cli firewall-rules list --server <server_id>",
+      "forge firewall-rules list --server <server_id>",
       ctx.formatter,
     );
   }
@@ -38,7 +38,7 @@ export async function firewallRulesGet(args: string[], ctx: CommandContext): Pro
   if (!id) {
     exitWithValidationError(
       "firewall_rule_id",
-      "forge-cli firewall-rules get <rule_id> --server <server_id>",
+      "forge firewall-rules get <rule_id> --server <server_id>",
       ctx.formatter,
     );
   }
@@ -46,7 +46,7 @@ export async function firewallRulesGet(args: string[], ctx: CommandContext): Pro
   if (!server) {
     exitWithValidationError(
       "server_id",
-      "forge-cli firewall-rules get <rule_id> --server <server_id>",
+      "forge firewall-rules get <rule_id> --server <server_id>",
       ctx.formatter,
     );
   }

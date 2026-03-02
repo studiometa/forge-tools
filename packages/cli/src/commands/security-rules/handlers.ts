@@ -28,7 +28,7 @@ function requireServerAndSiteRaw(
 }
 
 export async function securityRulesList(ctx: CommandContext): Promise<void> {
-  const usage = "forge-cli security-rules list --server <server_id> --site <site_id>";
+  const usage = "forge security-rules list --server <server_id> --site <site_id>";
   const { server, site } = requireServerAndSiteRaw(ctx, usage);
 
   await runCommand(async () => {
@@ -48,7 +48,7 @@ export async function securityRulesList(ctx: CommandContext): Promise<void> {
 
 export async function securityRulesGet(args: string[], ctx: CommandContext): Promise<void> {
   const [id] = args;
-  const usage = "forge-cli security-rules get <rule_id> --server <server_id> --site <site_id>";
+  const usage = "forge security-rules get <rule_id> --server <server_id> --site <site_id>";
 
   if (!id) {
     exitWithValidationError("rule_id", usage, ctx.formatter);
@@ -67,8 +67,7 @@ export async function securityRulesGet(args: string[], ctx: CommandContext): Pro
 }
 
 export async function securityRulesCreate(ctx: CommandContext): Promise<void> {
-  const usage =
-    "forge-cli security-rules create --server <server_id> --site <site_id> --name <name>";
+  const usage = "forge security-rules create --server <server_id> --site <site_id> --name <name>";
   const { server, site } = requireServerAndSiteRaw(ctx, usage);
   const name = String(ctx.options.name ?? "");
 
@@ -88,7 +87,7 @@ export async function securityRulesCreate(ctx: CommandContext): Promise<void> {
 
 export async function securityRulesDelete(args: string[], ctx: CommandContext): Promise<void> {
   const [id] = args;
-  const usage = "forge-cli security-rules delete <rule_id> --server <server_id> --site <site_id>";
+  const usage = "forge security-rules delete <rule_id> --server <server_id> --site <site_id>";
 
   if (!id) {
     exitWithValidationError("rule_id", usage, ctx.formatter);

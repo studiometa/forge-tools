@@ -3,10 +3,10 @@ import { colors } from "../../utils/colors.ts";
 export function showMonitorsHelp(subcommand?: string): void {
   if (subcommand === "list" || subcommand === "ls") {
     console.log(`
-${colors.bold("forge-cli monitors list")} - List monitors on a server
+${colors.bold("forge monitors list")} - List monitors on a server
 
 ${colors.bold("USAGE:")}
-  forge-cli monitors list --server <server_id> [options]
+  forge monitors list --server <server_id> [options]
 
 ${colors.bold("OPTIONS:")}
   --server <id>       Server ID (required)
@@ -14,17 +14,17 @@ ${colors.bold("OPTIONS:")}
 `);
   } else if (subcommand === "get") {
     console.log(`
-${colors.bold("forge-cli monitors get")} - Get monitor details
+${colors.bold("forge monitors get")} - Get monitor details
 
 ${colors.bold("USAGE:")}
-  forge-cli monitors get <monitor_id> --server <server_id> [options]
+  forge monitors get <monitor_id> --server <server_id> [options]
 `);
   } else if (subcommand === "create") {
     console.log(`
-${colors.bold("forge-cli monitors create")} - Create a new monitor
+${colors.bold("forge monitors create")} - Create a new monitor
 
 ${colors.bold("USAGE:")}
-  forge-cli monitors create --server <server_id> --type <type> --operator <operator> --threshold <threshold> --minutes <minutes> [options]
+  forge monitors create --server <server_id> --type <type> --operator <operator> --threshold <threshold> --minutes <minutes> [options]
 
 ${colors.bold("OPTIONS:")}
   --server <id>         Server ID (required)
@@ -36,17 +36,17 @@ ${colors.bold("OPTIONS:")}
 `);
   } else if (subcommand === "delete") {
     console.log(`
-${colors.bold("forge-cli monitors delete")} - Delete a monitor
+${colors.bold("forge monitors delete")} - Delete a monitor
 
 ${colors.bold("USAGE:")}
-  forge-cli monitors delete <monitor_id> --server <server_id> [options]
+  forge monitors delete <monitor_id> --server <server_id> [options]
 `);
   } else {
     console.log(`
-${colors.bold("forge-cli monitors")} - Manage server monitors
+${colors.bold("forge monitors")} - Manage server monitors
 
 ${colors.bold("USAGE:")}
-  forge-cli monitors <subcommand> [options]
+  forge monitors <subcommand> [options]
 
 ${colors.bold("SUBCOMMANDS:")}
   list, ls            List monitors
@@ -58,7 +58,7 @@ ${colors.bold("OPTIONS:")}
   --server <id>       Server ID (required)
   -f, --format <fmt>  Output format: json, human, table
 
-Run ${colors.cyan("forge-cli monitors <subcommand> --help")} for details.
+Run ${colors.cyan("forge monitors <subcommand> --help")} for details.
 `);
   }
 }

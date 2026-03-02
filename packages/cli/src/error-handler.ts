@@ -1,5 +1,5 @@
 /**
- * Centralized error handling for forge-cli.
+ * Centralized error handling for forge.
  */
 
 import type { OutputFormatter } from "./output.ts";

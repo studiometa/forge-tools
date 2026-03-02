@@ -9,11 +9,7 @@ export async function daemonsList(ctx: CommandContext): Promise<void> {
   const server = String(ctx.options.server ?? "");
 
   if (!server) {
-    exitWithValidationError(
-      "server_id",
-      "forge-cli daemons list --server <server_id>",
-      ctx.formatter,
-    );
+    exitWithValidationError("server_id", "forge daemons list --server <server_id>", ctx.formatter);
   }
 
   await runCommand(async () => {
@@ -37,7 +33,7 @@ export async function daemonsGet(args: string[], ctx: CommandContext): Promise<v
   if (!id) {
     exitWithValidationError(
       "daemon_id",
-      "forge-cli daemons get <daemon_id> --server <server_id>",
+      "forge daemons get <daemon_id> --server <server_id>",
       ctx.formatter,
     );
   }
@@ -45,7 +41,7 @@ export async function daemonsGet(args: string[], ctx: CommandContext): Promise<v
   if (!server) {
     exitWithValidationError(
       "server_id",
-      "forge-cli daemons get <daemon_id> --server <server_id>",
+      "forge daemons get <daemon_id> --server <server_id>",
       ctx.formatter,
     );
   }
@@ -74,7 +70,7 @@ export async function daemonsRestart(args: string[], ctx: CommandContext): Promi
   if (!id) {
     exitWithValidationError(
       "daemon_id",
-      "forge-cli daemons restart <daemon_id> --server <server_id>",
+      "forge daemons restart <daemon_id> --server <server_id>",
       ctx.formatter,
     );
   }
@@ -82,7 +78,7 @@ export async function daemonsRestart(args: string[], ctx: CommandContext): Promi
   if (!server) {
     exitWithValidationError(
       "server_id",
-      "forge-cli daemons restart <daemon_id> --server <server_id>",
+      "forge daemons restart <daemon_id> --server <server_id>",
       ctx.formatter,
     );
   }

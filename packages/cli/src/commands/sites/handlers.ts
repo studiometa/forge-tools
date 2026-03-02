@@ -9,11 +9,7 @@ export async function sitesList(ctx: CommandContext): Promise<void> {
   const server = String(ctx.options.server ?? "");
 
   if (!server) {
-    exitWithValidationError(
-      "server_id",
-      "forge-cli sites list --server <server_id>",
-      ctx.formatter,
-    );
+    exitWithValidationError("server_id", "forge sites list --server <server_id>", ctx.formatter);
   }
 
   await runCommand(async () => {
@@ -38,7 +34,7 @@ export async function sitesGet(args: string[], ctx: CommandContext): Promise<voi
   if (!site_id) {
     exitWithValidationError(
       "site_id",
-      "forge-cli sites get <site_id> --server <server_id>",
+      "forge sites get <site_id> --server <server_id>",
       ctx.formatter,
     );
   }
@@ -46,7 +42,7 @@ export async function sitesGet(args: string[], ctx: CommandContext): Promise<voi
   if (!server) {
     exitWithValidationError(
       "server_id",
-      "forge-cli sites get <site_id> --server <server_id>",
+      "forge sites get <site_id> --server <server_id>",
       ctx.formatter,
     );
   }

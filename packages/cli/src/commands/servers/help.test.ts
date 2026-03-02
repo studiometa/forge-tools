@@ -15,7 +15,7 @@ describe("showServersHelp", () => {
 
   it("should show general help when no subcommand", () => {
     showServersHelp();
-    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining("forge-cli servers"));
+    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining("forge servers"));
     expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining("list"));
   });
 

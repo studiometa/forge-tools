@@ -23,9 +23,9 @@ Credentials can be provided in three ways (highest priority first):
 3. **Config file** (XDG-compliant):
 
 ```bash
-forge-cli config set YOUR_FORGE_TOKEN
-forge-cli config get
-forge-cli config delete
+forge config set YOUR_FORGE_TOKEN
+forge config get
+forge config delete
 ```
 
 | Platform | Config path                                             |
@@ -37,7 +37,7 @@ forge-cli config delete
 ## Commands
 
 ```
-forge-cli <command> [subcommand] [options]
+forge <command> [subcommand] [options]
 ```
 
 | Command           | Alias   | Description                                          |
@@ -65,25 +65,25 @@ forge-cli <command> [subcommand] [options]
 | `user`            |         | Get the authenticated user's profile                 |
 | `completion`      |         | Install shell completion (bash, zsh, fish)           |
 
-Run `forge-cli <command> --help` for detailed usage of each command.
+Run `forge <command> --help` for detailed usage of each command.
 
 ## Quick Start
 
 ```bash
 # Save your API token
-forge-cli config set YOUR_FORGE_TOKEN
+forge config set YOUR_FORGE_TOKEN
 
 # List all servers
-forge-cli servers list
+forge servers list
 
 # List sites on a server
-forge-cli sites list --server 123
+forge sites list --server 123
 
 # Deploy a site
-forge-cli deployments deploy --server 123 --site 456
+forge deployments deploy --server 123 --site 456
 
 # Get environment variables
-forge-cli env get --server 123 --site 456
+forge env get --server 123 --site 456
 ```
 
 ## Output Formats
@@ -97,8 +97,8 @@ All list/get commands support `--format`:
 | Table  | `--format table` | ASCII table                          |
 
 ```bash
-forge-cli servers list --format json
-forge-cli sites list --server 123 --format table
+forge servers list --format json
+forge sites list --server 123 --format table
 ```
 
 ## Command Reference
@@ -106,31 +106,31 @@ forge-cli sites list --server 123 --format table
 ### `config` — Manage configuration
 
 ```bash
-forge-cli config set <token>   # Save API token to config file
-forge-cli config get           # Show current token (masked)
-forge-cli config delete        # Delete stored token
+forge config set <token>   # Save API token to config file
+forge config get           # Show current token (masked)
+forge config delete        # Delete stored token
 ```
 
 ### `servers` (`s`) — Manage servers
 
 ```bash
-forge-cli servers list                  # List all servers
-forge-cli servers get <id>              # Get server details
-forge-cli servers reboot <id>           # Reboot a server
+forge servers list                  # List all servers
+forge servers get <id>              # Get server details
+forge servers reboot <id>           # Reboot a server
 ```
 
 ### `sites` — Manage sites
 
 ```bash
-forge-cli sites list --server <id>              # List sites on a server
-forge-cli sites get <site_id> --server <id>     # Get site details
+forge sites list --server <id>              # List sites on a server
+forge sites get <site_id> --server <id>     # Get site details
 ```
 
 ### `deployments` (`d`) — Manage deployments
 
 ```bash
-forge-cli deployments list --server <id> --site <id>    # List deployments
-forge-cli deployments deploy --server <id> --site <id>  # Trigger a deployment
+forge deployments list --server <id> --site <id>    # List deployments
+forge deployments deploy --server <id> --site <id>  # Trigger a deployment
 ```
 
 The `deploy` command waits for deployment to complete, showing live progress. On completion it prints the deployment log and elapsed time.
@@ -138,69 +138,69 @@ The `deploy` command waits for deployment to complete, showing live progress. On
 ### `databases` (`db`) — Manage databases
 
 ```bash
-forge-cli databases list --server <id>              # List databases
-forge-cli databases get <db_id> --server <id>       # Get database details
+forge databases list --server <id>              # List databases
+forge databases get <db_id> --server <id>       # Get database details
 ```
 
 ### `daemons` — Manage background processes
 
 ```bash
-forge-cli daemons list --server <id>                    # List daemons
-forge-cli daemons get <daemon_id> --server <id>         # Get daemon details
-forge-cli daemons restart <daemon_id> --server <id>     # Restart a daemon
+forge daemons list --server <id>                    # List daemons
+forge daemons get <daemon_id> --server <id>         # Get daemon details
+forge daemons restart <daemon_id> --server <id>     # Restart a daemon
 ```
 
 ### `env` — Manage environment variables
 
 ```bash
-forge-cli env get --server <id> --site <id>                             # Get .env content
-forge-cli env update --server <id> --site <id> --content "KEY=value"    # Update .env
+forge env get --server <id> --site <id>                             # Get .env content
+forge env update --server <id> --site <id> --content "KEY=value"    # Update .env
 ```
 
 ### `nginx` — Manage Nginx configuration
 
 ```bash
-forge-cli nginx get --server <id> --site <id>                               # Get Nginx config
-forge-cli nginx update --server <id> --site <id> --content "server { ... }" # Update Nginx config
+forge nginx get --server <id> --site <id>                               # Get Nginx config
+forge nginx update --server <id> --site <id> --content "server { ... }" # Update Nginx config
 ```
 
 ### `certificates` (`certs`) — Manage SSL certificates
 
 ```bash
-forge-cli certificates list --server <id> --site <id>               # List certificates
-forge-cli certificates get <cert_id> --server <id> --site <id>      # Get certificate details
-forge-cli certificates activate <cert_id> --server <id> --site <id> # Activate a certificate
+forge certificates list --server <id> --site <id>               # List certificates
+forge certificates get <cert_id> --server <id> --site <id>      # Get certificate details
+forge certificates activate <cert_id> --server <id> --site <id> # Activate a certificate
 ```
 
 ### `firewall-rules` (`fw`) — Manage firewall rules
 
 ```bash
-forge-cli firewall-rules list --server <id>                 # List firewall rules
-forge-cli firewall-rules get <rule_id> --server <id>        # Get rule details
+forge firewall-rules list --server <id>                 # List firewall rules
+forge firewall-rules get <rule_id> --server <id>        # Get rule details
 ```
 
 ### `ssh-keys` — Manage SSH keys
 
 ```bash
-forge-cli ssh-keys list --server <id>               # List SSH keys
-forge-cli ssh-keys get <key_id> --server <id>       # Get SSH key details
+forge ssh-keys list --server <id>               # List SSH keys
+forge ssh-keys get <key_id> --server <id>       # Get SSH key details
 ```
 
 ### `recipes` — Manage recipes
 
 ```bash
-forge-cli recipes list                                          # List all recipes
-forge-cli recipes get <id>                                      # Get recipe details
-forge-cli recipes run <id> --servers 123,456                    # Run recipe on servers
+forge recipes list                                          # List all recipes
+forge recipes get <id>                                      # Get recipe details
+forge recipes run <id> --servers 123,456                    # Run recipe on servers
 ```
 
 ### `completion` — Shell completion
 
 ```bash
-forge-cli completion bash           # Install Bash completion
-forge-cli completion zsh            # Install Zsh completion
-forge-cli completion fish           # Install Fish completion
-forge-cli completion bash --print   # Print script without installing
+forge completion bash           # Install Bash completion
+forge completion zsh            # Install Zsh completion
+forge completion fish           # Install Fish completion
+forge completion bash --print   # Print script without installing
 ```
 
 ## Audit Logging
@@ -229,10 +229,10 @@ The CLI is designed for programmatic use by AI agents:
 
 ```bash
 # Get all servers as JSON
-forge-cli servers list --format json
+forge servers list --format json
 
 # Deploy and capture output
-forge-cli deployments deploy --server 123 --site 456 --format json
+forge deployments deploy --server 123 --site 456 --format json
 ```
 
 ## Requirements

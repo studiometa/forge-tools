@@ -11,7 +11,7 @@ export async function databasesList(ctx: CommandContext): Promise<void> {
   if (!server) {
     exitWithValidationError(
       "server_id",
-      "forge-cli databases list --server <server_id>",
+      "forge databases list --server <server_id>",
       ctx.formatter,
     );
   }
@@ -37,7 +37,7 @@ export async function databasesGet(args: string[], ctx: CommandContext): Promise
   if (!id) {
     exitWithValidationError(
       "database_id",
-      "forge-cli databases get <database_id> --server <server_id>",
+      "forge databases get <database_id> --server <server_id>",
       ctx.formatter,
     );
   }
@@ -45,7 +45,7 @@ export async function databasesGet(args: string[], ctx: CommandContext): Promise
   if (!server) {
     exitWithValidationError(
       "server_id",
-      "forge-cli databases get <database_id> --server <server_id>",
+      "forge databases get <database_id> --server <server_id>",
       ctx.formatter,
     );
   }

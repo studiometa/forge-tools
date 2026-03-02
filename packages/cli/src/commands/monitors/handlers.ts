@@ -9,11 +9,7 @@ export async function monitorsList(ctx: CommandContext): Promise<void> {
   const server = String(ctx.options.server ?? "");
 
   if (!server) {
-    exitWithValidationError(
-      "server_id",
-      "forge-cli monitors list --server <server_id>",
-      ctx.formatter,
-    );
+    exitWithValidationError("server_id", "forge monitors list --server <server_id>", ctx.formatter);
   }
 
   await runCommand(async () => {
@@ -38,7 +34,7 @@ export async function monitorsGet(args: string[], ctx: CommandContext): Promise<
   if (!id) {
     exitWithValidationError(
       "monitor_id",
-      "forge-cli monitors get <monitor_id> --server <server_id>",
+      "forge monitors get <monitor_id> --server <server_id>",
       ctx.formatter,
     );
   }
@@ -46,7 +42,7 @@ export async function monitorsGet(args: string[], ctx: CommandContext): Promise<
   if (!server) {
     exitWithValidationError(
       "server_id",
-      "forge-cli monitors get <monitor_id> --server <server_id>",
+      "forge monitors get <monitor_id> --server <server_id>",
       ctx.formatter,
     );
   }
@@ -78,7 +74,7 @@ export async function monitorsCreate(ctx: CommandContext): Promise<void> {
   if (!server) {
     exitWithValidationError(
       "server_id",
-      "forge-cli monitors create --server <server_id> --type <type> --operator <operator> --threshold <threshold> --minutes <minutes>",
+      "forge monitors create --server <server_id> --type <type> --operator <operator> --threshold <threshold> --minutes <minutes>",
       ctx.formatter,
     );
   }
@@ -86,7 +82,7 @@ export async function monitorsCreate(ctx: CommandContext): Promise<void> {
   if (!type) {
     exitWithValidationError(
       "type",
-      "forge-cli monitors create --server <server_id> --type <type> --operator <operator> --threshold <threshold> --minutes <minutes>",
+      "forge monitors create --server <server_id> --type <type> --operator <operator> --threshold <threshold> --minutes <minutes>",
       ctx.formatter,
     );
   }
@@ -94,7 +90,7 @@ export async function monitorsCreate(ctx: CommandContext): Promise<void> {
   if (!operator) {
     exitWithValidationError(
       "operator",
-      "forge-cli monitors create --server <server_id> --type <type> --operator <operator> --threshold <threshold> --minutes <minutes>",
+      "forge monitors create --server <server_id> --type <type> --operator <operator> --threshold <threshold> --minutes <minutes>",
       ctx.formatter,
     );
   }
@@ -122,7 +118,7 @@ export async function monitorsDelete(args: string[], ctx: CommandContext): Promi
   if (!id) {
     exitWithValidationError(
       "monitor_id",
-      "forge-cli monitors delete <monitor_id> --server <server_id>",
+      "forge monitors delete <monitor_id> --server <server_id>",
       ctx.formatter,
     );
   }
@@ -130,7 +126,7 @@ export async function monitorsDelete(args: string[], ctx: CommandContext): Promi
   if (!server) {
     exitWithValidationError(
       "server_id",
-      "forge-cli monitors delete <monitor_id> --server <server_id>",
+      "forge monitors delete <monitor_id> --server <server_id>",
       ctx.formatter,
     );
   }

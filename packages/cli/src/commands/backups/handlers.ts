@@ -14,11 +14,7 @@ export async function backupsList(ctx: CommandContext): Promise<void> {
   const server = String(ctx.options.server ?? "");
 
   if (!server) {
-    exitWithValidationError(
-      "server_id",
-      "forge-cli backups list --server <server_id>",
-      ctx.formatter,
-    );
+    exitWithValidationError("server_id", "forge backups list --server <server_id>", ctx.formatter);
   }
 
   await runCommand(async () => {
@@ -43,7 +39,7 @@ export async function backupsGet(args: string[], ctx: CommandContext): Promise<v
   if (!id) {
     exitWithValidationError(
       "backup_id",
-      "forge-cli backups get <backup_id> --server <server_id>",
+      "forge backups get <backup_id> --server <server_id>",
       ctx.formatter,
     );
   }
@@ -51,7 +47,7 @@ export async function backupsGet(args: string[], ctx: CommandContext): Promise<v
   if (!server) {
     exitWithValidationError(
       "server_id",
-      "forge-cli backups get <backup_id> --server <server_id>",
+      "forge backups get <backup_id> --server <server_id>",
       ctx.formatter,
     );
   }
@@ -87,7 +83,7 @@ export async function backupsCreate(ctx: CommandContext): Promise<void> {
   if (!server) {
     exitWithValidationError(
       "server_id",
-      "forge-cli backups create --server <server_id> --provider <provider> --frequency <frequency>",
+      "forge backups create --server <server_id> --provider <provider> --frequency <frequency>",
       ctx.formatter,
     );
   }
@@ -95,7 +91,7 @@ export async function backupsCreate(ctx: CommandContext): Promise<void> {
   if (!provider) {
     exitWithValidationError(
       "provider",
-      "forge-cli backups create --server <server_id> --provider <provider> --frequency <frequency>",
+      "forge backups create --server <server_id> --provider <provider> --frequency <frequency>",
       ctx.formatter,
     );
   }
@@ -103,7 +99,7 @@ export async function backupsCreate(ctx: CommandContext): Promise<void> {
   if (!frequency) {
     exitWithValidationError(
       "frequency",
-      "forge-cli backups create --server <server_id> --provider <provider> --frequency <frequency>",
+      "forge backups create --server <server_id> --provider <provider> --frequency <frequency>",
       ctx.formatter,
     );
   }
@@ -134,7 +130,7 @@ export async function backupsDelete(args: string[], ctx: CommandContext): Promis
   if (!id) {
     exitWithValidationError(
       "backup_id",
-      "forge-cli backups delete <backup_id> --server <server_id>",
+      "forge backups delete <backup_id> --server <server_id>",
       ctx.formatter,
     );
   }
@@ -142,7 +138,7 @@ export async function backupsDelete(args: string[], ctx: CommandContext): Promis
   if (!server) {
     exitWithValidationError(
       "server_id",
-      "forge-cli backups delete <backup_id> --server <server_id>",
+      "forge backups delete <backup_id> --server <server_id>",
       ctx.formatter,
     );
   }

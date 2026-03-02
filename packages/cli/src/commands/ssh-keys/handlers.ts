@@ -9,11 +9,7 @@ export async function sshKeysList(ctx: CommandContext): Promise<void> {
   const server = String(ctx.options.server ?? "");
 
   if (!server) {
-    exitWithValidationError(
-      "server_id",
-      "forge-cli ssh-keys list --server <server_id>",
-      ctx.formatter,
-    );
+    exitWithValidationError("server_id", "forge ssh-keys list --server <server_id>", ctx.formatter);
   }
 
   await runCommand(async () => {
@@ -37,7 +33,7 @@ export async function sshKeysGet(args: string[], ctx: CommandContext): Promise<v
   if (!id) {
     exitWithValidationError(
       "ssh_key_id",
-      "forge-cli ssh-keys get <key_id> --server <server_id>",
+      "forge ssh-keys get <key_id> --server <server_id>",
       ctx.formatter,
     );
   }
@@ -45,7 +41,7 @@ export async function sshKeysGet(args: string[], ctx: CommandContext): Promise<v
   if (!server) {
     exitWithValidationError(
       "server_id",
-      "forge-cli ssh-keys get <key_id> --server <server_id>",
+      "forge ssh-keys get <key_id> --server <server_id>",
       ctx.formatter,
     );
   }

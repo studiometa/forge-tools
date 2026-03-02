@@ -1,5 +1,5 @@
 /**
- * Config command — manage forge-cli configuration
+ * Config command — manage forge configuration
  */
 
 import { createConfigStore, setToken, deleteToken, getToken } from "../config.ts";
@@ -8,10 +8,10 @@ import { colors } from "../utils/colors.ts";
 
 export function showConfigHelp(): void {
   console.log(`
-${colors.bold("forge-cli config")} - Manage CLI configuration
+${colors.bold("forge config")} - Manage CLI configuration
 
 ${colors.bold("USAGE:")}
-  forge-cli config <subcommand> [options]
+  forge config <subcommand> [options]
 
 ${colors.bold("SUBCOMMANDS:")}
   set <token>         Save API token to config file
@@ -19,9 +19,9 @@ ${colors.bold("SUBCOMMANDS:")}
   delete              Delete stored API token
 
 ${colors.bold("EXAMPLES:")}
-  forge-cli config set YOUR_FORGE_TOKEN
-  forge-cli config get
-  forge-cli config delete
+  forge config set YOUR_FORGE_TOKEN
+  forge config get
+  forge config delete
 `);
 }
 
@@ -42,7 +42,7 @@ export function handleConfigCommand(
     case "set": {
       const [token] = args;
       if (!token) {
-        formatter.error("Token is required. Usage: forge-cli config set <token>");
+        formatter.error("Token is required. Usage: forge config set <token>");
         process.exit(1);
         return;
       }
@@ -55,7 +55,7 @@ export function handleConfigCommand(
       const token = getToken(store);
       if (!token) {
         formatter.warning("No API token configured.");
-        formatter.info("Run: forge-cli config set <token>");
+        formatter.info("Run: forge config set <token>");
       } else {
         // Mask the token for security
         const masked =

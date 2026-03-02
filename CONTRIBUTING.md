@@ -40,7 +40,7 @@ Build order matters — packages depend on each other:
 ```
 forge-api → forge-sdk
 forge-api → forge-core → forge-mcp
-                       → forge-cli
+                       → forge
 ```
 
 The root `npm run build` handles this automatically.

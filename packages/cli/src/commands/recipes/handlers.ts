@@ -22,7 +22,7 @@ export async function recipesGet(args: string[], ctx: CommandContext): Promise<v
   const [id] = args;
 
   if (!id) {
-    exitWithValidationError("id", "forge-cli recipes get <recipe_id>", ctx.formatter);
+    exitWithValidationError("id", "forge recipes get <recipe_id>", ctx.formatter);
   }
 
   await runCommand(async () => {
@@ -38,17 +38,13 @@ export async function recipesRun(args: string[], ctx: CommandContext): Promise<v
   const serversRaw = String(ctx.options.servers ?? "");
 
   if (!id) {
-    exitWithValidationError(
-      "id",
-      "forge-cli recipes run <recipe_id> --servers <ids>",
-      ctx.formatter,
-    );
+    exitWithValidationError("id", "forge recipes run <recipe_id> --servers <ids>", ctx.formatter);
   }
 
   if (!serversRaw) {
     exitWithValidationError(
       "servers",
-      "forge-cli recipes run <recipe_id> --servers <server_id1,server_id2,...>",
+      "forge recipes run <recipe_id> --servers <server_id1,server_id2,...>",
       ctx.formatter,
     );
   }

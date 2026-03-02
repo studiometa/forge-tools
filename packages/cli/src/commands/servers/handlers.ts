@@ -44,7 +44,7 @@ export async function serversGet(args: string[], ctx: CommandContext): Promise<v
   const [server] = args;
 
   if (!server) {
-    exitWithValidationError("server_id", "forge-cli servers get <server_id>", ctx.formatter);
+    exitWithValidationError("server_id", "forge servers get <server_id>", ctx.formatter);
   }
 
   await runCommand(async () => {
@@ -63,7 +63,7 @@ export async function serversReboot(args: string[], ctx: CommandContext): Promis
   const [server] = args;
 
   if (!server) {
-    exitWithValidationError("server_id", "forge-cli servers reboot <server_id>", ctx.formatter);
+    exitWithValidationError("server_id", "forge servers reboot <server_id>", ctx.formatter);
   }
 
   await runCommand(async () => {

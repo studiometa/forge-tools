@@ -23,7 +23,7 @@ function requireServerAndSiteRaw(
 }
 
 export async function certificatesList(ctx: CommandContext): Promise<void> {
-  const usage = "forge-cli certificates list --server <server_id> --site <site_id>";
+  const usage = "forge certificates list --server <server_id> --site <site_id>";
   const { server, site } = requireServerAndSiteRaw(ctx, usage);
 
   await runCommand(async () => {
@@ -44,7 +44,7 @@ export async function certificatesList(ctx: CommandContext): Promise<void> {
 
 export async function certificatesGet(args: string[], ctx: CommandContext): Promise<void> {
   const [id] = args;
-  const usage = "forge-cli certificates get <cert_id> --server <server_id> --site <site_id>";
+  const usage = "forge certificates get <cert_id> --server <server_id> --site <site_id>";
 
   if (!id) {
     exitWithValidationError("certificate_id", usage, ctx.formatter);
@@ -73,7 +73,7 @@ export async function certificatesGet(args: string[], ctx: CommandContext): Prom
 
 export async function certificatesActivate(args: string[], ctx: CommandContext): Promise<void> {
   const [id] = args;
-  const usage = "forge-cli certificates activate <cert_id> --server <server_id> --site <site_id>";
+  const usage = "forge certificates activate <cert_id> --server <server_id> --site <site_id>";
 
   if (!id) {
     exitWithValidationError("certificate_id", usage, ctx.formatter);

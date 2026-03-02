@@ -23,7 +23,7 @@ function requireServerAndSiteRaw(
 }
 
 export async function commandsList(ctx: CommandContext): Promise<void> {
-  const usage = "forge-cli commands list --server <server_id> --site <site_id>";
+  const usage = "forge commands list --server <server_id> --site <site_id>";
   const { server, site } = requireServerAndSiteRaw(ctx, usage);
 
   await runCommand(async () => {
@@ -44,7 +44,7 @@ export async function commandsList(ctx: CommandContext): Promise<void> {
 
 export async function commandsGet(args: string[], ctx: CommandContext): Promise<void> {
   const [id] = args;
-  const usage = "forge-cli commands get <command_id> --server <server_id> --site <site_id>";
+  const usage = "forge commands get <command_id> --server <server_id> --site <site_id>";
 
   if (!id) {
     exitWithValidationError("command_id", usage, ctx.formatter);
@@ -63,8 +63,7 @@ export async function commandsGet(args: string[], ctx: CommandContext): Promise<
 }
 
 export async function commandsCreate(ctx: CommandContext): Promise<void> {
-  const usage =
-    "forge-cli commands create --server <server_id> --site <site_id> --command <command>";
+  const usage = "forge commands create --server <server_id> --site <site_id> --command <command>";
   const { server, site } = requireServerAndSiteRaw(ctx, usage);
   const command = String(ctx.options.command ?? "");
 

@@ -12,7 +12,7 @@ export async function deploymentsList(ctx: CommandContext): Promise<void> {
   if (!server) {
     exitWithValidationError(
       "server_id",
-      "forge-cli deployments list --server <server_id> --site <site_id>",
+      "forge deployments list --server <server_id> --site <site_id>",
       ctx.formatter,
     );
   }
@@ -20,7 +20,7 @@ export async function deploymentsList(ctx: CommandContext): Promise<void> {
   if (!site) {
     exitWithValidationError(
       "site_id",
-      "forge-cli deployments list --server <server_id> --site <site_id>",
+      "forge deployments list --server <server_id> --site <site_id>",
       ctx.formatter,
     );
   }
@@ -48,7 +48,7 @@ export async function deploymentsDeploy(ctx: CommandContext): Promise<void> {
   if (!server) {
     exitWithValidationError(
       "server_id",
-      "forge-cli deployments deploy --server <server_id> --site <site_id>",
+      "forge deployments deploy --server <server_id> --site <site_id>",
       ctx.formatter,
     );
   }
@@ -56,7 +56,7 @@ export async function deploymentsDeploy(ctx: CommandContext): Promise<void> {
   if (!site) {
     exitWithValidationError(
       "site_id",
-      "forge-cli deployments deploy --server <server_id> --site <site_id>",
+      "forge deployments deploy --server <server_id> --site <site_id>",
       ctx.formatter,
     );
   }
