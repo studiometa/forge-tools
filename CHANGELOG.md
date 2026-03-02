@@ -174,8 +174,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Fix compact output defaulting logic to use per-action default [[#28], [52bece0]]
 
 - **CLI** (`@studiometa/forge-cli`):
-  - Add `forge` package — full command-line interface for managing Laravel Forge resources [[#33], [47826e1]]
-  - Add `forge` to root README and create `packages/cli/README.md` [[#39], [a4a43f5]]
+  - Add `forge-cli` package — full command-line interface for managing Laravel Forge resources [[#33], [47826e1]]
+  - Add `forge-cli` to root README and create `packages/cli/README.md` [[#39], [a4a43f5]]
   - Add CLI commands for backups, commands, scheduled-jobs, user, monitors, nginx-templates, security-rules, redirect-rules [[#42], [9865cd7]]
   - Add database-users CLI commands [[#40], [191271f]]
   - Add smart `--server` and `--site` resolution by name or partial match [[#48], [131275c]]

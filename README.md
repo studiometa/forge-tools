@@ -120,7 +120,7 @@ forge-api   → (nothing)       # HTTP client, types, config, rate limiter
 forge-sdk   → forge-api       # Fluent chainable SDK (the hero package)
 forge-core  → forge-api       # Executors with DI for MCP and CLI
 forge-mcp   → forge-core      # MCP server (stdio transport)
-forge   → forge-core      # CLI tool (human + AI agent use)
+forge-cli   → forge-core      # CLI tool (human + AI agent use)
             → forge-api
 ```
 
