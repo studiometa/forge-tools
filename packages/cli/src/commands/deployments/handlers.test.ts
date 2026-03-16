@@ -105,10 +105,16 @@ describe("deploymentsDeploy", () => {
     expect(vi.mocked(console.log)).toHaveBeenCalledWith(expect.stringContaining("succeeded"));
   });
 
-  it("should display deployment log after success", async () => {
+  it("should stream deployment log via onLog callback", async () => {
+    const stdoutSpy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
     const { deploySiteAndWait } = await import("@studiometa/forge-core");
-    vi.mocked(deploySiteAndWait).mockResolvedValue({
-      data: { status: "success", log: "Build succeeded.\nDone.", elapsed_ms: 5000 },
+    vi.mocked(deploySiteAndWait).mockImplementation(async (opts) => {
+      if (opts.onLog) {
+        opts.onLog("Build succeeded.\n");
+        opts.onLog("Done.\n");
+      }
+      return { data: { status: "success", log: "Build succeeded.\nDone.\n", elapsed_ms: 5000 } };
     });
 
     const ctx = createTestContext({
@@ -118,9 +124,8 @@ describe("deploymentsDeploy", () => {
     });
 
     await deploymentsDeploy(ctx);
-    expect(vi.mocked(console.log)).toHaveBeenCalledWith(
-      expect.stringContaining("Build succeeded."),
-    );
+    expect(stdoutSpy).toHaveBeenCalledWith("Build succeeded.\n");
+    expect(stdoutSpy).toHaveBeenCalledWith("Done.\n");
   });
 
   it("should display failed status when deployment fails", async () => {
