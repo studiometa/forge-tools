@@ -64,6 +64,11 @@ export interface DeploySiteAndWaitOptions {
   timeout_ms?: number;
   /** Called on each poll iteration with current status and elapsed time. */
   onProgress?: (update: { status: string; elapsed_ms: number }) => void;
+  /**
+   * Called with new log lines as they appear during deployment.
+   * Only new content since the last call is provided (incremental).
+   */
+  onLog?: (chunk: string) => void;
 }
 
 /**

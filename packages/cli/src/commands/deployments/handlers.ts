@@ -74,6 +74,9 @@ export async function deploymentsDeploy(ctx: CommandContext): Promise<void> {
         onProgress: ({ status, elapsed_ms }) => {
           process.stderr.write(`\rDeploying… ${status} (${(elapsed_ms / 1000).toFixed(1)}s)`);
         },
+        onLog: (chunk) => {
+          process.stdout.write(chunk);
+        },
       },
       execCtx,
     );
@@ -87,10 +90,6 @@ export async function deploymentsDeploy(ctx: CommandContext): Promise<void> {
       ctx.formatter.success(`Deployment succeeded for site ${site_id} (${elapsedSec}s).`);
     } else {
       ctx.formatter.success(`Deployment failed for site ${site_id} (${elapsedSec}s).`);
-    }
-
-    if (result.data.log) {
-      ctx.formatter.output(result.data.log);
     }
   }, ctx.formatter);
 }
