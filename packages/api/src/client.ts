@@ -1,12 +1,9 @@
-import type { ApiVersion, ForgeOptions } from "./types.ts";
+import type { ForgeOptions } from "./types.ts";
 
 import { ForgeApiError } from "./errors.ts";
 import { RateLimiter } from "./rate-limiter.ts";
 
-const BASE_URLS: Record<ApiVersion, string> = {
-  v1: "https://forge.laravel.com/api/v1",
-  v2: "https://forge.laravel.com/api",
-};
+const DEFAULT_BASE_URL = "https://forge.laravel.com/api";
 
 /**
  * Low-level HTTP client for the Laravel Forge API.
@@ -20,29 +17,20 @@ const BASE_URLS: Record<ApiVersion, string> = {
  *   token: 'your-api-token',
  * });
  *
- * const servers = await client.get<ServersResponse>('/servers');
+ * const servers = await client.get<JsonApiListDocument<ServerAttributes>>('/orgs/my-org/servers');
  * ```
  */
 export class HttpClient {
   private readonly token: string;
   private readonly baseUrl: string;
-  private readonly apiVersion: ApiVersion;
   private readonly fetch: typeof globalThis.fetch;
   private readonly rateLimiter: RateLimiter;
 
   constructor(options: { token: string } & ForgeOptions) {
     this.token = options.token;
-    this.apiVersion = options.apiVersion ?? "v1";
-    this.baseUrl = options.baseUrl ?? BASE_URLS[this.apiVersion];
+    this.baseUrl = options.baseUrl ?? DEFAULT_BASE_URL;
     this.fetch = options.fetch ?? globalThis.fetch;
     this.rateLimiter = new RateLimiter(options.rateLimit);
-  }
-
-  /**
-   * Get the API version this client targets.
-   */
-  getApiVersion(): ApiVersion {
-    return this.apiVersion;
   }
 
   /**
@@ -134,7 +122,10 @@ export class HttpClient {
 
       // Parse response
       const contentType = response.headers.get("content-type");
-      if (contentType?.includes("application/json")) {
+      if (
+        contentType?.includes("application/json") ||
+        contentType?.includes("application/vnd.api+json")
+      ) {
         return (await response.json()) as T;
       }
 

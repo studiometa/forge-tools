@@ -60,7 +60,6 @@ export type {
 // v1 types (legacy)
 export type {
   // Options
-  ApiVersion,
   ForgeConfig,
   ForgeOptions,
   RateLimitOptions,
