@@ -1,32 +1,49 @@
-import type { ForgeSite, SiteResponse, DeploymentsResponse } from "@studiometa/forge-api";
+import type {
+  JsonApiDocument,
+  JsonApiListDocument,
+  SiteAttributes,
+  DeploymentAttributes,
+  DeploymentStatusAttributes,
+} from "@studiometa/forge-api";
+import { unwrapDocument, unwrapListDocument } from "@studiometa/forge-api";
 
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
+import { sitePath } from "../../utils/url-builder.ts";
 
 import type { DeploySiteAndWaitOptions, DeployResult } from "./types.ts";
 
 /**
- * Trigger a deployment and wait for it to complete.
+ * Trigger a deployment and wait for it to complete, streaming logs in real time.
  *
  * 1. POSTs to the deploy endpoint.
- * 2. Polls GET /servers/{id}/sites/{site_id} every `poll_interval_ms` ms.
- * 3. When `deployment_status` becomes null the deploy is done.
- * 4. Fetches the deployment log.
- * 5. Checks the most recent deployment status to determine success/failure.
+ * 2. Polls deployment status every `poll_interval_ms` ms.
+ * 3. On each poll, fetches the latest deployment log and emits new content via `onLog`.
+ * 4. When status becomes null/idle the deploy is done.
+ * 5. Fetches the final deployment log to emit any remaining content.
+ * 6. Checks the most recent deployment to determine success/failure.
  */
 export async function deploySiteAndWait(
   options: DeploySiteAndWaitOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<DeployResult>> {
-  const { server_id, site_id, poll_interval_ms = 3000, timeout_ms = 600_000, onProgress } = options;
+  const {
+    server_id,
+    site_id,
+    poll_interval_ms = 3000,
+    timeout_ms = 600_000,
+    onProgress,
+    onLog,
+  } = options;
 
-  const baseUrl = `/servers/${server_id}/sites/${site_id}`;
+  const baseUrl = sitePath(server_id, site_id, ctx);
 
   // 1. Trigger deploy
-  await ctx.client.post(`${baseUrl}/deployment/deploy`);
+  await ctx.client.post(`${baseUrl}/deployments`);
 
   const startTime = Date.now();
+  let logOffset = 0;
 
-  // 2. Poll until deployment_status is null (done)
+  // 2. Poll until deployment is done
   await new Promise<void>((resolve) => {
     const tick = async (): Promise<void> => {
       const elapsed_ms = Date.now() - startTime;
@@ -36,12 +53,49 @@ export async function deploySiteAndWait(
         return;
       }
 
-      const response = await ctx.client.get<SiteResponse>(`/servers/${server_id}/sites/${site_id}`);
-      const site = response.site as ForgeSite;
-      const currentStatus = site.deployment_status;
+      // Check deployment status
+      let currentStatus: string | null = null;
+      try {
+        const statusResponse = await ctx.client.get<JsonApiDocument<DeploymentStatusAttributes>>(
+          `${baseUrl}/deployments/status`,
+        );
+        const status = unwrapDocument(statusResponse);
+        currentStatus = status.status;
+      } catch {
+        // Status endpoint may return 404 when no active deployment — treat as done
+        currentStatus = null;
+      }
 
       if (onProgress) {
         onProgress({ status: currentStatus ?? "done", elapsed_ms });
+      }
+
+      // 3. Stream deployment log incrementally
+      if (onLog) {
+        try {
+          // Fetch the latest deployment to get its log
+          const deploymentsResponse = await ctx.client.get<
+            JsonApiListDocument<DeploymentAttributes>
+          >(`${baseUrl}/deployments?page[size]=1`);
+          const deployments = unwrapListDocument(deploymentsResponse);
+          if (deployments.length > 0) {
+            const latestId = deployments[0]!.id;
+            try {
+              const logResponse = await ctx.client.get<JsonApiDocument<{ output: string }>>(
+                `${baseUrl}/deployments/${latestId}/log`,
+              );
+              const logData = unwrapDocument(logResponse);
+              if (logData.output && logData.output.length > logOffset) {
+                onLog(logData.output.slice(logOffset));
+                logOffset = logData.output.length;
+              }
+            } catch {
+              // Log may not be available yet; continue
+            }
+          }
+        } catch {
+          // Deployments list may fail; continue
+        }
       }
 
       if (currentStatus === null) {
@@ -58,19 +112,36 @@ export async function deploySiteAndWait(
 
   const elapsed_ms = Date.now() - startTime;
 
-  // 3. Fetch deployment log
+  // 4. Final log fetch — emit any remaining content
   let log = "";
   try {
-    log = await ctx.client.get<string>(`${baseUrl}/deployment/log`);
+    const deploymentsResponse = await ctx.client.get<JsonApiListDocument<DeploymentAttributes>>(
+      `${baseUrl}/deployments?page[size]=1`,
+    );
+    const deployments = unwrapListDocument(deploymentsResponse);
+    if (deployments.length > 0) {
+      const latestId = deployments[0]!.id;
+      const logResponse = await ctx.client.get<JsonApiDocument<{ output: string }>>(
+        `${baseUrl}/deployments/${latestId}/log`,
+      );
+      const logData = unwrapDocument(logResponse);
+      log = logData.output ?? "";
+    }
   } catch {
     // log may not be available; continue
   }
 
-  // 4. Determine success/failure from the most recent deployment
+  if (onLog && log.length > logOffset) {
+    onLog(log.slice(logOffset));
+  }
+
+  // 5. Determine success/failure from the most recent deployment
   let deployStatus: "success" | "failed" = "failed";
   try {
-    const deploymentsResponse = await ctx.client.get<DeploymentsResponse>(`${baseUrl}/deployments`);
-    const deployments = deploymentsResponse.deployments;
+    const deploymentsResponse = await ctx.client.get<JsonApiListDocument<DeploymentAttributes>>(
+      `${baseUrl}/deployments?page[size]=1`,
+    );
+    const deployments = unwrapListDocument(deploymentsResponse);
     if (deployments.length > 0) {
       const latest = deployments[0]!;
       deployStatus = latest.status === "finished" ? "success" : "failed";
@@ -79,7 +150,7 @@ export async function deploySiteAndWait(
     // If we can't fetch deployments, keep 'failed'
   }
 
-  // 5. If we timed out, force 'failed'
+  // 6. If we timed out, force 'failed'
   if (elapsed_ms >= timeout_ms) {
     deployStatus = "failed";
   }
