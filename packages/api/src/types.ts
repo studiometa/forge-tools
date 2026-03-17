@@ -450,6 +450,8 @@ export interface CreateRecipeData {
 
 export interface ForgeConfig {
   apiToken: string;
+  /** Default organization slug for v2 API (e.g. "studio-meta"). */
+  organizationSlug?: string;
 }
 
 // ── API response wrappers ────────────────────────────

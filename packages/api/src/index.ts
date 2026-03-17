@@ -2,7 +2,14 @@
 // Laravel Forge API client — HTTP client, types, config storage, and rate limiting
 
 export { HttpClient } from "./client.ts";
-export { createConfigStore, deleteToken, getToken, setToken } from "./config.ts";
+export {
+  createConfigStore,
+  deleteToken,
+  getToken,
+  setToken,
+  getOrganizationSlug,
+  setOrganizationSlug,
+} from "./config.ts";
 export { ForgeApiError, isForgeApiError } from "./errors.ts";
 export { RateLimiter } from "./rate-limiter.ts";
 export { ConfigStore } from "./utils/config-store.ts";
