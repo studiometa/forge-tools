@@ -1,16 +1,19 @@
-import type { ForgeRecipe, RecipeResponse } from "@studiometa/forge-api";
+import type { JsonApiDocument, RecipeAttributes } from "@studiometa/forge-api";
+import { unwrapDocument } from "@studiometa/forge-api";
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
+import { orgPrefix } from "../../utils/url-builder.ts";
 
 import type { GetRecipeOptions } from "./types.ts";
 
 export async function getRecipe(
   options: GetRecipeOptions,
   ctx: ExecutorContext,
-): Promise<ExecutorResult<ForgeRecipe>> {
-  const response = await ctx.client.get<RecipeResponse>(`/recipes/${options.id}`);
-  const recipe = response.recipe;
+): Promise<ExecutorResult<RecipeAttributes & { id: number }>> {
+  const response = await ctx.client.get<JsonApiDocument<RecipeAttributes>>(
+    `${orgPrefix(ctx)}/recipes/${options.id}`,
+  );
 
   return {
-    data: recipe,
+    data: unwrapDocument(response),
   };
 }

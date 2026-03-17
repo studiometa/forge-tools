@@ -1,5 +1,7 @@
-import type { ForgeSite, SiteResponse } from "@studiometa/forge-api";
+import type { JsonApiDocument, SiteAttributes } from "@studiometa/forge-api";
+import { unwrapDocument } from "@studiometa/forge-api";
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
+import { serverPath } from "../../utils/url-builder.ts";
 
 import type { CreateSiteOptions } from "./types.ts";
 
@@ -9,12 +11,14 @@ import type { CreateSiteOptions } from "./types.ts";
 export async function createSite(
   options: CreateSiteOptions,
   ctx: ExecutorContext,
-): Promise<ExecutorResult<ForgeSite>> {
+): Promise<ExecutorResult<SiteAttributes & { id: number }>> {
   const { server_id, ...data } = options;
-  const response = await ctx.client.post<SiteResponse>(`/servers/${server_id}/sites`, data);
-  const site = response.site;
+  const response = await ctx.client.post<JsonApiDocument<SiteAttributes>>(
+    `${serverPath(server_id, ctx)}/sites`,
+    data,
+  );
 
   return {
-    data: site,
+    data: unwrapDocument(response),
   };
 }

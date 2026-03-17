@@ -1,5 +1,7 @@
-import type { SitesResponse } from "@studiometa/forge-api";
+import type { JsonApiListDocument, SiteAttributes } from "@studiometa/forge-api";
+import { unwrapListDocument } from "@studiometa/forge-api";
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
+import { serverPath } from "../../utils/url-builder.ts";
 import { matchByName } from "../../utils/name-matcher.ts";
 
 export interface ResolveSitesOptions {
@@ -28,8 +30,10 @@ export async function resolveSites(
   options: ResolveSitesOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<ResolveSiteResult>> {
-  const response = await ctx.client.get<SitesResponse>(`/servers/${options.server_id}/sites`);
-  const sites = response.sites;
+  const response = await ctx.client.get<JsonApiListDocument<SiteAttributes>>(
+    `${serverPath(options.server_id, ctx)}/sites`,
+  );
+  const sites = unwrapListDocument(response);
 
   const match = matchByName(sites, options.query, (s) => s.name);
   const matches = match.exact.length === 1 ? match.exact : match.partial;

@@ -1,5 +1,7 @@
-import type { ForgeScheduledJob, ScheduledJobsResponse } from "@studiometa/forge-api";
+import type { JsonApiListDocument, ScheduledJobAttributes } from "@studiometa/forge-api";
+import { unwrapListDocument } from "@studiometa/forge-api";
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
+import { serverPath } from "../../utils/url-builder.ts";
 
 import type { ListScheduledJobsOptions } from "./types.ts";
 
@@ -9,13 +11,12 @@ import type { ListScheduledJobsOptions } from "./types.ts";
 export async function listScheduledJobs(
   options: ListScheduledJobsOptions,
   ctx: ExecutorContext,
-): Promise<ExecutorResult<ForgeScheduledJob[]>> {
-  const response = await ctx.client.get<ScheduledJobsResponse>(
-    `/servers/${options.server_id}/jobs`,
+): Promise<ExecutorResult<Array<ScheduledJobAttributes & { id: number }>>> {
+  const response = await ctx.client.get<JsonApiListDocument<ScheduledJobAttributes>>(
+    `${serverPath(options.server_id, ctx)}/scheduled-jobs`,
   );
-  const jobs = response.jobs;
 
   return {
-    data: jobs,
+    data: unwrapListDocument(response),
   };
 }
