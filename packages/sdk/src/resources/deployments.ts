@@ -1,9 +1,13 @@
 import type {
-  ForgeDeployment,
   HttpClient,
-  DeploymentResponse,
-  DeploymentsResponse,
+  JsonApiDocument,
+  JsonApiListDocument,
+  DeploymentAttributes,
+  DeploymentOutputAttributes,
+  DeploymentScriptAttributes,
 } from "@studiometa/forge-api";
+
+import { unwrapDocument, unwrapListDocument } from "@studiometa/forge-api";
 
 import { BaseCollection } from "./base.ts";
 import { AsyncPaginatedIterator } from "../pagination.ts";
@@ -12,8 +16,8 @@ import { AsyncPaginatedIterator } from "../pagination.ts";
  * Options for listing deployments.
  */
 export interface DeploymentListOptions {
-  /** Page number to fetch (1-indexed). */
-  page?: number;
+  /** Cursor for pagination (from previous response's next_cursor). */
+  cursor?: string;
 }
 
 /**
@@ -30,14 +34,15 @@ export class DeploymentsCollection extends BaseCollection {
   /** @internal */
   constructor(
     client: HttpClient,
+    orgSlug: string,
     private readonly serverId: number,
     private readonly siteId: number,
   ) {
-    super(client);
+    super(client, orgSlug);
   }
 
   private get basePath(): string {
-    return `/servers/${this.serverId}/sites/${this.siteId}/deployments`;
+    return `/orgs/${this.orgSlug}/servers/${this.serverId}/sites/${this.siteId}/deployments`;
   }
 
   /**
@@ -47,14 +52,18 @@ export class DeploymentsCollection extends BaseCollection {
    * ```ts
    * const deployments = await forge.server(123).site(456).deployments.list();
    *
-   * // Fetch a specific page:
-   * const page2 = await forge.server(123).site(456).deployments.list({ page: 2 });
+   * // Fetch a specific cursor page:
+   * const page2 = await forge.server(123).site(456).deployments.list({ cursor: 'next-cursor-value' });
    * ```
    */
-  async list(options: DeploymentListOptions = {}): Promise<ForgeDeployment[]> {
-    const query = options.page !== undefined ? `?page=${options.page}` : "";
-    const response = await this.client.get<DeploymentsResponse>(`${this.basePath}${query}`);
-    return response.deployments;
+  async list(
+    options: DeploymentListOptions = {},
+  ): Promise<Array<DeploymentAttributes & { id: number }>> {
+    const query = options.cursor !== undefined ? `?page[cursor]=${options.cursor}` : "";
+    const response = await this.client.get<JsonApiListDocument<DeploymentAttributes>>(
+      `${this.basePath}${query}`,
+    );
+    return unwrapListDocument(response);
   }
 
   /**
@@ -70,8 +79,17 @@ export class DeploymentsCollection extends BaseCollection {
    * const deployments = await forge.server(123).site(456).deployments.all().toArray();
    * ```
    */
-  all(options: Omit<DeploymentListOptions, "page"> = {}): AsyncPaginatedIterator<ForgeDeployment> {
-    return new AsyncPaginatedIterator<ForgeDeployment>((page) => this.list({ ...options, page }));
+  all(): AsyncPaginatedIterator<DeploymentAttributes & { id: number }> {
+    return new AsyncPaginatedIterator<DeploymentAttributes & { id: number }>(async (cursor) => {
+      const query = cursor !== null ? `?page[cursor]=${cursor}` : "";
+      const response = await this.client.get<JsonApiListDocument<DeploymentAttributes>>(
+        `${this.basePath}${query}`,
+      );
+      return {
+        items: unwrapListDocument(response),
+        nextCursor: response.meta.next_cursor ?? null,
+      };
+    });
   }
 
   /**
@@ -82,9 +100,11 @@ export class DeploymentsCollection extends BaseCollection {
    * const deployment = await forge.server(123).site(456).deployments.get(789);
    * ```
    */
-  async get(deploymentId: number): Promise<ForgeDeployment> {
-    const response = await this.client.get<DeploymentResponse>(`${this.basePath}/${deploymentId}`);
-    return response.deployment;
+  async get(deploymentId: number): Promise<DeploymentAttributes & { id: number }> {
+    const response = await this.client.get<JsonApiDocument<DeploymentAttributes>>(
+      `${this.basePath}/${deploymentId}`,
+    );
+    return unwrapDocument(response);
   }
 
   /**
@@ -96,7 +116,10 @@ export class DeploymentsCollection extends BaseCollection {
    * ```
    */
   async output(deploymentId: number): Promise<string> {
-    return this.client.get<string>(`${this.basePath}/${deploymentId}/output`);
+    const response = await this.client.get<JsonApiDocument<DeploymentOutputAttributes>>(
+      `${this.basePath}/${deploymentId}/output`,
+    );
+    return unwrapDocument(response).output;
   }
 
   /**
@@ -108,9 +131,10 @@ export class DeploymentsCollection extends BaseCollection {
    * ```
    */
   async script(): Promise<string> {
-    return this.client.get<string>(
-      `/servers/${this.serverId}/sites/${this.siteId}/deployment/script`,
+    const response = await this.client.get<JsonApiDocument<DeploymentScriptAttributes>>(
+      `/orgs/${this.orgSlug}/servers/${this.serverId}/sites/${this.siteId}/deployments/script`,
     );
+    return unwrapDocument(response).content;
   }
 
   /**
@@ -122,8 +146,9 @@ export class DeploymentsCollection extends BaseCollection {
    * ```
    */
   async updateScript(content: string): Promise<void> {
-    await this.client.put(`/servers/${this.serverId}/sites/${this.siteId}/deployment/script`, {
-      content,
-    });
+    await this.client.put(
+      `/orgs/${this.orgSlug}/servers/${this.serverId}/sites/${this.siteId}/deployments/script`,
+      { content },
+    );
   }
 }

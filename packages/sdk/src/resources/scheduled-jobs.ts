@@ -1,10 +1,12 @@
 import type {
   CreateScheduledJobData,
-  ForgeScheduledJob,
   HttpClient,
-  ScheduledJobResponse,
-  ScheduledJobsResponse,
+  JsonApiDocument,
+  JsonApiListDocument,
+  ScheduledJobAttributes,
 } from "@studiometa/forge-api";
+
+import { unwrapDocument, unwrapListDocument } from "@studiometa/forge-api";
 
 import { BaseCollection } from "./base.ts";
 import { AsyncPaginatedIterator } from "../pagination.ts";
@@ -13,8 +15,8 @@ import { AsyncPaginatedIterator } from "../pagination.ts";
  * Options for listing scheduled jobs.
  */
 export interface ScheduledJobListOptions {
-  /** Page number to fetch (1-indexed). */
-  page?: number;
+  /** Cursor for pagination (from previous response's next_cursor). */
+  cursor?: string;
 }
 
 /**
@@ -31,13 +33,14 @@ export class ScheduledJobsCollection extends BaseCollection {
   /** @internal */
   constructor(
     client: HttpClient,
+    orgSlug: string,
     private readonly serverId: number,
   ) {
-    super(client);
+    super(client, orgSlug);
   }
 
   private get basePath(): string {
-    return `/servers/${this.serverId}/jobs`;
+    return `/orgs/${this.orgSlug}/servers/${this.serverId}/scheduled-jobs`;
   }
 
   /**
@@ -47,14 +50,18 @@ export class ScheduledJobsCollection extends BaseCollection {
    * ```ts
    * const jobs = await forge.server(123).scheduledJobs.list();
    *
-   * // Fetch a specific page:
-   * const page2 = await forge.server(123).scheduledJobs.list({ page: 2 });
+   * // Fetch a specific cursor page:
+   * const page2 = await forge.server(123).scheduledJobs.list({ cursor: 'next-cursor-value' });
    * ```
    */
-  async list(options: ScheduledJobListOptions = {}): Promise<ForgeScheduledJob[]> {
-    const query = options.page !== undefined ? `?page=${options.page}` : "";
-    const response = await this.client.get<ScheduledJobsResponse>(`${this.basePath}${query}`);
-    return response.jobs;
+  async list(
+    options: ScheduledJobListOptions = {},
+  ): Promise<Array<ScheduledJobAttributes & { id: number }>> {
+    const query = options.cursor !== undefined ? `?page[cursor]=${options.cursor}` : "";
+    const response = await this.client.get<JsonApiListDocument<ScheduledJobAttributes>>(
+      `${this.basePath}${query}`,
+    );
+    return unwrapListDocument(response);
   }
 
   /**
@@ -70,10 +77,17 @@ export class ScheduledJobsCollection extends BaseCollection {
    * const jobs = await forge.server(123).scheduledJobs.all().toArray();
    * ```
    */
-  all(
-    options: Omit<ScheduledJobListOptions, "page"> = {},
-  ): AsyncPaginatedIterator<ForgeScheduledJob> {
-    return new AsyncPaginatedIterator<ForgeScheduledJob>((page) => this.list({ ...options, page }));
+  all(): AsyncPaginatedIterator<ScheduledJobAttributes & { id: number }> {
+    return new AsyncPaginatedIterator<ScheduledJobAttributes & { id: number }>(async (cursor) => {
+      const query = cursor !== null ? `?page[cursor]=${cursor}` : "";
+      const response = await this.client.get<JsonApiListDocument<ScheduledJobAttributes>>(
+        `${this.basePath}${query}`,
+      );
+      return {
+        items: unwrapListDocument(response),
+        nextCursor: response.meta.next_cursor ?? null,
+      };
+    });
   }
 
   /**
@@ -84,9 +98,11 @@ export class ScheduledJobsCollection extends BaseCollection {
    * const job = await forge.server(123).scheduledJobs.get(789);
    * ```
    */
-  async get(jobId: number): Promise<ForgeScheduledJob> {
-    const response = await this.client.get<ScheduledJobResponse>(`${this.basePath}/${jobId}`);
-    return response.job;
+  async get(jobId: number): Promise<ScheduledJobAttributes & { id: number }> {
+    const response = await this.client.get<JsonApiDocument<ScheduledJobAttributes>>(
+      `${this.basePath}/${jobId}`,
+    );
+    return unwrapDocument(response);
   }
 
   /**
@@ -101,9 +117,12 @@ export class ScheduledJobsCollection extends BaseCollection {
    * });
    * ```
    */
-  async create(data: CreateScheduledJobData): Promise<ForgeScheduledJob> {
-    const response = await this.client.post<ScheduledJobResponse>(this.basePath, data);
-    return response.job;
+  async create(data: CreateScheduledJobData): Promise<ScheduledJobAttributes & { id: number }> {
+    const response = await this.client.post<JsonApiDocument<ScheduledJobAttributes>>(
+      this.basePath,
+      data,
+    );
+    return unwrapDocument(response);
   }
 
   /**

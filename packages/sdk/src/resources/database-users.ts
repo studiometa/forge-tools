@@ -1,10 +1,12 @@
 import type {
   CreateDatabaseUserData,
-  DatabaseUserResponse,
-  DatabaseUsersResponse,
-  ForgeDatabaseUser,
   HttpClient,
+  JsonApiDocument,
+  JsonApiListDocument,
+  DatabaseUserAttributes,
 } from "@studiometa/forge-api";
+
+import { unwrapDocument, unwrapListDocument } from "@studiometa/forge-api";
 
 import { BaseCollection } from "./base.ts";
 import { AsyncPaginatedIterator } from "../pagination.ts";
@@ -13,8 +15,8 @@ import { AsyncPaginatedIterator } from "../pagination.ts";
  * Options for listing database users.
  */
 export interface DatabaseUserListOptions {
-  /** Page number to fetch (1-indexed). */
-  page?: number;
+  /** Cursor for pagination (from previous response's next_cursor). */
+  cursor?: string;
 }
 
 /**
@@ -31,13 +33,14 @@ export class DatabaseUsersCollection extends BaseCollection {
   /** @internal */
   constructor(
     client: HttpClient,
+    orgSlug: string,
     private readonly serverId: number,
   ) {
-    super(client);
+    super(client, orgSlug);
   }
 
   private get basePath(): string {
-    return `/servers/${this.serverId}/database-users`;
+    return `/orgs/${this.orgSlug}/servers/${this.serverId}/database/users`;
   }
 
   /**
@@ -47,14 +50,18 @@ export class DatabaseUsersCollection extends BaseCollection {
    * ```ts
    * const users = await forge.server(123).databaseUsers.list();
    *
-   * // Fetch a specific page:
-   * const page2 = await forge.server(123).databaseUsers.list({ page: 2 });
+   * // Fetch a specific cursor page:
+   * const page2 = await forge.server(123).databaseUsers.list({ cursor: 'next-cursor-value' });
    * ```
    */
-  async list(options: DatabaseUserListOptions = {}): Promise<ForgeDatabaseUser[]> {
-    const query = options.page !== undefined ? `?page=${options.page}` : "";
-    const response = await this.client.get<DatabaseUsersResponse>(`${this.basePath}${query}`);
-    return response.users;
+  async list(
+    options: DatabaseUserListOptions = {},
+  ): Promise<Array<DatabaseUserAttributes & { id: number }>> {
+    const query = options.cursor !== undefined ? `?page[cursor]=${options.cursor}` : "";
+    const response = await this.client.get<JsonApiListDocument<DatabaseUserAttributes>>(
+      `${this.basePath}${query}`,
+    );
+    return unwrapListDocument(response);
   }
 
   /**
@@ -70,10 +77,17 @@ export class DatabaseUsersCollection extends BaseCollection {
    * const users = await forge.server(123).databaseUsers.all().toArray();
    * ```
    */
-  all(
-    options: Omit<DatabaseUserListOptions, "page"> = {},
-  ): AsyncPaginatedIterator<ForgeDatabaseUser> {
-    return new AsyncPaginatedIterator<ForgeDatabaseUser>((page) => this.list({ ...options, page }));
+  all(): AsyncPaginatedIterator<DatabaseUserAttributes & { id: number }> {
+    return new AsyncPaginatedIterator<DatabaseUserAttributes & { id: number }>(async (cursor) => {
+      const query = cursor !== null ? `?page[cursor]=${cursor}` : "";
+      const response = await this.client.get<JsonApiListDocument<DatabaseUserAttributes>>(
+        `${this.basePath}${query}`,
+      );
+      return {
+        items: unwrapListDocument(response),
+        nextCursor: response.meta.next_cursor ?? null,
+      };
+    });
   }
 
   /**
@@ -84,9 +98,11 @@ export class DatabaseUsersCollection extends BaseCollection {
    * const user = await forge.server(123).databaseUsers.get(789);
    * ```
    */
-  async get(userId: number): Promise<ForgeDatabaseUser> {
-    const response = await this.client.get<DatabaseUserResponse>(`${this.basePath}/${userId}`);
-    return response.user;
+  async get(userId: number): Promise<DatabaseUserAttributes & { id: number }> {
+    const response = await this.client.get<JsonApiDocument<DatabaseUserAttributes>>(
+      `${this.basePath}/${userId}`,
+    );
+    return unwrapDocument(response);
   }
 
   /**
@@ -101,9 +117,12 @@ export class DatabaseUsersCollection extends BaseCollection {
    * });
    * ```
    */
-  async create(data: CreateDatabaseUserData): Promise<ForgeDatabaseUser> {
-    const response = await this.client.post<DatabaseUserResponse>(this.basePath, data);
-    return response.user;
+  async create(data: CreateDatabaseUserData): Promise<DatabaseUserAttributes & { id: number }> {
+    const response = await this.client.post<JsonApiDocument<DatabaseUserAttributes>>(
+      this.basePath,
+      data,
+    );
+    return unwrapDocument(response);
   }
 
   /**

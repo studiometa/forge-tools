@@ -1,9 +1,23 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import { HttpClient } from "@studiometa/forge-api";
 
 import { AsyncPaginatedIterator } from "../pagination.ts";
 import { CertificatesCollection } from "./certificates.ts";
+
+const ORG = "test-org";
+
+function mockDocument<T>(id: string | number, attributes: T) {
+  return { data: { id: String(id), type: "resource", attributes } };
+}
+
+function mockListDocument<T>(id: string | number, attributes: T) {
+  return {
+    data: [{ id: String(id), type: "resource", attributes }],
+    links: {},
+    meta: { per_page: 200, next_cursor: null },
+  };
+}
 
 function createTrackingClient(): {
   client: HttpClient;
@@ -23,7 +37,21 @@ function createTrackingClient(): {
         ok: true,
         status: 200,
         headers: new Headers({ "content-type": "application/json" }),
-        json: async () => ({ certificate: { id: 1 }, certificates: [] }),
+        json: async () => {
+          const u = url.toString();
+          const isId = /\/\d+(\?|$)/.test(u);
+          const attrs = {
+            domain: "example.com",
+            type: "letsencrypt",
+            request_status: "complete",
+            status: "active",
+            existing: false,
+            active: true,
+            created_at: "",
+            updated_at: "",
+          };
+          return isId ? mockDocument("1", attrs) : mockListDocument("1", attrs);
+        },
         text: async () => "{}",
       } as Response;
     },
@@ -35,31 +63,33 @@ function createTrackingClient(): {
 describe("CertificatesCollection", () => {
   it("should list certificates", async () => {
     const { client, calls } = createTrackingClient();
-    const collection = new CertificatesCollection(client, 123, 456);
+    const collection = new CertificatesCollection(client, ORG, 123, 456);
 
     await collection.list();
-    expect(calls[0]!.url).toContain("/servers/123/sites/456/certificates");
+    expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers/123/sites/456/certificates`);
   });
 
-  it("should list certificates with page option", async () => {
+  it("should list certificates with cursor option", async () => {
     const { client, calls } = createTrackingClient();
-    const collection = new CertificatesCollection(client, 123, 456);
+    const collection = new CertificatesCollection(client, ORG, 123, 456);
 
-    await collection.list({ page: 2 });
-    expect(calls[0]!.url).toContain("/servers/123/sites/456/certificates?page=2");
+    await collection.list({ cursor: "abc123" });
+    expect(calls[0]!.url).toContain(
+      `/orgs/${ORG}/servers/123/sites/456/certificates?page[cursor]=abc123`,
+    );
   });
 
   it("should get a certificate", async () => {
     const { client, calls } = createTrackingClient();
-    const collection = new CertificatesCollection(client, 123, 456);
+    const collection = new CertificatesCollection(client, ORG, 123, 456);
 
     await collection.get(789);
-    expect(calls[0]!.url).toContain("/servers/123/sites/456/certificates/789");
+    expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers/123/sites/456/certificates/789`);
   });
 
   it("should create a certificate", async () => {
     const { client, calls } = createTrackingClient();
-    const collection = new CertificatesCollection(client, 123, 456);
+    const collection = new CertificatesCollection(client, ORG, 123, 456);
 
     await collection.create({ type: "new", domain: "example.com" });
     expect(calls[0]!.method).toBe("POST");
@@ -68,7 +98,7 @@ describe("CertificatesCollection", () => {
 
   it("should install Let's Encrypt certificate", async () => {
     const { client, calls } = createTrackingClient();
-    const collection = new CertificatesCollection(client, 123, 456);
+    const collection = new CertificatesCollection(client, ORG, 123, 456);
 
     await collection.letsEncrypt(["example.com", "www.example.com"]);
     expect(calls[0]!.url).toContain("/certificates/letsencrypt");
@@ -77,15 +107,16 @@ describe("CertificatesCollection", () => {
 
   it("should delete a certificate", async () => {
     const { client, calls } = createTrackingClient();
-    const collection = new CertificatesCollection(client, 123, 456);
+    const collection = new CertificatesCollection(client, ORG, 123, 456);
 
     await collection.delete(789);
     expect(calls[0]!.method).toBe("DELETE");
+    expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers/123/sites/456/certificates/789`);
   });
 
   it("should activate a certificate", async () => {
     const { client, calls } = createTrackingClient();
-    const collection = new CertificatesCollection(client, 123, 456);
+    const collection = new CertificatesCollection(client, ORG, 123, 456);
 
     await collection.activate(789);
     expect(calls[0]!.method).toBe("POST");
@@ -94,27 +125,9 @@ describe("CertificatesCollection", () => {
 
   it("should return an AsyncPaginatedIterator from all()", () => {
     const { client } = createTrackingClient();
-    const collection = new CertificatesCollection(client, 123, 456);
+    const collection = new CertificatesCollection(client, ORG, 123, 456);
 
     const iter = collection.all();
     expect(iter).toBeInstanceOf(AsyncPaginatedIterator);
-  });
-
-  it("should iterate all certificates across pages via all()", async () => {
-    const page1 = Array.from({ length: 200 }, (_, i) => ({ id: i + 1 }) as never);
-    const page2 = [{ id: 201 } as never];
-    const { client } = createTrackingClient();
-    const collection = new CertificatesCollection(client, 123, 456);
-
-    const listSpy = vi
-      .spyOn(collection, "list")
-      .mockResolvedValueOnce(page1)
-      .mockResolvedValueOnce(page2);
-
-    const results = await collection.all().toArray();
-
-    expect(results).toHaveLength(201);
-    expect(listSpy).toHaveBeenCalledWith({ page: 1 });
-    expect(listSpy).toHaveBeenCalledWith({ page: 2 });
   });
 });

@@ -1,10 +1,12 @@
 import type {
   CreateMonitorData,
-  ForgeMonitor,
   HttpClient,
-  MonitorResponse,
-  MonitorsResponse,
+  JsonApiDocument,
+  JsonApiListDocument,
+  MonitorAttributes,
 } from "@studiometa/forge-api";
+
+import { unwrapDocument, unwrapListDocument } from "@studiometa/forge-api";
 
 import { BaseCollection } from "./base.ts";
 import { AsyncPaginatedIterator } from "../pagination.ts";
@@ -13,8 +15,8 @@ import { AsyncPaginatedIterator } from "../pagination.ts";
  * Options for listing monitors.
  */
 export interface MonitorListOptions {
-  /** Page number to fetch (1-indexed). */
-  page?: number;
+  /** Cursor for pagination (from previous response's next_cursor). */
+  cursor?: string;
 }
 
 /**
@@ -31,13 +33,14 @@ export class MonitorsCollection extends BaseCollection {
   /** @internal */
   constructor(
     client: HttpClient,
+    orgSlug: string,
     private readonly serverId: number,
   ) {
-    super(client);
+    super(client, orgSlug);
   }
 
   private get basePath(): string {
-    return `/servers/${this.serverId}/monitors`;
+    return `/orgs/${this.orgSlug}/servers/${this.serverId}/monitors`;
   }
 
   /**
@@ -47,14 +50,16 @@ export class MonitorsCollection extends BaseCollection {
    * ```ts
    * const monitors = await forge.server(123).monitors.list();
    *
-   * // Fetch a specific page:
-   * const page2 = await forge.server(123).monitors.list({ page: 2 });
+   * // Fetch a specific cursor page:
+   * const page2 = await forge.server(123).monitors.list({ cursor: 'next-cursor-value' });
    * ```
    */
-  async list(options: MonitorListOptions = {}): Promise<ForgeMonitor[]> {
-    const query = options.page !== undefined ? `?page=${options.page}` : "";
-    const response = await this.client.get<MonitorsResponse>(`${this.basePath}${query}`);
-    return response.monitors;
+  async list(options: MonitorListOptions = {}): Promise<Array<MonitorAttributes & { id: number }>> {
+    const query = options.cursor !== undefined ? `?page[cursor]=${options.cursor}` : "";
+    const response = await this.client.get<JsonApiListDocument<MonitorAttributes>>(
+      `${this.basePath}${query}`,
+    );
+    return unwrapListDocument(response);
   }
 
   /**
@@ -70,8 +75,17 @@ export class MonitorsCollection extends BaseCollection {
    * const monitors = await forge.server(123).monitors.all().toArray();
    * ```
    */
-  all(options: Omit<MonitorListOptions, "page"> = {}): AsyncPaginatedIterator<ForgeMonitor> {
-    return new AsyncPaginatedIterator<ForgeMonitor>((page) => this.list({ ...options, page }));
+  all(): AsyncPaginatedIterator<MonitorAttributes & { id: number }> {
+    return new AsyncPaginatedIterator<MonitorAttributes & { id: number }>(async (cursor) => {
+      const query = cursor !== null ? `?page[cursor]=${cursor}` : "";
+      const response = await this.client.get<JsonApiListDocument<MonitorAttributes>>(
+        `${this.basePath}${query}`,
+      );
+      return {
+        items: unwrapListDocument(response),
+        nextCursor: response.meta.next_cursor ?? null,
+      };
+    });
   }
 
   /**
@@ -82,9 +96,11 @@ export class MonitorsCollection extends BaseCollection {
    * const monitor = await forge.server(123).monitors.get(789);
    * ```
    */
-  async get(monitorId: number): Promise<ForgeMonitor> {
-    const response = await this.client.get<MonitorResponse>(`${this.basePath}/${monitorId}`);
-    return response.monitor;
+  async get(monitorId: number): Promise<MonitorAttributes & { id: number }> {
+    const response = await this.client.get<JsonApiDocument<MonitorAttributes>>(
+      `${this.basePath}/${monitorId}`,
+    );
+    return unwrapDocument(response);
   }
 
   /**
@@ -100,9 +116,12 @@ export class MonitorsCollection extends BaseCollection {
    * });
    * ```
    */
-  async create(data: CreateMonitorData): Promise<ForgeMonitor> {
-    const response = await this.client.post<MonitorResponse>(this.basePath, data);
-    return response.monitor;
+  async create(data: CreateMonitorData): Promise<MonitorAttributes & { id: number }> {
+    const response = await this.client.post<JsonApiDocument<MonitorAttributes>>(
+      this.basePath,
+      data,
+    );
+    return unwrapDocument(response);
   }
 
   /**

@@ -1,9 +1,23 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import { HttpClient } from "@studiometa/forge-api";
 
 import { AsyncPaginatedIterator } from "../pagination.ts";
 import { BackupsCollection } from "./backups.ts";
+
+const ORG = "test-org";
+
+function mockDocument<T>(id: string | number, attributes: T) {
+  return { data: { id: String(id), type: "resource", attributes } };
+}
+
+function mockListDocument<T>(id: string | number, attributes: T) {
+  return {
+    data: [{ id: String(id), type: "resource", attributes }],
+    links: {},
+    meta: { per_page: 200, next_cursor: null },
+  };
+}
 
 function createTrackingClient(): {
   client: HttpClient;
@@ -23,10 +37,23 @@ function createTrackingClient(): {
         ok: true,
         status: 200,
         headers: new Headers({ "content-type": "application/json" }),
-        json: async () => ({
-          backup: { id: 1, provider: "s3" },
-          backups: [],
-        }),
+        json: async () => {
+          const u = url.toString();
+          const isId = /\/\d+(\?|$)/.test(u);
+          const attrs = {
+            day_of_week: null,
+            time: null,
+            provider: "s3",
+            provider_name: "S3",
+            frequency: "weekly",
+            directory: null,
+            email: null,
+            retention: 7,
+            status: "active",
+            last_backup_time: null,
+          };
+          return isId ? mockDocument("1", attrs) : mockListDocument("1", attrs);
+        },
         text: async () => "{}",
       } as Response;
     },
@@ -38,31 +65,33 @@ function createTrackingClient(): {
 describe("BackupsCollection", () => {
   it("should list backup configurations", async () => {
     const { client, calls } = createTrackingClient();
-    const collection = new BackupsCollection(client, 123);
+    const collection = new BackupsCollection(client, ORG, 123);
 
     await collection.list();
-    expect(calls[0]!.url).toContain("/servers/123/backup-configs");
+    expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers/123/database/backups`);
   });
 
-  it("should list backup configurations with page option", async () => {
+  it("should list backup configurations with cursor option", async () => {
     const { client, calls } = createTrackingClient();
-    const collection = new BackupsCollection(client, 123);
+    const collection = new BackupsCollection(client, ORG, 123);
 
-    await collection.list({ page: 2 });
-    expect(calls[0]!.url).toContain("/servers/123/backup-configs?page=2");
+    await collection.list({ cursor: "abc123" });
+    expect(calls[0]!.url).toContain(
+      `/orgs/${ORG}/servers/123/database/backups?page[cursor]=abc123`,
+    );
   });
 
   it("should get a backup configuration", async () => {
     const { client, calls } = createTrackingClient();
-    const collection = new BackupsCollection(client, 123);
+    const collection = new BackupsCollection(client, ORG, 123);
 
     await collection.get(789);
-    expect(calls[0]!.url).toContain("/servers/123/backup-configs/789");
+    expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers/123/database/backups/789`);
   });
 
   it("should create a backup configuration", async () => {
     const { client, calls } = createTrackingClient();
-    const collection = new BackupsCollection(client, 123);
+    const collection = new BackupsCollection(client, ORG, 123);
 
     await collection.create({
       provider: "s3",
@@ -76,36 +105,18 @@ describe("BackupsCollection", () => {
 
   it("should delete a backup configuration", async () => {
     const { client, calls } = createTrackingClient();
-    const collection = new BackupsCollection(client, 123);
+    const collection = new BackupsCollection(client, ORG, 123);
 
     await collection.delete(789);
     expect(calls[0]!.method).toBe("DELETE");
-    expect(calls[0]!.url).toContain("/servers/123/backup-configs/789");
+    expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers/123/database/backups/789`);
   });
 
   it("should return an AsyncPaginatedIterator from all()", () => {
     const { client } = createTrackingClient();
-    const collection = new BackupsCollection(client, 123);
+    const collection = new BackupsCollection(client, ORG, 123);
 
     const iter = collection.all();
     expect(iter).toBeInstanceOf(AsyncPaginatedIterator);
-  });
-
-  it("should iterate all backup configurations across pages via all()", async () => {
-    const page1 = Array.from({ length: 200 }, (_, i) => ({ id: i + 1 }) as never);
-    const page2 = [{ id: 201 } as never];
-    const { client } = createTrackingClient();
-    const collection = new BackupsCollection(client, 123);
-
-    const listSpy = vi
-      .spyOn(collection, "list")
-      .mockResolvedValueOnce(page1)
-      .mockResolvedValueOnce(page2);
-
-    const results = await collection.all().toArray();
-
-    expect(results).toHaveLength(201);
-    expect(listSpy).toHaveBeenCalledWith({ page: 1 });
-    expect(listSpy).toHaveBeenCalledWith({ page: 2 });
   });
 });

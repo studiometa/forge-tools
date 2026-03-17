@@ -1,10 +1,12 @@
 import type {
   CreateSecurityRuleData,
-  ForgeSecurityRule,
   HttpClient,
-  SecurityRuleResponse,
-  SecurityRulesResponse,
+  JsonApiDocument,
+  JsonApiListDocument,
+  SecurityRuleAttributes,
 } from "@studiometa/forge-api";
+
+import { unwrapDocument, unwrapListDocument } from "@studiometa/forge-api";
 
 import { BaseCollection } from "./base.ts";
 import { AsyncPaginatedIterator } from "../pagination.ts";
@@ -13,8 +15,8 @@ import { AsyncPaginatedIterator } from "../pagination.ts";
  * Options for listing security rules.
  */
 export interface SecurityRuleListOptions {
-  /** Page number to fetch (1-indexed). */
-  page?: number;
+  /** Cursor for pagination (from previous response's next_cursor). */
+  cursor?: string;
 }
 
 /**
@@ -31,14 +33,15 @@ export class SecurityRulesCollection extends BaseCollection {
   /** @internal */
   constructor(
     client: HttpClient,
+    orgSlug: string,
     private readonly serverId: number,
     private readonly siteId: number,
   ) {
-    super(client);
+    super(client, orgSlug);
   }
 
   private get basePath(): string {
-    return `/servers/${this.serverId}/sites/${this.siteId}/security-rules`;
+    return `/orgs/${this.orgSlug}/servers/${this.serverId}/sites/${this.siteId}/security-rules`;
   }
 
   /**
@@ -48,14 +51,18 @@ export class SecurityRulesCollection extends BaseCollection {
    * ```ts
    * const rules = await forge.server(123).site(456).securityRules.list();
    *
-   * // Fetch a specific page:
-   * const page2 = await forge.server(123).site(456).securityRules.list({ page: 2 });
+   * // Fetch a specific cursor page:
+   * const page2 = await forge.server(123).site(456).securityRules.list({ cursor: 'next-cursor-value' });
    * ```
    */
-  async list(options: SecurityRuleListOptions = {}): Promise<ForgeSecurityRule[]> {
-    const query = options.page !== undefined ? `?page=${options.page}` : "";
-    const response = await this.client.get<SecurityRulesResponse>(`${this.basePath}${query}`);
-    return response.security_rules;
+  async list(
+    options: SecurityRuleListOptions = {},
+  ): Promise<Array<SecurityRuleAttributes & { id: number }>> {
+    const query = options.cursor !== undefined ? `?page[cursor]=${options.cursor}` : "";
+    const response = await this.client.get<JsonApiListDocument<SecurityRuleAttributes>>(
+      `${this.basePath}${query}`,
+    );
+    return unwrapListDocument(response);
   }
 
   /**
@@ -71,10 +78,17 @@ export class SecurityRulesCollection extends BaseCollection {
    * const rules = await forge.server(123).site(456).securityRules.all().toArray();
    * ```
    */
-  all(
-    options: Omit<SecurityRuleListOptions, "page"> = {},
-  ): AsyncPaginatedIterator<ForgeSecurityRule> {
-    return new AsyncPaginatedIterator<ForgeSecurityRule>((page) => this.list({ ...options, page }));
+  all(): AsyncPaginatedIterator<SecurityRuleAttributes & { id: number }> {
+    return new AsyncPaginatedIterator<SecurityRuleAttributes & { id: number }>(async (cursor) => {
+      const query = cursor !== null ? `?page[cursor]=${cursor}` : "";
+      const response = await this.client.get<JsonApiListDocument<SecurityRuleAttributes>>(
+        `${this.basePath}${query}`,
+      );
+      return {
+        items: unwrapListDocument(response),
+        nextCursor: response.meta.next_cursor ?? null,
+      };
+    });
   }
 
   /**
@@ -85,9 +99,11 @@ export class SecurityRulesCollection extends BaseCollection {
    * const rule = await forge.server(123).site(456).securityRules.get(789);
    * ```
    */
-  async get(ruleId: number): Promise<ForgeSecurityRule> {
-    const response = await this.client.get<SecurityRuleResponse>(`${this.basePath}/${ruleId}`);
-    return response.security_rule;
+  async get(ruleId: number): Promise<SecurityRuleAttributes & { id: number }> {
+    const response = await this.client.get<JsonApiDocument<SecurityRuleAttributes>>(
+      `${this.basePath}/${ruleId}`,
+    );
+    return unwrapDocument(response);
   }
 
   /**
@@ -102,9 +118,12 @@ export class SecurityRulesCollection extends BaseCollection {
    * });
    * ```
    */
-  async create(data: CreateSecurityRuleData): Promise<ForgeSecurityRule> {
-    const response = await this.client.post<SecurityRuleResponse>(this.basePath, data);
-    return response.security_rule;
+  async create(data: CreateSecurityRuleData): Promise<SecurityRuleAttributes & { id: number }> {
+    const response = await this.client.post<JsonApiDocument<SecurityRuleAttributes>>(
+      this.basePath,
+      data,
+    );
+    return unwrapDocument(response);
   }
 
   /**

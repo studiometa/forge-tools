@@ -17,10 +17,14 @@ import { vi } from "vitest";
  *
  * describe('my feature', () => {
  *   it('lists servers', async () => {
- *     const mockFetch = createMockFetch(() => ({ servers: [] }));
- *     const forge = new Forge('test-token', { fetch: mockFetch });
+ *     const mockFetch = createMockFetch(() => ({
+ *       data: [{ id: '1', type: 'server', attributes: { name: 'web-1' } }],
+ *       links: {},
+ *       meta: { per_page: 200, next_cursor: null },
+ *     }));
+ *     const forge = new Forge('test-token', 'test-org', { fetch: mockFetch });
  *     const servers = await forge.servers.list();
- *     expect(servers).toEqual([]);
+ *     expect(servers).toHaveLength(1);
  *   });
  * });
  * ```
