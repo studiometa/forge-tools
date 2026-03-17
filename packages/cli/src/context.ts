@@ -12,7 +12,7 @@ import type { OutputFormat } from "./types.ts";
 
 import { HttpClient as ForgeHttpClient } from "@studiometa/forge-api";
 import { ConfigError } from "./errors.ts";
-import { createConfigStore, getToken } from "./config.ts";
+import { createConfigStore, getToken, getOrganizationSlug } from "./config.ts";
 import { OutputFormatter } from "./output.ts";
 
 export interface CommandOptions {
@@ -51,7 +51,11 @@ export function createContext(options: CommandOptions = {}): CommandContext {
 
     createExecutorContext(token: string): ExecutorContext {
       const client = new ForgeHttpClient({ token }) as unknown as HttpClient;
-      return { client };
+      const orgSlug =
+        (typeof options.org === "string" && options.org) ||
+        getOrganizationSlug(createConfigStore()) ||
+        undefined;
+      return { client, organizationSlug: orgSlug };
     },
 
     getToken(): string {
@@ -102,7 +106,7 @@ export function createTestContext(overrides: {
           "createTestContext: provide mockClient to use createExecutorContext in tests",
         );
       }
-      return { client: overrides.mockClient };
+      return { client: overrides.mockClient, organizationSlug: "test-org" };
     },
     getToken(): string {
       if (overrides.token) return overrides.token;

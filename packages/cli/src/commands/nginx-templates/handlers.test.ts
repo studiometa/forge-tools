@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
-import type { ForgeNginxTemplate } from "@studiometa/forge-api";
+import type { NginxTemplateAttributes } from "@studiometa/forge-api";
 
 import { createTestContext } from "../../context.ts";
 import {
@@ -19,12 +19,12 @@ vi.mock("@studiometa/forge-core", () => ({
   deleteNginxTemplate: vi.fn(),
 }));
 
-const mockTemplate: ForgeNginxTemplate = {
+const mockTemplate: NginxTemplateAttributes & { id: number } = {
   id: 1,
-  server_id: 10,
   name: "my-template",
   content: "server { }",
   created_at: "2024-01-01T00:00:00Z",
+  updated_at: "2024-01-01T00:00:00Z",
 };
 
 describe("nginxTemplatesList", () => {

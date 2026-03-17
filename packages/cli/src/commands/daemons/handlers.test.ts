@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
-import type { ForgeDaemon } from "@studiometa/forge-api";
+import type { BackgroundProcessAttributes } from "@studiometa/forge-api";
 
 import { createTestContext } from "../../context.ts";
 import { daemonsList, daemonsGet, daemonsRestart } from "./handlers.ts";
@@ -11,9 +11,8 @@ vi.mock("@studiometa/forge-core", () => ({
   restartDaemon: vi.fn(),
 }));
 
-const mockDaemon: ForgeDaemon = {
+const mockDaemon: BackgroundProcessAttributes & { id: number } = {
   id: 1,
-  server_id: 10,
   command: "php artisan queue:work",
   user: "forge",
   directory: null,
@@ -23,6 +22,7 @@ const mockDaemon: ForgeDaemon = {
   stopwaitsecs: 10,
   status: "running",
   created_at: "2024-01-01T00:00:00Z",
+  updated_at: "2024-01-01T00:00:00Z",
 };
 
 describe("daemonsList", () => {

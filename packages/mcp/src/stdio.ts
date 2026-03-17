@@ -1,4 +1,9 @@
-import { getToken, getOrganizationSlug, setToken } from "@studiometa/forge-api";
+import {
+  getToken,
+  getOrganizationSlug,
+  setToken,
+  setOrganizationSlug,
+} from "@studiometa/forge-api";
 
 import type { ToolResult } from "./handlers/types.ts";
 
@@ -21,31 +26,40 @@ export function getAvailableTools(options?: GetToolsOptions): any[] {
 /**
  * Handle the forge_configure tool.
  */
-export function handleConfigureTool(args: { apiToken: string }): ToolResult {
-  if (!args.apiToken || typeof args.apiToken !== "string" || args.apiToken.trim().length === 0) {
+export function handleConfigureTool(args: {
+  apiToken?: string;
+  organizationSlug?: string;
+}): ToolResult {
+  if (!args.apiToken && !args.organizationSlug) {
     return {
       content: [
         {
           type: "text",
-          text: "Error: apiToken is required and must be a non-empty string.",
+          text: "Error: at least one of apiToken or organizationSlug is required.",
         },
       ],
       structuredContent: {
         success: false,
-        error: "apiToken is required and must be a non-empty string.",
+        error: "at least one of apiToken or organizationSlug is required.",
       },
       isError: true,
     };
   }
 
-  setToken(args.apiToken);
+  if (args.apiToken) {
+    setToken(args.apiToken);
+  }
+  if (args.organizationSlug) {
+    setOrganizationSlug(args.organizationSlug);
+  }
 
-  const maskedToken = `***${args.apiToken.slice(-4)}`;
-  const data = {
+  const maskedToken = args.apiToken ? `***${args.apiToken.slice(-4)}` : undefined;
+  const data: Record<string, unknown> = {
     success: true,
-    message: "Laravel Forge API token configured successfully",
-    apiToken: maskedToken,
+    message: "Laravel Forge configuration updated successfully",
   };
+  if (maskedToken) data.apiToken = maskedToken;
+  if (args.organizationSlug) data.organizationSlug = args.organizationSlug;
 
   return {
     content: [
@@ -63,9 +77,11 @@ export function handleConfigureTool(args: { apiToken: string }): ToolResult {
  */
 export function handleGetConfigTool(): ToolResult {
   const token = getToken();
+  const orgSlug = getOrganizationSlug();
 
   const data = {
     apiToken: token ? `***${token.slice(-4)}` : "not configured",
+    organizationSlug: orgSlug ?? "not configured",
     configured: !!token,
   };
 

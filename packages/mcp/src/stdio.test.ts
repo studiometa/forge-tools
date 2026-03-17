@@ -5,6 +5,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 // that are needed by the handler layer.
 const mockGetToken = vi.fn<() => string | null>(() => null);
 const mockSetToken = vi.fn();
+const mockGetOrganizationSlug = vi.fn<() => string | null>(() => null);
+const mockSetOrganizationSlug = vi.fn();
 
 vi.mock("@studiometa/forge-api", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@studiometa/forge-api")>();
@@ -12,6 +14,8 @@ vi.mock("@studiometa/forge-api", async (importOriginal) => {
     ...actual,
     getToken: () => mockGetToken(),
     setToken: (token: string) => mockSetToken(token),
+    getOrganizationSlug: () => mockGetOrganizationSlug(),
+    setOrganizationSlug: (slug: string) => mockSetOrganizationSlug(slug),
   };
 });
 
@@ -64,7 +68,7 @@ describe("handleConfigureTool", () => {
     const result = handleConfigureTool({ apiToken: "test-token-1234" });
     expect(result.structuredContent).toEqual({
       success: true,
-      message: "Laravel Forge API token configured successfully",
+      message: "Laravel Forge configuration updated successfully",
       apiToken: "***1234",
     });
   });
@@ -79,12 +83,12 @@ describe("handleConfigureTool", () => {
     const result = handleConfigureTool({ apiToken: "" });
     expect(result.structuredContent).toEqual({
       success: false,
-      error: "apiToken is required and must be a non-empty string.",
+      error: "at least one of apiToken or organizationSlug is required.",
     });
   });
 
-  it("should reject whitespace-only token", () => {
-    const result = handleConfigureTool({ apiToken: "   " });
+  it("should reject when both apiToken and organizationSlug are empty", () => {
+    const result = handleConfigureTool({ apiToken: "", organizationSlug: "" });
     expect(result.isError).toBe(true);
     expect(result.content[0]!.text).toContain("required");
   });
@@ -111,6 +115,7 @@ describe("handleGetConfigTool", () => {
     const result = handleGetConfigTool();
     expect(result.structuredContent).toEqual({
       apiToken: "not configured",
+      organizationSlug: "not configured",
       configured: false,
     });
   });
@@ -128,6 +133,7 @@ describe("handleGetConfigTool", () => {
     const result = handleGetConfigTool();
     expect(result.structuredContent).toEqual({
       apiToken: "***5678",
+      organizationSlug: "not configured",
       configured: true,
     });
   });

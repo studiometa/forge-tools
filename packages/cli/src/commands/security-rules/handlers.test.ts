@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
-import type { ForgeSecurityRule } from "@studiometa/forge-api";
+import type { SecurityRuleAttributes } from "@studiometa/forge-api";
 
 import { createTestContext } from "../../context.ts";
 import {
@@ -17,14 +17,12 @@ vi.mock("@studiometa/forge-core", () => ({
   deleteSecurityRule: vi.fn(),
 }));
 
-const mockRule: ForgeSecurityRule = {
+const mockRule: SecurityRuleAttributes & { id: number } = {
   id: 1,
-  server_id: 10,
-  site_id: 20,
   name: "Protected Area",
   path: "/admin",
-  credentials: [],
   created_at: "2024-01-01T00:00:00Z",
+  updated_at: "2024-01-01T00:00:00Z",
 };
 
 describe("securityRulesList", () => {

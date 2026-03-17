@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
-import type { ForgeBackupConfig } from "@studiometa/forge-api";
+import type { BackupConfigAttributes } from "@studiometa/forge-api";
 
 import { createTestContext } from "../../context.ts";
 import { backupsList, backupsGet, backupsCreate, backupsDelete } from "./handlers.ts";
@@ -12,20 +12,18 @@ vi.mock("@studiometa/forge-core", () => ({
   deleteBackupConfig: vi.fn(),
 }));
 
-const mockBackup: ForgeBackupConfig = {
+const mockBackup: BackupConfigAttributes & { id: number } = {
   id: 1,
-  server_id: 10,
   day_of_week: null,
   time: null,
   provider: "s3",
   provider_name: "Amazon S3",
-  databases: [],
   frequency: "weekly",
   directory: null,
   email: null,
   retention: 5,
   status: "active",
-  created_at: "2024-01-01T00:00:00Z",
+  last_backup_time: null,
 };
 
 describe("backupsList", () => {

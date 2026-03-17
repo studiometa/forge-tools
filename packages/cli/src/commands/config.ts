@@ -2,7 +2,14 @@
  * Config command — manage forge configuration
  */
 
-import { createConfigStore, setToken, deleteToken, getToken } from "../config.ts";
+import {
+  createConfigStore,
+  setToken,
+  deleteToken,
+  getToken,
+  getOrganizationSlug,
+  setOrganizationSlug,
+} from "../config.ts";
 import { OutputFormatter } from "../output.ts";
 import { colors } from "../utils/colors.ts";
 
@@ -11,15 +18,20 @@ export function showConfigHelp(): void {
 ${colors.bold("forge config")} - Manage CLI configuration
 
 ${colors.bold("USAGE:")}
-  forge config <subcommand> [options]
+  forge config <subcommand> [key] [value]
 
 ${colors.bold("SUBCOMMANDS:")}
-  set <token>         Save API token to config file
-  get                 Show current API token (masked)
-  delete              Delete stored API token
+  set <key> <value>   Save a config value
+  get                 Show current configuration (masked)
+  delete              Delete all stored configuration
+
+${colors.bold("CONFIG KEYS:")}
+  apiToken            Forge API token (scoped, from Forge dashboard)
+  organizationSlug    Default organization slug (e.g. 'studio-meta')
 
 ${colors.bold("EXAMPLES:")}
-  forge config set YOUR_FORGE_TOKEN
+  forge config set apiToken YOUR_FORGE_TOKEN
+  forge config set organizationSlug studio-meta
   forge config get
   forge config delete
 `);
@@ -40,32 +52,54 @@ export function handleConfigCommand(
 
   switch (subcommand) {
     case "set": {
-      const [token] = args;
-      if (!token) {
-        formatter.error("Token is required. Usage: forge config set <token>");
+      const [key, value] = args;
+      if (!key || !value) {
+        formatter.error("Usage: forge config set <key> <value>");
+        formatter.info("Keys: apiToken, organizationSlug");
         process.exit(1);
         return;
       }
-      setToken(token, store);
-      formatter.success("API token saved.");
+
+      switch (key) {
+        case "apiToken":
+          setToken(value, store);
+          formatter.success("API token saved.");
+          break;
+        case "organizationSlug":
+          setOrganizationSlug(value, store);
+          formatter.success(`Organization slug set to "${value}".`);
+          break;
+        default:
+          formatter.error(`Unknown config key: ${key}`);
+          formatter.info("Valid keys: apiToken, organizationSlug");
+          process.exit(1);
+      }
       break;
     }
 
     case "get": {
       const token = getToken(store);
-      if (!token) {
-        formatter.warning("No API token configured.");
-        formatter.info("Run: forge config set <token>");
+      const orgSlug = getOrganizationSlug(store);
+
+      if (format === "json") {
+        formatter.output({
+          apiToken: token ? maskToken(token) : null,
+          organizationSlug: orgSlug ?? null,
+        });
       } else {
-        // Mask the token for security
-        const masked =
-          token.length > 8
-            ? `${token.slice(0, 4)}${"*".repeat(token.length - 8)}${token.slice(-4)}`
-            : "****";
-        if (format === "json") {
-          formatter.output({ apiToken: masked });
+        if (token) {
+          console.log(`apiToken: ${maskToken(token)}`);
         } else {
-          console.log(`apiToken: ${masked}`);
+          formatter.warning("No API token configured.");
+        }
+        if (orgSlug) {
+          console.log(`organizationSlug: ${orgSlug}`);
+        } else {
+          formatter.warning("No organization slug configured.");
+        }
+
+        if (!token || !orgSlug) {
+          formatter.info("Run: forge config set <key> <value>");
         }
       }
       break;
@@ -73,7 +107,7 @@ export function handleConfigCommand(
 
     case "delete": {
       deleteToken(store);
-      formatter.success("API token deleted.");
+      formatter.success("Configuration deleted.");
       break;
     }
 
@@ -81,4 +115,10 @@ export function handleConfigCommand(
       showConfigHelp();
       break;
   }
+}
+
+function maskToken(token: string): string {
+  return token.length > 8
+    ? `${token.slice(0, 4)}${"*".repeat(token.length - 8)}${token.slice(-4)}`
+    : "****";
 }

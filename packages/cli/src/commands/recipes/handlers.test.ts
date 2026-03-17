@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
-import type { ForgeRecipe } from "@studiometa/forge-api";
+import type { RecipeAttributes } from "@studiometa/forge-api";
 
 import { createTestContext } from "../../context.ts";
 import { recipesList, recipesGet, recipesRun } from "./handlers.ts";
@@ -11,12 +11,13 @@ vi.mock("@studiometa/forge-core", () => ({
   runRecipe: vi.fn(),
 }));
 
-const mockRecipe: ForgeRecipe = {
+const mockRecipe: RecipeAttributes & { id: number } = {
   id: 1,
   name: "Deploy Script",
   user: "forge",
   script: "cd /home/forge && ./deploy.sh",
   created_at: "2024-01-01T00:00:00Z",
+  updated_at: "2024-01-01T00:00:00Z",
 };
 
 describe("recipesList", () => {
