@@ -13,6 +13,7 @@ export {
 export { ForgeApiError, isForgeApiError } from "./errors.ts";
 export { RateLimiter } from "./rate-limiter.ts";
 export { ConfigStore } from "./utils/config-store.ts";
+export { unwrapResource, unwrapDocument, unwrapListDocument } from "./utils/jsonapi.ts";
 
 export type { ConfigStoreFs } from "./utils/config-store.ts";
 
