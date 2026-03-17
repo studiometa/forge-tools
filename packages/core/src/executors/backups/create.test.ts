@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import type { BackupConfigResponse } from "@studiometa/forge-api";
-
+import { mockDocument } from "../../test-helpers.ts";
 import { createTestExecutorContext } from "../../context.ts";
 import { createBackupConfig } from "./create.ts";
 
@@ -10,10 +9,20 @@ describe("createBackupConfig", () => {
     const ctx = createTestExecutorContext({
       client: {
         post: async () =>
-          ({
-            backup: { id: 3, provider_name: "S3" },
-          }) as BackupConfigResponse,
+          mockDocument(3, "backup-configs", {
+            day_of_week: null,
+            time: null,
+            provider: "s3",
+            provider_name: "S3",
+            frequency: "daily",
+            directory: null,
+            email: null,
+            retention: 7,
+            status: "creating",
+            last_backup_time: null,
+          }),
       } as never,
+      organizationSlug: "test-org",
     });
 
     const result = await createBackupConfig(

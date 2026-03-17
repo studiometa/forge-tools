@@ -6,11 +6,14 @@ import { deleteRecipe } from "./delete.ts";
 describe("deleteRecipe", () => {
   it("should delete a recipe", async () => {
     const deleteMock = vi.fn(async () => undefined);
-    const ctx = createTestExecutorContext({ client: { delete: deleteMock } as never });
+    const ctx = createTestExecutorContext({
+      client: { delete: deleteMock } as never,
+      organizationSlug: "test-org",
+    });
 
     const result = await deleteRecipe({ id: "8" }, ctx);
 
-    expect(deleteMock).toHaveBeenCalledWith("/recipes/8");
+    expect(deleteMock).toHaveBeenCalledWith("/orgs/test-org/recipes/8");
     expect(result.data).toBeUndefined();
   });
 });

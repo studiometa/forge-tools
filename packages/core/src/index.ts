@@ -13,6 +13,7 @@ export { orgPrefix, serverPath, sitePath } from "./utils/url-builder.ts";
 export { createAuditLogger, sanitizeArgs, getAuditLogPath } from "./logger.ts";
 export type { AuditLogger, AuditLogEntry } from "./logger.ts";
 export { createTestExecutorContext } from "./context.ts";
+export { mockResource, mockDocument, mockListDocument } from "./test-helpers.ts";
 export type { ExecutorContext, ExecutorResult } from "./context.ts";
 export type { Executor } from "./executors/types.ts";
 

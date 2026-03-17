@@ -1,26 +1,25 @@
 import { describe, expect, it } from "vitest";
 
-import type { ScheduledJobResponse } from "@studiometa/forge-api";
-
+import { mockDocument } from "../../test-helpers.ts";
 import { createTestExecutorContext } from "../../context.ts";
 import { getScheduledJob } from "./get.ts";
 
 describe("getScheduledJob", () => {
   it("should get a scheduled job and format output", async () => {
-    const job = {
-      id: 1,
-      command: "php artisan schedule:run",
-      user: "forge",
-      frequency: "minutely",
-      cron: "* * * * *",
-      status: "installed",
-      created_at: "2024-01-01T00:00:00Z",
-    };
+    const getMock = async () =>
+      mockDocument(1, "scheduled-jobs", {
+        command: "php artisan schedule:run",
+        user: "forge",
+        frequency: "minutely",
+        cron: "* * * * *",
+        status: "installed",
+        created_at: "2024-01-01T00:00:00.000000Z",
+        updated_at: "2024-01-01T00:00:00.000000Z",
+      });
 
     const ctx = createTestExecutorContext({
-      client: {
-        get: async () => ({ job }) as ScheduledJobResponse,
-      } as never,
+      client: { get: getMock } as never,
+      organizationSlug: "test-org",
     });
 
     const result = await getScheduledJob({ server_id: "1", id: "1" }, ctx);

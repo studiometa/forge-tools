@@ -6,11 +6,17 @@ import { restartDaemon } from "./restart.ts";
 describe("restartDaemon", () => {
   it("should restart a daemon", async () => {
     const postMock = vi.fn(async () => undefined);
-    const ctx = createTestExecutorContext({ client: { post: postMock } as never });
+    const ctx = createTestExecutorContext({
+      client: { post: postMock } as never,
+      organizationSlug: "test-org",
+    });
 
     const result = await restartDaemon({ server_id: "1", id: "5" }, ctx);
 
-    expect(postMock).toHaveBeenCalledWith("/servers/1/daemons/5/restart", {});
+    expect(postMock).toHaveBeenCalledWith(
+      "/orgs/test-org/servers/1/background-processes/5/restart",
+      {},
+    );
     expect(result.data).toBeUndefined();
   });
 });

@@ -1,18 +1,27 @@
 import { describe, expect, it } from "vitest";
 
-import type { NginxTemplatesResponse } from "@studiometa/forge-api";
-
+import { mockListDocument } from "../../test-helpers.ts";
 import { createTestExecutorContext } from "../../context.ts";
 import { listNginxTemplates } from "./list.ts";
 
 describe("listNginxTemplates", () => {
   it("should list nginx templates and format output", async () => {
-    const templates = [{ id: 1, name: "Laravel Default" }];
+    const getMock = async () =>
+      mockListDocument("nginx-templates", [
+        {
+          id: 1,
+          attributes: {
+            name: "Laravel Default",
+            content: "server { listen 80; }",
+            created_at: "2024-01-01T00:00:00.000000Z",
+            updated_at: "2024-01-01T00:00:00.000000Z",
+          },
+        },
+      ]);
 
     const ctx = createTestExecutorContext({
-      client: {
-        get: async () => ({ templates }) as NginxTemplatesResponse,
-      } as never,
+      client: { get: getMock } as never,
+      organizationSlug: "test-org",
     });
 
     const result = await listNginxTemplates({ server_id: "123" }, ctx);
@@ -23,8 +32,9 @@ describe("listNginxTemplates", () => {
   it("should handle empty list", async () => {
     const ctx = createTestExecutorContext({
       client: {
-        get: async () => ({ templates: [] }) as NginxTemplatesResponse,
+        get: async () => mockListDocument("nginx-templates", []),
       } as never,
+      organizationSlug: "test-org",
     });
 
     const result = await listNginxTemplates({ server_id: "123" }, ctx);
