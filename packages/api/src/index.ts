@@ -57,99 +57,26 @@ export type {
   OrganizationAttributes,
 } from "./types/v2-attributes.ts";
 
-// v1 types (legacy)
+// Config and input types
 export type {
-  // Options
   ForgeConfig,
   ForgeOptions,
   RateLimitOptions,
-  // User
-  ForgeUser,
-  UserResponse,
-  // Servers
+  // Create input types (used by core executors)
   CreateServerData,
-  ForgeServer,
-  ForgeServerNetwork,
-  ForgeTag,
-  ServerResponse,
-  ServersResponse,
-  // Sites
   CreateSiteData,
-  ForgeSite,
-  SiteResponse,
-  SitesResponse,
-  // Deployments
-  ForgeDeployment,
-  DeploymentResponse,
-  DeploymentsResponse,
-  // Certificates
   CreateCertificateData,
-  ForgeCertificate,
-  CertificateResponse,
-  CertificatesResponse,
-  // Databases
   CreateDatabaseData,
   CreateDatabaseUserData,
-  ForgeDatabase,
-  ForgeDatabaseUser,
-  DatabaseResponse,
-  DatabasesResponse,
-  DatabaseUserResponse,
-  DatabaseUsersResponse,
-  // Daemons
   CreateDaemonData,
-  ForgeDaemon,
-  DaemonResponse,
-  DaemonsResponse,
-  // Backups
   CreateBackupConfigData,
-  ForgeBackup,
-  ForgeBackupConfig,
-  BackupConfigResponse,
-  BackupConfigsResponse,
-  // Commands
   CreateCommandData,
-  ForgeCommand,
-  CommandResponse,
-  CommandsResponse,
-  // Scheduled Jobs
   CreateScheduledJobData,
-  ForgeScheduledJob,
-  ScheduledJobResponse,
-  ScheduledJobsResponse,
-  // Firewall Rules
   CreateFirewallRuleData,
-  ForgeFirewallRule,
-  FirewallRuleResponse,
-  FirewallRulesResponse,
-  // SSH Keys
   CreateSshKeyData,
-  ForgeSshKey,
-  SshKeyResponse,
-  SshKeysResponse,
-  // Security Rules
   CreateSecurityRuleData,
-  ForgeSecurityRule,
-  SecurityRuleResponse,
-  SecurityRulesResponse,
-  // Redirect Rules
   CreateRedirectRuleData,
-  ForgeRedirectRule,
-  RedirectRuleResponse,
-  RedirectRulesResponse,
-  // Monitors
   CreateMonitorData,
-  ForgeMonitor,
-  MonitorResponse,
-  MonitorsResponse,
-  // Nginx Templates
   CreateNginxTemplateData,
-  ForgeNginxTemplate,
-  NginxTemplateResponse,
-  NginxTemplatesResponse,
-  // Recipes
   CreateRecipeData,
-  ForgeRecipe,
-  RecipeResponse,
-  RecipesResponse,
 } from "./types.ts";

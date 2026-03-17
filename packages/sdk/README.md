@@ -18,7 +18,7 @@ npm install @studiometa/forge-sdk
 ```typescript
 import { Forge } from "@studiometa/forge-sdk";
 
-const forge = new Forge("your-api-token");
+const forge = new Forge("your-api-token", "your-org-slug");
 
 // List all servers
 const servers = await forge.servers.list();
@@ -208,12 +208,12 @@ The SDK supports dependency injection for testing:
 
 ```typescript
 const mockFetch = async (url, init) => {
-  return new Response(JSON.stringify({ servers: [] }), {
+  return new Response(JSON.stringify({ data: [] }), {
     headers: { "content-type": "application/json" },
   });
 };
 
-const forge = new Forge("test-token", { fetch: mockFetch });
+const forge = new Forge("test-token", "test-org", { fetch: mockFetch });
 const servers = await forge.servers.list(); // Uses mock fetch
 ```
 
@@ -222,7 +222,7 @@ const servers = await forge.servers.list(); // Uses mock fetch
 ```typescript
 import { Forge } from "@studiometa/forge-sdk";
 
-const forge = new Forge(process.env.FORGE_API_TOKEN);
+const forge = new Forge(process.env.FORGE_API_TOKEN, process.env.FORGE_ORG);
 
 // Deploy after successful CI using resolve() to find the server and site by name
 const serverResult = await forge.servers.resolve("prod");
