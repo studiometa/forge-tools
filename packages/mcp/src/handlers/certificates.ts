@@ -6,8 +6,6 @@ import {
   listCertificates,
 } from "@studiometa/forge-core";
 
-import type { ForgeCertificate } from "@studiometa/forge-api";
-
 import { formatCertificate, formatCertificateList } from "../formatters.ts";
 import { getCertificateHints } from "../hints.ts";
 import { createResourceHandler } from "./factory.ts";
@@ -29,18 +27,15 @@ export const handleCertificates = createResourceHandler({
     delete: deleteCertificate,
     activate: activateCertificate,
   },
-  hints: (data, id) => {
-    const cert = data as ForgeCertificate;
-    return getCertificateHints(String(cert.server_id), String(cert.site_id), id);
-  },
+  hints: (_data, id, args) => getCertificateHints(String(args.server_id), String(args.site_id), id),
   formatResult: (action, data, args) => {
     switch (action) {
       case "list":
-        return formatCertificateList(data as ForgeCertificate[]);
+        return formatCertificateList(data);
       case "get":
-        return formatCertificate(data as ForgeCertificate);
+        return formatCertificate(data);
       case "create":
-        return formatCertificate(data as ForgeCertificate);
+        return formatCertificate(data);
       case "delete":
         return `Certificate ${args.id} deleted.`;
       case "activate":

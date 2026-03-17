@@ -6,8 +6,6 @@ import {
   updateNginxTemplate,
 } from "@studiometa/forge-core";
 
-import type { ForgeNginxTemplate } from "@studiometa/forge-api";
-
 import { formatNginxTemplate, formatNginxTemplateList } from "../formatters.ts";
 import { getNginxTemplateHints } from "../hints.ts";
 import { createResourceHandler } from "./factory.ts";
@@ -29,20 +27,17 @@ export const handleNginxTemplates = createResourceHandler({
     update: updateNginxTemplate,
     delete: deleteNginxTemplate,
   },
-  hints: (data, id) => {
-    const template = data as ForgeNginxTemplate;
-    return getNginxTemplateHints(String(template.server_id), id);
-  },
+  hints: (_data, id, args) => getNginxTemplateHints(String(args.server_id), id),
   formatResult: (action, data, args) => {
     switch (action) {
       case "list":
-        return formatNginxTemplateList(data as ForgeNginxTemplate[]);
+        return formatNginxTemplateList(data);
       case "get":
-        return formatNginxTemplate(data as ForgeNginxTemplate);
+        return formatNginxTemplate(data);
       case "create":
-        return formatNginxTemplate(data as ForgeNginxTemplate);
+        return formatNginxTemplate(data);
       case "update":
-        return formatNginxTemplate(data as ForgeNginxTemplate);
+        return formatNginxTemplate(data);
       case "delete":
         return `Nginx template ${args.id} deleted.`;
       /* v8 ignore next */

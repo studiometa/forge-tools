@@ -1,7 +1,5 @@
 import { createDatabase, deleteDatabase, getDatabase, listDatabases } from "@studiometa/forge-core";
 
-import type { ForgeDatabase } from "@studiometa/forge-api";
-
 import { formatDatabase, formatDatabaseList } from "../formatters.ts";
 import { getDatabaseHints } from "../hints.ts";
 import { createResourceHandler } from "./factory.ts";
@@ -21,18 +19,15 @@ export const handleDatabases = createResourceHandler({
     create: createDatabase,
     delete: deleteDatabase,
   },
-  hints: (data, id) => {
-    const db = data as ForgeDatabase;
-    return getDatabaseHints(String(db.server_id), id);
-  },
+  hints: (_data, id, args) => getDatabaseHints(String(args.server_id), id),
   formatResult: (action, data, args) => {
     switch (action) {
       case "list":
-        return formatDatabaseList(data as ForgeDatabase[]);
+        return formatDatabaseList(data);
       case "get":
-        return formatDatabase(data as ForgeDatabase);
+        return formatDatabase(data);
       case "create":
-        return formatDatabase(data as ForgeDatabase);
+        return formatDatabase(data);
       case "delete":
         return `Database ${args.id} deleted.`;
       /* v8 ignore next */

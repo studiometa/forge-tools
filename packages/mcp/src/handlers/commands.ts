@@ -1,7 +1,5 @@
 import { createCommand, getCommand, listCommands } from "@studiometa/forge-core";
 
-import type { ForgeCommand } from "@studiometa/forge-api";
-
 import { formatCommand, formatCommandList } from "../formatters.ts";
 import { createResourceHandler } from "./factory.ts";
 
@@ -21,11 +19,11 @@ export const handleCommands = createResourceHandler({
   formatResult: (action, data) => {
     switch (action) {
       case "list":
-        return formatCommandList(data as ForgeCommand[]);
+        return formatCommandList(data);
       case "get":
-        return formatCommand(data as ForgeCommand);
+        return formatCommand(data);
       case "create":
-        return formatCommand(data as ForgeCommand);
+        return formatCommand(data);
       /* v8 ignore next */
       default:
         return "Done.";

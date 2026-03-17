@@ -1,4 +1,4 @@
-import { getToken, setToken } from "@studiometa/forge-api";
+import { getToken, getOrganizationSlug, setToken } from "@studiometa/forge-api";
 
 import type { ToolResult } from "./handlers/types.ts";
 
@@ -146,7 +146,8 @@ export async function handleToolCall(
       };
     }
 
-    return executeToolWithCredentials(name, args, { apiToken });
+    const organizationSlug = getOrganizationSlug() ?? undefined;
+    return executeToolWithCredentials(name, args, { apiToken, organizationSlug });
   }
 
   return {

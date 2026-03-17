@@ -9,24 +9,24 @@
  */
 
 import type {
-  ForgeBackupConfig,
-  ForgeCertificate,
-  ForgeCommand,
-  ForgeDaemon,
-  ForgeDatabase,
-  ForgeDatabaseUser,
-  ForgeDeployment,
-  ForgeFirewallRule,
-  ForgeMonitor,
-  ForgeNginxTemplate,
-  ForgeRecipe,
-  ForgeRedirectRule,
-  ForgeScheduledJob,
-  ForgeSecurityRule,
-  ForgeServer,
-  ForgeSite,
-  ForgeSshKey,
-  ForgeUser,
+  BackupConfigAttributes,
+  BackgroundProcessAttributes,
+  CertificateAttributes,
+  CommandAttributes,
+  DatabaseAttributes,
+  DatabaseUserAttributes,
+  DeploymentAttributes,
+  FirewallRuleAttributes,
+  MonitorAttributes,
+  NginxTemplateAttributes,
+  RecipeAttributes,
+  RedirectRuleAttributes,
+  ScheduledJobAttributes,
+  SecurityRuleAttributes,
+  ServerAttributes,
+  SiteAttributes,
+  SshKeyAttributes,
+  UserAttributes,
 } from "@studiometa/forge-api";
 
 // ── Servers ──────────────────────────────────────────
@@ -34,7 +34,7 @@ import type {
 /**
  * Format a list of servers.
  */
-export function formatServerList(servers: ForgeServer[]): string {
+export function formatServerList(servers: (ServerAttributes & { id: number })[]): string {
   if (servers.length === 0) {
     return "No servers found.";
   }
@@ -48,7 +48,7 @@ export function formatServerList(servers: ForgeServer[]): string {
 /**
  * Format a single server.
  */
-export function formatServer(server: ForgeServer): string {
+export function formatServer(server: ServerAttributes & { id: number }): string {
   return [
     `Server: ${server.name} (ID: ${server.id})`,
     `Provider: ${server.provider} (${server.region})`,
@@ -65,11 +65,14 @@ export function formatServer(server: ForgeServer): string {
 /**
  * Format a list of sites.
  */
-export function formatSiteList(sites: ForgeSite[], serverId?: string): string {
+export function formatSiteList(
+  sites: (SiteAttributes & { id: number })[],
+  serverId?: string,
+): string {
   if (sites.length === 0) {
     return serverId ? `No sites on server ${serverId}.` : "No sites found.";
   }
-  const lines = sites.map((s) => `• ${s.name} (ID: ${s.id}) — ${s.project_type} — ${s.status}`);
+  const lines = sites.map((s) => `• ${s.name} (ID: ${s.id}) — ${s.app_type} — ${s.status}`);
   const header = serverId
     ? `${sites.length} site(s) on server ${serverId}:`
     : `${sites.length} site(s):`;
@@ -79,13 +82,12 @@ export function formatSiteList(sites: ForgeSite[], serverId?: string): string {
 /**
  * Format a single site.
  */
-export function formatSite(site: ForgeSite): string {
+export function formatSite(site: SiteAttributes & { id: number }): string {
   return [
     `Site: ${site.name} (ID: ${site.id})`,
-    `Type: ${site.project_type}`,
-    `Directory: ${site.directory}`,
+    `Type: ${site.app_type}`,
+    `Directory: ${site.root_directory}`,
     `Repository: ${site.repository ?? "none"}`,
-    `Branch: ${site.repository_branch ?? "none"}`,
     `Status: ${site.status}`,
     `Deploy status: ${site.deployment_status ?? "none"}`,
     `Quick deploy: ${site.quick_deploy ? "enabled" : "disabled"}`,
@@ -99,7 +101,7 @@ export function formatSite(site: ForgeSite): string {
 /**
  * Format a list of databases.
  */
-export function formatDatabaseList(databases: ForgeDatabase[]): string {
+export function formatDatabaseList(databases: (DatabaseAttributes & { id: number })[]): string {
   if (databases.length === 0) {
     return "No databases found.";
   }
@@ -110,7 +112,7 @@ export function formatDatabaseList(databases: ForgeDatabase[]): string {
 /**
  * Format a single database.
  */
-export function formatDatabase(db: ForgeDatabase): string {
+export function formatDatabase(db: DatabaseAttributes & { id: number }): string {
   return `Database: ${db.name} (ID: ${db.id})\nStatus: ${db.status}\nCreated: ${db.created_at}`;
 }
 
@@ -119,7 +121,7 @@ export function formatDatabase(db: ForgeDatabase): string {
 /**
  * Format a list of database users.
  */
-export function formatDatabaseUserList(users: ForgeDatabaseUser[]): string {
+export function formatDatabaseUserList(users: (DatabaseUserAttributes & { id: number })[]): string {
   if (users.length === 0) {
     return "No database users found.";
   }
@@ -130,11 +132,10 @@ export function formatDatabaseUserList(users: ForgeDatabaseUser[]): string {
 /**
  * Format a single database user.
  */
-export function formatDatabaseUser(user: ForgeDatabaseUser): string {
+export function formatDatabaseUser(user: DatabaseUserAttributes & { id: number }): string {
   return [
     `Database User: ${user.name} (ID: ${user.id})`,
     `Status: ${user.status}`,
-    `Databases: ${user.databases.length > 0 ? user.databases.join(", ") : "none"}`,
     `Created: ${user.created_at}`,
   ].join("\n");
 }
@@ -144,13 +145,15 @@ export function formatDatabaseUser(user: ForgeDatabaseUser): string {
 /**
  * Format a list of deployments.
  */
-export function formatDeploymentList(deployments: ForgeDeployment[]): string {
+export function formatDeploymentList(
+  deployments: (DeploymentAttributes & { id: number })[],
+): string {
   if (deployments.length === 0) {
     return "No deployments found.";
   }
   const lines = deployments.map(
     (d) =>
-      `• #${d.id} — ${d.status} — ${d.commit_hash?.slice(0, 7) ?? "no commit"} — ${d.started_at}`,
+      `• #${d.id} — ${d.status} — ${d.commit.hash?.slice(0, 7) ?? "no commit"} — ${d.started_at}`,
   );
   return `${deployments.length} deployment(s):\n${lines.join("\n")}`;
 }
@@ -210,7 +213,9 @@ export function formatDeploymentScriptUpdated(siteId: string, serverId: string):
 /**
  * Format a list of certificates.
  */
-export function formatCertificateList(certificates: ForgeCertificate[]): string {
+export function formatCertificateList(
+  certificates: (CertificateAttributes & { id: number })[],
+): string {
   if (certificates.length === 0) {
     return "No certificates found.";
   }
@@ -224,7 +229,7 @@ export function formatCertificateList(certificates: ForgeCertificate[]): string 
 /**
  * Format a single certificate.
  */
-export function formatCertificate(cert: ForgeCertificate): string {
+export function formatCertificate(cert: CertificateAttributes & { id: number }): string {
   return `Certificate: ${cert.domain} (ID: ${cert.id})\nType: ${cert.type}\nStatus: ${cert.status}\nActive: ${cert.active}`;
 }
 
@@ -233,7 +238,9 @@ export function formatCertificate(cert: ForgeCertificate): string {
 /**
  * Format a list of daemons.
  */
-export function formatDaemonList(daemons: ForgeDaemon[]): string {
+export function formatDaemonList(
+  daemons: (BackgroundProcessAttributes & { id: number })[],
+): string {
   if (daemons.length === 0) {
     return "No daemons found.";
   }
@@ -244,7 +251,7 @@ export function formatDaemonList(daemons: ForgeDaemon[]): string {
 /**
  * Format a single daemon.
  */
-export function formatDaemon(daemon: ForgeDaemon): string {
+export function formatDaemon(daemon: BackgroundProcessAttributes & { id: number }): string {
   return `Daemon: ${daemon.command} (ID: ${daemon.id})\nUser: ${daemon.user}\nProcesses: ${daemon.processes}\nStatus: ${daemon.status}`;
 }
 
@@ -253,7 +260,7 @@ export function formatDaemon(daemon: ForgeDaemon): string {
 /**
  * Format a list of firewall rules.
  */
-export function formatFirewallRuleList(rules: ForgeFirewallRule[]): string {
+export function formatFirewallRuleList(rules: (FirewallRuleAttributes & { id: number })[]): string {
   if (rules.length === 0) {
     return "No firewall rules found.";
   }
@@ -266,7 +273,7 @@ export function formatFirewallRuleList(rules: ForgeFirewallRule[]): string {
 /**
  * Format a single firewall rule.
  */
-export function formatFirewallRule(rule: ForgeFirewallRule): string {
+export function formatFirewallRule(rule: FirewallRuleAttributes & { id: number }): string {
   return `Firewall Rule: ${rule.name} (ID: ${rule.id})\nPort: ${rule.port}\nType: ${rule.type}\nIP: ${rule.ip_address}\nStatus: ${rule.status}`;
 }
 
@@ -275,7 +282,7 @@ export function formatFirewallRule(rule: ForgeFirewallRule): string {
 /**
  * Format a list of monitors.
  */
-export function formatMonitorList(monitors: ForgeMonitor[]): string {
+export function formatMonitorList(monitors: (MonitorAttributes & { id: number })[]): string {
   if (monitors.length === 0) {
     return "No monitors found.";
   }
@@ -288,7 +295,7 @@ export function formatMonitorList(monitors: ForgeMonitor[]): string {
 /**
  * Format a single monitor.
  */
-export function formatMonitor(monitor: ForgeMonitor): string {
+export function formatMonitor(monitor: MonitorAttributes & { id: number }): string {
   return `Monitor: ${monitor.type} ${monitor.operator} ${monitor.threshold} (ID: ${monitor.id})\nState: ${monitor.state}\nMinutes: ${monitor.minutes}`;
 }
 
@@ -297,7 +304,7 @@ export function formatMonitor(monitor: ForgeMonitor): string {
 /**
  * Format a list of SSH keys.
  */
-export function formatSshKeyList(keys: ForgeSshKey[]): string {
+export function formatSshKeyList(keys: (SshKeyAttributes & { id: number })[]): string {
   if (keys.length === 0) {
     return "No SSH keys found.";
   }
@@ -308,7 +315,7 @@ export function formatSshKeyList(keys: ForgeSshKey[]): string {
 /**
  * Format a single SSH key.
  */
-export function formatSshKey(key: ForgeSshKey): string {
+export function formatSshKey(key: SshKeyAttributes & { id: number }): string {
   return `SSH Key: ${key.name} (ID: ${key.id})\nStatus: ${key.status}\nCreated: ${key.created_at}`;
 }
 
@@ -317,7 +324,7 @@ export function formatSshKey(key: ForgeSshKey): string {
 /**
  * Format a list of scheduled jobs.
  */
-export function formatScheduledJobList(jobs: ForgeScheduledJob[]): string {
+export function formatScheduledJobList(jobs: (ScheduledJobAttributes & { id: number })[]): string {
   if (jobs.length === 0) {
     return "No scheduled jobs found.";
   }
@@ -330,7 +337,7 @@ export function formatScheduledJobList(jobs: ForgeScheduledJob[]): string {
 /**
  * Format a single scheduled job.
  */
-export function formatScheduledJob(job: ForgeScheduledJob): string {
+export function formatScheduledJob(job: ScheduledJobAttributes & { id: number }): string {
   return [
     `Job: ${job.command} (ID: ${job.id})`,
     `User: ${job.user}`,
@@ -346,7 +353,7 @@ export function formatScheduledJob(job: ForgeScheduledJob): string {
 /**
  * Format a list of security rules.
  */
-export function formatSecurityRuleList(rules: ForgeSecurityRule[]): string {
+export function formatSecurityRuleList(rules: (SecurityRuleAttributes & { id: number })[]): string {
   if (rules.length === 0) {
     return "No security rules found.";
   }
@@ -357,7 +364,7 @@ export function formatSecurityRuleList(rules: ForgeSecurityRule[]): string {
 /**
  * Format a single security rule.
  */
-export function formatSecurityRule(rule: ForgeSecurityRule): string {
+export function formatSecurityRule(rule: SecurityRuleAttributes & { id: number }): string {
   return `Security Rule: ${rule.name} (ID: ${rule.id})\nPath: ${rule.path ?? "/"}`;
 }
 
@@ -366,7 +373,7 @@ export function formatSecurityRule(rule: ForgeSecurityRule): string {
 /**
  * Format a list of redirect rules.
  */
-export function formatRedirectRuleList(rules: ForgeRedirectRule[]): string {
+export function formatRedirectRuleList(rules: (RedirectRuleAttributes & { id: number })[]): string {
   if (rules.length === 0) {
     return "No redirect rules found.";
   }
@@ -377,7 +384,7 @@ export function formatRedirectRuleList(rules: ForgeRedirectRule[]): string {
 /**
  * Format a single redirect rule.
  */
-export function formatRedirectRule(rule: ForgeRedirectRule): string {
+export function formatRedirectRule(rule: RedirectRuleAttributes & { id: number }): string {
   return `Redirect Rule: ${rule.from} → ${rule.to} (ID: ${rule.id})\nType: ${rule.type}`;
 }
 
@@ -395,7 +402,9 @@ export function formatNginxConfig(content: string): string {
 /**
  * Format a list of nginx templates.
  */
-export function formatNginxTemplateList(templates: ForgeNginxTemplate[]): string {
+export function formatNginxTemplateList(
+  templates: (NginxTemplateAttributes & { id: number })[],
+): string {
   if (templates.length === 0) {
     return "No nginx templates found.";
   }
@@ -406,7 +415,7 @@ export function formatNginxTemplateList(templates: ForgeNginxTemplate[]): string
 /**
  * Format a single nginx template.
  */
-export function formatNginxTemplate(template: ForgeNginxTemplate): string {
+export function formatNginxTemplate(template: NginxTemplateAttributes & { id: number }): string {
   return `Nginx Template: ${template.name} (ID: ${template.id})\n\n${template.content}`;
 }
 
@@ -415,7 +424,9 @@ export function formatNginxTemplate(template: ForgeNginxTemplate): string {
 /**
  * Format a list of backup configurations.
  */
-export function formatBackupConfigList(backups: ForgeBackupConfig[]): string {
+export function formatBackupConfigList(
+  backups: (BackupConfigAttributes & { id: number })[],
+): string {
   if (backups.length === 0) {
     return "No backup configurations found.";
   }
@@ -429,13 +440,12 @@ export function formatBackupConfigList(backups: ForgeBackupConfig[]): string {
 /**
  * Format a single backup configuration.
  */
-export function formatBackupConfig(backup: ForgeBackupConfig): string {
+export function formatBackupConfig(backup: BackupConfigAttributes & { id: number }): string {
   return [
     `Backup Config: ${backup.provider_name} (ID: ${backup.id})`,
     `Frequency: ${backup.frequency}`,
     `Status: ${backup.status}`,
     `Retention: ${backup.retention} backups`,
-    `Databases: ${backup.databases.map((d) => d.name).join(", ") || "none"}`,
     `Last backup: ${backup.last_backup_time ?? "never"}`,
   ].join("\n");
 }
@@ -445,7 +455,7 @@ export function formatBackupConfig(backup: ForgeBackupConfig): string {
 /**
  * Format a list of recipes.
  */
-export function formatRecipeList(recipes: ForgeRecipe[]): string {
+export function formatRecipeList(recipes: (RecipeAttributes & { id: number })[]): string {
   if (recipes.length === 0) {
     return "No recipes found.";
   }
@@ -456,7 +466,7 @@ export function formatRecipeList(recipes: ForgeRecipe[]): string {
 /**
  * Format a single recipe.
  */
-export function formatRecipe(recipe: ForgeRecipe): string {
+export function formatRecipe(recipe: RecipeAttributes & { id: number }): string {
   return `Recipe: ${recipe.name} (ID: ${recipe.id})\nUser: ${recipe.user}\nScript:\n${recipe.script}`;
 }
 
@@ -465,7 +475,7 @@ export function formatRecipe(recipe: ForgeRecipe): string {
 /**
  * Format a list of commands.
  */
-export function formatCommandList(commands: ForgeCommand[]): string {
+export function formatCommandList(commands: (CommandAttributes & { id: number })[]): string {
   if (commands.length === 0) {
     return "No commands found.";
   }
@@ -478,7 +488,7 @@ export function formatCommandList(commands: ForgeCommand[]): string {
 /**
  * Format a single command.
  */
-export function formatCommand(command: ForgeCommand): string {
+export function formatCommand(command: CommandAttributes & { id: number }): string {
   return [
     `Command #${command.id}`,
     `Command: ${command.command}`,
@@ -502,12 +512,12 @@ export function formatEnv(content: string): string {
 /**
  * Format the authenticated user.
  */
-export function formatUser(user: ForgeUser): string {
+export function formatUser(user: UserAttributes & { id: number }): string {
   return [
     `User: ${user.name} (ID: ${user.id})`,
     `Email: ${user.email}`,
-    `GitHub: ${user.connected_to_github ? "connected" : "not connected"}`,
-    `GitLab: ${user.connected_to_gitlab ? "connected" : "not connected"}`,
+    `GitHub: ${user.github_connected ? "connected" : "not connected"}`,
+    `GitLab: ${user.gitlab_connected ? "connected" : "not connected"}`,
     `2FA: ${user.two_factor_enabled ? "enabled" : "disabled"}`,
   ].join("\n");
 }
