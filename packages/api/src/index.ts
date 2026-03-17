@@ -15,8 +15,51 @@ export { RateLimiter } from "./rate-limiter.ts";
 export { ConfigStore } from "./utils/config-store.ts";
 
 export type { ConfigStoreFs } from "./utils/config-store.ts";
+
+// JSON:API types (v2)
+export type {
+  JsonApiResource,
+  JsonApiRelationship,
+  JsonApiResourceIdentifier,
+  JsonApiLink,
+  JsonApiDocument,
+  JsonApiListDocument,
+  JsonApiPaginationLinks,
+  JsonApiPaginationMeta,
+} from "./types/jsonapi.ts";
+
+// v2 resource attribute types
+export type {
+  UserAttributes,
+  ServerAttributes,
+  SiteAttributes,
+  DeploymentAttributes,
+  DeploymentCommit,
+  DeploymentStatusAttributes,
+  DeploymentOutputAttributes,
+  DeploymentScriptAttributes,
+  DatabaseAttributes,
+  DatabaseUserAttributes,
+  BackgroundProcessAttributes,
+  CertificateAttributes,
+  FirewallRuleAttributes,
+  SshKeyAttributes,
+  SecurityRuleAttributes,
+  RedirectRuleAttributes,
+  MonitorAttributes,
+  NginxTemplateAttributes,
+  RecipeAttributes,
+  ScheduledJobAttributes,
+  CommandAttributes,
+  BackupConfigAttributes,
+  BackupAttributes,
+  OrganizationAttributes,
+} from "./types/v2-attributes.ts";
+
+// v1 types (legacy)
 export type {
   // Options
+  ApiVersion,
   ForgeConfig,
   ForgeOptions,
   RateLimitOptions,

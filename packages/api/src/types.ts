@@ -1,13 +1,18 @@
 // ── Options ──────────────────────────────────────────
 
+/** API version selector. */
+export type ApiVersion = "v1" | "v2";
+
 /**
  * Options for the Forge API client.
  */
 export interface ForgeOptions {
   /** Custom fetch implementation (for testing). */
   fetch?: typeof globalThis.fetch;
-  /** Custom base URL (default: https://forge.laravel.com/api/v1). */
+  /** Custom base URL. Overrides apiVersion when set. */
   baseUrl?: string;
+  /** API version to target (default: "v1"). */
+  apiVersion?: ApiVersion;
   /** Rate limiter options. */
   rateLimit?: RateLimitOptions;
 }

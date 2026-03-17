@@ -424,4 +424,47 @@ describe("HttpClient", () => {
       expect(result).toBe("APP_ENV=production\nAPP_DEBUG=false");
     });
   });
+
+  describe("apiVersion", () => {
+    it("should default to v1 base URL", async () => {
+      const { fetch, calls } = createSequenceFetch([{ body: {} }]);
+      const client = new HttpClient({ ...defaultOptions, fetch });
+
+      await client.get("/servers");
+      expect(calls[0]!.url).toBe("https://forge.laravel.com/api/v1/servers");
+    });
+
+    it("should use v2 base URL when apiVersion is v2", async () => {
+      const { fetch, calls } = createSequenceFetch([{ body: {} }]);
+      const client = new HttpClient({ ...defaultOptions, fetch, apiVersion: "v2" });
+
+      await client.get("/orgs/my-org/servers");
+      expect(calls[0]!.url).toBe("https://forge.laravel.com/api/orgs/my-org/servers");
+    });
+
+    it("should prefer explicit baseUrl over apiVersion", async () => {
+      const { fetch, calls } = createSequenceFetch([{ body: {} }]);
+      const client = new HttpClient({
+        ...defaultOptions,
+        fetch,
+        apiVersion: "v2",
+        baseUrl: "https://custom.example.com/api",
+      });
+
+      await client.get("/servers");
+      expect(calls[0]!.url).toBe("https://custom.example.com/api/servers");
+    });
+
+    it("should expose apiVersion via getApiVersion()", () => {
+      const client = new HttpClient({ ...defaultOptions, fetch: createMockFetch() });
+      expect(client.getApiVersion()).toBe("v1");
+
+      const clientV2 = new HttpClient({
+        ...defaultOptions,
+        fetch: createMockFetch(),
+        apiVersion: "v2",
+      });
+      expect(clientV2.getApiVersion()).toBe("v2");
+    });
+  });
 });
