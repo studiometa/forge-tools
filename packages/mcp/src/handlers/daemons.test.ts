@@ -1,42 +1,46 @@
 import { describe, expect, it } from "vitest";
 
+import { mockDocument, mockListDocument } from "@studiometa/forge-core";
+
 import type { HandlerContext } from "./types.ts";
 
 import { handleDaemons } from "./daemons.ts";
 
+function makeDaemonAttrs(overrides: Record<string, unknown> = {}) {
+  return {
+    command: "php artisan queue:work",
+    user: "forge",
+    directory: null,
+    processes: 1,
+    startsecs: 0,
+    stopsignal: "TERM",
+    stopwaitsecs: 10,
+    status: "running",
+    created_at: "2024-01-01",
+    updated_at: "2024-01-01",
+    ...overrides,
+  };
+}
+
 function createMockContext(): HandlerContext {
   return {
     executorContext: {
+      organizationSlug: "test-org",
       client: {
-        get: async () => ({
-          daemons: [
-            {
-              id: 1,
-              command: "php artisan queue:work",
-              user: "forge",
-              processes: 1,
-              status: "running",
-            },
-          ],
-          daemon: {
-            id: 1,
-            server_id: 1,
-            command: "php artisan queue:work",
-            user: "forge",
-            processes: 1,
-            status: "running",
-            created_at: "2024-01-01",
-          },
-        }),
-        post: async () => ({
-          daemon: {
-            id: 2,
-            command: "node server.js",
-            user: "forge",
-            processes: 1,
-            status: "starting",
-          },
-        }),
+        get: async (url: string) => {
+          if (url.match(/\/background-processes\/\d+$/)) {
+            return mockDocument(1, "background-processes", makeDaemonAttrs());
+          }
+          return mockListDocument("background-processes", [
+            { id: 1, attributes: makeDaemonAttrs() as never },
+          ]);
+        },
+        post: async () =>
+          mockDocument(
+            2,
+            "background-processes",
+            makeDaemonAttrs({ command: "node server.js", status: "starting" }),
+          ),
         delete: async () => undefined,
       } as never,
     },

@@ -14,44 +14,157 @@ vi.mock("@studiometa/forge-api", async (importOriginal) => {
     ...mod,
     HttpClient: class MockHttpClient {
       async get(path: string) {
-        // Return minimal shapes per resource
+        // Return minimal JSON:API shapes per resource
         // Backups
-        if (path.includes("/backup-configs")) return { backups: [] };
+        if (path.includes("/database/backups"))
+          return {
+            data: [],
+            links: { next: null, prev: null },
+            meta: { per_page: 30, next_cursor: null, prev_cursor: null },
+          };
         // Commands (site-level)
-        if (path.includes("/commands")) return { commands: [] };
+        if (path.includes("/commands"))
+          return {
+            data: [],
+            links: { next: null, prev: null },
+            meta: { per_page: 30, next_cursor: null, prev_cursor: null },
+          };
         // Database users
-        if (path.includes("/database-users")) return { users: [] };
+        if (path.includes("/database/users"))
+          return {
+            data: [],
+            links: { next: null, prev: null },
+            meta: { per_page: 30, next_cursor: null, prev_cursor: null },
+          };
         // Daemons
-        if (path.includes("/daemons")) return { daemons: [] };
+        if (path.includes("/background-processes"))
+          return {
+            data: [],
+            links: { next: null, prev: null },
+            meta: { per_page: 30, next_cursor: null, prev_cursor: null },
+          };
         // Firewall rules
-        if (path.includes("/firewall-rules")) return { rules: [] };
+        if (path.includes("/firewall-rules"))
+          return {
+            data: [],
+            links: { next: null, prev: null },
+            meta: { per_page: 30, next_cursor: null, prev_cursor: null },
+          };
         // Certificates
-        if (path.includes("/certificates")) return { certificates: [] };
+        if (path.includes("/certificates"))
+          return {
+            data: [],
+            links: { next: null, prev: null },
+            meta: { per_page: 30, next_cursor: null, prev_cursor: null },
+          };
         // Monitors
-        if (path.includes("/monitors")) return { monitors: [] };
+        if (path.includes("/monitors"))
+          return {
+            data: [],
+            links: { next: null, prev: null },
+            meta: { per_page: 30, next_cursor: null, prev_cursor: null },
+          };
         // Nginx templates
-        if (path.includes("/nginx/templates")) return { templates: [] };
+        if (path.includes("/nginx/templates"))
+          return {
+            data: [],
+            links: { next: null, prev: null },
+            meta: { per_page: 30, next_cursor: null, prev_cursor: null },
+          };
         // Redirect rules
-        if (path.includes("/redirect-rules")) return { redirect_rules: [] };
+        if (path.includes("/redirect-rules"))
+          return {
+            data: [],
+            links: { next: null, prev: null },
+            meta: { per_page: 30, next_cursor: null, prev_cursor: null },
+          };
         // Scheduled jobs
-        if (path.includes("/jobs")) return { jobs: [] };
+        if (path.includes("/scheduled-jobs"))
+          return {
+            data: [],
+            links: { next: null, prev: null },
+            meta: { per_page: 30, next_cursor: null, prev_cursor: null },
+          };
         // Security rules
-        if (path.includes("/security-rules")) return { security_rules: [] };
+        if (path.includes("/security-rules"))
+          return {
+            data: [],
+            links: { next: null, prev: null },
+            meta: { per_page: 30, next_cursor: null, prev_cursor: null },
+          };
         // SSH keys
-        if (path.includes("/keys")) return { keys: [] };
+        if (path.includes("/ssh-keys"))
+          return {
+            data: [],
+            links: { next: null, prev: null },
+            meta: { per_page: 30, next_cursor: null, prev_cursor: null },
+          };
         // Recipes
-        if (path.includes("/recipes")) return { recipes: [] };
+        if (path.includes("/recipes"))
+          return {
+            data: [],
+            links: { next: null, prev: null },
+            meta: { per_page: 30, next_cursor: null, prev_cursor: null },
+          };
+        // Database schemas
+        if (path.includes("/database/schemas"))
+          return {
+            data: [],
+            links: { next: null, prev: null },
+            meta: { per_page: 30, next_cursor: null, prev_cursor: null },
+          };
         // Sites (must come before deployments check)
-        if (path.includes("/sites") && !path.includes("/deployments")) return { sites: [] };
+        if (path.includes("/sites") && !path.includes("/deployments"))
+          return {
+            data: [],
+            links: { next: null, prev: null },
+            meta: { per_page: 30, next_cursor: null, prev_cursor: null },
+          };
         // Deployments
-        if (path.includes("/deployments")) return { deployments: [] };
-        // Databases (must come before database-users check)
-        if (path.includes("/databases") && !path.includes("-users")) return { databases: [] };
+        if (path.includes("/deployments"))
+          return {
+            data: [],
+            links: { next: null, prev: null },
+            meta: { per_page: 30, next_cursor: null, prev_cursor: null },
+          };
         // Servers (generic)
-        if (path.startsWith("/servers") && path.split("/").length <= 3) return { servers: [] };
-        if (path === "/user") return { user: { id: 1, name: "Test", email: "t@t.com" } };
-        if (path.match(/\/servers\/\d+\/sites\/\d+\/env$/)) return "";
-        if (path.match(/\/servers\/\d+\/sites\/\d+\/nginx$/)) return "";
+        if (path.includes("/servers"))
+          return {
+            data: [],
+            links: { next: null, prev: null },
+            meta: { per_page: 30, next_cursor: null, prev_cursor: null },
+          };
+        if (path === "/user")
+          return {
+            data: {
+              id: "1",
+              type: "users",
+              attributes: {
+                name: "Test",
+                email: "t@t.com",
+                two_factor_enabled: false,
+                two_factor_confirmed: false,
+                github_connected: false,
+                gitlab_connected: false,
+                bitbucket_connected: false,
+                do_connected: false,
+                timezone: "UTC",
+                created_at: "2024-01-01",
+                updated_at: "2024-01-01",
+              },
+              links: { self: { href: "/user/1" } },
+            },
+          };
+        if (path.match(/\/sites\/\d+\/environment$/))
+          return {
+            data: {
+              id: "1",
+              type: "environments",
+              attributes: { content: "" },
+              links: { self: { href: "/env/1" } },
+            },
+          };
+        if (path.match(/\/sites\/\d+\/nginx$/)) return "";
         return {};
       }
       async post() {
@@ -67,7 +180,7 @@ vi.mock("@studiometa/forge-api", async (importOriginal) => {
   };
 });
 
-const creds = { apiToken: "test-token" };
+const creds = { apiToken: "test-token", organizationSlug: "test-org" };
 
 describe("routeToHandler — resource routing coverage", () => {
   const listCases: Array<{ resource: string; extra?: Record<string, unknown> }> = [

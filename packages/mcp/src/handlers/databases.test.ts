@@ -1,34 +1,34 @@
 import { describe, expect, it } from "vitest";
 
+import { mockDocument, mockListDocument } from "@studiometa/forge-core";
+
 import type { HandlerContext } from "./types.ts";
 
 import { handleDatabases } from "./databases.ts";
 
+function makeDbAttrs(overrides: Record<string, unknown> = {}) {
+  return {
+    name: "myapp",
+    status: "installed",
+    created_at: "2024-01-01",
+    updated_at: "2024-01-01",
+    ...overrides,
+  };
+}
+
 function createMockContext(): HandlerContext {
   return {
     executorContext: {
+      organizationSlug: "test-org",
       client: {
-        get: async () => ({
-          databases: [
-            { id: 1, name: "myapp", status: "installed", server_id: 1, created_at: "2024-01-01" },
-          ],
-          database: {
-            id: 1,
-            name: "myapp",
-            status: "installed",
-            server_id: 1,
-            created_at: "2024-01-01",
-          },
-        }),
-        post: async () => ({
-          database: {
-            id: 2,
-            name: "newdb",
-            status: "creating",
-            server_id: 1,
-            created_at: "2024-01-01",
-          },
-        }),
+        get: async (url: string) => {
+          if (url.match(/\/database\/schemas\/\d+$/)) {
+            return mockDocument(1, "databases", makeDbAttrs());
+          }
+          return mockListDocument("databases", [{ id: 1, attributes: makeDbAttrs() as never }]);
+        },
+        post: async () =>
+          mockDocument(2, "databases", makeDbAttrs({ name: "newdb", status: "creating" })),
         delete: async () => undefined,
       } as never,
     },

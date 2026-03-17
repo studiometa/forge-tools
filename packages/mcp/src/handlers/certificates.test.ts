@@ -1,45 +1,44 @@
 import { describe, expect, it } from "vitest";
 
+import { mockDocument, mockListDocument } from "@studiometa/forge-core";
+
 import type { HandlerContext } from "./types.ts";
 
 import { handleCertificates } from "./certificates.ts";
 
+function makeCertAttrs(overrides: Record<string, unknown> = {}) {
+  return {
+    domain: "example.com",
+    type: "letsencrypt",
+    active: true,
+    status: "installed",
+    request_status: "complete",
+    existing: false,
+    created_at: "2024-01-01",
+    updated_at: "2024-01-01",
+    ...overrides,
+  };
+}
+
 function createMockContext(): HandlerContext {
   return {
     executorContext: {
+      organizationSlug: "test-org",
       client: {
-        get: async () => ({
-          certificates: [
-            {
-              id: 1,
-              domain: "example.com",
-              type: "letsencrypt",
-              active: true,
-              status: "installed",
-            },
-          ],
-          certificate: {
-            id: 1,
-            server_id: 1,
-            site_id: 10,
-            domain: "example.com",
-            type: "letsencrypt",
-            active: true,
-            status: "installed",
-            request_status: "installed",
-            existing: false,
-            created_at: "2024-01-01",
-          },
-        }),
-        post: async () => ({
-          certificate: {
-            id: 2,
-            domain: "new.com",
-            type: "letsencrypt",
-            active: false,
-            status: "pending",
-          },
-        }),
+        get: async (url: string) => {
+          if (url.match(/\/certificates\/\d+$/)) {
+            return mockDocument(1, "certificates", makeCertAttrs());
+          }
+          return mockListDocument("certificates", [
+            { id: 1, attributes: makeCertAttrs() as never },
+          ]);
+        },
+        post: async () =>
+          mockDocument(
+            2,
+            "certificates",
+            makeCertAttrs({ domain: "new.com", active: false, status: "pending" }),
+          ),
         delete: async () => undefined,
       } as never,
     },

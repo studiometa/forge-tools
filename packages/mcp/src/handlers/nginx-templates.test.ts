@@ -1,43 +1,50 @@
 import { describe, expect, it } from "vitest";
 
+import { mockDocument, mockListDocument } from "@studiometa/forge-core";
+
 import type { HandlerContext } from "./types.ts";
 
 import { handleNginxTemplates } from "./nginx-templates.ts";
 
+function makeTemplateAttrs(overrides: Record<string, unknown> = {}) {
+  return {
+    name: "wordpress",
+    content: "# WP",
+    created_at: "2024-01-01",
+    updated_at: "2024-01-01",
+    ...overrides,
+  };
+}
+
 function createMockContext(): HandlerContext {
   return {
     executorContext: {
+      organizationSlug: "test-org",
       client: {
-        get: async () => ({
-          templates: [
-            { id: 1, name: "wordpress", content: "# WP", server_id: 1, created_at: "2024-01-01" },
-          ],
-          template: {
-            id: 1,
-            name: "wordpress",
-            content: "server { root /var/www; }",
-            server_id: 1,
-            created_at: "2024-01-01",
-          },
-        }),
-        post: async () => ({
-          template: {
-            id: 2,
-            name: "laravel",
-            content: "server { }",
-            server_id: 1,
-            created_at: "2024-01-01",
-          },
-        }),
-        put: async () => ({
-          template: {
-            id: 1,
-            name: "wordpress-updated",
-            content: "server { root /var/www; }",
-            server_id: 1,
-            created_at: "2024-01-01",
-          },
-        }),
+        get: async (url: string) => {
+          if (url.match(/\/nginx\/templates\/\d+$/)) {
+            return mockDocument(
+              1,
+              "nginx-templates",
+              makeTemplateAttrs({ content: "server { root /var/www; }" }),
+            );
+          }
+          return mockListDocument("nginx-templates", [
+            { id: 1, attributes: makeTemplateAttrs() as never },
+          ]);
+        },
+        post: async () =>
+          mockDocument(
+            2,
+            "nginx-templates",
+            makeTemplateAttrs({ name: "laravel", content: "server { }" }),
+          ),
+        put: async () =>
+          mockDocument(
+            1,
+            "nginx-templates",
+            makeTemplateAttrs({ name: "wordpress-updated", content: "server { root /var/www; }" }),
+          ),
         delete: async () => undefined,
       } as never,
     },

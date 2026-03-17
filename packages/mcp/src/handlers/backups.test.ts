@@ -1,44 +1,41 @@
 import { describe, expect, it } from "vitest";
 
+import { mockDocument, mockListDocument } from "@studiometa/forge-core";
+
 import type { HandlerContext } from "./types.ts";
 
 import { handleBackups } from "./backups.ts";
 
+function makeBackupAttrs(overrides: Record<string, unknown> = {}) {
+  return {
+    provider_name: "S3",
+    provider: "s3",
+    frequency: "daily",
+    status: "active",
+    retention: 7,
+    last_backup_time: null,
+    day_of_week: null,
+    time: null,
+    directory: null,
+    email: null,
+    ...overrides,
+  };
+}
+
 function createMockContext(): HandlerContext {
   return {
     executorContext: {
+      organizationSlug: "test-org",
       client: {
-        get: async () => ({
-          backups: [
-            {
-              id: 1,
-              provider_name: "S3",
-              frequency: "daily",
-              status: "installed",
-              last_backup_time: null,
-            },
-          ],
-          backup: {
-            id: 1,
-            provider_name: "S3",
-            frequency: "daily",
-            status: "installed",
-            retention: 7,
-            databases: [],
-            last_backup_time: null,
-          },
-        }),
-        post: async () => ({
-          backup: {
-            id: 1,
-            provider_name: "S3",
-            frequency: "daily",
-            status: "active",
-            retention: 7,
-            databases: [],
-            last_backup_time: null,
-          },
-        }),
+        get: async (url: string) => {
+          if (url.match(/\/database\/backups\/\d+$/)) {
+            return mockDocument(1, "backup-configs", makeBackupAttrs());
+          }
+          return mockListDocument("backup-configs", [
+            { id: 1, attributes: makeBackupAttrs({ status: "installed" }) as never },
+          ]);
+        },
+        post: async () => mockDocument(1, "backup-configs", makeBackupAttrs()),
         delete: async () => undefined,
       } as never,
     },

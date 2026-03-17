@@ -1,45 +1,43 @@
 import { describe, expect, it } from "vitest";
 
+import { mockDocument, mockListDocument } from "@studiometa/forge-core";
+
 import type { HandlerContext } from "./types.ts";
 
 import { handleFirewallRules } from "./firewall-rules.ts";
 
+function makeRuleAttrs(overrides: Record<string, unknown> = {}) {
+  return {
+    name: "SSH",
+    port: 22,
+    type: "allow",
+    ip_address: "0.0.0.0",
+    status: "created",
+    created_at: "2024-01-01",
+    updated_at: "2024-01-01",
+    ...overrides,
+  };
+}
+
 function createMockContext(): HandlerContext {
   return {
     executorContext: {
+      organizationSlug: "test-org",
       client: {
-        get: async () => ({
-          rules: [
-            {
-              id: 1,
-              name: "SSH",
-              port: 22,
-              type: "allow",
-              ip_address: "0.0.0.0",
-              status: "created",
-            },
-          ],
-          rule: {
-            id: 1,
-            server_id: 1,
-            name: "SSH",
-            port: 22,
-            type: "allow",
-            ip_address: "0.0.0.0",
-            status: "created",
-            created_at: "2024-01-01",
-          },
-        }),
-        post: async () => ({
-          rule: {
-            id: 2,
-            name: "HTTP",
-            port: 80,
-            type: "allow",
-            ip_address: "0.0.0.0",
-            status: "creating",
-          },
-        }),
+        get: async (url: string) => {
+          if (url.match(/\/firewall-rules\/\d+$/)) {
+            return mockDocument(1, "firewall-rules", makeRuleAttrs());
+          }
+          return mockListDocument("firewall-rules", [
+            { id: 1, attributes: makeRuleAttrs() as never },
+          ]);
+        },
+        post: async () =>
+          mockDocument(
+            2,
+            "firewall-rules",
+            makeRuleAttrs({ name: "HTTP", port: 80, status: "creating" }),
+          ),
         delete: async () => undefined,
       } as never,
     },

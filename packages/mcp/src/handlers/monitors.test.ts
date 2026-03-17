@@ -1,27 +1,40 @@
 import { describe, expect, it } from "vitest";
 
+import { mockDocument, mockListDocument } from "@studiometa/forge-core";
+
 import type { HandlerContext } from "./types.ts";
 
 import { handleMonitors } from "./monitors.ts";
 
+function makeMonitorAttrs(overrides: Record<string, unknown> = {}) {
+  return {
+    type: "cpu_load",
+    operator: ">",
+    threshold: 80,
+    minutes: 5,
+    state: "OK",
+    state_changed_at: "2024-01-01",
+    ...overrides,
+  };
+}
+
 function createMockContext(): HandlerContext {
   return {
     executorContext: {
+      organizationSlug: "test-org",
       client: {
-        get: async () => ({
-          monitors: [{ id: 1, type: "cpu_load", operator: ">", threshold: 80, state: "OK" }],
-          monitor: {
-            id: 1,
-            type: "cpu_load",
-            operator: ">",
-            threshold: 80,
-            minutes: 5,
-            state: "OK",
-          },
-        }),
-        post: async () => ({
-          monitor: { id: 2, type: "disk", operator: ">", threshold: 90, minutes: 1, state: "OK" },
-        }),
+        get: async (url: string) => {
+          if (url.match(/\/monitors\/\d+$/)) {
+            return mockDocument(1, "monitors", makeMonitorAttrs());
+          }
+          return mockListDocument("monitors", [{ id: 1, attributes: makeMonitorAttrs() as never }]);
+        },
+        post: async () =>
+          mockDocument(
+            2,
+            "monitors",
+            makeMonitorAttrs({ type: "disk", threshold: 90, minutes: 1 }),
+          ),
         delete: async () => undefined,
       } as never,
     },
