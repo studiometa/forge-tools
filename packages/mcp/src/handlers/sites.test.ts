@@ -139,7 +139,7 @@ describe("handleSites", () => {
         organizationSlug: "test-org",
         client: {
           get: async (url: string) => {
-            if (url.match(/\/sites\/\d+\/deployments$/))
+            if (url.match(/\/sites\/\d+\/deployments/))
               return mockListDocument("deployments", [
                 {
                   id: 1,

@@ -29,7 +29,7 @@ function createMockContext(): HandlerContext {
           if (url.match(/\/orgs\/test-org\/servers\/\d+\/scheduled-jobs$/))
             return mockListDocument("scheduled-jobs", []);
           // Site sub-resources (must come before server get)
-          if (url.match(/\/orgs\/test-org\/servers\/\d+\/sites\/\d+\/deployments$/)) {
+          if (url.match(/\/orgs\/test-org\/servers\/\d+\/sites\/\d+\/deployments/)) {
             return mockListDocument(
               "deployments",
               Array.from({ length: 8 }, (_, i) => ({
@@ -163,7 +163,7 @@ describe("handleSiteContext", () => {
         organizationSlug: "test-org",
         client: {
           get: async (url: string) => {
-            if (url.match(/\/sites\/\d+\/deployments$/)) return mockListDocument("deployments", []);
+            if (url.match(/\/sites\/\d+\/deployments/)) return mockListDocument("deployments", []);
             if (url.match(/\/sites\/\d+\/certificates$/))
               return mockListDocument("certificates", []);
             if (url.match(/\/sites\/\d+\/redirect-rules$/))

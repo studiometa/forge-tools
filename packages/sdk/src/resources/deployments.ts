@@ -59,9 +59,12 @@ export class DeploymentsCollection extends BaseCollection {
   async list(
     options: DeploymentListOptions = {},
   ): Promise<Array<DeploymentAttributes & { id: number }>> {
-    const query = options.cursor !== undefined ? `?page[cursor]=${options.cursor}` : "";
+    const params = new URLSearchParams({ sort: "-created_at" });
+    if (options.cursor !== undefined) {
+      params.set("page[cursor]", options.cursor);
+    }
     const response = await this.client.get<JsonApiListDocument<DeploymentAttributes>>(
-      `${this.basePath}${query}`,
+      `${this.basePath}?${params.toString()}`,
     );
     return unwrapListDocument(response);
   }

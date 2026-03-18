@@ -29,7 +29,7 @@ describe("deploySiteAndWait", () => {
         }
         throw new Error("Not found");
       }
-      if (url.includes("/deployments?page")) {
+      if (url.includes("/deployments?") && url.includes("page")) {
         return mockListDocument("deployments", [
           {
             id: 1,
@@ -87,7 +87,7 @@ describe("deploySiteAndWait", () => {
       if (url.includes("/deployments/status")) {
         throw new Error("Not found"); // No active deployment → done immediately
       }
-      if (url.includes("/deployments?page")) {
+      if (url.includes("/deployments?") && url.includes("page")) {
         return mockListDocument("deployments", [
           {
             id: 1,
@@ -141,7 +141,7 @@ describe("deploySiteAndWait", () => {
         }
         throw new Error("Not found");
       }
-      if (url.includes("/deployments?page")) {
+      if (url.includes("/deployments?") && url.includes("page")) {
         return mockListDocument("deployments", [
           {
             id: 1,
@@ -195,7 +195,7 @@ describe("deploySiteAndWait", () => {
           started_at: "2024-01-01T00:00:00.000000Z",
         });
       }
-      if (url.includes("/deployments?page")) {
+      if (url.includes("/deployments?") && url.includes("page")) {
         return mockListDocument("deployments", [
           {
             id: 1,
@@ -241,7 +241,7 @@ describe("deploySiteAndWait", () => {
       if (url.includes("/deployments/status")) {
         throw new Error("Not found"); // Done immediately
       }
-      if (url.includes("/deployments?page")) {
+      if (url.includes("/deployments?") && url.includes("page")) {
         return mockListDocument("deployments", [
           {
             id: 1,
@@ -287,7 +287,7 @@ describe("deploySiteAndWait", () => {
       if (url.includes("/deployments/status")) {
         throw new Error("Not found"); // Done immediately
       }
-      if (url.includes("/deployments?page")) {
+      if (url.includes("/deployments?") && url.includes("page")) {
         throw new Error("not available");
       }
       throw new Error("Unexpected URL: " + url);

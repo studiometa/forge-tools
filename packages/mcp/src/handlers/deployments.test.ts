@@ -29,22 +29,15 @@ function createMockContext(): HandlerContext {
           if ((url as string).match(/\/deployments\/\d+\/log$/)) {
             return mockDocument(1, "deployment-outputs", { output: "Build succeeded." });
           }
-          // Deployments list with pagination (for log streaming and final status check)
-          if ((url as string).includes("/deployments?page")) {
+          // Deployments list (with sort/pagination params)
+          if ((url as string).includes("/deployments?")) {
             return mockListDocument("deployments", [
               { id: 1, attributes: makeDeploymentAttrs() as never },
             ]);
           }
-          // Deployments list
-          if ((url as string).endsWith("/deployments")) {
-            return mockListDocument("deployments", [
-              { id: 1, attributes: makeDeploymentAttrs() as never },
-            ]);
-          }
-          // Deployment status — return null so deploySiteAndWait exits immediately
-          if ((url as string).endsWith("/deployments/status")) {
-            // Throw 404 so deploySiteAndWait treats as done
-            throw Object.assign(new Error("Not Found"), { status: 404 });
+          // Deployment status — return null status so deploySiteAndWait exits immediately
+          if ((url as string).includes("/deployments/status")) {
+            return mockDocument(1, "deploymentStatuses", { status: null, started_at: null });
           }
           return {};
         },

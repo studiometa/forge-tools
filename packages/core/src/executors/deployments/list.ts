@@ -13,7 +13,7 @@ export async function listDeployments(
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<Array<DeploymentAttributes & { id: number }>>> {
   const response = await ctx.client.get<JsonApiListDocument<DeploymentAttributes>>(
-    `${sitePath(options.server_id, options.site_id, ctx)}/deployments`,
+    `${sitePath(options.server_id, options.site_id, ctx)}/deployments?sort=-created_at`,
   );
 
   return {

@@ -74,9 +74,9 @@ describe("DeploymentsCollection", () => {
     const collection = new DeploymentsCollection(client, ORG, 123, 456);
 
     await collection.list({ cursor: "abc123" });
-    expect(calls[0]!.url).toContain(
-      `/orgs/${ORG}/servers/123/sites/456/deployments?page[cursor]=abc123`,
-    );
+    expect(calls[0]!.url).toContain("/deployments?");
+    expect(calls[0]!.url).toContain("sort=-created_at");
+    expect(calls[0]!.url).toContain("page%5Bcursor%5D=abc123");
   });
 
   it("should get a deployment", async () => {

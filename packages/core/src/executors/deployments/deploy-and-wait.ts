@@ -76,7 +76,7 @@ export async function deploySiteAndWait(
           // Fetch the latest deployment to get its log
           const deploymentsResponse = await ctx.client.get<
             JsonApiListDocument<DeploymentAttributes>
-          >(`${baseUrl}/deployments?page[size]=1`);
+          >(`${baseUrl}/deployments?sort=-created_at&page[size]=1`);
           const deployments = unwrapListDocument(deploymentsResponse);
           if (deployments.length > 0) {
             const latestId = deployments[0]!.id;
@@ -116,7 +116,7 @@ export async function deploySiteAndWait(
   let log = "";
   try {
     const deploymentsResponse = await ctx.client.get<JsonApiListDocument<DeploymentAttributes>>(
-      `${baseUrl}/deployments?page[size]=1`,
+      `${baseUrl}/deployments?sort=-created_at&page[size]=1`,
     );
     const deployments = unwrapListDocument(deploymentsResponse);
     if (deployments.length > 0) {
@@ -139,7 +139,7 @@ export async function deploySiteAndWait(
   let deployStatus: "success" | "failed" = "failed";
   try {
     const deploymentsResponse = await ctx.client.get<JsonApiListDocument<DeploymentAttributes>>(
-      `${baseUrl}/deployments?page[size]=1`,
+      `${baseUrl}/deployments?sort=-created_at&page[size]=1`,
     );
     const deployments = unwrapListDocument(deploymentsResponse);
     if (deployments.length > 0) {
