@@ -6,10 +6,13 @@ import { deleteServer } from "./delete.ts";
 describe("deleteServer", () => {
   it("should delete a server", async () => {
     const deleteMock = vi.fn(async () => undefined);
-    const ctx = createTestExecutorContext({ client: { delete: deleteMock } as never });
+    const ctx = createTestExecutorContext({
+      client: { delete: deleteMock } as never,
+      organizationSlug: "test-org",
+    });
 
     await deleteServer({ server_id: "123" }, ctx);
 
-    expect(deleteMock).toHaveBeenCalledWith("/servers/123");
+    expect(deleteMock).toHaveBeenCalledWith("/orgs/test-org/servers/123");
   });
 });

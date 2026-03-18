@@ -60,7 +60,7 @@ export async function databaseUsersGet(args: string[], ctx: CommandContext): Pro
     const execCtx = ctx.createExecutorContext(token);
     const server_id = await resolveServerId(server, execCtx);
     const result = await getDatabaseUser({ server_id, id }, execCtx);
-    ctx.formatter.outputOne(result.data, ["id", "name", "status", "databases", "created_at"]);
+    ctx.formatter.outputOne(result.data, ["id", "name", "status", "created_at"]);
   }, ctx.formatter);
 }
 
@@ -107,7 +107,7 @@ export async function databaseUsersCreate(ctx: CommandContext): Promise<void> {
       { server_id, name, password, ...(databases ? { databases } : {}) },
       execCtx,
     );
-    ctx.formatter.outputOne(result.data, ["id", "name", "status", "databases", "created_at"]);
+    ctx.formatter.outputOne(result.data, ["id", "name", "status", "created_at"]);
   }, ctx.formatter);
 }
 

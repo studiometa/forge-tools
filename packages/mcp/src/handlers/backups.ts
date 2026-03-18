@@ -5,8 +5,6 @@ import {
   listBackupConfigs,
 } from "@studiometa/forge-core";
 
-import type { ForgeBackupConfig } from "@studiometa/forge-api";
-
 import { formatBackupConfig, formatBackupConfigList } from "../formatters.ts";
 import { createResourceHandler } from "./factory.ts";
 
@@ -28,11 +26,11 @@ export const handleBackups = createResourceHandler({
   formatResult: (action, data, args) => {
     switch (action) {
       case "list":
-        return formatBackupConfigList(data as ForgeBackupConfig[]);
+        return formatBackupConfigList(data);
       case "get":
-        return formatBackupConfig(data as ForgeBackupConfig);
+        return formatBackupConfig(data);
       case "create":
-        return formatBackupConfig(data as ForgeBackupConfig);
+        return "Done.";
       case "delete":
         return `Backup config ${args.id} deleted.`;
       /* v8 ignore next */

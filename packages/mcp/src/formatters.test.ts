@@ -1,24 +1,24 @@
 import { describe, expect, it } from "vitest";
 
 import type {
-  ForgeBackupConfig,
-  ForgeCertificate,
-  ForgeCommand,
-  ForgeDaemon,
-  ForgeDatabase,
-  ForgeDatabaseUser,
-  ForgeDeployment,
-  ForgeFirewallRule,
-  ForgeMonitor,
-  ForgeNginxTemplate,
-  ForgeRecipe,
-  ForgeRedirectRule,
-  ForgeScheduledJob,
-  ForgeSecurityRule,
-  ForgeServer,
-  ForgeSite,
-  ForgeSshKey,
-  ForgeUser,
+  BackupConfigAttributes,
+  CertificateAttributes,
+  CommandAttributes,
+  BackgroundProcessAttributes,
+  DatabaseAttributes,
+  DatabaseUserAttributes,
+  DeploymentAttributes,
+  FirewallRuleAttributes,
+  MonitorAttributes,
+  NginxTemplateAttributes,
+  RecipeAttributes,
+  RedirectRuleAttributes,
+  ScheduledJobAttributes,
+  SecurityRuleAttributes,
+  ServerAttributes,
+  SiteAttributes,
+  SshKeyAttributes,
+  UserAttributes,
 } from "@studiometa/forge-api";
 
 import {
@@ -70,7 +70,7 @@ import {
 
 describe("formatServerList", () => {
   it("should format a list of servers", () => {
-    const servers: ForgeServer[] = [
+    const servers: (ServerAttributes & { id: number })[] = [
       {
         id: 1,
         name: "web-1",
@@ -80,23 +80,25 @@ describe("formatServerList", () => {
         is_ready: true,
         credential_id: 1,
         type: "app",
-        provider_id: "123",
+        identifier: "123",
         size: "01",
         ubuntu_version: "22.04",
         db_status: null,
         redis_status: null,
         php_version: "php83",
         php_cli_version: "php83",
+        opcache_status: null,
         database_type: "mysql8",
         ssh_port: 22,
         private_ip_address: "10.0.0.1",
         local_public_key: "ssh-rsa ...",
         revoked: false,
         created_at: "2024-01-01",
-        network: [],
-        tags: [],
+        updated_at: "2024-01-01",
+        connection_status: "connected",
+        timezone: "UTC",
       },
-    ] as ForgeServer[];
+    ];
 
     const result = formatServerList(servers);
     expect(result).toContain("1 server(s):");
@@ -111,7 +113,7 @@ describe("formatServerList", () => {
   });
 
   it("should show provisioning for not-ready servers", () => {
-    const servers = [
+    const servers: (ServerAttributes & { id: number })[] = [
       {
         id: 1,
         name: "new-server",
@@ -119,7 +121,26 @@ describe("formatServerList", () => {
         region: "ams3",
         ip_address: "1.2.3.4",
         is_ready: false,
-      } as ForgeServer,
+        credential_id: null,
+        type: "app",
+        identifier: null,
+        size: "01",
+        ubuntu_version: null,
+        db_status: null,
+        redis_status: null,
+        php_version: null,
+        php_cli_version: null,
+        opcache_status: null,
+        database_type: null,
+        ssh_port: 22,
+        private_ip_address: null,
+        local_public_key: null,
+        revoked: false,
+        created_at: "2024-01-01",
+        updated_at: "2024-01-01",
+        connection_status: "connected",
+        timezone: "UTC",
+      },
     ];
     const result = formatServerList(servers);
     expect(result).toContain("provisioning");
@@ -128,7 +149,7 @@ describe("formatServerList", () => {
 
 describe("formatServer", () => {
   it("should format a single server", () => {
-    const server: ForgeServer = {
+    const server: ServerAttributes & { id: number } = {
       id: 1,
       name: "web-1",
       provider: "ocean2",
@@ -138,7 +159,23 @@ describe("formatServer", () => {
       php_version: "php83",
       ubuntu_version: "22.04",
       created_at: "2024-01-01",
-    } as ForgeServer;
+      credential_id: null,
+      type: "app",
+      identifier: null,
+      size: "01",
+      php_cli_version: null,
+      opcache_status: null,
+      database_type: null,
+      db_status: null,
+      redis_status: null,
+      private_ip_address: null,
+      local_public_key: null,
+      revoked: false,
+      updated_at: "2024-01-01",
+      connection_status: "connected",
+      timezone: "UTC",
+      ssh_port: 22,
+    };
 
     const result = formatServer(server);
     expect(result).toContain("Server: web-1 (ID: 1)");
@@ -151,7 +188,11 @@ describe("formatServer", () => {
   });
 
   it("should show provisioning status", () => {
-    const server = { id: 1, name: "web-1", is_ready: false } as ForgeServer;
+    const server = {
+      id: 1,
+      name: "web-1",
+      is_ready: false,
+    } as ServerAttributes & { id: number };
     const result = formatServer(server);
     expect(result).toContain("provisioning");
   });
@@ -161,8 +202,35 @@ describe("formatServer", () => {
 
 describe("formatSiteList", () => {
   it("should format a list of sites", () => {
-    const sites: ForgeSite[] = [
-      { id: 1, name: "example.com", project_type: "php", status: "installed" } as ForgeSite,
+    const sites: (SiteAttributes & { id: number })[] = [
+      {
+        id: 1,
+        name: "example.com",
+        app_type: "php",
+        status: "installed",
+        aliases: [],
+        root_directory: "/public",
+        web_directory: "/public",
+        wildcards: false,
+        repository: null,
+        quick_deploy: false,
+        deployment_status: null,
+        deployment_url: "",
+        deployment_script: null,
+        php_version: "php84",
+        url: "",
+        https: false,
+        isolated: false,
+        user: null,
+        database: null,
+        shared_paths: [],
+        uses_envoyer: false,
+        zero_downtime_deployments: false,
+        maintenance_mode: false,
+        healthcheck_url: null,
+        created_at: "2024-01-01",
+        updated_at: "2024-01-01",
+      },
     ];
 
     const result = formatSiteList(sites, "123");
@@ -183,8 +251,35 @@ describe("formatSiteList", () => {
   });
 
   it("should format list without server_id header", () => {
-    const sites: ForgeSite[] = [
-      { id: 1, name: "example.com", project_type: "php", status: "installed" } as ForgeSite,
+    const sites: (SiteAttributes & { id: number })[] = [
+      {
+        id: 1,
+        name: "example.com",
+        app_type: "php",
+        status: "installed",
+        aliases: [],
+        root_directory: "/public",
+        web_directory: "/public",
+        wildcards: false,
+        repository: null,
+        quick_deploy: false,
+        deployment_status: null,
+        deployment_url: "",
+        deployment_script: null,
+        php_version: "php84",
+        url: "",
+        https: false,
+        isolated: false,
+        user: null,
+        database: null,
+        shared_paths: [],
+        uses_envoyer: false,
+        zero_downtime_deployments: false,
+        maintenance_mode: false,
+        healthcheck_url: null,
+        created_at: "2024-01-01",
+        updated_at: "2024-01-01",
+      },
     ];
     const result = formatSiteList(sites);
     expect(result).toContain("1 site(s):");
@@ -194,46 +289,74 @@ describe("formatSiteList", () => {
 
 describe("formatSite", () => {
   it("should format a single site", () => {
-    const site: ForgeSite = {
+    const site: SiteAttributes & { id: number } = {
       id: 1,
       name: "example.com",
-      project_type: "php",
-      directory: "/public",
+      app_type: "php",
+      root_directory: "/public",
+      web_directory: "/public",
+      wildcards: false,
+      aliases: [],
       repository: "git@github.com:user/repo.git",
-      repository_branch: "main",
+      quick_deploy: true,
       status: "installed",
       deployment_status: "finished",
-      quick_deploy: true,
+      deployment_url: "",
+      deployment_script: null,
       php_version: "php84",
+      url: "",
+      https: false,
+      isolated: false,
+      user: null,
+      database: null,
+      shared_paths: [],
+      uses_envoyer: false,
+      zero_downtime_deployments: false,
+      maintenance_mode: false,
+      healthcheck_url: null,
       created_at: "2024-01-01",
-    } as ForgeSite;
+      updated_at: "2024-01-01",
+    };
 
     const result = formatSite(site);
     expect(result).toContain("Site: example.com (ID: 1)");
     expect(result).toContain("Type: php");
     expect(result).toContain("Repository: git@github.com:user/repo.git");
-    expect(result).toContain("Branch: main");
     expect(result).toContain("Quick deploy: enabled");
   });
 
   it("should show none for null fields", () => {
-    const site: ForgeSite = {
+    const site: SiteAttributes & { id: number } = {
       id: 1,
       name: "example.com",
-      project_type: "php",
-      directory: "/public",
+      app_type: "php",
+      root_directory: "/public",
+      web_directory: "/public",
+      wildcards: false,
+      aliases: [],
       repository: null,
-      repository_branch: null,
+      quick_deploy: false,
       status: "installed",
       deployment_status: null,
-      quick_deploy: false,
+      deployment_url: "",
+      deployment_script: null,
       php_version: "php84",
+      url: "",
+      https: false,
+      isolated: false,
+      user: null,
+      database: null,
+      shared_paths: [],
+      uses_envoyer: false,
+      zero_downtime_deployments: false,
+      maintenance_mode: false,
+      healthcheck_url: null,
       created_at: "2024-01-01",
-    } as ForgeSite;
+      updated_at: "2024-01-01",
+    };
 
     const result = formatSite(site);
     expect(result).toContain("Repository: none");
-    expect(result).toContain("Branch: none");
     expect(result).toContain("Deploy status: none");
     expect(result).toContain("Quick deploy: disabled");
   });
@@ -243,8 +366,14 @@ describe("formatSite", () => {
 
 describe("formatDatabaseList", () => {
   it("should format a list of databases", () => {
-    const databases: ForgeDatabase[] = [
-      { id: 1, name: "myapp", status: "installed", server_id: 1, created_at: "2024-01-01" },
+    const databases: (DatabaseAttributes & { id: number })[] = [
+      {
+        id: 1,
+        name: "myapp",
+        status: "installed",
+        created_at: "2024-01-01",
+        updated_at: "2024-01-01",
+      },
     ];
 
     const result = formatDatabaseList(databases);
@@ -260,12 +389,12 @@ describe("formatDatabaseList", () => {
 
 describe("formatDatabase", () => {
   it("should format a single database", () => {
-    const db: ForgeDatabase = {
+    const db: DatabaseAttributes & { id: number } = {
       id: 1,
       name: "myapp",
       status: "installed",
-      server_id: 1,
       created_at: "2024-01-01",
+      updated_at: "2024-01-01",
     };
 
     const result = formatDatabase(db);
@@ -279,14 +408,14 @@ describe("formatDatabase", () => {
 
 describe("formatDatabaseUserList", () => {
   it("should format a list of database users", () => {
-    const users: ForgeDatabaseUser[] = [
+    const users: (DatabaseUserAttributes & { id: number })[] = [
       {
         id: 1,
         name: "forge",
         status: "installed",
-        server_id: 1,
-        databases: [],
+        can_access_all_databases: false,
         created_at: "2024-01-01",
+        updated_at: "2024-01-01",
       },
     ];
     const result = formatDatabaseUserList(users);
@@ -300,35 +429,20 @@ describe("formatDatabaseUserList", () => {
 });
 
 describe("formatDatabaseUser", () => {
-  it("should format a single database user with databases", () => {
-    const user: ForgeDatabaseUser = {
+  it("should format a single database user", () => {
+    const user: DatabaseUserAttributes & { id: number } = {
       id: 1,
       name: "forge",
       status: "installed",
-      server_id: 1,
-      databases: [1, 2],
+      can_access_all_databases: false,
       created_at: "2024-01-01",
+      updated_at: "2024-01-01",
     };
 
     const result = formatDatabaseUser(user);
     expect(result).toContain("Database User: forge (ID: 1)");
     expect(result).toContain("Status: installed");
-    expect(result).toContain("Databases: 1, 2");
     expect(result).toContain("Created: 2024-01-01");
-  });
-
-  it("should show 'none' when no databases are assigned", () => {
-    const user: ForgeDatabaseUser = {
-      id: 2,
-      name: "readonly",
-      status: "installed",
-      server_id: 1,
-      databases: [],
-      created_at: "2024-01-01",
-    };
-
-    const result = formatDatabaseUser(user);
-    expect(result).toContain("Databases: none");
   });
 });
 
@@ -336,31 +450,37 @@ describe("formatDatabaseUser", () => {
 
 describe("formatDeploymentList", () => {
   it("should format a list of deployments", () => {
-    const deployments: ForgeDeployment[] = [
+    const deployments: (DeploymentAttributes & { id: number })[] = [
       {
         id: 1,
-        status: "deployed",
-        commit_hash: "abc1234def",
+        status: "finished",
+        commit: { hash: "abc1234def", author: "user", message: "deploy", branch: "main" },
         started_at: "2024-01-01",
-        server_id: 1,
-        site_id: 10,
-        type: 1,
-        commit_author: "user",
-        commit_message: "deploy",
         ended_at: "2024-01-01",
-        displayable_type: "Deploy",
+        type: "push",
+        created_at: "2024-01-01",
+        updated_at: "2024-01-01",
       },
     ];
 
     const result = formatDeploymentList(deployments);
     expect(result).toContain("1 deployment(s):");
-    expect(result).toContain("deployed");
+    expect(result).toContain("finished");
     expect(result).toContain("abc1234"); // first 7 chars
   });
 
-  it("should handle null commit_hash", () => {
-    const deployments: ForgeDeployment[] = [
-      { id: 1, status: "deployed", commit_hash: null, started_at: "2024-01-01" } as ForgeDeployment,
+  it("should handle null commit hash", () => {
+    const deployments: (DeploymentAttributes & { id: number })[] = [
+      {
+        id: 1,
+        status: "finished",
+        commit: { hash: null, author: null, message: null, branch: null },
+        started_at: "2024-01-01",
+        ended_at: null,
+        type: "push",
+        created_at: "2024-01-01",
+        updated_at: "2024-01-01",
+      },
     ];
 
     const result = formatDeploymentList(deployments);
@@ -440,18 +560,17 @@ describe("formatDeploymentScriptUpdated", () => {
 
 describe("formatCertificateList", () => {
   it("should format a list of certificates", () => {
-    const certificates: ForgeCertificate[] = [
+    const certificates: (CertificateAttributes & { id: number })[] = [
       {
         id: 1,
         domain: "example.com",
         type: "letsencrypt",
         active: true,
         status: "installed",
-        server_id: 1,
-        site_id: 10,
         request_status: "complete",
-        created_at: "2024-01-01",
         existing: false,
+        created_at: "2024-01-01",
+        updated_at: "2024-01-01",
       },
     ];
 
@@ -462,14 +581,18 @@ describe("formatCertificateList", () => {
   });
 
   it("should handle inactive certificate", () => {
-    const certificates: ForgeCertificate[] = [
+    const certificates: (CertificateAttributes & { id: number })[] = [
       {
         id: 1,
         domain: "example.com",
         type: "existing",
         active: false,
         status: "pending",
-      } as ForgeCertificate,
+        request_status: "pending",
+        existing: true,
+        created_at: "2024-01-01",
+        updated_at: "2024-01-01",
+      },
     ];
     const result = formatCertificateList(certificates);
     expect(result).toContain("inactive");
@@ -482,13 +605,17 @@ describe("formatCertificateList", () => {
 
 describe("formatCertificate", () => {
   it("should format a single certificate", () => {
-    const cert: ForgeCertificate = {
+    const cert: CertificateAttributes & { id: number } = {
       id: 1,
       domain: "example.com",
       type: "letsencrypt",
       status: "installed",
       active: true,
-    } as ForgeCertificate;
+      request_status: "complete",
+      existing: false,
+      created_at: "2024-01-01",
+      updated_at: "2024-01-01",
+    };
 
     const result = formatCertificate(cert);
     expect(result).toContain("Certificate: example.com (ID: 1)");
@@ -502,14 +629,20 @@ describe("formatCertificate", () => {
 
 describe("formatDaemonList", () => {
   it("should format a list of daemons", () => {
-    const daemons: ForgeDaemon[] = [
+    const daemons: (BackgroundProcessAttributes & { id: number })[] = [
       {
         id: 1,
         command: "php artisan queue:work",
         user: "forge",
+        directory: null,
         processes: 1,
+        startsecs: 0,
+        stopsignal: "TERM",
+        stopwaitsecs: 10,
         status: "running",
-      } as ForgeDaemon,
+        created_at: "2024-01-01",
+        updated_at: "2024-01-01",
+      },
     ];
 
     const result = formatDaemonList(daemons);
@@ -525,13 +658,19 @@ describe("formatDaemonList", () => {
 
 describe("formatDaemon", () => {
   it("should format a single daemon", () => {
-    const daemon: ForgeDaemon = {
+    const daemon: BackgroundProcessAttributes & { id: number } = {
       id: 1,
       command: "php artisan queue:work",
       user: "forge",
+      directory: null,
       processes: 2,
+      startsecs: 0,
+      stopsignal: "TERM",
+      stopwaitsecs: 10,
       status: "running",
-    } as ForgeDaemon;
+      created_at: "2024-01-01",
+      updated_at: "2024-01-01",
+    };
 
     const result = formatDaemon(daemon);
     expect(result).toContain("Daemon: php artisan queue:work (ID: 1)");
@@ -545,7 +684,7 @@ describe("formatDaemon", () => {
 
 describe("formatFirewallRuleList", () => {
   it("should format a list of firewall rules", () => {
-    const rules: ForgeFirewallRule[] = [
+    const rules: (FirewallRuleAttributes & { id: number })[] = [
       {
         id: 1,
         name: "SSH",
@@ -553,7 +692,9 @@ describe("formatFirewallRuleList", () => {
         type: "allow",
         ip_address: "0.0.0.0",
         status: "created",
-      } as ForgeFirewallRule,
+        created_at: "2024-01-01",
+        updated_at: "2024-01-01",
+      },
     ];
 
     const result = formatFirewallRuleList(rules);
@@ -569,14 +710,16 @@ describe("formatFirewallRuleList", () => {
 
 describe("formatFirewallRule", () => {
   it("should format a single firewall rule", () => {
-    const rule: ForgeFirewallRule = {
+    const rule: FirewallRuleAttributes & { id: number } = {
       id: 1,
       name: "SSH",
       port: 22,
       type: "allow",
       ip_address: "1.2.3.4",
       status: "created",
-    } as ForgeFirewallRule;
+      created_at: "2024-01-01",
+      updated_at: "2024-01-01",
+    };
 
     const result = formatFirewallRule(rule);
     expect(result).toContain("Firewall Rule: SSH (ID: 1)");
@@ -591,8 +734,16 @@ describe("formatFirewallRule", () => {
 
 describe("formatMonitorList", () => {
   it("should format a list of monitors", () => {
-    const monitors: ForgeMonitor[] = [
-      { id: 1, type: "cpu_load", operator: ">", threshold: 80, state: "OK" } as ForgeMonitor,
+    const monitors: (MonitorAttributes & { id: number })[] = [
+      {
+        id: 1,
+        type: "cpu_load",
+        operator: ">",
+        threshold: 80,
+        minutes: 5,
+        state: "OK",
+        state_changed_at: "2024-01-01",
+      },
     ];
 
     const result = formatMonitorList(monitors);
@@ -608,14 +759,15 @@ describe("formatMonitorList", () => {
 
 describe("formatMonitor", () => {
   it("should format a single monitor", () => {
-    const monitor: ForgeMonitor = {
+    const monitor: MonitorAttributes & { id: number } = {
       id: 1,
       type: "cpu_load",
       operator: ">",
       threshold: 80,
       minutes: 5,
       state: "OK",
-    } as ForgeMonitor;
+      state_changed_at: "2024-01-01",
+    };
 
     const result = formatMonitor(monitor);
     expect(result).toContain("Monitor: cpu_load > 80 (ID: 1)");
@@ -628,8 +780,15 @@ describe("formatMonitor", () => {
 
 describe("formatSshKeyList", () => {
   it("should format a list of SSH keys", () => {
-    const keys: ForgeSshKey[] = [
-      { id: 1, name: "deploy-key", status: "installed", server_id: 1, created_at: "2024-01-01" },
+    const keys: (SshKeyAttributes & { id: number })[] = [
+      {
+        id: 1,
+        name: "deploy-key",
+        fingerprint: null,
+        status: "installed",
+        created_at: "2024-01-01",
+        updated_at: "2024-01-01",
+      },
     ];
 
     const result = formatSshKeyList(keys);
@@ -645,12 +804,13 @@ describe("formatSshKeyList", () => {
 
 describe("formatSshKey", () => {
   it("should format a single SSH key", () => {
-    const key: ForgeSshKey = {
+    const key: SshKeyAttributes & { id: number } = {
       id: 1,
       name: "deploy-key",
+      fingerprint: null,
       status: "installed",
-      server_id: 1,
       created_at: "2024-01-01",
+      updated_at: "2024-01-01",
     };
 
     const result = formatSshKey(key);
@@ -664,7 +824,7 @@ describe("formatSshKey", () => {
 
 describe("formatScheduledJobList", () => {
   it("should format a list of scheduled jobs", () => {
-    const jobs: ForgeScheduledJob[] = [
+    const jobs: (ScheduledJobAttributes & { id: number })[] = [
       {
         id: 1,
         command: "php artisan schedule:run",
@@ -673,7 +833,7 @@ describe("formatScheduledJobList", () => {
         cron: "* * * * *",
         status: "running",
         created_at: "2024-01-01",
-        server_id: 1,
+        updated_at: "2024-01-01",
       },
     ];
 
@@ -690,7 +850,7 @@ describe("formatScheduledJobList", () => {
 
 describe("formatScheduledJob", () => {
   it("should format a single scheduled job", () => {
-    const job: ForgeScheduledJob = {
+    const job: ScheduledJobAttributes & { id: number } = {
       id: 1,
       command: "php artisan schedule:run",
       user: "forge",
@@ -698,7 +858,7 @@ describe("formatScheduledJob", () => {
       cron: "* * * * *",
       status: "running",
       created_at: "2024-01-01",
-      server_id: 1,
+      updated_at: "2024-01-01",
     };
 
     const result = formatScheduledJob(job);
@@ -714,15 +874,13 @@ describe("formatScheduledJob", () => {
 
 describe("formatSecurityRuleList", () => {
   it("should format a list of security rules", () => {
-    const rules: ForgeSecurityRule[] = [
+    const rules: (SecurityRuleAttributes & { id: number })[] = [
       {
         id: 1,
         name: "admin",
         path: "/admin",
-        credentials: [],
-        server_id: 1,
-        site_id: 10,
         created_at: "2024-01-01",
+        updated_at: "2024-01-01",
       },
     ];
 
@@ -733,15 +891,13 @@ describe("formatSecurityRuleList", () => {
   });
 
   it("should show default path for null path", () => {
-    const rules: ForgeSecurityRule[] = [
+    const rules: (SecurityRuleAttributes & { id: number })[] = [
       {
         id: 1,
         name: "root",
         path: null,
-        credentials: [],
-        server_id: 1,
-        site_id: 10,
         created_at: "2024-01-01",
+        updated_at: "2024-01-01",
       },
     ];
     const result = formatSecurityRuleList(rules);
@@ -755,14 +911,12 @@ describe("formatSecurityRuleList", () => {
 
 describe("formatSecurityRule", () => {
   it("should format a single security rule", () => {
-    const rule: ForgeSecurityRule = {
+    const rule: SecurityRuleAttributes & { id: number } = {
       id: 1,
       name: "admin",
       path: "/admin",
-      credentials: [],
-      server_id: 1,
-      site_id: 10,
       created_at: "2024-01-01",
+      updated_at: "2024-01-01",
     };
 
     const result = formatSecurityRule(rule);
@@ -771,14 +925,12 @@ describe("formatSecurityRule", () => {
   });
 
   it("should show default path when null", () => {
-    const rule: ForgeSecurityRule = {
+    const rule: SecurityRuleAttributes & { id: number } = {
       id: 1,
       name: "root",
       path: null,
-      credentials: [],
-      server_id: 1,
-      site_id: 10,
       created_at: "2024-01-01",
+      updated_at: "2024-01-01",
     };
     const result = formatSecurityRule(rule);
     expect(result).toContain("Path: /");
@@ -789,15 +941,14 @@ describe("formatSecurityRule", () => {
 
 describe("formatRedirectRuleList", () => {
   it("should format a list of redirect rules", () => {
-    const rules: ForgeRedirectRule[] = [
+    const rules: (RedirectRuleAttributes & { id: number })[] = [
       {
         id: 1,
         from: "/old",
         to: "/new",
         type: "301",
-        server_id: 1,
-        site_id: 10,
         created_at: "2024-01-01",
+        updated_at: "2024-01-01",
       },
     ];
 
@@ -815,14 +966,13 @@ describe("formatRedirectRuleList", () => {
 
 describe("formatRedirectRule", () => {
   it("should format a single redirect rule", () => {
-    const rule: ForgeRedirectRule = {
+    const rule: RedirectRuleAttributes & { id: number } = {
       id: 1,
       from: "/old",
       to: "/new",
       type: "301",
-      server_id: 1,
-      site_id: 10,
       created_at: "2024-01-01",
+      updated_at: "2024-01-01",
     };
 
     const result = formatRedirectRule(rule);
@@ -845,8 +995,14 @@ describe("formatNginxConfig", () => {
 
 describe("formatNginxTemplateList", () => {
   it("should format a list of nginx templates", () => {
-    const templates: ForgeNginxTemplate[] = [
-      { id: 1, name: "wordpress", content: "# WP config", server_id: 1, created_at: "2024-01-01" },
+    const templates: (NginxTemplateAttributes & { id: number })[] = [
+      {
+        id: 1,
+        name: "wordpress",
+        content: "# WP config",
+        created_at: "2024-01-01",
+        updated_at: "2024-01-01",
+      },
     ];
 
     const result = formatNginxTemplateList(templates);
@@ -861,12 +1017,12 @@ describe("formatNginxTemplateList", () => {
 
 describe("formatNginxTemplate", () => {
   it("should format a single nginx template", () => {
-    const template: ForgeNginxTemplate = {
+    const template: NginxTemplateAttributes & { id: number } = {
       id: 1,
       name: "wordpress",
       content: "server { root /var/www; }",
-      server_id: 1,
       created_at: "2024-01-01",
+      updated_at: "2024-01-01",
     };
 
     const result = formatNginxTemplate(template);
@@ -879,7 +1035,7 @@ describe("formatNginxTemplate", () => {
 
 describe("formatBackupConfigList", () => {
   it("should format a list of backup configurations", () => {
-    const backups: ForgeBackupConfig[] = [
+    const backups: (BackupConfigAttributes & { id: number })[] = [
       {
         id: 1,
         provider_name: "S3",
@@ -887,10 +1043,8 @@ describe("formatBackupConfigList", () => {
         status: "active",
         last_backup_time: "2024-01-15",
         provider: "s3",
-        server_id: 1,
         day_of_week: null,
         time: null,
-        databases: [],
         directory: null,
         email: null,
         retention: 7,
@@ -905,7 +1059,7 @@ describe("formatBackupConfigList", () => {
   });
 
   it("should show never when last_backup_time is null", () => {
-    const backups: ForgeBackupConfig[] = [
+    const backups: (BackupConfigAttributes & { id: number })[] = [
       {
         id: 1,
         provider_name: "S3",
@@ -913,10 +1067,8 @@ describe("formatBackupConfigList", () => {
         status: "active",
         last_backup_time: null,
         provider: "s3",
-        server_id: 1,
         day_of_week: null,
         time: null,
-        databases: [],
         directory: null,
         email: null,
         retention: 7,
@@ -934,16 +1086,14 @@ describe("formatBackupConfigList", () => {
 
 describe("formatBackupConfig", () => {
   it("should format a single backup configuration", () => {
-    const backup: ForgeBackupConfig = {
+    const backup: BackupConfigAttributes & { id: number } = {
       id: 1,
       provider_name: "S3",
       provider: "s3",
       frequency: "daily",
       status: "active",
       retention: 7,
-      databases: [{ id: 1, name: "myapp" }],
       last_backup_time: "2024-01-15",
-      server_id: 1,
       day_of_week: null,
       time: null,
       directory: null,
@@ -955,7 +1105,6 @@ describe("formatBackupConfig", () => {
     expect(result).toContain("Frequency: daily");
     expect(result).toContain("Status: active");
     expect(result).toContain("Retention: 7 backups");
-    expect(result).toContain("Databases: myapp");
     expect(result).toContain("Last backup: 2024-01-15");
   });
 
@@ -963,22 +1112,10 @@ describe("formatBackupConfig", () => {
     const backup = {
       id: 1,
       provider_name: "S3",
-      databases: [],
       last_backup_time: null,
-    } as ForgeBackupConfig;
+    } as BackupConfigAttributes & { id: number };
     const result = formatBackupConfig(backup);
     expect(result).toContain("Last backup: never");
-  });
-
-  it("should show none for empty databases", () => {
-    const backup = {
-      id: 1,
-      provider_name: "S3",
-      databases: [],
-      last_backup_time: null,
-    } as ForgeBackupConfig;
-    const result = formatBackupConfig(backup);
-    expect(result).toContain("Databases: none");
   });
 });
 
@@ -986,8 +1123,15 @@ describe("formatBackupConfig", () => {
 
 describe("formatRecipeList", () => {
   it("should format a list of recipes", () => {
-    const recipes: ForgeRecipe[] = [
-      { id: 1, name: "deploy", user: "root", script: "cd /app", created_at: "2024-01-01" },
+    const recipes: (RecipeAttributes & { id: number })[] = [
+      {
+        id: 1,
+        name: "deploy",
+        user: "root",
+        script: "cd /app",
+        created_at: "2024-01-01",
+        updated_at: "2024-01-01",
+      },
     ];
 
     const result = formatRecipeList(recipes);
@@ -1003,12 +1147,13 @@ describe("formatRecipeList", () => {
 
 describe("formatRecipe", () => {
   it("should format a single recipe", () => {
-    const recipe: ForgeRecipe = {
+    const recipe: RecipeAttributes & { id: number } = {
       id: 1,
       name: "deploy",
       user: "root",
       script: "cd /app && npm install",
       created_at: "2024-01-01",
+      updated_at: "2024-01-01",
     };
 
     const result = formatRecipe(recipe);
@@ -1023,14 +1168,15 @@ describe("formatRecipe", () => {
 
 describe("formatCommandList", () => {
   it("should format a list of commands", () => {
-    const commands: ForgeCommand[] = [
+    const commands: (CommandAttributes & { id: number })[] = [
       {
         id: 1,
         command: "php artisan migrate",
         status: "finished",
         user_name: "John",
         created_at: "2024-01-01",
-      } as ForgeCommand,
+        updated_at: "2024-01-01",
+      },
     ];
 
     const result = formatCommandList(commands);
@@ -1041,14 +1187,15 @@ describe("formatCommandList", () => {
 
   it("should truncate long command to 60 chars", () => {
     const longCommand = "a".repeat(100);
-    const commands: ForgeCommand[] = [
+    const commands: (CommandAttributes & { id: number })[] = [
       {
         id: 1,
         command: longCommand,
         status: "finished",
         user_name: "user",
         created_at: "2024-01-01",
-      } as ForgeCommand,
+        updated_at: "2024-01-01",
+      },
     ];
     const result = formatCommandList(commands);
     // The command is sliced to 60 chars in the list
@@ -1063,13 +1210,14 @@ describe("formatCommandList", () => {
 
 describe("formatCommand", () => {
   it("should format a single command", () => {
-    const command: ForgeCommand = {
+    const command: CommandAttributes & { id: number } = {
       id: 1,
       command: "php artisan migrate",
       status: "finished",
       user_name: "John",
       created_at: "2024-01-01",
-    } as ForgeCommand;
+      updated_at: "2024-01-01",
+    };
 
     const result = formatCommand(command);
     expect(result).toContain("Command #1");
@@ -1094,14 +1242,20 @@ describe("formatEnv", () => {
 
 describe("formatUser", () => {
   it("should format the authenticated user with connected services", () => {
-    const user: ForgeUser = {
+    const user: UserAttributes & { id: number } = {
       id: 1,
       name: "John Doe",
       email: "john@example.com",
-      connected_to_github: true,
-      connected_to_gitlab: false,
+      github_connected: true,
+      gitlab_connected: false,
       two_factor_enabled: true,
-    } as ForgeUser;
+      two_factor_confirmed: true,
+      bitbucket_connected: false,
+      do_connected: false,
+      timezone: "UTC",
+      created_at: "2024-01-01",
+      updated_at: "2024-01-01",
+    };
 
     const result = formatUser(user);
     expect(result).toContain("User: John Doe (ID: 1)");
@@ -1112,29 +1266,41 @@ describe("formatUser", () => {
   });
 
   it("should format user with disabled 2FA", () => {
-    const user: ForgeUser = {
+    const user: UserAttributes & { id: number } = {
       id: 1,
       name: "Jane",
       email: "jane@example.com",
-      connected_to_github: false,
-      connected_to_gitlab: false,
+      github_connected: false,
+      gitlab_connected: false,
       two_factor_enabled: false,
-    } as ForgeUser;
+      two_factor_confirmed: false,
+      bitbucket_connected: false,
+      do_connected: false,
+      timezone: "UTC",
+      created_at: "2024-01-01",
+      updated_at: "2024-01-01",
+    };
 
     const result = formatUser(user);
     expect(result).toContain("GitHub: not connected");
     expect(result).toContain("2FA: disabled");
   });
 
-  it("should show GitLab as connected when connected_to_gitlab is true", () => {
-    const user: ForgeUser = {
+  it("should show GitLab as connected when gitlab_connected is true", () => {
+    const user: UserAttributes & { id: number } = {
       id: 2,
       name: "GitLab User",
       email: "gl@example.com",
-      connected_to_github: false,
-      connected_to_gitlab: true,
+      github_connected: false,
+      gitlab_connected: true,
       two_factor_enabled: false,
-    } as ForgeUser;
+      two_factor_confirmed: false,
+      bitbucket_connected: false,
+      do_connected: false,
+      timezone: "UTC",
+      created_at: "2024-01-01",
+      updated_at: "2024-01-01",
+    };
 
     const result = formatUser(user);
     expect(result).toContain("GitLab: connected");

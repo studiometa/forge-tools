@@ -1,20 +1,21 @@
-import type { ForgeSecurityRule, SecurityRuleResponse } from "@studiometa/forge-api";
+import type { JsonApiDocument, SecurityRuleAttributes } from "@studiometa/forge-api";
+import { unwrapDocument } from "@studiometa/forge-api";
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
+import { sitePath } from "../../utils/url-builder.ts";
 
 import type { CreateSecurityRuleOptions } from "./types.ts";
 
 export async function createSecurityRule(
   options: CreateSecurityRuleOptions,
   ctx: ExecutorContext,
-): Promise<ExecutorResult<ForgeSecurityRule>> {
+): Promise<ExecutorResult<SecurityRuleAttributes & { id: number }>> {
   const { server_id, site_id, ...data } = options;
-  const response = await ctx.client.post<SecurityRuleResponse>(
-    `/servers/${server_id}/sites/${site_id}/security-rules`,
+  const response = await ctx.client.post<JsonApiDocument<SecurityRuleAttributes>>(
+    `${sitePath(server_id, site_id, ctx)}/security-rules`,
     data,
   );
-  const rule = response.security_rule;
 
   return {
-    data: rule,
+    data: unwrapDocument(response),
   };
 }

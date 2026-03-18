@@ -1,10 +1,12 @@
 import type {
   CreateSiteData,
-  ForgeSite,
   HttpClient,
-  SiteResponse,
-  SitesResponse,
+  JsonApiDocument,
+  JsonApiListDocument,
+  SiteAttributes,
 } from "@studiometa/forge-api";
+
+import { unwrapDocument, unwrapListDocument } from "@studiometa/forge-api";
 
 import { AsyncPaginatedIterator } from "../pagination.ts";
 import { matchByName } from "../utils/name-matcher.ts";
@@ -20,8 +22,8 @@ import { BaseCollection } from "./base.ts";
  * Options for listing sites.
  */
 export interface SiteListOptions {
-  /** Page number to fetch (1-indexed). */
-  page?: number;
+  /** Cursor for pagination (from previous response's next_cursor). */
+  cursor?: string;
 }
 
 /**
@@ -38,13 +40,14 @@ export class SitesCollection extends BaseCollection {
   /** @internal */
   constructor(
     client: HttpClient,
+    orgSlug: string,
     private readonly serverId: number,
   ) {
-    super(client);
+    super(client, orgSlug);
   }
 
   private get basePath(): string {
-    return `/servers/${this.serverId}/sites`;
+    return `/orgs/${this.orgSlug}/servers/${this.serverId}/sites`;
   }
 
   /**
@@ -54,14 +57,16 @@ export class SitesCollection extends BaseCollection {
    * ```ts
    * const sites = await forge.server(123).sites.list();
    *
-   * // Fetch a specific page:
-   * const page2 = await forge.server(123).sites.list({ page: 2 });
+   * // Fetch a specific cursor page:
+   * const page2 = await forge.server(123).sites.list({ cursor: 'next-cursor-value' });
    * ```
    */
-  async list(options: SiteListOptions = {}): Promise<ForgeSite[]> {
-    const query = options.page !== undefined ? `?page=${options.page}` : "";
-    const response = await this.client.get<SitesResponse>(`${this.basePath}${query}`);
-    return response.sites;
+  async list(options: SiteListOptions = {}): Promise<Array<SiteAttributes & { id: number }>> {
+    const query = options.cursor !== undefined ? `?page[cursor]=${options.cursor}` : "";
+    const response = await this.client.get<JsonApiListDocument<SiteAttributes>>(
+      `${this.basePath}${query}`,
+    );
+    return unwrapListDocument(response);
   }
 
   /**
@@ -77,8 +82,17 @@ export class SitesCollection extends BaseCollection {
    * const sites = await forge.server(123).sites.all().toArray();
    * ```
    */
-  all(options: Omit<SiteListOptions, "page"> = {}): AsyncPaginatedIterator<ForgeSite> {
-    return new AsyncPaginatedIterator<ForgeSite>((page) => this.list({ ...options, page }));
+  all(): AsyncPaginatedIterator<SiteAttributes & { id: number }> {
+    return new AsyncPaginatedIterator<SiteAttributes & { id: number }>(async (cursor) => {
+      const query = cursor !== null ? `?page[cursor]=${cursor}` : "";
+      const response = await this.client.get<JsonApiListDocument<SiteAttributes>>(
+        `${this.basePath}${query}`,
+      );
+      return {
+        items: unwrapListDocument(response),
+        nextCursor: response.meta.next_cursor ?? null,
+      };
+    });
   }
 
   /**
@@ -89,9 +103,11 @@ export class SitesCollection extends BaseCollection {
    * const site = await forge.server(123).sites.get(456);
    * ```
    */
-  async get(siteId: number): Promise<ForgeSite> {
-    const response = await this.client.get<SiteResponse>(`${this.basePath}/${siteId}`);
-    return response.site;
+  async get(siteId: number): Promise<SiteAttributes & { id: number }> {
+    const response = await this.client.get<JsonApiDocument<SiteAttributes>>(
+      `/orgs/${this.orgSlug}/sites/${siteId}`,
+    );
+    return unwrapDocument(response);
   }
 
   /**
@@ -106,9 +122,9 @@ export class SitesCollection extends BaseCollection {
    * });
    * ```
    */
-  async create(data: CreateSiteData): Promise<ForgeSite> {
-    const response = await this.client.post<SiteResponse>(this.basePath, data);
-    return response.site;
+  async create(data: CreateSiteData): Promise<SiteAttributes & { id: number }> {
+    const response = await this.client.post<JsonApiDocument<SiteAttributes>>(this.basePath, data);
+    return unwrapDocument(response);
   }
 
   /**
@@ -119,9 +135,15 @@ export class SitesCollection extends BaseCollection {
    * await forge.server(123).sites.update(456, { directory: '/public' });
    * ```
    */
-  async update(siteId: number, data: Partial<CreateSiteData>): Promise<ForgeSite> {
-    const response = await this.client.put<SiteResponse>(`${this.basePath}/${siteId}`, data);
-    return response.site;
+  async update(
+    siteId: number,
+    data: Partial<CreateSiteData>,
+  ): Promise<SiteAttributes & { id: number }> {
+    const response = await this.client.put<JsonApiDocument<SiteAttributes>>(
+      `${this.basePath}/${siteId}`,
+      data,
+    );
+    return unwrapDocument(response);
   }
 
   /**
@@ -203,21 +225,22 @@ export class SiteResource extends BaseCollection {
   /** @internal */
   constructor(
     client: HttpClient,
+    orgSlug: string,
     private readonly serverId: number,
     private readonly siteId: number,
   ) {
-    super(client);
-    this.deployments = new DeploymentsCollection(client, serverId, siteId);
-    this.certificates = new CertificatesCollection(client, serverId, siteId);
-    this.env = new SiteEnvResource(client, serverId, siteId);
-    this.nginx = new SiteNginxResource(client, serverId, siteId);
-    this.commands = new CommandsCollection(client, serverId, siteId);
-    this.securityRules = new SecurityRulesCollection(client, serverId, siteId);
-    this.redirectRules = new RedirectRulesCollection(client, serverId, siteId);
+    super(client, orgSlug);
+    this.deployments = new DeploymentsCollection(client, orgSlug, serverId, siteId);
+    this.certificates = new CertificatesCollection(client, orgSlug, serverId, siteId);
+    this.env = new SiteEnvResource(client, orgSlug, serverId, siteId);
+    this.nginx = new SiteNginxResource(client, orgSlug, serverId, siteId);
+    this.commands = new CommandsCollection(client, orgSlug, serverId, siteId);
+    this.securityRules = new SecurityRulesCollection(client, orgSlug, serverId, siteId);
+    this.redirectRules = new RedirectRulesCollection(client, orgSlug, serverId, siteId);
   }
 
   private get basePath(): string {
-    return `/servers/${this.serverId}/sites/${this.siteId}`;
+    return `/orgs/${this.orgSlug}/servers/${this.serverId}/sites/${this.siteId}`;
   }
 
   /**
@@ -228,9 +251,11 @@ export class SiteResource extends BaseCollection {
    * const site = await forge.server(123).site(456).get();
    * ```
    */
-  async get(): Promise<ForgeSite> {
-    const response = await this.client.get<SiteResponse>(this.basePath);
-    return response.site;
+  async get(): Promise<SiteAttributes & { id: number }> {
+    const response = await this.client.get<JsonApiDocument<SiteAttributes>>(
+      `/orgs/${this.orgSlug}/sites/${this.siteId}`,
+    );
+    return unwrapDocument(response);
   }
 
   /**
@@ -242,7 +267,7 @@ export class SiteResource extends BaseCollection {
    * ```
    */
   async deploy(): Promise<void> {
-    await this.client.post(`${this.basePath}/deployment/deploy`);
+    await this.client.post(`${this.basePath}/deployments/deploy`);
   }
 
   /**
@@ -271,14 +296,15 @@ export class SiteEnvResource extends BaseCollection {
   /** @internal */
   constructor(
     client: HttpClient,
+    orgSlug: string,
     private readonly serverId: number,
     private readonly siteId: number,
   ) {
-    super(client);
+    super(client, orgSlug);
   }
 
   private get basePath(): string {
-    return `/servers/${this.serverId}/sites/${this.siteId}/env`;
+    return `/orgs/${this.orgSlug}/servers/${this.serverId}/sites/${this.siteId}/environment`;
   }
 
   /**
@@ -313,14 +339,15 @@ export class SiteNginxResource extends BaseCollection {
   /** @internal */
   constructor(
     client: HttpClient,
+    orgSlug: string,
     private readonly serverId: number,
     private readonly siteId: number,
   ) {
-    super(client);
+    super(client, orgSlug);
   }
 
   private get basePath(): string {
-    return `/servers/${this.serverId}/sites/${this.siteId}/nginx`;
+    return `/orgs/${this.orgSlug}/servers/${this.serverId}/sites/${this.siteId}/nginx`;
   }
 
   /**

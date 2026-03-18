@@ -1,9 +1,23 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import { HttpClient } from "@studiometa/forge-api";
 
 import { AsyncPaginatedIterator } from "../pagination.ts";
 import { RedirectRulesCollection } from "./redirect-rules.ts";
+
+const ORG = "test-org";
+
+function mockDocument<T>(id: string | number, attributes: T) {
+  return { data: { id: String(id), type: "resource", attributes } };
+}
+
+function mockListDocument<T>(id: string | number, attributes: T) {
+  return {
+    data: [{ id: String(id), type: "resource", attributes }],
+    links: {},
+    meta: { per_page: 200, next_cursor: null },
+  };
+}
 
 function createTrackingClient(): {
   client: HttpClient;
@@ -23,10 +37,18 @@ function createTrackingClient(): {
         ok: true,
         status: 200,
         headers: new Headers({ "content-type": "application/json" }),
-        json: async () => ({
-          redirect_rule: { id: 1, from: "/old", to: "/new" },
-          redirect_rules: [],
-        }),
+        json: async () => {
+          const u = url.toString();
+          const isId = /\/\d+(\?|$)/.test(u);
+          const attrs = {
+            from: "/old",
+            to: "/new",
+            type: "redirect",
+            created_at: "",
+            updated_at: "",
+          };
+          return isId ? mockDocument("1", attrs) : mockListDocument("1", attrs);
+        },
         text: async () => "{}",
       } as Response;
     },
@@ -38,31 +60,33 @@ function createTrackingClient(): {
 describe("RedirectRulesCollection", () => {
   it("should list redirect rules", async () => {
     const { client, calls } = createTrackingClient();
-    const collection = new RedirectRulesCollection(client, 123, 456);
+    const collection = new RedirectRulesCollection(client, ORG, 123, 456);
 
     await collection.list();
-    expect(calls[0]!.url).toContain("/servers/123/sites/456/redirect-rules");
+    expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers/123/sites/456/redirect-rules`);
   });
 
-  it("should list redirect rules with page option", async () => {
+  it("should list redirect rules with cursor option", async () => {
     const { client, calls } = createTrackingClient();
-    const collection = new RedirectRulesCollection(client, 123, 456);
+    const collection = new RedirectRulesCollection(client, ORG, 123, 456);
 
-    await collection.list({ page: 2 });
-    expect(calls[0]!.url).toContain("/servers/123/sites/456/redirect-rules?page=2");
+    await collection.list({ cursor: "abc123" });
+    expect(calls[0]!.url).toContain(
+      `/orgs/${ORG}/servers/123/sites/456/redirect-rules?page[cursor]=abc123`,
+    );
   });
 
   it("should get a redirect rule", async () => {
     const { client, calls } = createTrackingClient();
-    const collection = new RedirectRulesCollection(client, 123, 456);
+    const collection = new RedirectRulesCollection(client, ORG, 123, 456);
 
     await collection.get(789);
-    expect(calls[0]!.url).toContain("/servers/123/sites/456/redirect-rules/789");
+    expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers/123/sites/456/redirect-rules/789`);
   });
 
   it("should create a redirect rule", async () => {
     const { client, calls } = createTrackingClient();
-    const collection = new RedirectRulesCollection(client, 123, 456);
+    const collection = new RedirectRulesCollection(client, ORG, 123, 456);
 
     await collection.create({ from: "/old-path", to: "/new-path", type: "redirect" });
     expect(calls[0]!.method).toBe("POST");
@@ -71,36 +95,18 @@ describe("RedirectRulesCollection", () => {
 
   it("should delete a redirect rule", async () => {
     const { client, calls } = createTrackingClient();
-    const collection = new RedirectRulesCollection(client, 123, 456);
+    const collection = new RedirectRulesCollection(client, ORG, 123, 456);
 
     await collection.delete(789);
     expect(calls[0]!.method).toBe("DELETE");
-    expect(calls[0]!.url).toContain("/servers/123/sites/456/redirect-rules/789");
+    expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers/123/sites/456/redirect-rules/789`);
   });
 
   it("should return an AsyncPaginatedIterator from all()", () => {
     const { client } = createTrackingClient();
-    const collection = new RedirectRulesCollection(client, 123, 456);
+    const collection = new RedirectRulesCollection(client, ORG, 123, 456);
 
     const iter = collection.all();
     expect(iter).toBeInstanceOf(AsyncPaginatedIterator);
-  });
-
-  it("should iterate all redirect rules across pages via all()", async () => {
-    const page1 = Array.from({ length: 200 }, (_, i) => ({ id: i + 1 }) as never);
-    const page2 = [{ id: 201 } as never];
-    const { client } = createTrackingClient();
-    const collection = new RedirectRulesCollection(client, 123, 456);
-
-    const listSpy = vi
-      .spyOn(collection, "list")
-      .mockResolvedValueOnce(page1)
-      .mockResolvedValueOnce(page2);
-
-    const results = await collection.all().toArray();
-
-    expect(results).toHaveLength(201);
-    expect(listSpy).toHaveBeenCalledWith({ page: 1 });
-    expect(listSpy).toHaveBeenCalledWith({ page: 2 });
   });
 });

@@ -1,20 +1,21 @@
-import type { ForgeNginxTemplate, NginxTemplateResponse } from "@studiometa/forge-api";
+import type { JsonApiDocument, NginxTemplateAttributes } from "@studiometa/forge-api";
+import { unwrapDocument } from "@studiometa/forge-api";
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
+import { serverPath } from "../../utils/url-builder.ts";
 
 import type { UpdateNginxTemplateOptions } from "./types.ts";
 
 export async function updateNginxTemplate(
   options: UpdateNginxTemplateOptions,
   ctx: ExecutorContext,
-): Promise<ExecutorResult<ForgeNginxTemplate>> {
+): Promise<ExecutorResult<NginxTemplateAttributes & { id: number }>> {
   const { server_id, id, ...data } = options;
-  const response = await ctx.client.put<NginxTemplateResponse>(
-    `/servers/${server_id}/nginx/templates/${id}`,
+  const response = await ctx.client.put<JsonApiDocument<NginxTemplateAttributes>>(
+    `${serverPath(server_id, ctx)}/nginx/templates/${id}`,
     data,
   );
-  const template = response.template;
 
   return {
-    data: template,
+    data: unwrapDocument(response),
   };
 }

@@ -46,10 +46,10 @@ forge-cli   → forge-core      # CLI tool (human + AI agent use)
 
 ### Package Responsibilities
 
-- **forge-api** (`packages/api`): `HttpClient` class (internal), TypeScript types for all Forge resources, `ForgeApiError`, `RateLimiter` (60 req/min sliding window + exponential backoff), `ConfigStore` (XDG-compliant config storage). Zero runtime dependencies. Node 18+ target (wide adoption).
-- **forge-sdk** (`packages/sdk`): `Forge` class with fluent chainable API (`forge.servers(123).sites(456).deploy()`). Thin wrapper over forge-api — delegates all HTTP. JSDoc on every public method. The hero package with standalone README.
-- **forge-core** (`packages/core`): Pure executor functions `(options, context) → ExecutorResult<T>`, `ExecutorContext` with DI, centralized constants (`RESOURCES`, `ACTIONS`). Includes `matchByName` helper for auto-resolving resource names to numeric IDs. Same pattern as productive-core.
-- **forge-mcp** (`packages/mcp`): Two MCP tools — `forge` (read-only: `list`, `get`, `resolve`, `context`, `help`, `schema`) and `forge_write` (destructive: `create`, `update`, `delete`, `deploy`, `reboot`, `restart`, `activate`, `run`) with `resource` + `action` routing, `createResourceHandler()` factory, stdio and HTTP transports. Supports `batch` resource for multi-action calls. Auto-resolve middleware translates name strings to numeric IDs before dispatching.
+- **forge-api** (`packages/api`): `HttpClient` class (internal), TypeScript types for all Forge resources (JSON:API generic types + v2 attribute types), `ForgeApiError`, `RateLimiter` (60 req/min sliding window + exponential backoff), `ConfigStore` (XDG-compliant config storage), JSON:API unwrapping helpers (`unwrapDocument`, `unwrapListDocument`). Zero runtime dependencies. Node 18+ target.
+- **forge-sdk** (`packages/sdk`): `Forge` class with fluent chainable API (`forge.server(123).site(456).deploy()`). Constructor takes `(token, organizationSlug, options?)`. Thin wrapper over forge-api with cursor-based pagination. JSDoc on every public method.
+- **forge-core** (`packages/core`): Pure executor functions `(options, context) → ExecutorResult<T>`, `ExecutorContext` with DI (includes `organizationSlug`), URL builder helpers (`orgPrefix`, `serverPath`, `sitePath`), centralized constants (`RESOURCES`, `ACTIONS`). Includes `matchByName` helper for auto-resolving resource names to numeric IDs.
+- **forge-mcp** (`packages/mcp`): Two MCP tools — `forge` (read-only: `list`, `get`, `resolve`, `context`, `help`, `schema`) and `forge_write` (destructive: `create`, `update`, `delete`, `deploy`, `reboot`, `restart`, `activate`, `run`) with `resource` + `action` routing, `createResourceHandler()` factory, stdio and HTTP transports. Supports `batch` resource for multi-action calls. Auto-resolve middleware translates name strings to numeric IDs before dispatching. Reads `organizationSlug` from config.
 - **forge-cli** (`packages/cli`): CLI tool for managing Forge servers, sites, and more. Binary is `forge`. Human-friendly output by default, `--format json` for scripting and AI agent use.
 
 ### Key Design Principles
@@ -59,8 +59,9 @@ forge-cli   → forge-core      # CLI tool (human + AI agent use)
 - **SDK is a thin fluent layer** — no HTTP logic, just delegates to forge-api
 - **Centralized constants** — single source of truth for resources and actions
 - **Zero runtime dependencies** in forge-api (the SDK has forge-api as its only dep)
-- **Forge API returns plain JSON** (not JSON:API) — simpler than Productive
-- **Rate limit: 60 req/min** (not 100/10s like Productive)
+- **JSON:API responses** — v2 API returns `{ data: { id, type, attributes } }`, unwrapped via helpers
+- **Organization-scoped URLs** — all API calls prefixed with `/orgs/{slug}` via `orgPrefix(ctx)`
+- **Rate limit: 60 req/min** (same as Productive)
 
 ### Config Storage
 
@@ -71,6 +72,11 @@ forge-cli   → forge-core      # CLI tool (human + AI agent use)
 | Windows  | `%APPDATA%/forge-tools/config.json`                     |
 
 Resolution priority: `FORGE_API_TOKEN` env var > config file.
+
+Config fields:
+
+- `apiToken` — Forge API token (scoped, from Forge dashboard)
+- `organizationSlug` — Default organization slug (e.g. `studio-meta`), also via `FORGE_ORG` env var
 
 ## Testing Rules
 
@@ -99,30 +105,33 @@ npm run version:patch      # Bump patch version across all packages
 
 ## Adding a New Resource (step-by-step)
 
-### 1. API Types & Client (`forge-api`)
+### 1. API Types (`forge-api`)
 
-- Add types in `packages/api/src/types.ts`
-- Add client methods if needed
-- Add tests
+- Add v2 attribute types in `packages/api/src/types/v2-attributes.ts`
+- Export from `packages/api/src/index.ts`
+- No client changes needed (generic `HttpClient.get<JsonApiDocument<T>>()`)
 
-### 2. SDK Resource Builders (`forge-sdk`)
-
-- Add Collection + Resource classes in `packages/sdk/src/resources/`
-- Wire into `Forge` class
-- Add JSDoc with `@example` tags
-- Add tests with mock fetch
-
-### 3. Executors (`forge-core`)
+### 2. Executors (`forge-core`)
 
 - Add to `packages/core/src/constants.ts` (RESOURCES, ACTIONS)
 - Create `packages/core/src/executors/<resource>/` with list, get, create, etc.
+- Use `orgPrefix(ctx)`, `serverPath()`, `sitePath()` for URL building
+- Use `JsonApiDocument<T>` / `JsonApiListDocument<T>` + `unwrapDocument()` / `unwrapListDocument()` for responses
 - Export from `packages/core/src/index.ts`
-- Add tests using `createTestExecutorContext()`
+- Add tests using `createTestExecutorContext({ organizationSlug: "test-org" })` and `mockDocument()` / `mockListDocument()` helpers
+
+### 3. SDK Resource Builders (`forge-sdk`)
+
+- Add Collection + Resource classes in `packages/sdk/src/resources/`
+- Wire into `Forge` class, pass `orgSlug` to collection
+- Add JSDoc with `@example` tags
+- Add tests with mock fetch returning JSON:API format
 
 ### 4. MCP Handler (`forge-mcp`)
 
 - Use `createResourceHandler()` factory
 - Wire in handler routing
+- Add formatter functions for compact output
 - Add tests
 
 ### 5. Build & Test

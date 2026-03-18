@@ -1,18 +1,19 @@
-import type { FirewallRuleResponse, ForgeFirewallRule } from "@studiometa/forge-api";
+import type { JsonApiDocument, FirewallRuleAttributes } from "@studiometa/forge-api";
+import { unwrapDocument } from "@studiometa/forge-api";
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
+import { serverPath } from "../../utils/url-builder.ts";
 
 import type { GetFirewallRuleOptions } from "./types.ts";
 
 export async function getFirewallRule(
   options: GetFirewallRuleOptions,
   ctx: ExecutorContext,
-): Promise<ExecutorResult<ForgeFirewallRule>> {
-  const response = await ctx.client.get<FirewallRuleResponse>(
-    `/servers/${options.server_id}/firewall-rules/${options.id}`,
+): Promise<ExecutorResult<FirewallRuleAttributes & { id: number }>> {
+  const response = await ctx.client.get<JsonApiDocument<FirewallRuleAttributes>>(
+    `${serverPath(options.server_id, ctx)}/firewall-rules/${options.id}`,
   );
-  const rule = response.rule;
 
   return {
-    data: rule,
+    data: unwrapDocument(response),
   };
 }

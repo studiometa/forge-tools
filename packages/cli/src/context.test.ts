@@ -10,6 +10,7 @@ vi.mock("./config.ts", async (importOriginal) => {
     ...actual,
     createConfigStore: vi.fn().mockReturnValue({}),
     getToken: vi.fn().mockReturnValue(null),
+    getOrganizationSlug: vi.fn().mockReturnValue(null),
     setToken: vi.fn(),
     deleteToken: vi.fn(),
   };

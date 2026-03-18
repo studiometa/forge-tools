@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import type { DatabaseResponse } from "@studiometa/forge-api";
-
+import { mockDocument } from "../../test-helpers.ts";
 import { createTestExecutorContext } from "../../context.ts";
 import { createDatabase } from "./create.ts";
 
@@ -10,10 +9,14 @@ describe("createDatabase", () => {
     const ctx = createTestExecutorContext({
       client: {
         post: async () =>
-          ({
-            database: { id: 7, name: "myapp" },
-          }) as DatabaseResponse,
+          mockDocument(7, "database-schemas", {
+            name: "myapp",
+            status: "creating",
+            created_at: "2024-01-01T00:00:00.000000Z",
+            updated_at: "2024-01-01T00:00:00.000000Z",
+          }),
       } as never,
+      organizationSlug: "test-org",
     });
 
     const result = await createDatabase({ server_id: "1", name: "myapp" }, ctx);

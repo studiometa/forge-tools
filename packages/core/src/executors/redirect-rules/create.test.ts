@@ -1,7 +1,5 @@
 import { describe, expect, it } from "vitest";
 
-import type { RedirectRuleResponse } from "@studiometa/forge-api";
-
 import { createTestExecutorContext } from "../../context.ts";
 import { createRedirectRule } from "./create.ts";
 
@@ -9,11 +7,9 @@ describe("createRedirectRule", () => {
   it("should create a redirect rule and format output", async () => {
     const ctx = createTestExecutorContext({
       client: {
-        post: async () =>
-          ({
-            redirect_rule: { id: 9, from: "/old", to: "/new" },
-          }) as RedirectRuleResponse,
+        post: async () => undefined,
       } as never,
+      organizationSlug: "test-org",
     });
 
     const result = await createRedirectRule(
@@ -21,6 +17,6 @@ describe("createRedirectRule", () => {
       ctx,
     );
 
-    expect(result.data.from).toBe("/old");
+    expect(result.data).toBeUndefined();
   });
 });

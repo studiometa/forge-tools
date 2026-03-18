@@ -9,6 +9,7 @@ describe("getNginxConfig", () => {
       client: {
         get: async () => "server { listen 80; }",
       } as never,
+      organizationSlug: "test-org",
     });
     const result = await getNginxConfig({ server_id: "1", site_id: "2" }, ctx);
     expect(result.data).toContain("listen 80");

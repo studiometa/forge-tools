@@ -45,7 +45,44 @@ export {
 } from "./resources/sites.ts";
 export type { SiteListOptions } from "./resources/sites.ts";
 
-// Re-export types from forge-api for convenience
+// Re-export JSON:API types and helpers from forge-api
+export type {
+  JsonApiDocument,
+  JsonApiListDocument,
+  JsonApiResource,
+  JsonApiPaginationLinks,
+  JsonApiPaginationMeta,
+} from "@studiometa/forge-api";
+export { unwrapDocument, unwrapListDocument, unwrapResource } from "@studiometa/forge-api";
+
+// Re-export v2 attribute types from forge-api for convenience
+export type {
+  UserAttributes,
+  ServerAttributes,
+  SiteAttributes,
+  DeploymentAttributes,
+  DeploymentCommit,
+  DeploymentOutputAttributes,
+  DeploymentScriptAttributes,
+  DatabaseAttributes,
+  DatabaseUserAttributes,
+  BackgroundProcessAttributes,
+  CertificateAttributes,
+  FirewallRuleAttributes,
+  SshKeyAttributes,
+  SecurityRuleAttributes,
+  RedirectRuleAttributes,
+  MonitorAttributes,
+  NginxTemplateAttributes,
+  RecipeAttributes,
+  ScheduledJobAttributes,
+  CommandAttributes,
+  BackupConfigAttributes,
+  BackupAttributes,
+  OrganizationAttributes,
+} from "@studiometa/forge-api";
+
+// Re-export create data types and options from forge-api
 export type {
   CreateBackupConfigData,
   CreateCertificateData,
@@ -63,24 +100,5 @@ export type {
   CreateServerData,
   CreateSiteData,
   CreateSshKeyData,
-  ForgeBackup,
-  ForgeBackupConfig,
-  ForgeCertificate,
-  ForgeCommand,
-  ForgeDaemon,
-  ForgeDatabase,
-  ForgeDatabaseUser,
-  ForgeDeployment,
-  ForgeFirewallRule,
-  ForgeMonitor,
-  ForgeNginxTemplate,
   ForgeOptions,
-  ForgeRecipe,
-  ForgeRedirectRule,
-  ForgeScheduledJob,
-  ForgeSecurityRule,
-  ForgeServer,
-  ForgeSite,
-  ForgeSshKey,
-  ForgeUser,
 } from "@studiometa/forge-api";

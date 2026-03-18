@@ -1,9 +1,23 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import { HttpClient } from "@studiometa/forge-api";
 
 import { AsyncPaginatedIterator } from "../pagination.ts";
 import { ScheduledJobsCollection } from "./scheduled-jobs.ts";
+
+const ORG = "test-org";
+
+function mockDocument<T>(id: string | number, attributes: T) {
+  return { data: { id: String(id), type: "resource", attributes } };
+}
+
+function mockListDocument<T>(id: string | number, attributes: T) {
+  return {
+    data: [{ id: String(id), type: "resource", attributes }],
+    links: {},
+    meta: { per_page: 200, next_cursor: null },
+  };
+}
 
 function createTrackingClient(): {
   client: HttpClient;
@@ -23,10 +37,20 @@ function createTrackingClient(): {
         ok: true,
         status: 200,
         headers: new Headers({ "content-type": "application/json" }),
-        json: async () => ({
-          job: { id: 1, command: "php artisan schedule:run" },
-          jobs: [],
-        }),
+        json: async () => {
+          const u = url.toString();
+          const isId = /\/\d+(\?|$)/.test(u);
+          const attrs = {
+            command: "php artisan schedule:run",
+            user: "forge",
+            frequency: "minutely",
+            cron: "* * * * *",
+            status: "active",
+            created_at: "",
+            updated_at: "",
+          };
+          return isId ? mockDocument("1", attrs) : mockListDocument("1", attrs);
+        },
         text: async () => "{}",
       } as Response;
     },
@@ -38,31 +62,31 @@ function createTrackingClient(): {
 describe("ScheduledJobsCollection", () => {
   it("should list scheduled jobs", async () => {
     const { client, calls } = createTrackingClient();
-    const collection = new ScheduledJobsCollection(client, 123);
+    const collection = new ScheduledJobsCollection(client, ORG, 123);
 
     await collection.list();
-    expect(calls[0]!.url).toContain("/servers/123/jobs");
+    expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers/123/scheduled-jobs`);
   });
 
-  it("should list scheduled jobs with page option", async () => {
+  it("should list scheduled jobs with cursor option", async () => {
     const { client, calls } = createTrackingClient();
-    const collection = new ScheduledJobsCollection(client, 123);
+    const collection = new ScheduledJobsCollection(client, ORG, 123);
 
-    await collection.list({ page: 2 });
-    expect(calls[0]!.url).toContain("/servers/123/jobs?page=2");
+    await collection.list({ cursor: "abc123" });
+    expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers/123/scheduled-jobs?page[cursor]=abc123`);
   });
 
   it("should get a scheduled job", async () => {
     const { client, calls } = createTrackingClient();
-    const collection = new ScheduledJobsCollection(client, 123);
+    const collection = new ScheduledJobsCollection(client, ORG, 123);
 
     await collection.get(789);
-    expect(calls[0]!.url).toContain("/servers/123/jobs/789");
+    expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers/123/scheduled-jobs/789`);
   });
 
   it("should create a scheduled job", async () => {
     const { client, calls } = createTrackingClient();
-    const collection = new ScheduledJobsCollection(client, 123);
+    const collection = new ScheduledJobsCollection(client, ORG, 123);
 
     await collection.create({
       command: "php artisan schedule:run",
@@ -75,36 +99,18 @@ describe("ScheduledJobsCollection", () => {
 
   it("should delete a scheduled job", async () => {
     const { client, calls } = createTrackingClient();
-    const collection = new ScheduledJobsCollection(client, 123);
+    const collection = new ScheduledJobsCollection(client, ORG, 123);
 
     await collection.delete(789);
     expect(calls[0]!.method).toBe("DELETE");
-    expect(calls[0]!.url).toContain("/servers/123/jobs/789");
+    expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers/123/scheduled-jobs/789`);
   });
 
   it("should return an AsyncPaginatedIterator from all()", () => {
     const { client } = createTrackingClient();
-    const collection = new ScheduledJobsCollection(client, 123);
+    const collection = new ScheduledJobsCollection(client, ORG, 123);
 
     const iter = collection.all();
     expect(iter).toBeInstanceOf(AsyncPaginatedIterator);
-  });
-
-  it("should iterate all scheduled jobs across pages via all()", async () => {
-    const page1 = Array.from({ length: 200 }, (_, i) => ({ id: i + 1 }) as never);
-    const page2 = [{ id: 201 } as never];
-    const { client } = createTrackingClient();
-    const collection = new ScheduledJobsCollection(client, 123);
-
-    const listSpy = vi
-      .spyOn(collection, "list")
-      .mockResolvedValueOnce(page1)
-      .mockResolvedValueOnce(page2);
-
-    const results = await collection.all().toArray();
-
-    expect(results).toHaveLength(201);
-    expect(listSpy).toHaveBeenCalledWith({ page: 1 });
-    expect(listSpy).toHaveBeenCalledWith({ page: 2 });
   });
 });

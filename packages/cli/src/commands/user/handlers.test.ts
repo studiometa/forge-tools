@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
-import type { ForgeUser } from "@studiometa/forge-api";
+import type { UserAttributes } from "@studiometa/forge-api";
 
 import { createTestContext } from "../../context.ts";
 import { userGet } from "./handlers.ts";
@@ -9,22 +9,19 @@ vi.mock("@studiometa/forge-core", () => ({
   getUser: vi.fn(),
 }));
 
-const mockUser: ForgeUser = {
+const mockUser: UserAttributes & { id: number } = {
   id: 1,
   name: "Test User",
   email: "test@example.com",
-  card_last_four: "4242",
-  connected_to_github: true,
-  connected_to_gitlab: false,
-  connected_to_bitbucket: false,
-  connected_to_bitbucket_two: false,
-  connected_to_digitalocean: false,
-  connected_to_linode: false,
-  connected_to_vultr: false,
-  connected_to_aws: false,
-  connected_to_hetzner: false,
-  ready_for_billing: true,
-  stripe_is_active: true,
+  two_factor_enabled: false,
+  two_factor_confirmed: false,
+  github_connected: true,
+  gitlab_connected: false,
+  bitbucket_connected: false,
+  do_connected: false,
+  timezone: "UTC",
+  created_at: "2024-01-01T00:00:00Z",
+  updated_at: "2024-01-01T00:00:00Z",
 };
 
 describe("userGet", () => {

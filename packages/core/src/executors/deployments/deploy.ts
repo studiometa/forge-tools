@@ -1,4 +1,5 @@
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
+import { sitePath } from "../../utils/url-builder.ts";
 
 import type { DeploySiteOptions } from "./types.ts";
 
@@ -9,7 +10,7 @@ export async function deploySite(
   options: DeploySiteOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<void>> {
-  await ctx.client.post(`/servers/${options.server_id}/sites/${options.site_id}/deployment/deploy`);
+  await ctx.client.post(`${sitePath(options.server_id, options.site_id, ctx)}/deployments`);
 
   return {
     data: undefined,

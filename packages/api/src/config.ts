@@ -5,6 +5,7 @@ import { ConfigStore } from "./utils/config-store.ts";
 
 const APP_NAME = "forge-tools";
 const ENV_VAR = "FORGE_API_TOKEN";
+const ENV_VAR_ORG = "FORGE_ORG";
 
 /**
  * Create a ConfigStore for Forge tools.
@@ -48,4 +49,31 @@ export function setToken(token: string, configStore?: ConfigStore<ForgeConfig>):
 export function deleteToken(configStore?: ConfigStore<ForgeConfig>): void {
   const store = configStore ?? createConfigStore();
   store.delete();
+}
+
+/**
+ * Get the default organization slug.
+ *
+ * Resolution priority:
+ * 1. Environment variable FORGE_ORG
+ * 2. Config file (~/.config/forge-tools/config.json)
+ *
+ * @returns The organization slug or null if not configured.
+ */
+export function getOrganizationSlug(configStore?: ConfigStore<ForgeConfig>): string | null {
+  const envOrg = process.env[ENV_VAR_ORG];
+  if (envOrg) {
+    return envOrg;
+  }
+
+  const store = configStore ?? createConfigStore();
+  return store.getField("organizationSlug") ?? null;
+}
+
+/**
+ * Save the default organization slug to the config file.
+ */
+export function setOrganizationSlug(slug: string, configStore?: ConfigStore<ForgeConfig>): void {
+  const store = configStore ?? createConfigStore();
+  store.update({ organizationSlug: slug });
 }

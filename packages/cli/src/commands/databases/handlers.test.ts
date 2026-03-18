@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
-import type { ForgeDatabase } from "@studiometa/forge-api";
+import type { DatabaseAttributes } from "@studiometa/forge-api";
 
 import { createTestContext } from "../../context.ts";
 import { databasesList, databasesGet } from "./handlers.ts";
@@ -10,12 +10,12 @@ vi.mock("@studiometa/forge-core", () => ({
   getDatabase: vi.fn(),
 }));
 
-const mockDb: ForgeDatabase = {
+const mockDb: DatabaseAttributes & { id: number } = {
   id: 1,
-  server_id: 10,
   name: "mydb",
   status: "installed",
   created_at: "2024-01-01T00:00:00Z",
+  updated_at: "2024-01-01T00:00:00Z",
 };
 
 describe("databasesList", () => {

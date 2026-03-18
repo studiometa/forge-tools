@@ -1,5 +1,7 @@
-import type { CertificateResponse, ForgeCertificate } from "@studiometa/forge-api";
+import type { JsonApiDocument, CertificateAttributes } from "@studiometa/forge-api";
+import { unwrapDocument } from "@studiometa/forge-api";
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
+import { sitePath } from "../../utils/url-builder.ts";
 
 import type { GetCertificateOptions } from "./types.ts";
 
@@ -9,13 +11,12 @@ import type { GetCertificateOptions } from "./types.ts";
 export async function getCertificate(
   options: GetCertificateOptions,
   ctx: ExecutorContext,
-): Promise<ExecutorResult<ForgeCertificate>> {
-  const response = await ctx.client.get<CertificateResponse>(
-    `/servers/${options.server_id}/sites/${options.site_id}/certificates/${options.id}`,
+): Promise<ExecutorResult<CertificateAttributes & { id: number }>> {
+  const response = await ctx.client.get<JsonApiDocument<CertificateAttributes>>(
+    `${sitePath(options.server_id, options.site_id, ctx)}/certificates/${options.id}`,
   );
-  const cert = response.certificate;
 
   return {
-    data: cert,
+    data: unwrapDocument(response),
   };
 }

@@ -1,7 +1,5 @@
 import { describe, expect, it } from "vitest";
 
-import type { CommandResponse } from "@studiometa/forge-api";
-
 import { createTestExecutorContext } from "../../context.ts";
 import { createCommand } from "./create.ts";
 
@@ -9,11 +7,9 @@ describe("createCommand", () => {
   it("should execute a command and format output", async () => {
     const ctx = createTestExecutorContext({
       client: {
-        post: async () =>
-          ({
-            command: { id: 5, command: "php artisan cache:clear", status: "running" },
-          }) as CommandResponse,
+        post: async () => undefined,
       } as never,
+      organizationSlug: "test-org",
     });
 
     const result = await createCommand(
@@ -21,6 +17,6 @@ describe("createCommand", () => {
       ctx,
     );
 
-    expect(result.data.command).toBe("php artisan cache:clear");
+    expect(result.data).toBeUndefined();
   });
 });

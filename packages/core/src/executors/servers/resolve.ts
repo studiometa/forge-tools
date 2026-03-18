@@ -1,5 +1,7 @@
-import type { ServersResponse } from "@studiometa/forge-api";
+import type { JsonApiListDocument, ServerAttributes } from "@studiometa/forge-api";
+import { unwrapListDocument } from "@studiometa/forge-api";
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
+import { orgPrefix } from "../../utils/url-builder.ts";
 import { matchByName } from "../../utils/name-matcher.ts";
 
 export interface ResolveServersOptions {
@@ -27,8 +29,10 @@ export async function resolveServers(
   options: ResolveServersOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<ResolveResult>> {
-  const response = await ctx.client.get<ServersResponse>("/servers");
-  const servers = response.servers;
+  const response = await ctx.client.get<JsonApiListDocument<ServerAttributes>>(
+    `${orgPrefix(ctx)}/servers`,
+  );
+  const servers = unwrapListDocument(response);
 
   const match = matchByName(servers, options.query, (s) => s.name);
   const matches = match.exact.length === 1 ? match.exact : match.partial;

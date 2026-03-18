@@ -5,8 +5,6 @@ import {
   listScheduledJobs,
 } from "@studiometa/forge-core";
 
-import type { ForgeScheduledJob } from "@studiometa/forge-api";
-
 import { formatScheduledJob, formatScheduledJobList } from "../formatters.ts";
 import { createResourceHandler } from "./factory.ts";
 
@@ -28,11 +26,11 @@ export const handleScheduledJobs = createResourceHandler({
   formatResult: (action, data, args) => {
     switch (action) {
       case "list":
-        return formatScheduledJobList(data as ForgeScheduledJob[]);
+        return formatScheduledJobList(data);
       case "get":
-        return formatScheduledJob(data as ForgeScheduledJob);
+        return formatScheduledJob(data);
       case "create":
-        return formatScheduledJob(data as ForgeScheduledJob);
+        return formatScheduledJob(data);
       case "delete":
         return `Scheduled job ${args.id} deleted.`;
       /* v8 ignore next */

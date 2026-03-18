@@ -6,10 +6,15 @@ import { rebootServer } from "./reboot.ts";
 describe("rebootServer", () => {
   it("should reboot a server", async () => {
     const postMock = vi.fn(async () => undefined);
-    const ctx = createTestExecutorContext({ client: { post: postMock } as never });
+    const ctx = createTestExecutorContext({
+      client: { post: postMock } as never,
+      organizationSlug: "test-org",
+    });
 
     await rebootServer({ server_id: "123" }, ctx);
 
-    expect(postMock).toHaveBeenCalledWith("/servers/123/reboot");
+    expect(postMock).toHaveBeenCalledWith("/orgs/test-org/servers/123/actions", {
+      action: "reboot",
+    });
   });
 });

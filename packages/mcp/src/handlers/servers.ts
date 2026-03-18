@@ -7,7 +7,6 @@ import {
   resolveServers,
 } from "@studiometa/forge-core";
 
-import type { ForgeServer } from "@studiometa/forge-api";
 import type { ResolveResult } from "@studiometa/forge-core";
 
 import { formatServer, formatServerList } from "../formatters.ts";
@@ -62,11 +61,11 @@ const _handleServers = createResourceHandler({
   formatResult: (action, data, args) => {
     switch (action) {
       case "list":
-        return formatServerList(data as ForgeServer[]);
+        return formatServerList(data);
       case "get":
-        return formatServer(data as ForgeServer);
+        return formatServer(data);
       case "create":
-        return formatServer(data as ForgeServer);
+        return formatServer(data);
       case "delete":
         return `Server ${args.id} deleted.`;
       case "reboot":

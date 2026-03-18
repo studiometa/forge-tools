@@ -1,10 +1,12 @@
 import type {
   CreateFirewallRuleData,
-  FirewallRuleResponse,
-  FirewallRulesResponse,
-  ForgeFirewallRule,
   HttpClient,
+  JsonApiDocument,
+  JsonApiListDocument,
+  FirewallRuleAttributes,
 } from "@studiometa/forge-api";
+
+import { unwrapDocument, unwrapListDocument } from "@studiometa/forge-api";
 
 import { BaseCollection } from "./base.ts";
 import { AsyncPaginatedIterator } from "../pagination.ts";
@@ -13,8 +15,8 @@ import { AsyncPaginatedIterator } from "../pagination.ts";
  * Options for listing firewall rules.
  */
 export interface FirewallRuleListOptions {
-  /** Page number to fetch (1-indexed). */
-  page?: number;
+  /** Cursor for pagination (from previous response's next_cursor). */
+  cursor?: string;
 }
 
 /**
@@ -31,13 +33,14 @@ export class FirewallRulesCollection extends BaseCollection {
   /** @internal */
   constructor(
     client: HttpClient,
+    orgSlug: string,
     private readonly serverId: number,
   ) {
-    super(client);
+    super(client, orgSlug);
   }
 
   private get basePath(): string {
-    return `/servers/${this.serverId}/firewall-rules`;
+    return `/orgs/${this.orgSlug}/servers/${this.serverId}/firewall-rules`;
   }
 
   /**
@@ -47,14 +50,18 @@ export class FirewallRulesCollection extends BaseCollection {
    * ```ts
    * const rules = await forge.server(123).firewallRules.list();
    *
-   * // Fetch a specific page:
-   * const page2 = await forge.server(123).firewallRules.list({ page: 2 });
+   * // Fetch a specific cursor page:
+   * const page2 = await forge.server(123).firewallRules.list({ cursor: 'next-cursor-value' });
    * ```
    */
-  async list(options: FirewallRuleListOptions = {}): Promise<ForgeFirewallRule[]> {
-    const query = options.page !== undefined ? `?page=${options.page}` : "";
-    const response = await this.client.get<FirewallRulesResponse>(`${this.basePath}${query}`);
-    return response.rules;
+  async list(
+    options: FirewallRuleListOptions = {},
+  ): Promise<Array<FirewallRuleAttributes & { id: number }>> {
+    const query = options.cursor !== undefined ? `?page[cursor]=${options.cursor}` : "";
+    const response = await this.client.get<JsonApiListDocument<FirewallRuleAttributes>>(
+      `${this.basePath}${query}`,
+    );
+    return unwrapListDocument(response);
   }
 
   /**
@@ -70,10 +77,17 @@ export class FirewallRulesCollection extends BaseCollection {
    * const rules = await forge.server(123).firewallRules.all().toArray();
    * ```
    */
-  all(
-    options: Omit<FirewallRuleListOptions, "page"> = {},
-  ): AsyncPaginatedIterator<ForgeFirewallRule> {
-    return new AsyncPaginatedIterator<ForgeFirewallRule>((page) => this.list({ ...options, page }));
+  all(): AsyncPaginatedIterator<FirewallRuleAttributes & { id: number }> {
+    return new AsyncPaginatedIterator<FirewallRuleAttributes & { id: number }>(async (cursor) => {
+      const query = cursor !== null ? `?page[cursor]=${cursor}` : "";
+      const response = await this.client.get<JsonApiListDocument<FirewallRuleAttributes>>(
+        `${this.basePath}${query}`,
+      );
+      return {
+        items: unwrapListDocument(response),
+        nextCursor: response.meta.next_cursor ?? null,
+      };
+    });
   }
 
   /**
@@ -84,9 +98,11 @@ export class FirewallRulesCollection extends BaseCollection {
    * const rule = await forge.server(123).firewallRules.get(789);
    * ```
    */
-  async get(ruleId: number): Promise<ForgeFirewallRule> {
-    const response = await this.client.get<FirewallRuleResponse>(`${this.basePath}/${ruleId}`);
-    return response.rule;
+  async get(ruleId: number): Promise<FirewallRuleAttributes & { id: number }> {
+    const response = await this.client.get<JsonApiDocument<FirewallRuleAttributes>>(
+      `${this.basePath}/${ruleId}`,
+    );
+    return unwrapDocument(response);
   }
 
   /**
@@ -101,9 +117,12 @@ export class FirewallRulesCollection extends BaseCollection {
    * });
    * ```
    */
-  async create(data: CreateFirewallRuleData): Promise<ForgeFirewallRule> {
-    const response = await this.client.post<FirewallRuleResponse>(this.basePath, data);
-    return response.rule;
+  async create(data: CreateFirewallRuleData): Promise<FirewallRuleAttributes & { id: number }> {
+    const response = await this.client.post<JsonApiDocument<FirewallRuleAttributes>>(
+      this.basePath,
+      data,
+    );
+    return unwrapDocument(response);
   }
 
   /**

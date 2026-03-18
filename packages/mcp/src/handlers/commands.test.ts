@@ -1,28 +1,34 @@
 import { describe, expect, it } from "vitest";
 
+import { mockDocument, mockListDocument } from "@studiometa/forge-core";
+
 import type { HandlerContext } from "./types.ts";
 
 import { handleCommands } from "./commands.ts";
 
+function makeCommandAttrs(overrides: Record<string, unknown> = {}) {
+  return {
+    command: "php artisan migrate",
+    status: "finished",
+    user_name: "forge",
+    created_at: "2024-01-01",
+    updated_at: "2024-01-01",
+    ...overrides,
+  };
+}
+
 function createMockContext(): HandlerContext {
   return {
     executorContext: {
+      organizationSlug: "test-org",
       client: {
-        get: async () => ({
-          commands: [
-            { id: 1, command: "php artisan migrate", status: "finished", user_name: "forge" },
-          ],
-          command: {
-            id: 1,
-            command: "php artisan migrate",
-            status: "finished",
-            user_name: "forge",
-            created_at: "2024-01-01",
-          },
-        }),
-        post: async () => ({
-          command: { id: 2, command: "php artisan cache:clear", status: "running" },
-        }),
+        get: async (url: string) => {
+          if (url.match(/\/commands\/\d+$/)) {
+            return mockDocument(1, "commands", makeCommandAttrs());
+          }
+          return mockListDocument("commands", [{ id: 1, attributes: makeCommandAttrs() as never }]);
+        },
+        post: async () => undefined,
       } as never,
     },
     compact: true,
@@ -53,7 +59,7 @@ describe("handleCommands", () => {
       createMockContext(),
     );
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("cache:clear");
+    expect(result.content[0]!.text).toContain("Done");
   });
 
   it("should get a command", async () => {

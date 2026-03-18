@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
-import type { ForgeBackupConfig } from "@studiometa/forge-api";
+import type { BackupConfigAttributes } from "@studiometa/forge-api";
 
 import { createTestContext } from "../../context.ts";
 import { backupsList, backupsGet, backupsCreate, backupsDelete } from "./handlers.ts";
@@ -12,20 +12,18 @@ vi.mock("@studiometa/forge-core", () => ({
   deleteBackupConfig: vi.fn(),
 }));
 
-const mockBackup: ForgeBackupConfig = {
+const mockBackup: BackupConfigAttributes & { id: number } = {
   id: 1,
-  server_id: 10,
   day_of_week: null,
   time: null,
   provider: "s3",
   provider_name: "Amazon S3",
-  databases: [],
   frequency: "weekly",
   directory: null,
   email: null,
   retention: 5,
   status: "active",
-  created_at: "2024-01-01T00:00:00Z",
+  last_backup_time: null,
 };
 
 describe("backupsList", () => {
@@ -132,7 +130,7 @@ describe("backupsCreate", () => {
 
   it("should create a backup configuration", async () => {
     const { createBackupConfig } = await import("@studiometa/forge-core");
-    vi.mocked(createBackupConfig).mockResolvedValue({ data: mockBackup });
+    vi.mocked(createBackupConfig).mockResolvedValue({ data: undefined });
 
     const ctx = createTestContext({
       token: "test",
@@ -141,7 +139,7 @@ describe("backupsCreate", () => {
     });
 
     await backupsCreate(ctx);
-    expect(vi.mocked(console.log)).toHaveBeenCalledWith(expect.stringContaining('"s3"'));
+    expect(vi.mocked(console.log)).toHaveBeenCalledWith(expect.stringContaining("created"));
   });
 
   it("should create with databases array", async () => {

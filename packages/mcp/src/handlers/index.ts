@@ -127,7 +127,7 @@ function routeToHandler(
 export async function executeToolWithCredentials(
   name: string,
   args: Record<string, unknown>,
-  credentials: { apiToken: string },
+  credentials: { apiToken: string; organizationSlug?: string },
 ): Promise<ToolResult> {
   const { resource, action, compact, ...rest } = args as CommonArgs;
 
@@ -146,7 +146,10 @@ export async function executeToolWithCredentials(
     }
     // Validate resource is known before creating context
     const client = new HttpClient({ token: credentials.apiToken });
-    const executorContext: ExecutorContext = { client };
+    const executorContext: ExecutorContext = {
+      client,
+      organizationSlug: credentials.organizationSlug,
+    };
     const handlerContext: HandlerContext = {
       executorContext,
       compact: compact ?? true,
@@ -193,7 +196,10 @@ export async function executeToolWithCredentials(
 
   // Create executor context
   const client = new HttpClient({ token: credentials.apiToken });
-  const executorContext: ExecutorContext = { client };
+  const executorContext: ExecutorContext = {
+    client,
+    organizationSlug: credentials.organizationSlug,
+  };
   const handlerContext: HandlerContext = {
     executorContext,
     compact: compact ?? action !== "get",

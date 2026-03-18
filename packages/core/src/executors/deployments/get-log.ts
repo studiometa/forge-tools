@@ -1,4 +1,7 @@
+import type { JsonApiDocument, DeploymentOutputAttributes } from "@studiometa/forge-api";
+import { unwrapDocument } from "@studiometa/forge-api";
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
+import { sitePath } from "../../utils/url-builder.ts";
 
 import type { GetDeploymentLogOptions } from "./types.ts";
 
@@ -9,8 +12,10 @@ export async function getDeploymentLog(
   options: GetDeploymentLogOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<string>> {
-  const log = await ctx.client.get<string>(
-    `/servers/${options.server_id}/sites/${options.site_id}/deployment/log`,
+  const response = await ctx.client.get<JsonApiDocument<DeploymentOutputAttributes>>(
+    `${sitePath(options.server_id, options.site_id, ctx)}/deployments/log`,
   );
-  return { data: log };
+  const result = unwrapDocument(response);
+
+  return { data: result.output };
 }

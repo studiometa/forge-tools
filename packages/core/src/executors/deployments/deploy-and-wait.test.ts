@@ -1,5 +1,6 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 
+import { mockDocument, mockListDocument } from "../../test-helpers.ts";
 import { createTestExecutorContext } from "../../context.ts";
 import { deploySiteAndWait } from "./deploy-and-wait.ts";
 
@@ -17,24 +18,50 @@ describe("deploySiteAndWait", () => {
 
     let pollCount = 0;
     const getMock = vi.fn(async (url: string) => {
-      if (url.endsWith("/deployment/log")) {
-        return "Build succeeded\nDone.";
+      if (url.includes("/deployments/status")) {
+        // first poll: deploying, second poll: 404 (throw → treated as done)
+        pollCount++;
+        if (pollCount === 1) {
+          return mockDocument(1, "deployment-statuses", {
+            status: "deploying",
+            started_at: "2024-01-01T00:00:00.000000Z",
+          });
+        }
+        throw new Error("Not found");
       }
-      if (url.endsWith("/deployments")) {
-        return { deployments: [{ id: 1, status: "finished" }] };
+      if (url.includes("/deployments?") && url.includes("page")) {
+        return mockListDocument("deployments", [
+          {
+            id: 1,
+            attributes: {
+              commit: { hash: null, author: null, message: null, branch: null },
+              status: "finished",
+              type: "push",
+              started_at: "2024-01-01T00:00:00.000000Z",
+              ended_at: "2024-01-01T00:05:00.000000Z",
+              created_at: "2024-01-01T00:00:00.000000Z",
+              updated_at: "2024-01-01T00:05:00.000000Z",
+            },
+          },
+        ]);
       }
-      // site poll — first call returns "deploying", second returns null (done)
-      pollCount++;
-      return {
-        site: {
-          id: 456,
-          deployment_status: pollCount === 1 ? "deploying" : null,
-        },
-      };
+      if (url.includes("/deployments/") && url.includes("/log")) {
+        return mockDocument(1, "deployment-logs", { output: "Build succeeded\nDone." });
+      }
+      return mockDocument(1, "deployments", {
+        commit: { hash: null, author: null, message: null, branch: null },
+        status: "finished",
+        type: "push",
+        started_at: "2024-01-01T00:00:00.000000Z",
+        ended_at: null,
+        created_at: "2024-01-01T00:00:00.000000Z",
+        updated_at: "2024-01-01T00:00:00.000000Z",
+      });
     });
 
     const ctx = createTestExecutorContext({
       client: { post: postMock, get: getMock } as never,
+      organizationSlug: "test-org",
     });
 
     const promise = deploySiteAndWait(
@@ -47,7 +74,7 @@ describe("deploySiteAndWait", () => {
 
     const result = await promise;
 
-    expect(postMock).toHaveBeenCalledWith("/servers/123/sites/456/deployment/deploy");
+    expect(postMock).toHaveBeenCalledWith("/orgs/test-org/servers/123/sites/456/deployments");
     expect(result.data.status).toBe("success");
     expect(result.data.log).toBe("Build succeeded\nDone.");
     expect(result.data.elapsed_ms).toBeGreaterThanOrEqual(0);
@@ -57,18 +84,34 @@ describe("deploySiteAndWait", () => {
     const postMock = vi.fn(async () => undefined);
 
     const getMock = vi.fn(async (url: string) => {
-      if (url.endsWith("/deployment/log")) {
-        return "Error: build failed.";
+      if (url.includes("/deployments/status")) {
+        throw new Error("Not found"); // No active deployment → done immediately
       }
-      if (url.endsWith("/deployments")) {
-        return { deployments: [{ id: 1, status: "failed" }] };
+      if (url.includes("/deployments?") && url.includes("page")) {
+        return mockListDocument("deployments", [
+          {
+            id: 1,
+            attributes: {
+              commit: { hash: null, author: null, message: null, branch: null },
+              status: "failed",
+              type: "push",
+              started_at: "2024-01-01T00:00:00.000000Z",
+              ended_at: "2024-01-01T00:01:00.000000Z",
+              created_at: "2024-01-01T00:00:00.000000Z",
+              updated_at: "2024-01-01T00:01:00.000000Z",
+            },
+          },
+        ]);
       }
-      // site always returns null on first poll (deploy finished instantly)
-      return { site: { id: 456, deployment_status: null } };
+      if (url.includes("/deployments/") && url.includes("/log")) {
+        return mockDocument(1, "deployment-logs", { output: "Error: build failed." });
+      }
+      throw new Error("Unexpected URL: " + url);
     });
 
     const ctx = createTestExecutorContext({
       client: { post: postMock, get: getMock } as never,
+      organizationSlug: "test-org",
     });
 
     const promise = deploySiteAndWait(
@@ -88,18 +131,43 @@ describe("deploySiteAndWait", () => {
 
     let pollCount = 0;
     const getMock = vi.fn(async (url: string) => {
-      if (url.endsWith("/deployment/log")) return "log";
-      if (url.endsWith("/deployments")) return { deployments: [{ id: 1, status: "finished" }] };
-      pollCount++;
-      return {
-        site: { id: 456, deployment_status: pollCount < 2 ? "deploying" : null },
-      };
+      if (url.includes("/deployments/status")) {
+        pollCount++;
+        if (pollCount < 2) {
+          return mockDocument(1, "deployment-statuses", {
+            status: "deploying",
+            started_at: "2024-01-01T00:00:00.000000Z",
+          });
+        }
+        throw new Error("Not found");
+      }
+      if (url.includes("/deployments?") && url.includes("page")) {
+        return mockListDocument("deployments", [
+          {
+            id: 1,
+            attributes: {
+              commit: { hash: null, author: null, message: null, branch: null },
+              status: "finished",
+              type: "push",
+              started_at: "2024-01-01T00:00:00.000000Z",
+              ended_at: "2024-01-01T00:05:00.000000Z",
+              created_at: "2024-01-01T00:00:00.000000Z",
+              updated_at: "2024-01-01T00:05:00.000000Z",
+            },
+          },
+        ]);
+      }
+      if (url.includes("/deployments/") && url.includes("/log")) {
+        return mockDocument(1, "deployment-logs", { output: "log" });
+      }
+      throw new Error("Unexpected URL: " + url);
     });
 
     const onProgress = vi.fn();
 
     const ctx = createTestExecutorContext({
       client: { post: postMock, get: getMock } as never,
+      organizationSlug: "test-org",
     });
 
     const promise = deploySiteAndWait(
@@ -119,15 +187,39 @@ describe("deploySiteAndWait", () => {
   it("should return failed when timeout_ms is exceeded", async () => {
     const postMock = vi.fn(async () => undefined);
 
-    // Site always in "deploying" state (never finishes)
+    // Status always returns deploying (never finishes)
     const getMock = vi.fn(async (url: string) => {
-      if (url.endsWith("/deployment/log")) return "partial log";
-      if (url.endsWith("/deployments")) return { deployments: [{ id: 1, status: "deploying" }] };
-      return { site: { id: 456, deployment_status: "deploying" } };
+      if (url.includes("/deployments/status")) {
+        return mockDocument(1, "deployment-statuses", {
+          status: "deploying",
+          started_at: "2024-01-01T00:00:00.000000Z",
+        });
+      }
+      if (url.includes("/deployments?") && url.includes("page")) {
+        return mockListDocument("deployments", [
+          {
+            id: 1,
+            attributes: {
+              commit: { hash: null, author: null, message: null, branch: null },
+              status: "deploying",
+              type: "push",
+              started_at: "2024-01-01T00:00:00.000000Z",
+              ended_at: null,
+              created_at: "2024-01-01T00:00:00.000000Z",
+              updated_at: "2024-01-01T00:00:00.000000Z",
+            },
+          },
+        ]);
+      }
+      if (url.includes("/deployments/") && url.includes("/log")) {
+        return mockDocument(1, "deployment-logs", { output: "partial log" });
+      }
+      throw new Error("Unexpected URL: " + url);
     });
 
     const ctx = createTestExecutorContext({
       client: { post: postMock, get: getMock } as never,
+      organizationSlug: "test-org",
     });
 
     // Very short timeout
@@ -146,13 +238,34 @@ describe("deploySiteAndWait", () => {
     const postMock = vi.fn(async () => undefined);
 
     const getMock = vi.fn(async (url: string) => {
-      if (url.endsWith("/deployment/log")) throw new Error("log not available");
-      if (url.endsWith("/deployments")) return { deployments: [{ id: 1, status: "finished" }] };
-      return { site: { id: 456, deployment_status: null } };
+      if (url.includes("/deployments/status")) {
+        throw new Error("Not found"); // Done immediately
+      }
+      if (url.includes("/deployments?") && url.includes("page")) {
+        return mockListDocument("deployments", [
+          {
+            id: 1,
+            attributes: {
+              commit: { hash: null, author: null, message: null, branch: null },
+              status: "finished",
+              type: "push",
+              started_at: "2024-01-01T00:00:00.000000Z",
+              ended_at: "2024-01-01T00:05:00.000000Z",
+              created_at: "2024-01-01T00:00:00.000000Z",
+              updated_at: "2024-01-01T00:05:00.000000Z",
+            },
+          },
+        ]);
+      }
+      if (url.includes("/deployments/") && url.includes("/log")) {
+        throw new Error("log not available");
+      }
+      throw new Error("Unexpected URL: " + url);
     });
 
     const ctx = createTestExecutorContext({
       client: { post: postMock, get: getMock } as never,
+      organizationSlug: "test-org",
     });
 
     const promise = deploySiteAndWait(
@@ -171,13 +284,18 @@ describe("deploySiteAndWait", () => {
     const postMock = vi.fn(async () => undefined);
 
     const getMock = vi.fn(async (url: string) => {
-      if (url.endsWith("/deployment/log")) return "some log";
-      if (url.endsWith("/deployments")) throw new Error("not available");
-      return { site: { id: 456, deployment_status: null } };
+      if (url.includes("/deployments/status")) {
+        throw new Error("Not found"); // Done immediately
+      }
+      if (url.includes("/deployments?") && url.includes("page")) {
+        throw new Error("not available");
+      }
+      throw new Error("Unexpected URL: " + url);
     });
 
     const ctx = createTestExecutorContext({
       client: { post: postMock, get: getMock } as never,
+      organizationSlug: "test-org",
     });
 
     const promise = deploySiteAndWait(

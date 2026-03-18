@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
-import type { ForgeSite } from "@studiometa/forge-api";
+import type { SiteAttributes } from "@studiometa/forge-api";
 
 import { createTestContext } from "../../context.ts";
 import { sitesList, sitesGet } from "./handlers.ts";
@@ -10,35 +10,33 @@ vi.mock("@studiometa/forge-core", () => ({
   getSite: vi.fn(),
 }));
 
-const mockSite: ForgeSite = {
+const mockSite: SiteAttributes & { id: number } = {
   id: 1,
-  server_id: 10,
   name: "example.com",
   aliases: [],
-  directory: "/public",
+  root_directory: "/public",
+  web_directory: "/public",
   wildcards: false,
   status: "installed",
   repository: null,
-  repository_provider: null,
-  repository_branch: null,
-  repository_status: null,
   quick_deploy: false,
   deployment_status: null,
-  project_type: "php",
-  php_version: "php83",
-  app: null,
-  app_status: null,
-  slack_channel: null,
-  telegram_chat_id: null,
-  telegram_chat_title: null,
-  username: "forge",
   deployment_url: "https://forge.laravel.com/deploy/xxx",
+  app_type: "php",
+  php_version: "php83",
+  url: "https://example.com",
+  https: false,
+  isolated: false,
+  user: "forge",
+  database: null,
+  shared_paths: [],
+  uses_envoyer: false,
+  zero_downtime_deployments: false,
+  maintenance_mode: false,
+  healthcheck_url: null,
+  deployment_script: null,
   created_at: "2024-01-01T00:00:00Z",
-  telegram_secret: "",
-  tags: [],
-  is_secured: false,
-  discord_webhook_url: null,
-  teams_webhook_url: null,
+  updated_at: "2024-01-01T00:00:00Z",
 };
 
 describe("sitesList", () => {

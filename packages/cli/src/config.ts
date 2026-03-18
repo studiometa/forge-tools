@@ -31,4 +31,11 @@ export function getConfig(
   };
 }
 
-export { createConfigStore, getToken, setToken, deleteToken } from "@studiometa/forge-api";
+export {
+  createConfigStore,
+  getToken,
+  setToken,
+  deleteToken,
+  getOrganizationSlug,
+  setOrganizationSlug,
+} from "@studiometa/forge-api";

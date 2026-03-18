@@ -1,4 +1,5 @@
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
+import { sitePath } from "../../utils/url-builder.ts";
 
 import type { DeleteRedirectRuleOptions } from "./types.ts";
 
@@ -7,7 +8,7 @@ export async function deleteRedirectRule(
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<void>> {
   await ctx.client.delete(
-    `/servers/${options.server_id}/sites/${options.site_id}/redirect-rules/${options.id}`,
+    `${sitePath(options.server_id, options.site_id, ctx)}/redirect-rules/${options.id}`,
   );
 
   return {

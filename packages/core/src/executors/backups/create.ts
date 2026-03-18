@@ -1,5 +1,5 @@
-import type { BackupConfigResponse, ForgeBackupConfig } from "@studiometa/forge-api";
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
+import { serverPath } from "../../utils/url-builder.ts";
 
 import type { CreateBackupConfigOptions } from "./types.ts";
 
@@ -9,15 +9,9 @@ import type { CreateBackupConfigOptions } from "./types.ts";
 export async function createBackupConfig(
   options: CreateBackupConfigOptions,
   ctx: ExecutorContext,
-): Promise<ExecutorResult<ForgeBackupConfig>> {
+): Promise<ExecutorResult<void>> {
   const { server_id, ...data } = options;
-  const response = await ctx.client.post<BackupConfigResponse>(
-    `/servers/${server_id}/backup-configs`,
-    data,
-  );
-  const backup = response.backup;
+  await ctx.client.post(`${serverPath(server_id, ctx)}/database/backups`, data);
 
-  return {
-    data: backup,
-  };
+  return { data: undefined };
 }

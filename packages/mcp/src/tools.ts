@@ -333,7 +333,7 @@ export const STDIO_ONLY_TOOLS: Tool[] = [
     name: "forge_configure",
     title: "Configure Forge",
     description:
-      "Configure Laravel Forge API token. The token is stored locally in the XDG config directory.",
+      "Configure Laravel Forge API credentials. The token is stored locally in the XDG config directory.",
     annotations: {
       title: "Configure Forge",
       readOnlyHint: false,
@@ -345,8 +345,12 @@ export const STDIO_ONLY_TOOLS: Tool[] = [
       type: "object" as const,
       properties: {
         apiToken: { type: "string" as const, description: "Your Laravel Forge API token" },
+        organizationSlug: {
+          type: "string" as const,
+          description:
+            "Default organization slug (e.g. 'studio-meta'). Required for all API calls.",
+        },
       },
-      required: ["apiToken"],
     },
     outputSchema: {
       type: "object" as const,
@@ -354,6 +358,7 @@ export const STDIO_ONLY_TOOLS: Tool[] = [
         success: { type: "boolean" as const },
         message: { type: "string" as const, description: "Confirmation message" },
         apiToken: { type: "string" as const, description: "Masked API token (last 4 chars)" },
+        organizationSlug: { type: "string" as const, description: "Organization slug" },
       },
       required: ["success"],
     },

@@ -76,7 +76,7 @@ export async function commandsCreate(ctx: CommandContext): Promise<void> {
     const execCtx = ctx.createExecutorContext(token);
     const server_id = await resolveServerId(server, execCtx);
     const site_id = await resolveSiteId(site, server_id, execCtx);
-    const result = await createCommand({ server_id, site_id, command }, execCtx);
-    ctx.formatter.outputOne(result.data, ["id", "command", "status", "created_at"]);
+    await createCommand({ server_id, site_id, command }, execCtx);
+    ctx.formatter.success("Command queued for execution.");
   }, ctx.formatter);
 }

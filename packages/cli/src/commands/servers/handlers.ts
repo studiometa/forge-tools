@@ -30,7 +30,7 @@ export async function serversList(ctx: CommandContext): Promise<void> {
       }
       for (const server of result.data) {
         console.log(
-          `${String(server.id).padEnd(8)} ${server.name.padEnd(30)} ${server.ip_address.padEnd(16)} ${server.is_ready ? "ready" : "provisioning"}`,
+          `${String(server.id).padEnd(8)} ${server.name.padEnd(30)} ${(server.ip_address ?? "—").padEnd(16)} ${server.is_ready ? "ready" : "provisioning"}`,
         );
       }
     }

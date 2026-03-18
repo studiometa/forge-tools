@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
-import type { ForgeCertificate } from "@studiometa/forge-api";
+import type { CertificateAttributes } from "@studiometa/forge-api";
 
 import { createTestContext } from "../../context.ts";
 import { certificatesList, certificatesGet, certificatesActivate } from "./handlers.ts";
@@ -11,17 +11,16 @@ vi.mock("@studiometa/forge-core", () => ({
   activateCertificate: vi.fn(),
 }));
 
-const mockCert: ForgeCertificate = {
+const mockCert: CertificateAttributes & { id: number } = {
   id: 1,
-  server_id: 10,
-  site_id: 100,
   domain: "example.com",
   request_status: "complete",
   status: "installed",
   type: "letsencrypt",
-  created_at: "2024-01-01T00:00:00Z",
   existing: false,
   active: true,
+  created_at: "2024-01-01T00:00:00Z",
+  updated_at: "2024-01-01T00:00:00Z",
 };
 
 describe("certificatesList", () => {

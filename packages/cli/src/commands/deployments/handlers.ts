@@ -33,10 +33,10 @@ export async function deploymentsList(ctx: CommandContext): Promise<void> {
     const result = await listDeployments({ server_id, site_id }, execCtx);
     ctx.formatter.outputList(
       result.data,
-      ["id", "status", "commit_hash", "started_at"],
+      ["id", "status", "commit", "started_at"],
       "No deployments found.",
       (d) =>
-        `${String(d.id).padEnd(8)} ${d.status.padEnd(12)} ${(d.commit_hash ?? "—").padEnd(10)} ${d.started_at}`,
+        `${String(d.id).padEnd(8)} ${d.status.padEnd(12)} ${(d.commit.hash ?? "—").padEnd(10)} ${d.started_at}`,
     );
   }, ctx.formatter);
 }

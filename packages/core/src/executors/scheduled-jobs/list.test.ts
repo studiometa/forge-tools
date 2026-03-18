@@ -1,26 +1,30 @@
 import { describe, expect, it } from "vitest";
 
-import type { ScheduledJobsResponse } from "@studiometa/forge-api";
-
+import { mockListDocument } from "../../test-helpers.ts";
 import { createTestExecutorContext } from "../../context.ts";
 import { listScheduledJobs } from "./list.ts";
 
 describe("listScheduledJobs", () => {
   it("should list scheduled jobs and format output", async () => {
-    const jobs = [
-      {
-        id: 1,
-        command: "php artisan schedule:run",
-        frequency: "minutely",
-        status: "installed",
-        user: "forge",
-      },
-    ];
+    const getMock = async () =>
+      mockListDocument("scheduled-jobs", [
+        {
+          id: 1,
+          attributes: {
+            command: "php artisan schedule:run",
+            user: "forge",
+            frequency: "minutely",
+            cron: "* * * * *",
+            status: "installed",
+            created_at: "2024-01-01T00:00:00.000000Z",
+            updated_at: "2024-01-01T00:00:00.000000Z",
+          },
+        },
+      ]);
 
     const ctx = createTestExecutorContext({
-      client: {
-        get: async () => ({ jobs }) as ScheduledJobsResponse,
-      } as never,
+      client: { get: getMock } as never,
+      organizationSlug: "test-org",
     });
 
     const result = await listScheduledJobs({ server_id: "1" }, ctx);
@@ -30,7 +34,8 @@ describe("listScheduledJobs", () => {
 
   it("should handle empty list", async () => {
     const ctx = createTestExecutorContext({
-      client: { get: async () => ({ jobs: [] }) } as never,
+      client: { get: async () => mockListDocument("scheduled-jobs", []) } as never,
+      organizationSlug: "test-org",
     });
 
     const result = await listScheduledJobs({ server_id: "1" }, ctx);

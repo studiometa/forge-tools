@@ -1,40 +1,34 @@
 import { describe, expect, it } from "vitest";
 
+import { mockDocument, mockListDocument } from "@studiometa/forge-core";
+
 import type { HandlerContext } from "./types.ts";
 
 import { handleSshKeys } from "./ssh-keys.ts";
 
+function makeKeyAttrs(overrides: Record<string, unknown> = {}) {
+  return {
+    name: "deploy-key",
+    fingerprint: null,
+    status: "installed",
+    created_at: "2024-01-01",
+    updated_at: "2024-01-01",
+    ...overrides,
+  };
+}
+
 function createMockContext(): HandlerContext {
   return {
     executorContext: {
+      organizationSlug: "test-org",
       client: {
-        get: async () => ({
-          keys: [
-            {
-              id: 1,
-              name: "deploy-key",
-              status: "installed",
-              server_id: 1,
-              created_at: "2024-01-01",
-            },
-          ],
-          key: {
-            id: 1,
-            name: "deploy-key",
-            status: "installed",
-            server_id: 1,
-            created_at: "2024-01-01",
-          },
-        }),
-        post: async () => ({
-          key: {
-            id: 2,
-            name: "ci-key",
-            status: "installing",
-            server_id: 1,
-            created_at: "2024-01-01",
-          },
-        }),
+        get: async (url: string) => {
+          if (url.match(/\/ssh-keys\/\d+$/)) {
+            return mockDocument(1, "ssh-keys", makeKeyAttrs());
+          }
+          return mockListDocument("ssh-keys", [{ id: 1, attributes: makeKeyAttrs() as never }]);
+        },
+        post: async () => undefined,
         delete: async () => undefined,
       } as never,
     },
@@ -76,7 +70,7 @@ describe("handleSshKeys", () => {
       createMockContext(),
     );
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("ci-key");
+    expect(result.content[0]!.text).toContain("Done");
   });
 
   it("should delete an SSH key", async () => {

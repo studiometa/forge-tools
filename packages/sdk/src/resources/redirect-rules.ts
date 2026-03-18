@@ -1,10 +1,12 @@
 import type {
   CreateRedirectRuleData,
-  ForgeRedirectRule,
   HttpClient,
-  RedirectRuleResponse,
-  RedirectRulesResponse,
+  JsonApiDocument,
+  JsonApiListDocument,
+  RedirectRuleAttributes,
 } from "@studiometa/forge-api";
+
+import { unwrapDocument, unwrapListDocument } from "@studiometa/forge-api";
 
 import { BaseCollection } from "./base.ts";
 import { AsyncPaginatedIterator } from "../pagination.ts";
@@ -13,8 +15,8 @@ import { AsyncPaginatedIterator } from "../pagination.ts";
  * Options for listing redirect rules.
  */
 export interface RedirectRuleListOptions {
-  /** Page number to fetch (1-indexed). */
-  page?: number;
+  /** Cursor for pagination (from previous response's next_cursor). */
+  cursor?: string;
 }
 
 /**
@@ -31,14 +33,15 @@ export class RedirectRulesCollection extends BaseCollection {
   /** @internal */
   constructor(
     client: HttpClient,
+    orgSlug: string,
     private readonly serverId: number,
     private readonly siteId: number,
   ) {
-    super(client);
+    super(client, orgSlug);
   }
 
   private get basePath(): string {
-    return `/servers/${this.serverId}/sites/${this.siteId}/redirect-rules`;
+    return `/orgs/${this.orgSlug}/servers/${this.serverId}/sites/${this.siteId}/redirect-rules`;
   }
 
   /**
@@ -48,14 +51,18 @@ export class RedirectRulesCollection extends BaseCollection {
    * ```ts
    * const rules = await forge.server(123).site(456).redirectRules.list();
    *
-   * // Fetch a specific page:
-   * const page2 = await forge.server(123).site(456).redirectRules.list({ page: 2 });
+   * // Fetch a specific cursor page:
+   * const page2 = await forge.server(123).site(456).redirectRules.list({ cursor: 'next-cursor-value' });
    * ```
    */
-  async list(options: RedirectRuleListOptions = {}): Promise<ForgeRedirectRule[]> {
-    const query = options.page !== undefined ? `?page=${options.page}` : "";
-    const response = await this.client.get<RedirectRulesResponse>(`${this.basePath}${query}`);
-    return response.redirect_rules;
+  async list(
+    options: RedirectRuleListOptions = {},
+  ): Promise<Array<RedirectRuleAttributes & { id: number }>> {
+    const query = options.cursor !== undefined ? `?page[cursor]=${options.cursor}` : "";
+    const response = await this.client.get<JsonApiListDocument<RedirectRuleAttributes>>(
+      `${this.basePath}${query}`,
+    );
+    return unwrapListDocument(response);
   }
 
   /**
@@ -71,10 +78,17 @@ export class RedirectRulesCollection extends BaseCollection {
    * const rules = await forge.server(123).site(456).redirectRules.all().toArray();
    * ```
    */
-  all(
-    options: Omit<RedirectRuleListOptions, "page"> = {},
-  ): AsyncPaginatedIterator<ForgeRedirectRule> {
-    return new AsyncPaginatedIterator<ForgeRedirectRule>((page) => this.list({ ...options, page }));
+  all(): AsyncPaginatedIterator<RedirectRuleAttributes & { id: number }> {
+    return new AsyncPaginatedIterator<RedirectRuleAttributes & { id: number }>(async (cursor) => {
+      const query = cursor !== null ? `?page[cursor]=${cursor}` : "";
+      const response = await this.client.get<JsonApiListDocument<RedirectRuleAttributes>>(
+        `${this.basePath}${query}`,
+      );
+      return {
+        items: unwrapListDocument(response),
+        nextCursor: response.meta.next_cursor ?? null,
+      };
+    });
   }
 
   /**
@@ -85,9 +99,11 @@ export class RedirectRulesCollection extends BaseCollection {
    * const rule = await forge.server(123).site(456).redirectRules.get(789);
    * ```
    */
-  async get(ruleId: number): Promise<ForgeRedirectRule> {
-    const response = await this.client.get<RedirectRuleResponse>(`${this.basePath}/${ruleId}`);
-    return response.redirect_rule;
+  async get(ruleId: number): Promise<RedirectRuleAttributes & { id: number }> {
+    const response = await this.client.get<JsonApiDocument<RedirectRuleAttributes>>(
+      `${this.basePath}/${ruleId}`,
+    );
+    return unwrapDocument(response);
   }
 
   /**
@@ -102,9 +118,12 @@ export class RedirectRulesCollection extends BaseCollection {
    * });
    * ```
    */
-  async create(data: CreateRedirectRuleData): Promise<ForgeRedirectRule> {
-    const response = await this.client.post<RedirectRuleResponse>(this.basePath, data);
-    return response.redirect_rule;
+  async create(data: CreateRedirectRuleData): Promise<RedirectRuleAttributes & { id: number }> {
+    const response = await this.client.post<JsonApiDocument<RedirectRuleAttributes>>(
+      this.basePath,
+      data,
+    );
+    return unwrapDocument(response);
   }
 
   /**

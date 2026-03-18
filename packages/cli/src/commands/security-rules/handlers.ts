@@ -62,7 +62,7 @@ export async function securityRulesGet(args: string[], ctx: CommandContext): Pro
     const server_id = await resolveServerId(server, execCtx);
     const site_id = await resolveSiteId(site, server_id, execCtx);
     const result = await getSecurityRule({ server_id, site_id, id }, execCtx);
-    ctx.formatter.outputOne(result.data, ["id", "name", "path", "credentials", "created_at"]);
+    ctx.formatter.outputOne(result.data, ["id", "name", "path", "created_at"]);
   }, ctx.formatter);
 }
 

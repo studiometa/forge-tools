@@ -1,10 +1,12 @@
 import type {
   CreateSshKeyData,
-  ForgeSshKey,
   HttpClient,
-  SshKeyResponse,
-  SshKeysResponse,
+  JsonApiDocument,
+  JsonApiListDocument,
+  SshKeyAttributes,
 } from "@studiometa/forge-api";
+
+import { unwrapDocument, unwrapListDocument } from "@studiometa/forge-api";
 
 import { BaseCollection } from "./base.ts";
 import { AsyncPaginatedIterator } from "../pagination.ts";
@@ -13,8 +15,8 @@ import { AsyncPaginatedIterator } from "../pagination.ts";
  * Options for listing SSH keys.
  */
 export interface SshKeyListOptions {
-  /** Page number to fetch (1-indexed). */
-  page?: number;
+  /** Cursor for pagination (from previous response's next_cursor). */
+  cursor?: string;
 }
 
 /**
@@ -31,13 +33,14 @@ export class SshKeysCollection extends BaseCollection {
   /** @internal */
   constructor(
     client: HttpClient,
+    orgSlug: string,
     private readonly serverId: number,
   ) {
-    super(client);
+    super(client, orgSlug);
   }
 
   private get basePath(): string {
-    return `/servers/${this.serverId}/keys`;
+    return `/orgs/${this.orgSlug}/servers/${this.serverId}/ssh-keys`;
   }
 
   /**
@@ -47,14 +50,16 @@ export class SshKeysCollection extends BaseCollection {
    * ```ts
    * const keys = await forge.server(123).sshKeys.list();
    *
-   * // Fetch a specific page:
-   * const page2 = await forge.server(123).sshKeys.list({ page: 2 });
+   * // Fetch a specific cursor page:
+   * const page2 = await forge.server(123).sshKeys.list({ cursor: 'next-cursor-value' });
    * ```
    */
-  async list(options: SshKeyListOptions = {}): Promise<ForgeSshKey[]> {
-    const query = options.page !== undefined ? `?page=${options.page}` : "";
-    const response = await this.client.get<SshKeysResponse>(`${this.basePath}${query}`);
-    return response.keys;
+  async list(options: SshKeyListOptions = {}): Promise<Array<SshKeyAttributes & { id: number }>> {
+    const query = options.cursor !== undefined ? `?page[cursor]=${options.cursor}` : "";
+    const response = await this.client.get<JsonApiListDocument<SshKeyAttributes>>(
+      `${this.basePath}${query}`,
+    );
+    return unwrapListDocument(response);
   }
 
   /**
@@ -70,8 +75,17 @@ export class SshKeysCollection extends BaseCollection {
    * const keys = await forge.server(123).sshKeys.all().toArray();
    * ```
    */
-  all(options: Omit<SshKeyListOptions, "page"> = {}): AsyncPaginatedIterator<ForgeSshKey> {
-    return new AsyncPaginatedIterator<ForgeSshKey>((page) => this.list({ ...options, page }));
+  all(): AsyncPaginatedIterator<SshKeyAttributes & { id: number }> {
+    return new AsyncPaginatedIterator<SshKeyAttributes & { id: number }>(async (cursor) => {
+      const query = cursor !== null ? `?page[cursor]=${cursor}` : "";
+      const response = await this.client.get<JsonApiListDocument<SshKeyAttributes>>(
+        `${this.basePath}${query}`,
+      );
+      return {
+        items: unwrapListDocument(response),
+        nextCursor: response.meta.next_cursor ?? null,
+      };
+    });
   }
 
   /**
@@ -82,9 +96,11 @@ export class SshKeysCollection extends BaseCollection {
    * const key = await forge.server(123).sshKeys.get(789);
    * ```
    */
-  async get(keyId: number): Promise<ForgeSshKey> {
-    const response = await this.client.get<SshKeyResponse>(`${this.basePath}/${keyId}`);
-    return response.key;
+  async get(keyId: number): Promise<SshKeyAttributes & { id: number }> {
+    const response = await this.client.get<JsonApiDocument<SshKeyAttributes>>(
+      `${this.basePath}/${keyId}`,
+    );
+    return unwrapDocument(response);
   }
 
   /**
@@ -98,9 +114,9 @@ export class SshKeysCollection extends BaseCollection {
    * });
    * ```
    */
-  async create(data: CreateSshKeyData): Promise<ForgeSshKey> {
-    const response = await this.client.post<SshKeyResponse>(this.basePath, data);
-    return response.key;
+  async create(data: CreateSshKeyData): Promise<SshKeyAttributes & { id: number }> {
+    const response = await this.client.post<JsonApiDocument<SshKeyAttributes>>(this.basePath, data);
+    return unwrapDocument(response);
   }
 
   /**

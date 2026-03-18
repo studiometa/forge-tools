@@ -1,38 +1,43 @@
 import { describe, expect, it } from "vitest";
 
+import { mockDocument, mockListDocument } from "@studiometa/forge-core";
+
 import type { HandlerContext } from "./types.ts";
 
 import { handleScheduledJobs } from "./scheduled-jobs.ts";
 
+function makeJobAttrs(overrides: Record<string, unknown> = {}) {
+  return {
+    command: "php artisan schedule:run",
+    user: "forge",
+    frequency: "minutely",
+    cron: "* * * * *",
+    status: "running",
+    created_at: "2024-01-01",
+    updated_at: "2024-01-01",
+    ...overrides,
+  };
+}
+
 function createMockContext(): HandlerContext {
   return {
     executorContext: {
+      organizationSlug: "test-org",
       client: {
-        get: async () => ({
-          jobs: [
-            {
-              id: 1,
-              command: "php artisan schedule:run",
-              frequency: "minutely",
-              status: "installed",
-              user: "forge",
-              cron: "* * * * *",
-              created_at: "2024-01-01",
-            },
-          ],
-          job: {
-            id: 1,
-            command: "php artisan schedule:run",
-            frequency: "minutely",
-            status: "installed",
-            user: "forge",
-            cron: "* * * * *",
-            created_at: "2024-01-01",
-          },
-        }),
-        post: async () => ({
-          job: { id: 2, command: "php artisan inspire", frequency: "daily" },
-        }),
+        get: async (url: string) => {
+          if (url.match(/\/scheduled-jobs\/\d+$/)) {
+            return mockDocument(1, "scheduled-jobs", makeJobAttrs());
+          }
+          return mockListDocument("scheduled-jobs", [
+            { id: 1, attributes: makeJobAttrs() as never },
+          ]);
+        },
+        post: async () =>
+          mockDocument(
+            2,
+            "scheduled-jobs",
+            makeJobAttrs({ command: "php artisan inspire", frequency: "daily" }),
+          ),
         delete: async () => undefined,
       } as never,
     },

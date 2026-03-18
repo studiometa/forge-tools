@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 
+import { mockDocument } from "@studiometa/forge-core";
+
 import type { HandlerContext } from "./types.ts";
 
 import { handleEnv } from "./env.ts";
@@ -7,8 +9,10 @@ import { handleEnv } from "./env.ts";
 function createMockContext(): HandlerContext {
   return {
     executorContext: {
+      organizationSlug: "test-org",
       client: {
-        get: async () => "APP_ENV=production\nAPP_KEY=abc123",
+        get: async () =>
+          mockDocument(1, "environments", { content: "APP_ENV=production\nAPP_KEY=abc123" }),
         put: async () => ({}),
       } as never,
     },

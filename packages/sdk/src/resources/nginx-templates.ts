@@ -1,10 +1,12 @@
 import type {
   CreateNginxTemplateData,
-  ForgeNginxTemplate,
   HttpClient,
-  NginxTemplateResponse,
-  NginxTemplatesResponse,
+  JsonApiDocument,
+  JsonApiListDocument,
+  NginxTemplateAttributes,
 } from "@studiometa/forge-api";
+
+import { unwrapDocument, unwrapListDocument } from "@studiometa/forge-api";
 
 import { BaseCollection } from "./base.ts";
 import { AsyncPaginatedIterator } from "../pagination.ts";
@@ -13,8 +15,8 @@ import { AsyncPaginatedIterator } from "../pagination.ts";
  * Options for listing Nginx templates.
  */
 export interface NginxTemplateListOptions {
-  /** Page number to fetch (1-indexed). */
-  page?: number;
+  /** Cursor for pagination (from previous response's next_cursor). */
+  cursor?: string;
 }
 
 /**
@@ -31,13 +33,14 @@ export class NginxTemplatesCollection extends BaseCollection {
   /** @internal */
   constructor(
     client: HttpClient,
+    orgSlug: string,
     private readonly serverId: number,
   ) {
-    super(client);
+    super(client, orgSlug);
   }
 
   private get basePath(): string {
-    return `/servers/${this.serverId}/nginx/templates`;
+    return `/orgs/${this.orgSlug}/servers/${this.serverId}/nginx/templates`;
   }
 
   /**
@@ -47,14 +50,18 @@ export class NginxTemplatesCollection extends BaseCollection {
    * ```ts
    * const templates = await forge.server(123).nginxTemplates.list();
    *
-   * // Fetch a specific page:
-   * const page2 = await forge.server(123).nginxTemplates.list({ page: 2 });
+   * // Fetch a specific cursor page:
+   * const page2 = await forge.server(123).nginxTemplates.list({ cursor: 'next-cursor-value' });
    * ```
    */
-  async list(options: NginxTemplateListOptions = {}): Promise<ForgeNginxTemplate[]> {
-    const query = options.page !== undefined ? `?page=${options.page}` : "";
-    const response = await this.client.get<NginxTemplatesResponse>(`${this.basePath}${query}`);
-    return response.templates;
+  async list(
+    options: NginxTemplateListOptions = {},
+  ): Promise<Array<NginxTemplateAttributes & { id: number }>> {
+    const query = options.cursor !== undefined ? `?page[cursor]=${options.cursor}` : "";
+    const response = await this.client.get<JsonApiListDocument<NginxTemplateAttributes>>(
+      `${this.basePath}${query}`,
+    );
+    return unwrapListDocument(response);
   }
 
   /**
@@ -70,12 +77,17 @@ export class NginxTemplatesCollection extends BaseCollection {
    * const templates = await forge.server(123).nginxTemplates.all().toArray();
    * ```
    */
-  all(
-    options: Omit<NginxTemplateListOptions, "page"> = {},
-  ): AsyncPaginatedIterator<ForgeNginxTemplate> {
-    return new AsyncPaginatedIterator<ForgeNginxTemplate>((page) =>
-      this.list({ ...options, page }),
-    );
+  all(): AsyncPaginatedIterator<NginxTemplateAttributes & { id: number }> {
+    return new AsyncPaginatedIterator<NginxTemplateAttributes & { id: number }>(async (cursor) => {
+      const query = cursor !== null ? `?page[cursor]=${cursor}` : "";
+      const response = await this.client.get<JsonApiListDocument<NginxTemplateAttributes>>(
+        `${this.basePath}${query}`,
+      );
+      return {
+        items: unwrapListDocument(response),
+        nextCursor: response.meta.next_cursor ?? null,
+      };
+    });
   }
 
   /**
@@ -86,9 +98,11 @@ export class NginxTemplatesCollection extends BaseCollection {
    * const template = await forge.server(123).nginxTemplates.get(789);
    * ```
    */
-  async get(templateId: number): Promise<ForgeNginxTemplate> {
-    const response = await this.client.get<NginxTemplateResponse>(`${this.basePath}/${templateId}`);
-    return response.template;
+  async get(templateId: number): Promise<NginxTemplateAttributes & { id: number }> {
+    const response = await this.client.get<JsonApiDocument<NginxTemplateAttributes>>(
+      `${this.basePath}/${templateId}`,
+    );
+    return unwrapDocument(response);
   }
 
   /**
@@ -102,9 +116,12 @@ export class NginxTemplatesCollection extends BaseCollection {
    * });
    * ```
    */
-  async create(data: CreateNginxTemplateData): Promise<ForgeNginxTemplate> {
-    const response = await this.client.post<NginxTemplateResponse>(this.basePath, data);
-    return response.template;
+  async create(data: CreateNginxTemplateData): Promise<NginxTemplateAttributes & { id: number }> {
+    const response = await this.client.post<JsonApiDocument<NginxTemplateAttributes>>(
+      this.basePath,
+      data,
+    );
+    return unwrapDocument(response);
   }
 
   /**
@@ -121,12 +138,12 @@ export class NginxTemplatesCollection extends BaseCollection {
   async update(
     templateId: number,
     data: Partial<CreateNginxTemplateData>,
-  ): Promise<ForgeNginxTemplate> {
-    const response = await this.client.put<NginxTemplateResponse>(
+  ): Promise<NginxTemplateAttributes & { id: number }> {
+    const response = await this.client.put<JsonApiDocument<NginxTemplateAttributes>>(
       `${this.basePath}/${templateId}`,
       data,
     );
-    return response.template;
+    return unwrapDocument(response);
   }
 
   /**

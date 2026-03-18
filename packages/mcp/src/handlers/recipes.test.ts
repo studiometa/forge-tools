@@ -1,34 +1,46 @@
 import { describe, expect, it } from "vitest";
 
+import { mockDocument, mockListDocument } from "@studiometa/forge-core";
+
 import type { HandlerContext } from "./types.ts";
 
 import { handleRecipes } from "./recipes.ts";
 
+function makeRecipeAttrs(overrides: Record<string, unknown> = {}) {
+  return {
+    name: "deploy",
+    user: "root",
+    script: "cd /app && npm install",
+    created_at: "2024-01-01",
+    updated_at: "2024-01-01",
+    ...overrides,
+  };
+}
+
 function createMockContext(): HandlerContext {
   return {
     executorContext: {
+      organizationSlug: "test-org",
       client: {
-        get: async () => ({
-          recipes: [
-            { id: 1, name: "deploy", user: "root", script: "cd /app", created_at: "2024-01-01" },
-          ],
-          recipe: {
-            id: 1,
-            name: "deploy",
-            user: "root",
-            script: "cd /app && npm install",
-            created_at: "2024-01-01",
-          },
-        }),
-        post: async () => ({
-          recipe: {
-            id: 2,
-            name: "cleanup",
-            user: "forge",
-            script: "rm -rf /tmp/*",
-            created_at: "2024-01-01",
-          },
-        }),
+        get: async (url: string) => {
+          if (url.match(/\/recipes\/\d+$/)) {
+            return mockDocument(1, "recipes", makeRecipeAttrs());
+          }
+          return mockListDocument("recipes", [
+            { id: 1, attributes: makeRecipeAttrs({ script: "cd /app" }) as never },
+          ]);
+        },
+        post: async (url: string) => {
+          // run action posts to /run endpoint
+          if (url.endsWith("/run")) {
+            return {};
+          }
+          return mockDocument(
+            2,
+            "recipes",
+            makeRecipeAttrs({ name: "cleanup", user: "forge", script: "rm -rf /tmp/*" }),
+          );
+        },
         delete: async () => undefined,
       } as never,
     },

@@ -1,4 +1,5 @@
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
+import { sitePath } from "../../utils/url-builder.ts";
 
 import type { DeleteCertificateOptions } from "./types.ts";
 
@@ -10,7 +11,7 @@ export async function deleteCertificate(
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<void>> {
   await ctx.client.delete(
-    `/servers/${options.server_id}/sites/${options.site_id}/certificates/${options.id}`,
+    `${sitePath(options.server_id, options.site_id, ctx)}/certificates/${options.id}`,
   );
 
   return {

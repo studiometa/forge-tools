@@ -6,8 +6,6 @@ import {
   runRecipe,
 } from "@studiometa/forge-core";
 
-import type { ForgeRecipe } from "@studiometa/forge-api";
-
 import { formatRecipe, formatRecipeList } from "../formatters.ts";
 import { getRecipeHints } from "../hints.ts";
 import { createResourceHandler } from "./factory.ts";
@@ -32,11 +30,11 @@ export const handleRecipes = createResourceHandler({
   formatResult: (action, data, args) => {
     switch (action) {
       case "list":
-        return formatRecipeList(data as ForgeRecipe[]);
+        return formatRecipeList(data);
       case "get":
-        return formatRecipe(data as ForgeRecipe);
+        return formatRecipe(data);
       case "create":
-        return formatRecipe(data as ForgeRecipe);
+        return formatRecipe(data);
       case "delete":
         return `Recipe ${args.id} deleted.`;
       case "run": {

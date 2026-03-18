@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 
-import type { ForgeServer, ForgeSite } from "@studiometa/forge-api";
+import type { ServerAttributes, SiteAttributes } from "@studiometa/forge-api";
 
 import { resolveServerId, resolveSiteId } from "./resolve.ts";
 import { ValidationError } from "../errors.ts";
@@ -14,20 +14,19 @@ vi.mock("@studiometa/forge-core", async (importOriginal) => {
   };
 });
 
-const mockServer = (id: number, name: string): ForgeServer =>
+const mockServer = (id: number, name: string): ServerAttributes & { id: number } =>
   ({
     id,
     name,
     ip_address: "1.2.3.4",
     is_ready: true,
-  }) as ForgeServer;
+  }) as ServerAttributes & { id: number };
 
-const mockSite = (id: number, name: string): ForgeSite =>
+const mockSite = (id: number, name: string): SiteAttributes & { id: number } =>
   ({
     id,
-    server_id: 10,
     name,
-  }) as ForgeSite;
+  }) as SiteAttributes & { id: number };
 
 const execCtx = {} as never;
 

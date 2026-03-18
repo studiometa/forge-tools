@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 
+import { mockDocument, mockListDocument } from "@studiometa/forge-core";
+
 import type { HandlerContext } from "./types.ts";
 
 import { handleServers } from "./servers.ts";
@@ -7,22 +9,68 @@ import { handleServers } from "./servers.ts";
 function createMockContext(): HandlerContext {
   return {
     executorContext: {
+      organizationSlug: "test-org",
       client: {
-        get: async () => ({
-          servers: [],
-          server: {
+        get: async (url: string) => {
+          if (url.match(/\/servers\/\d+$/)) {
+            return mockDocument(1, "servers", {
+              id: 1,
+              name: "web-1",
+              provider: "ocean2",
+              region: "ams3",
+              ip_address: "1.2.3.4",
+              is_ready: true,
+              created_at: "2024-01-01",
+              updated_at: "2024-01-01",
+              php_version: "php83",
+              ubuntu_version: "22.04",
+              credential_id: null,
+              type: "app",
+              identifier: null,
+              size: "01",
+              php_cli_version: null,
+              opcache_status: null,
+              database_type: null,
+              db_status: null,
+              redis_status: null,
+              private_ip_address: null,
+              local_public_key: null,
+              revoked: false,
+              connection_status: "connected",
+              timezone: "UTC",
+              ssh_port: 22,
+            });
+          }
+          return mockListDocument("servers", []);
+        },
+        post: async () =>
+          mockDocument(1, "servers", {
             id: 1,
             name: "web-1",
             provider: "ocean2",
             region: "ams3",
-            ip_address: "1.2.3.4",
-            is_ready: true,
+            ip_address: null,
+            is_ready: false,
             created_at: "2024-01-01",
-            php_version: "php83",
-            ubuntu_version: "22.04",
-          },
-        }),
-        post: async () => ({ server: { id: 1, name: "web-1", is_ready: false } }),
+            updated_at: "2024-01-01",
+            php_version: null,
+            ubuntu_version: null,
+            credential_id: null,
+            type: "app",
+            identifier: null,
+            size: "01",
+            php_cli_version: null,
+            opcache_status: null,
+            database_type: null,
+            db_status: null,
+            redis_status: null,
+            private_ip_address: null,
+            local_public_key: null,
+            revoked: false,
+            connection_status: "connecting",
+            timezone: "UTC",
+            ssh_port: 22,
+          }),
         delete: async () => undefined,
       } as never,
     },
@@ -148,16 +196,49 @@ describe("handleServers", () => {
   it("should handle context action", async () => {
     const ctx: HandlerContext = {
       executorContext: {
+        organizationSlug: "test-org",
         client: {
           get: async (url: string) => {
-            if (url.match(/\/servers\/\d+\/sites$/)) return { sites: [] };
-            if (url.match(/\/servers\/\d+\/databases$/)) return { databases: [] };
-            if (url.match(/\/servers\/\d+\/database-users$/)) return { users: [] };
-            if (url.match(/\/servers\/\d+\/daemons$/)) return { daemons: [] };
-            if (url.match(/\/servers\/\d+\/firewall-rules$/)) return { rules: [] };
-            if (url.match(/\/servers\/\d+\/scheduled-jobs$/)) return { jobs: [] };
-            if (url.match(/\/servers\/\d+$/))
-              return { server: { id: 1, name: "web-1", is_ready: true } };
+            if (url.match(/\/orgs\/test-org\/servers\/\d+\/sites$/))
+              return mockListDocument("sites", []);
+            if (url.match(/\/orgs\/test-org\/servers\/\d+\/database\/schemas$/))
+              return mockListDocument("databases", []);
+            if (url.match(/\/orgs\/test-org\/servers\/\d+\/database\/users$/))
+              return mockListDocument("database-users", []);
+            if (url.match(/\/orgs\/test-org\/servers\/\d+\/background-processes$/))
+              return mockListDocument("background-processes", []);
+            if (url.match(/\/orgs\/test-org\/servers\/\d+\/firewall-rules$/))
+              return mockListDocument("firewall-rules", []);
+            if (url.match(/\/orgs\/test-org\/servers\/\d+\/scheduled-jobs$/))
+              return mockListDocument("scheduled-jobs", []);
+            if (url.match(/\/orgs\/test-org\/servers\/\d+$/))
+              return mockDocument(1, "servers", {
+                id: 1,
+                name: "web-1",
+                is_ready: true,
+                provider: "ocean2",
+                region: "ams3",
+                ip_address: "1.2.3.4",
+                created_at: "2024-01-01",
+                updated_at: "2024-01-01",
+                credential_id: null,
+                type: "app",
+                identifier: null,
+                size: "01",
+                ubuntu_version: null,
+                php_version: null,
+                php_cli_version: null,
+                opcache_status: null,
+                database_type: null,
+                db_status: null,
+                redis_status: null,
+                private_ip_address: null,
+                local_public_key: null,
+                revoked: false,
+                connection_status: "connected",
+                timezone: "UTC",
+                ssh_port: 22,
+              });
             return {};
           },
         } as never,
@@ -179,14 +260,14 @@ describe("handleServers", () => {
   it("should resolve servers by name (partial match)", async () => {
     const ctx: HandlerContext = {
       executorContext: {
+        organizationSlug: "test-org",
         client: {
-          get: async () => ({
-            servers: [
-              { id: 1, name: "prod-web-1" },
-              { id: 2, name: "prod-web-2" },
-              { id: 3, name: "staging-web-1" },
-            ],
-          }),
+          get: async () =>
+            mockListDocument("servers", [
+              { id: 1, attributes: { id: 1, name: "prod-web-1" } as never },
+              { id: 2, attributes: { id: 2, name: "prod-web-2" } as never },
+              { id: 3, attributes: { id: 3, name: "staging-web-1" } as never },
+            ]),
         } as never,
       },
       compact: true,
@@ -205,8 +286,12 @@ describe("handleServers", () => {
   it("should resolve servers — no matches", async () => {
     const ctx: HandlerContext = {
       executorContext: {
+        organizationSlug: "test-org",
         client: {
-          get: async () => ({ servers: [{ id: 1, name: "staging-web-1" }] }),
+          get: async () =>
+            mockListDocument("servers", [
+              { id: 1, attributes: { id: 1, name: "staging-web-1" } as never },
+            ]),
         } as never,
       },
       compact: true,
