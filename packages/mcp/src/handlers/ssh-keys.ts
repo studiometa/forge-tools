@@ -27,7 +27,7 @@ export const handleSshKeys = createResourceHandler({
       case "get":
         return formatSshKey(data);
       case "create":
-        return formatSshKey(data);
+        return "Done.";
       case "delete":
         return `SSH key ${args.id} deleted.`;
       /* v8 ignore next */

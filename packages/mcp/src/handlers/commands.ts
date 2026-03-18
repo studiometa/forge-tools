@@ -23,7 +23,7 @@ export const handleCommands = createResourceHandler({
       case "get":
         return formatCommand(data);
       case "create":
-        return formatCommand(data);
+        return "Done.";
       /* v8 ignore next */
       default:
         return "Done.";

@@ -28,12 +28,7 @@ function createMockContext(): HandlerContext {
           }
           return mockListDocument("commands", [{ id: 1, attributes: makeCommandAttrs() as never }]);
         },
-        post: async () =>
-          mockDocument(
-            2,
-            "commands",
-            makeCommandAttrs({ command: "php artisan cache:clear", status: "running" }),
-          ),
+        post: async () => undefined,
       } as never,
     },
     compact: true,
@@ -64,7 +59,7 @@ describe("handleCommands", () => {
       createMockContext(),
     );
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("cache:clear");
+    expect(result.content[0]!.text).toContain("Done");
   });
 
   it("should get a command", async () => {

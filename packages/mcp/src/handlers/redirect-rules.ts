@@ -30,7 +30,7 @@ export const handleRedirectRules = createResourceHandler({
       case "get":
         return formatRedirectRule(data);
       case "create":
-        return formatRedirectRule(data);
+        return "Done.";
       case "delete":
         return `Redirect rule ${args.id} deleted.`;
       /* v8 ignore next */

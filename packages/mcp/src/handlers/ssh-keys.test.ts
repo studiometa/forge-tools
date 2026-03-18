@@ -28,8 +28,7 @@ function createMockContext(): HandlerContext {
           }
           return mockListDocument("ssh-keys", [{ id: 1, attributes: makeKeyAttrs() as never }]);
         },
-        post: async () =>
-          mockDocument(2, "ssh-keys", makeKeyAttrs({ name: "ci-key", status: "installing" })),
+        post: async () => undefined,
         delete: async () => undefined,
       } as never,
     },
@@ -71,7 +70,7 @@ describe("handleSshKeys", () => {
       createMockContext(),
     );
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("ci-key");
+    expect(result.content[0]!.text).toContain("Done");
   });
 
   it("should delete an SSH key", async () => {

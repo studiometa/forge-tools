@@ -30,7 +30,7 @@ export const handleBackups = createResourceHandler({
       case "get":
         return formatBackupConfig(data);
       case "create":
-        return formatBackupConfig(data);
+        return "Done.";
       case "delete":
         return `Backup config ${args.id} deleted.`;
       /* v8 ignore next */

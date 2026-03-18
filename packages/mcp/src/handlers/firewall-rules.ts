@@ -32,7 +32,7 @@ export const handleFirewallRules = createResourceHandler({
       case "get":
         return formatFirewallRule(data);
       case "create":
-        return formatFirewallRule(data);
+        return "Done.";
       case "delete":
         return `Firewall rule ${args.id} deleted.`;
       /* v8 ignore next */

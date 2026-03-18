@@ -115,13 +115,13 @@ export class HttpClient {
         });
       }
 
-      // 204 No Content — return void
-      if (response.status === 204) {
+      // No content — 204 or 202 with empty/html body (async actions)
+      const contentType = response.headers.get("content-type");
+      if (response.status === 204 || (response.status === 202 && !contentType?.includes("json"))) {
         return undefined as T;
       }
 
-      // Parse response
-      const contentType = response.headers.get("content-type");
+      // Parse JSON:API or plain JSON response
       if (
         contentType?.includes("application/json") ||
         contentType?.includes("application/vnd.api+json")

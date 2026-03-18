@@ -108,18 +108,11 @@ export async function backupsCreate(ctx: CommandContext): Promise<void> {
     const token = ctx.getToken();
     const execCtx = ctx.createExecutorContext(token);
     const server_id = await resolveServerId(server, execCtx);
-    const result = await createBackupConfig(
+    await createBackupConfig(
       { server_id, provider, frequency, credentials: {}, databases },
       execCtx,
     );
-    ctx.formatter.outputOne(result.data, [
-      "id",
-      "provider",
-      "provider_name",
-      "frequency",
-      "retention",
-      "status",
-    ]);
+    ctx.formatter.success("Backup configuration created.");
   }, ctx.formatter);
 }
 

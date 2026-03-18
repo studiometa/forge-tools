@@ -130,7 +130,7 @@ describe("backupsCreate", () => {
 
   it("should create a backup configuration", async () => {
     const { createBackupConfig } = await import("@studiometa/forge-core");
-    vi.mocked(createBackupConfig).mockResolvedValue({ data: mockBackup });
+    vi.mocked(createBackupConfig).mockResolvedValue({ data: undefined });
 
     const ctx = createTestContext({
       token: "test",
@@ -139,7 +139,7 @@ describe("backupsCreate", () => {
     });
 
     await backupsCreate(ctx);
-    expect(vi.mocked(console.log)).toHaveBeenCalledWith(expect.stringContaining('"s3"'));
+    expect(vi.mocked(console.log)).toHaveBeenCalledWith(expect.stringContaining("created"));
   });
 
   it("should create with databases array", async () => {

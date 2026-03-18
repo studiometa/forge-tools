@@ -35,7 +35,7 @@ function createMockContext(): HandlerContext {
             { id: 1, attributes: makeBackupAttrs({ status: "installed" }) as never },
           ]);
         },
-        post: async () => mockDocument(1, "backup-configs", makeBackupAttrs()),
+        post: async () => undefined,
         delete: async () => undefined,
       } as never,
     },
@@ -89,7 +89,7 @@ describe("handleBackups", () => {
       createMockContext(),
     );
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("S3");
+    expect(result.content[0]!.text).toContain("Done");
   });
 
   it("should delete a backup config", async () => {

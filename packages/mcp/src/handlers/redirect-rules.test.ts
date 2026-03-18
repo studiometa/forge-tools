@@ -30,12 +30,7 @@ function createMockContext(): HandlerContext {
             { id: 1, attributes: makeRuleAttrs() as never },
           ]);
         },
-        post: async () =>
-          mockDocument(
-            2,
-            "redirect-rules",
-            makeRuleAttrs({ from: "/src", to: "/dst", type: "302" }),
-          ),
+        post: async () => undefined,
         delete: async () => undefined,
       } as never,
     },
@@ -78,7 +73,7 @@ describe("handleRedirectRules", () => {
       createMockContext(),
     );
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("/src");
+    expect(result.content[0]!.text).toContain("Done");
   });
 
   it("should delete a redirect rule", async () => {

@@ -32,12 +32,7 @@ function createMockContext(): HandlerContext {
             { id: 1, attributes: makeRuleAttrs() as never },
           ]);
         },
-        post: async () =>
-          mockDocument(
-            2,
-            "firewall-rules",
-            makeRuleAttrs({ name: "HTTP", port: 80, status: "creating" }),
-          ),
+        post: async () => undefined,
         delete: async () => undefined,
       } as never,
     },
@@ -73,7 +68,7 @@ describe("handleFirewallRules", () => {
       createMockContext(),
     );
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("HTTP");
+    expect(result.content[0]!.text).toContain("Done");
   });
 
   it("should delete a firewall rule", async () => {
