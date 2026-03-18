@@ -102,7 +102,7 @@ describe("SitesCollection", () => {
     const collection = new SitesCollection(client, ORG, 123);
 
     await collection.get(456);
-    expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers/123/sites/456`);
+    expect(calls[0]!.url).toContain(`/orgs/${ORG}/sites/456`);
   });
 
   it("should create a site", async () => {
@@ -227,7 +227,7 @@ describe("SiteResource", () => {
     const resource = new SiteResource(client, ORG, 123, 456);
 
     await resource.get();
-    expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers/123/sites/456`);
+    expect(calls[0]!.url).toContain(`/orgs/${ORG}/sites/456`);
   });
 
   it("should deploy site", async () => {

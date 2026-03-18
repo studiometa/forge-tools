@@ -105,7 +105,7 @@ export class SitesCollection extends BaseCollection {
    */
   async get(siteId: number): Promise<SiteAttributes & { id: number }> {
     const response = await this.client.get<JsonApiDocument<SiteAttributes>>(
-      `${this.basePath}/${siteId}`,
+      `/orgs/${this.orgSlug}/sites/${siteId}`,
     );
     return unwrapDocument(response);
   }
@@ -252,7 +252,9 @@ export class SiteResource extends BaseCollection {
    * ```
    */
   async get(): Promise<SiteAttributes & { id: number }> {
-    const response = await this.client.get<JsonApiDocument<SiteAttributes>>(this.basePath);
+    const response = await this.client.get<JsonApiDocument<SiteAttributes>>(
+      `/orgs/${this.orgSlug}/sites/${this.siteId}`,
+    );
     return unwrapDocument(response);
   }
 

@@ -53,7 +53,7 @@ function createMockContext(): HandlerContext {
           if (url.match(/\/orgs\/test-org\/servers\/\d+\/sites\/\d+\/security-rules$/))
             return mockListDocument("security-rules", []);
           // Site get (must come before server get)
-          if (url.match(/\/orgs\/test-org\/servers\/\d+\/sites\/\d+$/))
+          if (url.match(/\/orgs\/test-org\/sites\/\d+$/))
             return mockDocument(1, "sites", { name: "app.com" } as never);
           // Server get
           if (url.match(/\/orgs\/test-org\/servers\/\d+$/))
