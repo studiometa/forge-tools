@@ -18,19 +18,9 @@ describe("showCertificatesHelp", () => {
     expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining("certificates"));
   });
 
-  it("should show list help", () => {
-    showCertificatesHelp("list");
-    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining("certificates list"));
-  });
-
-  it("should show list help for ls", () => {
-    showCertificatesHelp("ls");
-    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining("certificates list"));
-  });
-
   it("should show get help", () => {
     showCertificatesHelp("get");
-    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining("cert_id"));
+    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining("certificates get"));
   });
 
   it("should show activate help", () => {

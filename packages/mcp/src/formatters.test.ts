@@ -25,7 +25,6 @@ import {
   formatBackupConfig,
   formatBackupConfigList,
   formatCertificate,
-  formatCertificateList,
   formatCommand,
   formatCommandList,
   formatCreated,
@@ -557,51 +556,6 @@ describe("formatDeploymentScriptUpdated", () => {
 });
 
 // ── Certificates ─────────────────────────────────────
-
-describe("formatCertificateList", () => {
-  it("should format a list of certificates", () => {
-    const certificates: (CertificateAttributes & { id: number })[] = [
-      {
-        id: 1,
-        domain: "example.com",
-        type: "letsencrypt",
-        active: true,
-        status: "installed",
-        request_status: "complete",
-        existing: false,
-        created_at: "2024-01-01",
-        updated_at: "2024-01-01",
-      },
-    ];
-
-    const result = formatCertificateList(certificates);
-    expect(result).toContain("1 certificate(s):");
-    expect(result).toContain("example.com");
-    expect(result).toContain("active");
-  });
-
-  it("should handle inactive certificate", () => {
-    const certificates: (CertificateAttributes & { id: number })[] = [
-      {
-        id: 1,
-        domain: "example.com",
-        type: "existing",
-        active: false,
-        status: "pending",
-        request_status: "pending",
-        existing: true,
-        created_at: "2024-01-01",
-        updated_at: "2024-01-01",
-      },
-    ];
-    const result = formatCertificateList(certificates);
-    expect(result).toContain("inactive");
-  });
-
-  it("should handle empty list", () => {
-    expect(formatCertificateList([])).toBe("No certificates found.");
-  });
-});
 
 describe("formatCertificate", () => {
   it("should format a single certificate", () => {

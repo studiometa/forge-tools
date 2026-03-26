@@ -205,19 +205,25 @@ const RESOURCE_HELP: Record<string, ResourceHelp> = {
   },
 
   certificates: {
-    description: "Manage SSL/TLS certificates for a site — Let's Encrypt, custom, or cloned",
-    scope: "site (requires server_id + site_id)",
+    description:
+      "Manage SSL/TLS certificates per domain — Let's Encrypt, CSR, existing, or cloned (v2: one cert per domain)",
+    scope: "domain (requires server_id + site_id + domain_id)",
     actions: {
-      list: "List certificates for a site",
-      get: "Get certificate details",
-      create: "Create/request a new certificate",
-      delete: "Delete a certificate",
-      activate: "Activate a certificate (make it the active cert for the site)",
+      get: "Get certificate for a domain",
+      create: "Create/request a new certificate for a domain",
+      delete: "Delete a domain certificate",
+      activate: "Activate a domain certificate",
     },
     examples: [
       {
-        description: "List certificates",
-        params: { resource: "certificates", action: "list", server_id: "123", site_id: "456" },
+        description: "Get certificate for a domain",
+        params: {
+          resource: "certificates",
+          action: "get",
+          server_id: "123",
+          site_id: "456",
+          domain_id: "789",
+        },
       },
       {
         description: "Create Let's Encrypt cert",
@@ -226,8 +232,8 @@ const RESOURCE_HELP: Record<string, ResourceHelp> = {
           action: "create",
           server_id: "123",
           site_id: "456",
-          domain: "example.com",
-          type: "new",
+          domain_id: "789",
+          type: "letsencrypt",
         },
       },
       {
@@ -237,7 +243,7 @@ const RESOURCE_HELP: Record<string, ResourceHelp> = {
           action: "activate",
           server_id: "123",
           site_id: "456",
-          id: "789",
+          domain_id: "789",
         },
       },
     ],

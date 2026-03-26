@@ -213,21 +213,8 @@ export function formatDeploymentScriptUpdated(siteId: string, serverId: string):
 /**
  * Format a list of certificates.
  */
-export function formatCertificateList(
-  certificates: (CertificateAttributes & { id: number })[],
-): string {
-  if (certificates.length === 0) {
-    return "No certificates found.";
-  }
-  const lines = certificates.map(
-    (c) =>
-      `• ${c.domain} (ID: ${c.id}) — ${c.type} — ${c.active ? "active" : "inactive"} — ${c.status}`,
-  );
-  return `${certificates.length} certificate(s):\n${lines.join("\n")}`;
-}
-
 /**
- * Format a single certificate.
+ * Format a single certificate (v2: one certificate per domain).
  */
 export function formatCertificate(cert: CertificateAttributes & { id: number }): string {
   return `Certificate: ${cert.domain} (ID: ${cert.id})\nType: ${cert.type}\nStatus: ${cert.status}\nActive: ${cert.active}`;

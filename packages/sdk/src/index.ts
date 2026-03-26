@@ -8,7 +8,6 @@ export type { PageFetcher } from "./pagination.ts";
 export { BackupsCollection } from "./resources/backups.ts";
 export type { BackupConfigListOptions } from "./resources/backups.ts";
 export { CertificatesCollection } from "./resources/certificates.ts";
-export type { CertificateListOptions } from "./resources/certificates.ts";
 export { CommandsCollection } from "./resources/commands.ts";
 export type { CommandListOptions } from "./resources/commands.ts";
 export { DaemonsCollection } from "./resources/daemons.ts";

@@ -55,15 +55,28 @@ export interface CreateSiteData {
 // ── Certificates ─────────────────────────────────────
 
 export interface CreateCertificateData {
-  type: "new" | "existing" | "clone";
-  domain: string;
-  country?: string;
-  state?: string;
-  city?: string;
-  organization?: string;
-  department?: string;
-  certificate?: string;
-  key?: string;
+  type: "letsencrypt" | "csr" | "existing" | "clone";
+  letsencrypt?: {
+    verification_method?: "http-01" | "dns-01";
+    key_type?: "rsa" | "ecdsa";
+    preferred_chain?: "ISRG Root X1" | null;
+  };
+  existing?: {
+    key: string;
+    certificate: string;
+  };
+  csr?: {
+    domain: string;
+    sans?: string | null;
+    country: string;
+    state: string;
+    city: string;
+    organization: string;
+    department: string;
+  };
+  clone?: {
+    certificate_id: number;
+  };
 }
 
 // ── Databases ────────────────────────────────────────

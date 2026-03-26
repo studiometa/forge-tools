@@ -95,8 +95,8 @@ ${colors.bold("COMMANDS:")}
     get                 Get nginx config (requires --server --site)
     update              Update nginx config (requires --server --site --content)
 
-  certificates, certs Manage SSL certificates
-    list, ls            List certificates (requires --server --site)
+  certificates, certs Manage SSL certificates (per-domain in v2)
+    get                 Get certificate for a domain (requires --server --site --domain)
     get <id>            Get certificate details (requires --server --site)
     activate <id>       Activate a certificate (requires --server --site)
 

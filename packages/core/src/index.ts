@@ -82,14 +82,12 @@ export {
   createCertificate,
   deleteCertificate,
   getCertificate,
-  listCertificates,
 } from "./executors/certificates/index.ts";
 export type {
   ActivateCertificateOptions,
   CreateCertificateOptions,
   DeleteCertificateOptions,
   GetCertificateOptions,
-  ListCertificatesOptions,
 } from "./executors/certificates/index.ts";
 
 // Databases

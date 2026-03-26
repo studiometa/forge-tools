@@ -1,167 +1,99 @@
 import { describe, expect, it } from "vitest";
 
-import { HttpClient } from "@studiometa/forge-api";
-
-import { AsyncPaginatedIterator } from "../pagination.ts";
+import { Forge } from "../forge.ts";
+import { createMockFetch } from "../test-utils.ts";
 import { CertificatesCollection } from "./certificates.ts";
 
 const ORG = "test-org";
+const SERVER_ID = 123;
+const SITE_ID = 456;
+const DOMAIN_ID = 789;
+
+const BASE_PATH = `/orgs/${ORG}/servers/${SERVER_ID}/sites/${SITE_ID}/domains/${DOMAIN_ID}/certificate`;
 
 function mockDocument<T>(id: string | number, attributes: T) {
   return { data: { id: String(id), type: "resource", attributes } };
 }
 
-function mockListDocument<T>(id: string | number, attributes: T) {
-  return {
-    data: [{ id: String(id), type: "resource", attributes }],
-    links: {},
-    meta: { per_page: 200, next_cursor: null },
-  };
-}
-
-function createTrackingClient(): {
-  client: HttpClient;
-  calls: Array<{ method: string; url: string; body?: unknown }>;
-} {
-  const calls: Array<{ method: string; url: string; body?: unknown }> = [];
-
-  const client = new HttpClient({
-    token: "test",
-    fetch: async (url: string | URL | Request, init?: RequestInit) => {
-      calls.push({
-        method: init?.method ?? "GET",
-        url: url.toString(),
-        body: init?.body ? JSON.parse(init.body as string) : undefined,
-      });
-      return {
-        ok: true,
-        status: 200,
-        headers: new Headers({ "content-type": "application/json" }),
-        json: async () => {
-          const u = url.toString();
-          const isId = /\/\d+(\?|$)/.test(u);
-          const attrs = {
-            domain: "example.com",
-            type: "letsencrypt",
-            request_status: "complete",
-            status: "active",
-            existing: false,
-            active: true,
-            created_at: "",
-            updated_at: "",
-          };
-          return isId ? mockDocument("1", attrs) : mockListDocument("1", attrs);
-        },
-        text: async () => "{}",
-      } as Response;
-    },
-  });
-
-  return { client, calls };
-}
+const CERT_ATTRS = {
+  domain: "example.com",
+  type: "letsencrypt",
+  request_status: "complete",
+  status: "active",
+  existing: false,
+  active: true,
+  created_at: "",
+  updated_at: "",
+};
 
 describe("CertificatesCollection", () => {
-  it("should list certificates", async () => {
-    const { client, calls } = createTrackingClient();
-    const collection = new CertificatesCollection(client, ORG, 123, 456);
-
-    await collection.list();
-    expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers/123/sites/456/certificates`);
-  });
-
-  it("should list certificates with cursor option", async () => {
-    const { client, calls } = createTrackingClient();
-    const collection = new CertificatesCollection(client, ORG, 123, 456);
-
-    await collection.list({ cursor: "abc123" });
-    expect(calls[0]!.url).toContain(
-      `/orgs/${ORG}/servers/123/sites/456/certificates?page[cursor]=abc123`,
-    );
-  });
-
-  it("should get a certificate", async () => {
-    const { client, calls } = createTrackingClient();
-    const collection = new CertificatesCollection(client, ORG, 123, 456);
-
-    await collection.get(789);
-    expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers/123/sites/456/certificates/789`);
-  });
-
-  it("should create a certificate", async () => {
-    const { client, calls } = createTrackingClient();
-    const collection = new CertificatesCollection(client, ORG, 123, 456);
-
-    await collection.create({ type: "new", domain: "example.com" });
-    expect(calls[0]!.method).toBe("POST");
-    expect(calls[0]!.body).toEqual({ type: "new", domain: "example.com" });
-  });
-
-  it("should install Let's Encrypt certificate", async () => {
-    const { client, calls } = createTrackingClient();
-    const collection = new CertificatesCollection(client, ORG, 123, 456);
-
-    await collection.letsEncrypt(["example.com", "www.example.com"]);
-    expect(calls[0]!.url).toContain("/certificates/letsencrypt");
-    expect(calls[0]!.body).toEqual({ domains: ["example.com", "www.example.com"] });
-  });
-
-  it("should delete a certificate", async () => {
-    const { client, calls } = createTrackingClient();
-    const collection = new CertificatesCollection(client, ORG, 123, 456);
-
-    await collection.delete(789);
-    expect(calls[0]!.method).toBe("DELETE");
-    expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers/123/sites/456/certificates/789`);
-  });
-
-  it("should activate a certificate", async () => {
-    const { client, calls } = createTrackingClient();
-    const collection = new CertificatesCollection(client, ORG, 123, 456);
-
-    await collection.activate(789);
-    expect(calls[0]!.method).toBe("POST");
-    expect(calls[0]!.url).toContain("/certificates/789/activate");
-  });
-
-  it("should return an AsyncPaginatedIterator from all()", () => {
-    const { client } = createTrackingClient();
-    const collection = new CertificatesCollection(client, ORG, 123, 456);
-
-    const iter = collection.all();
-    expect(iter).toBeInstanceOf(AsyncPaginatedIterator);
-  });
-
-  it("should iterate all items across pages via all()", async () => {
-    let callCount = 0;
-    const client = new HttpClient({
-      token: "test",
-      fetch: async () => {
-        const items =
-          callCount === 0
-            ? Array.from({ length: 200 }, (_, i) => ({
-                id: String(i + 1),
-                type: "resource",
-                attributes: { domain: "example.com" },
-              }))
-            : [{ id: "201", type: "resource", attributes: { domain: "example.com" } }];
-        const nextCursor = callCount === 0 ? "cursor-2" : null;
-        callCount++;
-        return {
-          ok: true,
-          status: 200,
-          headers: new Headers({ "content-type": "application/json" }),
-          json: async () => ({
-            data: items,
-            links: {},
-            meta: { per_page: 200, next_cursor: nextCursor },
-          }),
-          text: async () => "{}",
-        } as Response;
-      },
+  it("should get a certificate for a domain", async () => {
+    const mockFetch = createMockFetch((url) => {
+      expect(url).toContain(BASE_PATH);
+      return mockDocument("1", CERT_ATTRS);
     });
-    const collection = new CertificatesCollection(client, ORG, 123, 456);
+    const forge = new Forge("test-token", ORG, { fetch: mockFetch });
+    const cert = await forge.server(SERVER_ID).site(SITE_ID).certificates.get(DOMAIN_ID);
 
-    const results = await collection.all().toArray();
-    expect(results).toHaveLength(201);
+    expect(cert.id).toBe(1);
+    expect(cert.domain).toBe("example.com");
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+  });
+
+  it("should create a certificate for a domain", async () => {
+    const mockFetch = createMockFetch((url, init) => {
+      expect(url).toContain(BASE_PATH);
+      expect(init?.method).toBe("POST");
+      const body = JSON.parse(init?.body as string);
+      expect(body).toEqual({ type: "letsencrypt" });
+      return mockDocument("2", CERT_ATTRS);
+    });
+    const forge = new Forge("test-token", ORG, { fetch: mockFetch });
+    const cert = await forge
+      .server(SERVER_ID)
+      .site(SITE_ID)
+      .certificates.create(DOMAIN_ID, { type: "letsencrypt" });
+
+    expect(cert.id).toBe(2);
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+  });
+
+  it("should delete a certificate for a domain", async () => {
+    const mockFetch = createMockFetch((url, init) => {
+      expect(url).toContain(BASE_PATH);
+      expect(init?.method).toBe("DELETE");
+      return {};
+    });
+    const forge = new Forge("test-token", ORG, { fetch: mockFetch });
+    await forge.server(SERVER_ID).site(SITE_ID).certificates.delete(DOMAIN_ID);
+
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+  });
+
+  it("should activate a certificate for a domain", async () => {
+    const mockFetch = createMockFetch((url, init) => {
+      expect(url).toContain(`${BASE_PATH}/actions`);
+      expect(init?.method).toBe("POST");
+      const body = JSON.parse(init?.body as string);
+      expect(body).toEqual({ action: "activate" });
+      return {};
+    });
+    const forge = new Forge("test-token", ORG, { fetch: mockFetch });
+    await forge.server(SERVER_ID).site(SITE_ID).certificates.activate(DOMAIN_ID);
+
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+  });
+
+  it("should build correct domain path", async () => {
+    const mockFetch = createMockFetch((url) => {
+      expect(url).toContain(
+        `/orgs/${ORG}/servers/${SERVER_ID}/sites/${SITE_ID}/domains/999/certificate`,
+      );
+      return mockDocument("1", CERT_ATTRS);
+    });
+    const forge = new Forge("test-token", ORG, { fetch: mockFetch });
+    await forge.server(SERVER_ID).site(SITE_ID).certificates.get(999);
+
+    expect(mockFetch).toHaveBeenCalledTimes(1);
   });
 });

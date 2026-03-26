@@ -6,14 +6,14 @@ import { sitePath } from "../../utils/url-builder.ts";
 import type { GetCertificateOptions } from "./types.ts";
 
 /**
- * Get a single SSL certificate.
+ * Get the SSL certificate for a domain.
  */
 export async function getCertificate(
   options: GetCertificateOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<CertificateAttributes & { id: number }>> {
   const response = await ctx.client.get<JsonApiDocument<CertificateAttributes>>(
-    `${sitePath(options.server_id, options.site_id, ctx)}/certificates/${options.id}`,
+    `${sitePath(options.server_id, options.site_id, ctx)}/domains/${options.domain_id}/certificate`,
   );
 
   return {

@@ -46,8 +46,6 @@ function createMockContext(): HandlerContext {
               })),
             );
           }
-          if (url.match(/\/orgs\/test-org\/servers\/\d+\/sites\/\d+\/certificates$/))
-            return mockListDocument("certificates", []);
           if (url.match(/\/orgs\/test-org\/servers\/\d+\/sites\/\d+\/redirect-rules$/))
             return mockListDocument("redirect-rules", []);
           if (url.match(/\/orgs\/test-org\/servers\/\d+\/sites\/\d+\/security-rules$/))
@@ -115,7 +113,6 @@ describe("handleSiteContext", () => {
     expect(data.site).toBeDefined();
     expect(data.site.name).toBe("app.com");
     expect(data.deployments).toBeDefined();
-    expect(data.certificates).toBeDefined();
     expect(data.redirect_rules).toBeDefined();
     expect(data.security_rules).toBeDefined();
   });
@@ -164,8 +161,6 @@ describe("handleSiteContext", () => {
         client: {
           get: async (url: string) => {
             if (url.match(/\/sites\/\d+\/deployments/)) return mockListDocument("deployments", []);
-            if (url.match(/\/sites\/\d+\/certificates$/))
-              return mockListDocument("certificates", []);
             if (url.match(/\/sites\/\d+\/redirect-rules$/))
               return mockListDocument("redirect-rules", []);
             if (url.match(/\/sites\/\d+\/security-rules$/))

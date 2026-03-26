@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { mockDocument, mockListDocument } from "@studiometa/forge-core";
+import { mockDocument } from "@studiometa/forge-core";
 
 import type { HandlerContext } from "./types.ts";
 
@@ -25,14 +25,7 @@ function createMockContext(): HandlerContext {
     executorContext: {
       organizationSlug: "test-org",
       client: {
-        get: async (url: string) => {
-          if (url.match(/\/certificates\/\d+$/)) {
-            return mockDocument(1, "certificates", makeCertAttrs());
-          }
-          return mockListDocument("certificates", [
-            { id: 1, attributes: makeCertAttrs() as never },
-          ]);
-        },
+        get: async () => mockDocument(1, "certificates", makeCertAttrs()),
         post: async () =>
           mockDocument(
             2,
@@ -47,20 +40,16 @@ function createMockContext(): HandlerContext {
 }
 
 describe("handleCertificates", () => {
-  it("should list certificates", async () => {
-    const result = await handleCertificates(
-      "list",
-      { resource: "certificates", action: "list", server_id: "1", site_id: "10" },
-      createMockContext(),
-    );
-    expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("example.com");
-  });
-
-  it("should get a certificate", async () => {
+  it("should get a certificate by domain_id", async () => {
     const result = await handleCertificates(
       "get",
-      { resource: "certificates", action: "get", server_id: "1", site_id: "10", id: "1" },
+      {
+        resource: "certificates",
+        action: "get",
+        server_id: "1",
+        site_id: "10",
+        domain_id: "100",
+      },
       createMockContext(),
     );
     expect(result.isError).toBeUndefined();
@@ -75,7 +64,8 @@ describe("handleCertificates", () => {
         action: "create",
         server_id: "1",
         site_id: "10",
-        domain: "new.com",
+        domain_id: "100",
+        type: "letsencrypt",
       },
       createMockContext(),
     );
@@ -86,7 +76,13 @@ describe("handleCertificates", () => {
   it("should delete a certificate", async () => {
     const result = await handleCertificates(
       "delete",
-      { resource: "certificates", action: "delete", server_id: "1", site_id: "10", id: "1" },
+      {
+        resource: "certificates",
+        action: "delete",
+        server_id: "1",
+        site_id: "10",
+        domain_id: "100",
+      },
       createMockContext(),
     );
     expect(result.isError).toBeUndefined();
@@ -96,17 +92,23 @@ describe("handleCertificates", () => {
   it("should activate a certificate", async () => {
     const result = await handleCertificates(
       "activate",
-      { resource: "certificates", action: "activate", server_id: "1", site_id: "10", id: "1" },
+      {
+        resource: "certificates",
+        action: "activate",
+        server_id: "1",
+        site_id: "10",
+        domain_id: "100",
+      },
       createMockContext(),
     );
     expect(result.isError).toBeUndefined();
     expect(result.content[0]!.text).toContain("activated");
   });
 
-  it("should require server_id and site_id for list", async () => {
+  it("should require domain_id for get", async () => {
     const result = await handleCertificates(
-      "list",
-      { resource: "certificates", action: "list" },
+      "get",
+      { resource: "certificates", action: "get", server_id: "1", site_id: "10" },
       createMockContext(),
     );
     expect(result.isError).toBe(true);
@@ -115,7 +117,13 @@ describe("handleCertificates", () => {
   it("should handle unknown action", async () => {
     const result = await handleCertificates(
       "unknown",
-      { resource: "certificates", action: "unknown", server_id: "1", site_id: "10" },
+      {
+        resource: "certificates",
+        action: "unknown",
+        server_id: "1",
+        site_id: "10",
+        domain_id: "100",
+      },
       createMockContext(),
     );
     expect(result.isError).toBe(true);
@@ -129,7 +137,13 @@ describe("handleCertificates", () => {
 
     const result = await handleCertificates(
       "get",
-      { resource: "certificates", action: "get", server_id: "1", site_id: "10", id: "1" },
+      {
+        resource: "certificates",
+        action: "get",
+        server_id: "1",
+        site_id: "10",
+        domain_id: "100",
+      },
       ctx,
     );
     expect(result.isError).toBeUndefined();

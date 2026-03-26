@@ -3,10 +3,9 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import type { CertificateAttributes } from "@studiometa/forge-api";
 
 import { createTestContext } from "../../context.ts";
-import { certificatesList, certificatesGet, certificatesActivate } from "./handlers.ts";
+import { certificatesGet, certificatesActivate } from "./handlers.ts";
 
 vi.mock("@studiometa/forge-core", () => ({
-  listCertificates: vi.fn(),
   getCertificate: vi.fn(),
   activateCertificate: vi.fn(),
 }));
@@ -22,56 +21,6 @@ const mockCert: CertificateAttributes & { id: number } = {
   created_at: "2024-01-01T00:00:00Z",
   updated_at: "2024-01-01T00:00:00Z",
 };
-
-describe("certificatesList", () => {
-  let processExitSpy: ReturnType<typeof vi.spyOn>;
-
-  beforeEach(() => {
-    processExitSpy = vi.spyOn(process, "exit").mockImplementation(() => undefined as never);
-    vi.spyOn(console, "log").mockImplementation(() => {});
-    vi.spyOn(console, "error").mockImplementation(() => {});
-  });
-
-  afterEach(() => {
-    vi.restoreAllMocks();
-  });
-
-  it("should list certificates", async () => {
-    const { listCertificates } = await import("@studiometa/forge-core");
-    vi.mocked(listCertificates).mockResolvedValue({ data: [mockCert] });
-
-    const ctx = createTestContext({
-      token: "test",
-      mockClient: {} as never,
-      options: { format: "json", server: "10", site: "100" },
-    });
-
-    await certificatesList(ctx);
-    expect(vi.mocked(console.log)).toHaveBeenCalledWith(expect.stringContaining('"example.com"'));
-  });
-
-  it("should exit with error when no server_id", async () => {
-    const ctx = createTestContext({
-      token: "test",
-      mockClient: {} as never,
-      options: { format: "json", site: "100" },
-    });
-
-    await certificatesList(ctx).catch(() => {});
-    expect(processExitSpy).toHaveBeenCalledWith(3);
-  });
-
-  it("should exit with error when no site_id", async () => {
-    const ctx = createTestContext({
-      token: "test",
-      mockClient: {} as never,
-      options: { format: "json", server: "10" },
-    });
-
-    await certificatesList(ctx).catch(() => {});
-    expect(processExitSpy).toHaveBeenCalledWith(3);
-  });
-});
 
 describe("certificatesGet", () => {
   let processExitSpy: ReturnType<typeof vi.spyOn>;
@@ -93,14 +42,36 @@ describe("certificatesGet", () => {
     const ctx = createTestContext({
       token: "test",
       mockClient: {} as never,
-      options: { format: "json", server: "10", site: "100" },
+      options: { format: "json", server: "10", site: "100", domain: "200" },
     });
 
-    await certificatesGet(["1"], ctx);
+    await certificatesGet([], ctx);
     expect(vi.mocked(console.log)).toHaveBeenCalledWith(expect.stringContaining('"example.com"'));
   });
 
-  it("should exit with error when no certificate_id", async () => {
+  it("should exit with error when no server_id", async () => {
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "json", site: "100", domain: "200" },
+    });
+
+    await certificatesGet([], ctx).catch(() => {});
+    expect(processExitSpy).toHaveBeenCalledWith(3);
+  });
+
+  it("should exit with error when no site_id", async () => {
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "json", server: "10", domain: "200" },
+    });
+
+    await certificatesGet([], ctx).catch(() => {});
+    expect(processExitSpy).toHaveBeenCalledWith(3);
+  });
+
+  it("should exit with error when no domain_id", async () => {
     const ctx = createTestContext({
       token: "test",
       mockClient: {} as never,
@@ -108,17 +79,6 @@ describe("certificatesGet", () => {
     });
 
     await certificatesGet([], ctx).catch(() => {});
-    expect(processExitSpy).toHaveBeenCalledWith(3);
-  });
-
-  it("should exit with error when no server_id", async () => {
-    const ctx = createTestContext({
-      token: "test",
-      mockClient: {} as never,
-      options: { format: "json", site: "100" },
-    });
-
-    await certificatesGet(["1"], ctx).catch(() => {});
     expect(processExitSpy).toHaveBeenCalledWith(3);
   });
 });
@@ -143,14 +103,14 @@ describe("certificatesActivate", () => {
     const ctx = createTestContext({
       token: "test",
       mockClient: {} as never,
-      options: { format: "human", server: "10", site: "100" },
+      options: { format: "human", server: "10", site: "100", domain: "200" },
     });
 
-    await certificatesActivate(["1"], ctx);
+    await certificatesActivate([], ctx);
     expect(vi.mocked(console.log)).toHaveBeenCalledWith(expect.stringContaining("activated"));
   });
 
-  it("should exit with error when no certificate_id", async () => {
+  it("should exit with error when no domain_id", async () => {
     const ctx = createTestContext({
       token: "test",
       mockClient: {} as never,
@@ -159,37 +119,5 @@ describe("certificatesActivate", () => {
 
     await certificatesActivate([], ctx).catch(() => {});
     expect(processExitSpy).toHaveBeenCalledWith(3);
-  });
-});
-
-describe("certificatesList — human format lineFormat", () => {
-  beforeEach(() => {
-    vi.spyOn(console, "log").mockImplementation(() => {});
-    vi.spyOn(console, "error").mockImplementation(() => {});
-  });
-  afterEach(() => vi.restoreAllMocks());
-
-  it("should render human format with active certificate", async () => {
-    const { listCertificates } = await import("@studiometa/forge-core");
-    vi.mocked(listCertificates).mockResolvedValue({ data: [mockCert] });
-    const ctx = createTestContext({
-      token: "test",
-      mockClient: {} as never,
-      options: { format: "human", server: "10", site: "100" },
-    });
-    await certificatesList(ctx);
-    expect(vi.mocked(console.log)).toHaveBeenCalled();
-  });
-
-  it("should render '—' for inactive certificate", async () => {
-    const { listCertificates } = await import("@studiometa/forge-core");
-    vi.mocked(listCertificates).mockResolvedValue({ data: [{ ...mockCert, active: false }] });
-    const ctx = createTestContext({
-      token: "test",
-      mockClient: {} as never,
-      options: { format: "human", server: "10", site: "100" },
-    });
-    await certificatesList(ctx);
-    expect(vi.mocked(console.log)).toHaveBeenCalled();
   });
 });

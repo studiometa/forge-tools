@@ -5,13 +5,13 @@ import { createTestExecutorContext } from "../../context.ts";
 import { createCertificate } from "./create.ts";
 
 describe("createCertificate", () => {
-  it("should create a certificate and format output", async () => {
+  it("should create a certificate for a domain", async () => {
     const ctx = createTestExecutorContext({
       client: {
         post: async () =>
           mockDocument(10, "certificates", {
             domain: "example.com",
-            type: "new",
+            type: "letsencrypt",
             request_status: "pending",
             status: "installing",
             existing: false,
@@ -24,7 +24,7 @@ describe("createCertificate", () => {
     });
 
     const result = await createCertificate(
-      { server_id: "1", site_id: "2", domain: "example.com", type: "new" },
+      { server_id: "1", site_id: "2", domain_id: "5", type: "letsencrypt" },
       ctx,
     );
 

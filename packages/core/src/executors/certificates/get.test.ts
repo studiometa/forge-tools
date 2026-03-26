@@ -5,7 +5,7 @@ import { createTestExecutorContext } from "../../context.ts";
 import { getCertificate } from "./get.ts";
 
 describe("getCertificate", () => {
-  it("should get a certificate and format output", async () => {
+  it("should get a certificate for a domain", async () => {
     const getMock = async () =>
       mockDocument(10, "certificates", {
         domain: "example.com",
@@ -23,7 +23,7 @@ describe("getCertificate", () => {
       organizationSlug: "test-org",
     });
 
-    const result = await getCertificate({ server_id: "1", site_id: "2", id: "10" }, ctx);
+    const result = await getCertificate({ server_id: "1", site_id: "2", domain_id: "5" }, ctx);
 
     expect(result.data.domain).toBe("example.com");
   });

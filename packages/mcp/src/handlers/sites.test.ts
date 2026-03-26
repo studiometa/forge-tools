@@ -166,8 +166,6 @@ describe("handleSites", () => {
                   } as never,
                 },
               ]);
-            if (url.match(/\/sites\/\d+\/certificates$/))
-              return mockListDocument("certificates", []);
             if (url.match(/\/sites\/\d+\/redirect-rules$/))
               return mockListDocument("redirect-rules", []);
             if (url.match(/\/sites\/\d+\/security-rules$/))
@@ -188,7 +186,6 @@ describe("handleSites", () => {
     const data = JSON.parse(result.content[0]!.text);
     expect(data.site).toBeDefined();
     expect(data.deployments).toBeDefined();
-    expect(data.certificates).toBeDefined();
   });
 
   it("should resolve sites by domain name (partial match)", async () => {
