@@ -113,4 +113,44 @@ describe("ScheduledJobsCollection", () => {
     const iter = collection.all();
     expect(iter).toBeInstanceOf(AsyncPaginatedIterator);
   });
+
+  it("should iterate all items across pages via all()", async () => {
+    let callCount = 0;
+    const client = new HttpClient({
+      token: "test",
+      fetch: async () => {
+        const items =
+          callCount === 0
+            ? Array.from({ length: 200 }, (_, i) => ({
+                id: String(i + 1),
+                type: "resource",
+                attributes: { command: "php artisan schedule:run" },
+              }))
+            : [
+                {
+                  id: "201",
+                  type: "resource",
+                  attributes: { command: "php artisan schedule:run" },
+                },
+              ];
+        const nextCursor = callCount === 0 ? "cursor-2" : null;
+        callCount++;
+        return {
+          ok: true,
+          status: 200,
+          headers: new Headers({ "content-type": "application/json" }),
+          json: async () => ({
+            data: items,
+            links: {},
+            meta: { per_page: 200, next_cursor: nextCursor },
+          }),
+          text: async () => "{}",
+        } as Response;
+      },
+    });
+    const collection = new ScheduledJobsCollection(client, ORG, 123);
+
+    const results = await collection.all().toArray();
+    expect(results).toHaveLength(201);
+  });
 });
