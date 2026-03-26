@@ -13,13 +13,6 @@ const mockUser: UserAttributes & { id: number } = {
   id: 1,
   name: "Test User",
   email: "test@example.com",
-  two_factor_enabled: false,
-  two_factor_confirmed: false,
-  github_connected: true,
-  gitlab_connected: false,
-  bitbucket_connected: false,
-  do_connected: false,
-  timezone: "UTC",
   created_at: "2024-01-01T00:00:00Z",
   updated_at: "2024-01-01T00:00:00Z",
 };

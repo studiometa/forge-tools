@@ -10,7 +10,7 @@ export async function deploySite(
   options: DeploySiteOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<void>> {
-  await ctx.client.post(`${sitePath(options.server_id, options.site_id, ctx)}/deployments`);
+  await ctx.client.post(`${sitePath(options.server_id, options.site_id, ctx)}/deployments`, {});
 
   return {
     data: undefined,

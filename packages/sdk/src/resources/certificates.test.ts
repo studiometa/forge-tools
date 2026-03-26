@@ -16,12 +16,12 @@ function mockDocument<T>(id: string | number, attributes: T) {
 }
 
 const CERT_ATTRS = {
-  domain: "example.com",
   type: "letsencrypt",
+  verification_method: null,
+  key_type: null,
+  preferred_chain: null,
   request_status: "complete",
   status: "active",
-  existing: false,
-  active: true,
   created_at: "",
   updated_at: "",
 };
@@ -36,7 +36,7 @@ describe("CertificatesCollection", () => {
     const cert = await forge.server(SERVER_ID).site(SITE_ID).certificates.get(DOMAIN_ID);
 
     expect(cert.id).toBe(1);
-    expect(cert.domain).toBe("example.com");
+    expect(cert.type).toBe("letsencrypt");
     expect(mockFetch).toHaveBeenCalledTimes(1);
   });
 

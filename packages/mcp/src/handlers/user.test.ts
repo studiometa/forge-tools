@@ -15,13 +15,6 @@ function createMockContext(): HandlerContext {
           mockDocument(1, "users", {
             name: "John Doe",
             email: "john@example.com",
-            github_connected: true,
-            gitlab_connected: false,
-            two_factor_enabled: true,
-            two_factor_confirmed: true,
-            bitbucket_connected: false,
-            do_connected: false,
-            timezone: "UTC",
             created_at: "2024-01-01",
             updated_at: "2024-01-01",
           }),

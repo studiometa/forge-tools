@@ -9,8 +9,9 @@ import { handleSshKeys } from "./ssh-keys.ts";
 function makeKeyAttrs(overrides: Record<string, unknown> = {}) {
   return {
     name: "deploy-key",
-    fingerprint: null,
+    user: "forge",
     status: "installed",
+    created_by: null,
     created_at: "2024-01-01",
     updated_at: "2024-01-01",
     ...overrides,

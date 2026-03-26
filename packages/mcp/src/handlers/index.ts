@@ -194,6 +194,13 @@ export async function executeToolWithCredentials(
     );
   }
 
+  // Validate organizationSlug for resources that need it (all except user)
+  if (resource !== "user" && !credentials.organizationSlug) {
+    return errorResult(
+      "organizationSlug is required — configure it via FORGE_ORG env var, config file, or pass it in the request.",
+    );
+  }
+
   // Create executor context
   const client = new HttpClient({ token: credentials.apiToken });
   const executorContext: ExecutorContext = {

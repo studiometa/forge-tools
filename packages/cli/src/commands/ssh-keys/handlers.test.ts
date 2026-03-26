@@ -13,8 +13,9 @@ vi.mock("@studiometa/forge-core", () => ({
 const mockKey: SshKeyAttributes & { id: number } = {
   id: 1,
   name: "my-key",
-  fingerprint: null,
+  user: "forge",
   status: "installed",
+  created_by: null,
   created_at: "2024-01-01T00:00:00Z",
   updated_at: "2024-01-01T00:00:00Z",
 };

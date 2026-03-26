@@ -43,7 +43,8 @@ function createTrackingClient(): {
           const attrs = {
             command: "php artisan migrate",
             status: "finished",
-            user_name: "Test User",
+            duration: "2s",
+            user_id: 1,
             created_at: "",
             updated_at: "",
           };

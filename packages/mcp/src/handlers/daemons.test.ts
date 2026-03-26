@@ -12,12 +12,8 @@ function makeDaemonAttrs(overrides: Record<string, unknown> = {}) {
     user: "forge",
     directory: null,
     processes: 1,
-    startsecs: 0,
-    stopsignal: "TERM",
-    stopwaitsecs: 10,
     status: "running",
     created_at: "2024-01-01",
-    updated_at: "2024-01-01",
     ...overrides,
   };
 }

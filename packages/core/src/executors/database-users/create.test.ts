@@ -12,7 +12,6 @@ describe("createDatabaseUser", () => {
           mockDocument(7, "database-users", {
             name: "forge",
             status: "creating",
-            can_access_all_databases: false,
             created_at: "2024-01-01T00:00:00.000000Z",
             updated_at: "2024-01-01T00:00:00.000000Z",
           }),
@@ -28,14 +27,13 @@ describe("createDatabaseUser", () => {
     expect(result.data.name).toBe("forge");
   });
 
-  it("should create a database user with can_access_all_databases flag", async () => {
+  it("should create a database user with databases list", async () => {
     const ctx = createTestExecutorContext({
       client: {
         post: async () =>
           mockDocument(7, "database-users", {
             name: "forge",
             status: "creating",
-            can_access_all_databases: true,
             created_at: "2024-01-01T00:00:00.000000Z",
             updated_at: "2024-01-01T00:00:00.000000Z",
           }),
@@ -48,6 +46,6 @@ describe("createDatabaseUser", () => {
       ctx,
     );
 
-    expect(result.data.can_access_all_databases).toBe(true);
+    expect(result.data.name).toBe("forge");
   });
 });

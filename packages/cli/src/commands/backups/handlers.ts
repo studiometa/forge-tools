@@ -24,10 +24,9 @@ export async function backupsList(ctx: CommandContext): Promise<void> {
     const result = await listBackupConfigs({ server_id }, execCtx);
     ctx.formatter.outputList(
       result.data,
-      ["id", "provider_name", "frequency", "status"],
+      ["id", "name", "schedule", "status"],
       "No backup configurations found.",
-      (b) =>
-        `${String(b.id).padEnd(8)} ${b.provider_name.padEnd(20)} ${b.frequency.padEnd(12)} ${b.status}`,
+      (b) => `${String(b.id).padEnd(8)} ${b.name.padEnd(20)} ${b.schedule.padEnd(12)} ${b.status}`,
     );
   }, ctx.formatter);
 }
@@ -59,12 +58,13 @@ export async function backupsGet(args: string[], ctx: CommandContext): Promise<v
     const result = await getBackupConfig({ server_id, id }, execCtx);
     ctx.formatter.outputOne(result.data, [
       "id",
+      "name",
       "provider",
-      "provider_name",
-      "frequency",
+      "schedule",
+      "displayable_schedule",
       "retention",
       "status",
-      "last_backup_time",
+      "next_run_time",
     ]);
   }, ctx.formatter);
 }

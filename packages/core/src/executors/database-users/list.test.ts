@@ -15,7 +15,6 @@ describe("listDatabaseUsers", () => {
               attributes: {
                 name: "forge",
                 status: "installed",
-                can_access_all_databases: false,
                 created_at: "2024-01-01T00:00:00.000000Z",
                 updated_at: "2024-01-01T00:00:00.000000Z",
               },

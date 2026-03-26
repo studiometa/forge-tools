@@ -8,12 +8,12 @@ import { handleCertificates } from "./certificates.ts";
 
 function makeCertAttrs(overrides: Record<string, unknown> = {}) {
   return {
-    domain: "example.com",
     type: "letsencrypt",
-    active: true,
-    status: "installed",
+    verification_method: null,
+    key_type: null,
+    preferred_chain: null,
     request_status: "complete",
-    existing: false,
+    status: "installed",
     created_at: "2024-01-01",
     updated_at: "2024-01-01",
     ...overrides,
@@ -26,12 +26,7 @@ function createMockContext(): HandlerContext {
       organizationSlug: "test-org",
       client: {
         get: async () => mockDocument(1, "certificates", makeCertAttrs()),
-        post: async () =>
-          mockDocument(
-            2,
-            "certificates",
-            makeCertAttrs({ domain: "new.com", active: false, status: "pending" }),
-          ),
+        post: async () => mockDocument(2, "certificates", makeCertAttrs({ status: "pending" })),
         delete: async () => undefined,
       } as never,
     },
@@ -53,7 +48,7 @@ describe("handleCertificates", () => {
       createMockContext(),
     );
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("example.com");
+    expect(result.content[0]!.text).toContain("letsencrypt");
   });
 
   it("should create a certificate", async () => {
@@ -70,7 +65,7 @@ describe("handleCertificates", () => {
       createMockContext(),
     );
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("new.com");
+    expect(result.content[0]!.text).toContain("pending");
   });
 
   it("should delete a certificate", async () => {

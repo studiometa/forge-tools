@@ -21,7 +21,6 @@ const mockUser: DatabaseUserAttributes & { id: number } = {
   id: 1,
   name: "forge",
   status: "installed",
-  can_access_all_databases: false,
   created_at: "2024-01-01T00:00:00Z",
   updated_at: "2024-01-01T00:00:00Z",
 };

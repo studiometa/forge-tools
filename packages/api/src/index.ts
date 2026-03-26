@@ -34,6 +34,7 @@ export type {
   UserAttributes,
   ServerAttributes,
   SiteAttributes,
+  SiteRepository,
   DeploymentAttributes,
   DeploymentCommit,
   DeploymentStatusAttributes,
@@ -55,6 +56,7 @@ export type {
   BackupConfigAttributes,
   BackupAttributes,
   OrganizationAttributes,
+  EnvironmentAttributes,
 } from "./types/v2-attributes.ts";
 
 // Config and input types

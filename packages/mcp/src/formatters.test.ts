@@ -412,7 +412,6 @@ describe("formatDatabaseUserList", () => {
         id: 1,
         name: "forge",
         status: "installed",
-        can_access_all_databases: false,
         created_at: "2024-01-01",
         updated_at: "2024-01-01",
       },
@@ -433,7 +432,6 @@ describe("formatDatabaseUser", () => {
       id: 1,
       name: "forge",
       status: "installed",
-      can_access_all_databases: false,
       created_at: "2024-01-01",
       updated_at: "2024-01-01",
     };
@@ -561,21 +559,21 @@ describe("formatCertificate", () => {
   it("should format a single certificate", () => {
     const cert: CertificateAttributes & { id: number } = {
       id: 1,
-      domain: "example.com",
       type: "letsencrypt",
+      verification_method: null,
+      key_type: null,
+      preferred_chain: null,
       status: "installed",
-      active: true,
       request_status: "complete",
-      existing: false,
       created_at: "2024-01-01",
       updated_at: "2024-01-01",
     };
 
     const result = formatCertificate(cert);
-    expect(result).toContain("Certificate: example.com (ID: 1)");
+    expect(result).toContain("Certificate (ID: 1)");
     expect(result).toContain("Type: letsencrypt");
     expect(result).toContain("Status: installed");
-    expect(result).toContain("Active: true");
+    expect(result).toContain("Request: complete");
   });
 });
 
@@ -590,12 +588,8 @@ describe("formatDaemonList", () => {
         user: "forge",
         directory: null,
         processes: 1,
-        startsecs: 0,
-        stopsignal: "TERM",
-        stopwaitsecs: 10,
         status: "running",
         created_at: "2024-01-01",
-        updated_at: "2024-01-01",
       },
     ];
 
@@ -618,12 +612,8 @@ describe("formatDaemon", () => {
       user: "forge",
       directory: null,
       processes: 2,
-      startsecs: 0,
-      stopsignal: "TERM",
-      stopwaitsecs: 10,
       status: "running",
       created_at: "2024-01-01",
-      updated_at: "2024-01-01",
     };
 
     const result = formatDaemon(daemon);
@@ -695,8 +685,12 @@ describe("formatMonitorList", () => {
         operator: ">",
         threshold: 80,
         minutes: 5,
+        notify: "email",
+        status: "installed",
         state: "OK",
         state_changed_at: "2024-01-01",
+        created_at: "2024-01-01",
+        updated_at: "2024-01-01",
       },
     ];
 
@@ -719,8 +713,12 @@ describe("formatMonitor", () => {
       operator: ">",
       threshold: 80,
       minutes: 5,
+      notify: "email",
+      status: "installed",
       state: "OK",
       state_changed_at: "2024-01-01",
+      created_at: "2024-01-01",
+      updated_at: "2024-01-01",
     };
 
     const result = formatMonitor(monitor);
@@ -738,8 +736,9 @@ describe("formatSshKeyList", () => {
       {
         id: 1,
         name: "deploy-key",
-        fingerprint: null,
+        user: "forge",
         status: "installed",
+        created_by: null,
         created_at: "2024-01-01",
         updated_at: "2024-01-01",
       },
@@ -761,8 +760,9 @@ describe("formatSshKey", () => {
     const key: SshKeyAttributes & { id: number } = {
       id: 1,
       name: "deploy-key",
-      fingerprint: null,
+      user: "forge",
       status: "installed",
+      created_by: null,
       created_at: "2024-01-01",
       updated_at: "2024-01-01",
     };
@@ -781,10 +781,12 @@ describe("formatScheduledJobList", () => {
     const jobs: (ScheduledJobAttributes & { id: number })[] = [
       {
         id: 1,
+        name: null,
         command: "php artisan schedule:run",
         user: "forge",
         frequency: "minutely",
         cron: "* * * * *",
+        next_run_time: "2024-01-02",
         status: "running",
         created_at: "2024-01-01",
         updated_at: "2024-01-01",
@@ -806,10 +808,12 @@ describe("formatScheduledJob", () => {
   it("should format a single scheduled job", () => {
     const job: ScheduledJobAttributes & { id: number } = {
       id: 1,
+      name: null,
       command: "php artisan schedule:run",
       user: "forge",
       frequency: "minutely",
       cron: "* * * * *",
+      next_run_time: "2024-01-02",
       status: "running",
       created_at: "2024-01-01",
       updated_at: "2024-01-01",
@@ -833,6 +837,7 @@ describe("formatSecurityRuleList", () => {
         id: 1,
         name: "admin",
         path: "/admin",
+        status: null,
         created_at: "2024-01-01",
         updated_at: "2024-01-01",
       },
@@ -850,6 +855,7 @@ describe("formatSecurityRuleList", () => {
         id: 1,
         name: "root",
         path: null,
+        status: null,
         created_at: "2024-01-01",
         updated_at: "2024-01-01",
       },
@@ -869,6 +875,7 @@ describe("formatSecurityRule", () => {
       id: 1,
       name: "admin",
       path: "/admin",
+      status: null,
       created_at: "2024-01-01",
       updated_at: "2024-01-01",
     };
@@ -883,6 +890,7 @@ describe("formatSecurityRule", () => {
       id: 1,
       name: "root",
       path: null,
+      status: null,
       created_at: "2024-01-01",
       updated_at: "2024-01-01",
     };
@@ -901,6 +909,7 @@ describe("formatRedirectRuleList", () => {
         from: "/old",
         to: "/new",
         type: "301",
+        status: "installed",
         created_at: "2024-01-01",
         updated_at: "2024-01-01",
       },
@@ -925,6 +934,7 @@ describe("formatRedirectRule", () => {
       from: "/old",
       to: "/new",
       type: "301",
+      status: "installed",
       created_at: "2024-01-01",
       updated_at: "2024-01-01",
     };
@@ -992,45 +1002,53 @@ describe("formatBackupConfigList", () => {
     const backups: (BackupConfigAttributes & { id: number })[] = [
       {
         id: 1,
-        provider_name: "S3",
-        frequency: "daily",
-        status: "active",
-        last_backup_time: "2024-01-15",
+        name: "S3 Backup",
+        storage_provider_id: null,
         provider: "s3",
+        bucket: null,
+        directory: "/backups",
+        schedule: "daily",
+        displayable_schedule: "Daily at 00:00",
+        next_run_time: "2024-01-16",
+        status: "active",
         day_of_week: null,
         time: null,
-        directory: null,
-        email: null,
+        cron_schedule: null,
         retention: 7,
+        notify_email: null,
       },
     ];
 
     const result = formatBackupConfigList(backups);
     expect(result).toContain("1 backup config(s):");
-    expect(result).toContain("S3");
+    expect(result).toContain("S3 Backup");
     expect(result).toContain("daily");
-    expect(result).toContain("2024-01-15");
+    expect(result).toContain("2024-01-16");
   });
 
-  it("should show never when last_backup_time is null", () => {
+  it("should show dash when next_run_time is null", () => {
     const backups: (BackupConfigAttributes & { id: number })[] = [
       {
         id: 1,
-        provider_name: "S3",
-        frequency: "daily",
-        status: "active",
-        last_backup_time: null,
+        name: "S3 Backup",
+        storage_provider_id: null,
         provider: "s3",
+        bucket: null,
+        directory: "/backups",
+        schedule: "daily",
+        displayable_schedule: "Daily at 00:00",
+        next_run_time: null as unknown as string,
+        status: "active",
         day_of_week: null,
         time: null,
-        directory: null,
-        email: null,
+        cron_schedule: null,
         retention: 7,
+        notify_email: null,
       },
     ];
 
     const result = formatBackupConfigList(backups);
-    expect(result).toContain("never");
+    expect(result).toContain("—");
   });
 
   it("should handle empty list", () => {
@@ -1042,34 +1060,39 @@ describe("formatBackupConfig", () => {
   it("should format a single backup configuration", () => {
     const backup: BackupConfigAttributes & { id: number } = {
       id: 1,
-      provider_name: "S3",
+      name: "S3 Backup",
+      storage_provider_id: null,
       provider: "s3",
-      frequency: "daily",
+      bucket: null,
+      directory: "/backups",
+      schedule: "daily",
+      displayable_schedule: "Daily at 00:00",
+      next_run_time: "2024-01-16",
       status: "active",
-      retention: 7,
-      last_backup_time: "2024-01-15",
       day_of_week: null,
       time: null,
-      directory: null,
-      email: null,
+      cron_schedule: null,
+      retention: 7,
+      notify_email: null,
     };
 
     const result = formatBackupConfig(backup);
-    expect(result).toContain("Backup Config: S3 (ID: 1)");
-    expect(result).toContain("Frequency: daily");
+    expect(result).toContain("Backup Config: S3 Backup (ID: 1)");
+    expect(result).toContain("Schedule: Daily at 00:00");
     expect(result).toContain("Status: active");
     expect(result).toContain("Retention: 7 backups");
-    expect(result).toContain("Last backup: 2024-01-15");
+    expect(result).toContain("Next run: 2024-01-16");
   });
 
-  it("should show never for null last_backup_time", () => {
+  it("should show dash for null next_run_time", () => {
     const backup = {
       id: 1,
-      provider_name: "S3",
-      last_backup_time: null,
-    } as BackupConfigAttributes & { id: number };
+      name: "S3 Backup",
+      next_run_time: null,
+      displayable_schedule: "Daily",
+    } as unknown as BackupConfigAttributes & { id: number };
     const result = formatBackupConfig(backup);
-    expect(result).toContain("Last backup: never");
+    expect(result).toContain("Next run: —");
   });
 });
 
@@ -1127,7 +1150,8 @@ describe("formatCommandList", () => {
         id: 1,
         command: "php artisan migrate",
         status: "finished",
-        user_name: "John",
+        duration: "2s",
+        user_id: 1,
         created_at: "2024-01-01",
         updated_at: "2024-01-01",
       },
@@ -1146,7 +1170,8 @@ describe("formatCommandList", () => {
         id: 1,
         command: longCommand,
         status: "finished",
-        user_name: "user",
+        duration: "2s",
+        user_id: 1,
         created_at: "2024-01-01",
         updated_at: "2024-01-01",
       },
@@ -1168,7 +1193,8 @@ describe("formatCommand", () => {
       id: 1,
       command: "php artisan migrate",
       status: "finished",
-      user_name: "John",
+      duration: "2s",
+      user_id: 1,
       created_at: "2024-01-01",
       updated_at: "2024-01-01",
     };
@@ -1177,7 +1203,8 @@ describe("formatCommand", () => {
     expect(result).toContain("Command #1");
     expect(result).toContain("Command: php artisan migrate");
     expect(result).toContain("Status: finished");
-    expect(result).toContain("User: John");
+    expect(result).toContain("User ID: 1");
+    expect(result).toContain("Duration: 2s");
     expect(result).toContain("Created: 2024-01-01");
   });
 });
@@ -1195,18 +1222,11 @@ describe("formatEnv", () => {
 // ── User ─────────────────────────────────────────────
 
 describe("formatUser", () => {
-  it("should format the authenticated user with connected services", () => {
+  it("should format the authenticated user", () => {
     const user: UserAttributes & { id: number } = {
       id: 1,
       name: "John Doe",
       email: "john@example.com",
-      github_connected: true,
-      gitlab_connected: false,
-      two_factor_enabled: true,
-      two_factor_confirmed: true,
-      bitbucket_connected: false,
-      do_connected: false,
-      timezone: "UTC",
       created_at: "2024-01-01",
       updated_at: "2024-01-01",
     };
@@ -1214,50 +1234,7 @@ describe("formatUser", () => {
     const result = formatUser(user);
     expect(result).toContain("User: John Doe (ID: 1)");
     expect(result).toContain("Email: john@example.com");
-    expect(result).toContain("GitHub: connected");
-    expect(result).toContain("GitLab: not connected");
-    expect(result).toContain("2FA: enabled");
-  });
-
-  it("should format user with disabled 2FA", () => {
-    const user: UserAttributes & { id: number } = {
-      id: 1,
-      name: "Jane",
-      email: "jane@example.com",
-      github_connected: false,
-      gitlab_connected: false,
-      two_factor_enabled: false,
-      two_factor_confirmed: false,
-      bitbucket_connected: false,
-      do_connected: false,
-      timezone: "UTC",
-      created_at: "2024-01-01",
-      updated_at: "2024-01-01",
-    };
-
-    const result = formatUser(user);
-    expect(result).toContain("GitHub: not connected");
-    expect(result).toContain("2FA: disabled");
-  });
-
-  it("should show GitLab as connected when gitlab_connected is true", () => {
-    const user: UserAttributes & { id: number } = {
-      id: 2,
-      name: "GitLab User",
-      email: "gl@example.com",
-      github_connected: false,
-      gitlab_connected: true,
-      two_factor_enabled: false,
-      two_factor_confirmed: false,
-      bitbucket_connected: false,
-      do_connected: false,
-      timezone: "UTC",
-      created_at: "2024-01-01",
-      updated_at: "2024-01-01",
-    };
-
-    const result = formatUser(user);
-    expect(result).toContain("GitLab: connected");
+    expect(result).toContain("Created: 2024-01-01");
   });
 });
 

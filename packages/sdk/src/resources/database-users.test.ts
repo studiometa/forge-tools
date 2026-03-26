@@ -43,7 +43,6 @@ function createTrackingClient(): {
           const attrs = {
             name: "forge",
             status: "ready",
-            can_access_all_databases: false,
             created_at: "",
             updated_at: "",
           };

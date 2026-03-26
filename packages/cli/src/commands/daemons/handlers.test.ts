@@ -17,12 +17,8 @@ const mockDaemon: BackgroundProcessAttributes & { id: number } = {
   user: "forge",
   directory: null,
   processes: 1,
-  startsecs: 1,
-  stopsignal: "TERM",
-  stopwaitsecs: 10,
   status: "running",
   created_at: "2024-01-01T00:00:00Z",
-  updated_at: "2024-01-01T00:00:00Z",
 };
 
 describe("daemonsList", () => {

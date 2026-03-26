@@ -10,12 +10,12 @@ describe("createCertificate", () => {
       client: {
         post: async () =>
           mockDocument(10, "certificates", {
-            domain: "example.com",
             type: "letsencrypt",
+            verification_method: null,
+            key_type: null,
+            preferred_chain: null,
             request_status: "pending",
             status: "installing",
-            existing: false,
-            active: false,
             created_at: "2024-01-01T00:00:00.000000Z",
             updated_at: "2024-01-01T00:00:00.000000Z",
           }),
@@ -28,6 +28,6 @@ describe("createCertificate", () => {
       ctx,
     );
 
-    expect(result.data.domain).toBe("example.com");
+    expect(result.data.type).toBe("letsencrypt");
   });
 });

@@ -86,7 +86,7 @@ export async function deploymentsDeploy(ctx: CommandContext): Promise<void> {
     if (result.data.status === "success") {
       ctx.formatter.success(`Deployment succeeded for site ${site_id} (${elapsedSec}s).`);
     } else {
-      ctx.formatter.success(`Deployment failed for site ${site_id} (${elapsedSec}s).`);
+      ctx.formatter.error(`Deployment failed for site ${site_id} (${elapsedSec}s).`);
     }
 
     if (result.data.log) {

@@ -8,16 +8,20 @@ import { handleBackups } from "./backups.ts";
 
 function makeBackupAttrs(overrides: Record<string, unknown> = {}) {
   return {
-    provider_name: "S3",
+    name: "S3 Backup",
+    storage_provider_id: null,
     provider: "s3",
-    frequency: "daily",
+    bucket: null,
+    directory: "/backups",
+    schedule: "daily",
+    displayable_schedule: "Daily at 00:00",
+    next_run_time: "2024-01-16",
     status: "active",
-    retention: 7,
-    last_backup_time: null,
     day_of_week: null,
     time: null,
-    directory: null,
-    email: null,
+    cron_schedule: null,
+    retention: 7,
+    notify_email: null,
     ...overrides,
   };
 }
@@ -51,7 +55,7 @@ describe("handleBackups", () => {
       createMockContext(),
     );
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("S3");
+    expect(result.content[0]!.text).toContain("S3 Backup");
   });
 
   it("should get a backup config", async () => {
@@ -61,7 +65,7 @@ describe("handleBackups", () => {
       createMockContext(),
     );
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("S3");
+    expect(result.content[0]!.text).toContain("S3 Backup");
   });
 
   it("should require server_id", async () => {

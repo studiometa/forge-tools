@@ -84,9 +84,9 @@ export class DeploymentsCollection extends BaseCollection {
    */
   all(): AsyncPaginatedIterator<DeploymentAttributes & { id: number }> {
     return new AsyncPaginatedIterator<DeploymentAttributes & { id: number }>(async (cursor) => {
-      const query = cursor !== null ? `?page[cursor]=${cursor}` : "";
+      const params = "?sort=-created_at" + (cursor !== null ? `&page[cursor]=${cursor}` : "");
       const response = await this.client.get<JsonApiListDocument<DeploymentAttributes>>(
-        `${this.basePath}${query}`,
+        `${this.basePath}${params}`,
       );
       return {
         items: unwrapListDocument(response),

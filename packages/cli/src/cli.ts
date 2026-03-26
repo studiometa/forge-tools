@@ -165,8 +165,10 @@ ${colors.bold("COMMANDS:")}
 
 ${colors.bold("OPTIONS:")}
   --token <token>     Forge API token (overrides config and env)
+  --org <slug>        Organization slug (overrides config and FORGE_ORG)
   --server <id>       Server ID (required for server-scoped commands)
   --site <id>         Site ID (required for site-scoped commands)
+  --domain <id>       Domain record ID (for certificate commands)
   -f, --format <fmt>  Output format: json, human, table (default: human)
   --no-color          Disable colored output
   -h, --help          Show help
@@ -198,6 +200,7 @@ ${colors.bold("CREDENTIAL PRIORITY:")}
 
 ${colors.bold("ENVIRONMENT VARIABLES:")}
   FORGE_API_TOKEN    API token
+  FORGE_ORG          Organization slug (e.g. studio-meta)
   NO_COLOR           Disable colors
   XDG_CONFIG_HOME    Config directory (respects XDG spec)
 `);

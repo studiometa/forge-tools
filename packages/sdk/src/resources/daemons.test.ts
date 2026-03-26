@@ -16,12 +16,8 @@ const daemonAttrs = {
   user: "forge",
   directory: null,
   processes: 1,
-  startsecs: 1,
-  stopsignal: "TERM",
-  stopwaitsecs: 10,
   status: "running",
   created_at: "",
-  updated_at: "",
 };
 
 function createTrackingClient(): {

@@ -74,7 +74,7 @@ describe("deploySiteAndWait", () => {
 
     const result = await promise;
 
-    expect(postMock).toHaveBeenCalledWith("/orgs/test-org/servers/123/sites/456/deployments");
+    expect(postMock).toHaveBeenCalledWith("/orgs/test-org/servers/123/sites/456/deployments", {});
     expect(result.data.status).toBe("success");
     expect(result.data.log).toBe("Build succeeded\nDone.");
     expect(result.data.elapsed_ms).toBeGreaterThanOrEqual(0);

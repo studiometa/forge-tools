@@ -142,13 +142,6 @@ vi.mock("@studiometa/forge-api", async (importOriginal) => {
               attributes: {
                 name: "Test",
                 email: "t@t.com",
-                two_factor_enabled: false,
-                two_factor_confirmed: false,
-                github_connected: false,
-                gitlab_connected: false,
-                bitbucket_connected: false,
-                do_connected: false,
-                timezone: "UTC",
                 created_at: "2024-01-01",
                 updated_at: "2024-01-01",
               },

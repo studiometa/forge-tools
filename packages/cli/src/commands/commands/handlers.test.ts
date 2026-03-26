@@ -15,7 +15,8 @@ const mockCommand: CommandAttributes & { id: number } = {
   id: 1,
   command: "php artisan migrate",
   status: "finished",
-  user_name: "forge",
+  duration: "2s",
+  user_id: 1,
   created_at: "2024-01-01T00:00:00Z",
   updated_at: "2024-01-01T00:00:00Z",
 };

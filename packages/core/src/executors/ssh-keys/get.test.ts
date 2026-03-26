@@ -9,8 +9,9 @@ describe("getSshKey", () => {
     const getMock = async () =>
       mockDocument(12, "ssh-keys", {
         name: "deploy-key",
-        fingerprint: null,
+        user: "forge",
         status: "installed",
+        created_by: null,
         created_at: "2024-01-01T00:00:00.000000Z",
         updated_at: "2024-01-01T00:00:00.000000Z",
       });

@@ -41,16 +41,20 @@ function createTrackingClient(): {
           const u = url.toString();
           const isId = /\/\d+(\?|$)/.test(u);
           const attrs = {
+            name: "S3 Backup",
+            storage_provider_id: null,
+            provider: "s3",
+            bucket: null,
+            directory: "/backups",
+            schedule: "weekly",
+            displayable_schedule: "Weekly",
+            next_run_time: null,
             day_of_week: null,
             time: null,
-            provider: "s3",
-            provider_name: "S3",
-            frequency: "weekly",
-            directory: null,
-            email: null,
+            cron_schedule: null,
             retention: 7,
             status: "active",
-            last_backup_time: null,
+            notify_email: null,
           };
           return isId ? mockDocument("1", attrs) : mockListDocument("1", attrs);
         },

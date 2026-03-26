@@ -12,12 +12,12 @@ vi.mock("@studiometa/forge-core", () => ({
 
 const mockCert: CertificateAttributes & { id: number } = {
   id: 1,
-  domain: "example.com",
+  type: "letsencrypt",
+  verification_method: null,
+  key_type: null,
+  preferred_chain: null,
   request_status: "complete",
   status: "installed",
-  type: "letsencrypt",
-  existing: false,
-  active: true,
   created_at: "2024-01-01T00:00:00Z",
   updated_at: "2024-01-01T00:00:00Z",
 };
@@ -46,7 +46,7 @@ describe("certificatesGet", () => {
     });
 
     await certificatesGet([], ctx);
-    expect(vi.mocked(console.log)).toHaveBeenCalledWith(expect.stringContaining('"example.com"'));
+    expect(vi.mocked(console.log)).toHaveBeenCalledWith(expect.stringContaining('"letsencrypt"'));
   });
 
   it("should exit with error when no server_id", async () => {

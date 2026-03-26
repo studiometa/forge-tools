@@ -1,20 +1,14 @@
 // ── v2 API resource attribute types ──────────────────
-// These match the `attributes` object in JSON:API responses.
+// These match the `attributes` object in JSON:API responses
+// as defined in docs/forge-openapi-v2.json.
 
 // ── User ─────────────────────────────────────────────
 
 export interface UserAttributes {
   name: string;
   email: string;
-  two_factor_enabled: boolean;
-  two_factor_confirmed: boolean;
-  github_connected: boolean;
-  gitlab_connected: boolean;
-  bitbucket_connected: boolean;
-  do_connected: boolean;
-  timezone: string;
-  created_at: string;
-  updated_at: string;
+  created_at: string | null;
+  updated_at: string | null;
 }
 
 // ── Servers ──────────────────────────────────────────
@@ -49,32 +43,39 @@ export interface ServerAttributes {
 
 // ── Sites ────────────────────────────────────────────
 
+export interface SiteRepository {
+  provider: string;
+  url: string;
+  branch: string;
+  status: string;
+}
+
 export interface SiteAttributes {
   name: string;
   aliases: string[];
-  root_directory: string;
+  root_directory: string | null;
   web_directory: string;
-  wildcards: boolean;
+  wildcards: boolean | null;
   status: string;
-  repository: string | null;
-  quick_deploy: boolean;
+  repository: SiteRepository | null;
+  quick_deploy: boolean | null;
   deployment_status: string | null;
   deployment_url: string;
   deployment_script: string | null;
-  php_version: string | null;
-  app_type: string | null;
+  php_version: string;
+  app_type: string;
   url: string;
   https: boolean;
   isolated: boolean;
-  user: string | null;
+  user: string;
   database: string | null;
-  shared_paths: string[];
+  shared_paths: Record<string, string> | null;
   uses_envoyer: boolean;
   zero_downtime_deployments: boolean;
-  maintenance_mode: boolean;
+  maintenance_mode: Record<string, unknown> | null;
   healthcheck_url: string | null;
-  created_at: string;
-  updated_at: string;
+  created_at: string | null;
+  updated_at: string | null;
 }
 
 // ── Deployments ──────────────────────────────────────
@@ -107,6 +108,7 @@ export interface DeploymentOutputAttributes {
 
 export interface DeploymentScriptAttributes {
   content: string;
+  auto_source: string;
 }
 
 // ── Databases ────────────────────────────────────────
@@ -121,7 +123,6 @@ export interface DatabaseAttributes {
 export interface DatabaseUserAttributes {
   name: string;
   status: string;
-  can_access_all_databases: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -133,23 +134,19 @@ export interface BackgroundProcessAttributes {
   user: string;
   directory: string | null;
   processes: number;
-  startsecs: number;
-  stopsignal: string;
-  stopwaitsecs: number;
   status: string;
   created_at: string;
-  updated_at: string;
 }
 
 // ── Certificates ─────────────────────────────────────
 
 export interface CertificateAttributes {
-  domain: string;
   type: string;
+  verification_method: string | null;
+  key_type: string | null;
+  preferred_chain: string | null;
   request_status: string;
   status: string;
-  existing: boolean;
-  active: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -158,10 +155,10 @@ export interface CertificateAttributes {
 
 export interface FirewallRuleAttributes {
   name: string;
-  port: number | string;
+  port: string | null;
   type: string;
-  ip_address: string;
-  status: string;
+  ip_address: string | null;
+  status: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -170,8 +167,9 @@ export interface FirewallRuleAttributes {
 
 export interface SshKeyAttributes {
   name: string;
-  fingerprint: string | null;
+  user: string;
   status: string;
+  created_by: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -181,6 +179,7 @@ export interface SshKeyAttributes {
 export interface SecurityRuleAttributes {
   name: string;
   path: string | null;
+  status: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -191,6 +190,7 @@ export interface RedirectRuleAttributes {
   from: string;
   to: string;
   type: string;
+  status: string;
   created_at: string;
   updated_at: string;
 }
@@ -201,9 +201,13 @@ export interface MonitorAttributes {
   type: string;
   operator: string;
   threshold: number;
-  minutes: number;
+  minutes: number | null;
+  notify: string;
+  status: string;
   state: string;
-  state_changed_at: string;
+  state_changed_at: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 // ── Nginx Templates ──────────────────────────────────
@@ -211,8 +215,8 @@ export interface MonitorAttributes {
 export interface NginxTemplateAttributes {
   name: string;
   content: string;
-  created_at: string;
-  updated_at: string;
+  created_at: string | null;
+  updated_at: string | null;
 }
 
 // ── Recipes ──────────────────────────────────────────
@@ -228,13 +232,15 @@ export interface RecipeAttributes {
 // ── Scheduled Jobs ───────────────────────────────────
 
 export interface ScheduledJobAttributes {
+  name: string | null;
   command: string;
   user: string;
   frequency: string;
   cron: string;
+  next_run_time: string;
   status: string;
-  created_at: string;
-  updated_at: string;
+  created_at: string | null;
+  updated_at: string | null;
 }
 
 // ── Commands ─────────────────────────────────────────
@@ -242,7 +248,8 @@ export interface ScheduledJobAttributes {
 export interface CommandAttributes {
   command: string;
   status: string;
-  user_name: string;
+  duration: string;
+  user_id: number;
   created_at: string;
   updated_at: string;
 }
@@ -250,24 +257,27 @@ export interface CommandAttributes {
 // ── Backups ──────────────────────────────────────────
 
 export interface BackupConfigAttributes {
+  name: string;
+  storage_provider_id: number | null;
+  provider: string;
+  bucket: string | null;
+  directory: string;
+  schedule: string;
+  displayable_schedule: string;
+  next_run_time: string;
+  status: string;
   day_of_week: number | null;
   time: string | null;
-  provider: string;
-  provider_name: string;
-  frequency: string;
-  directory: string | null;
-  email: string | null;
+  cron_schedule: string | null;
   retention: number;
-  status: string;
-  last_backup_time: string | null;
+  notify_email: string | null;
 }
 
 export interface BackupAttributes {
   status: string;
-  restore_status: string | null;
-  archive_size: number;
-  duration: number;
-  date: string;
+  is_partial: string;
+  size: number;
+  finished_at: string;
 }
 
 // ── Organizations ────────────────────────────────────
@@ -275,9 +285,12 @@ export interface BackupAttributes {
 export interface OrganizationAttributes {
   name: string;
   slug: string;
-  owned: boolean;
-  on_trial: boolean;
-  subscribed: boolean;
-  created_at: string;
-  updated_at: string;
+  created_at: string | null;
+  updated_at: string | null;
+}
+
+// ── Environment ──────────────────────────────────────
+
+export interface EnvironmentAttributes {
+  content: string;
 }

@@ -10,7 +10,6 @@ function makeUserAttrs(overrides: Record<string, unknown> = {}) {
   return {
     name: "forge",
     status: "installed",
-    can_access_all_databases: false,
     created_at: "2024-01-01",
     updated_at: "2024-01-01",
     ...overrides,

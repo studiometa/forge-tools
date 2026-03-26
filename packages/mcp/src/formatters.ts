@@ -217,7 +217,7 @@ export function formatDeploymentScriptUpdated(siteId: string, serverId: string):
  * Format a single certificate (v2: one certificate per domain).
  */
 export function formatCertificate(cert: CertificateAttributes & { id: number }): string {
-  return `Certificate: ${cert.domain} (ID: ${cert.id})\nType: ${cert.type}\nStatus: ${cert.status}\nActive: ${cert.active}`;
+  return `Certificate (ID: ${cert.id})\nType: ${cert.type}\nStatus: ${cert.status}\nRequest: ${cert.request_status}`;
 }
 
 // ── Daemons ──────────────────────────────────────────
@@ -419,7 +419,7 @@ export function formatBackupConfigList(
   }
   const lines = backups.map(
     (b) =>
-      `• ${b.provider_name} (ID: ${b.id}) — ${b.frequency} — ${b.status} — last: ${b.last_backup_time ?? "never"}`,
+      `• ${b.name} (ID: ${b.id}) — ${b.schedule} — ${b.status} — next: ${b.next_run_time ?? "—"}`,
   );
   return `${backups.length} backup config(s):\n${lines.join("\n")}`;
 }
@@ -429,11 +429,11 @@ export function formatBackupConfigList(
  */
 export function formatBackupConfig(backup: BackupConfigAttributes & { id: number }): string {
   return [
-    `Backup Config: ${backup.provider_name} (ID: ${backup.id})`,
-    `Frequency: ${backup.frequency}`,
+    `Backup Config: ${backup.name} (ID: ${backup.id})`,
+    `Schedule: ${backup.displayable_schedule}`,
     `Status: ${backup.status}`,
     `Retention: ${backup.retention} backups`,
-    `Last backup: ${backup.last_backup_time ?? "never"}`,
+    `Next run: ${backup.next_run_time ?? "—"}`,
   ].join("\n");
 }
 
@@ -467,7 +467,7 @@ export function formatCommandList(commands: (CommandAttributes & { id: number })
     return "No commands found.";
   }
   const lines = commands.map(
-    (c) => `• #${c.id} — ${c.status} — ${c.user_name} — ${c.command.slice(0, 60)}`,
+    (c) => `• #${c.id} — ${c.status} — user ${c.user_id} — ${c.command.slice(0, 60)}`,
   );
   return `${commands.length} command(s):\n${lines.join("\n")}`;
 }
@@ -480,7 +480,8 @@ export function formatCommand(command: CommandAttributes & { id: number }): stri
     `Command #${command.id}`,
     `Command: ${command.command}`,
     `Status: ${command.status}`,
-    `User: ${command.user_name}`,
+    `User ID: ${command.user_id}`,
+    `Duration: ${command.duration}`,
     `Created: ${command.created_at}`,
   ].join("\n");
 }
@@ -503,9 +504,7 @@ export function formatUser(user: UserAttributes & { id: number }): string {
   return [
     `User: ${user.name} (ID: ${user.id})`,
     `Email: ${user.email}`,
-    `GitHub: ${user.github_connected ? "connected" : "not connected"}`,
-    `GitLab: ${user.gitlab_connected ? "connected" : "not connected"}`,
-    `2FA: ${user.two_factor_enabled ? "enabled" : "disabled"}`,
+    `Created: ${user.created_at}`,
   ].join("\n");
 }
 

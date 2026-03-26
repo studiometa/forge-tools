@@ -38,7 +38,7 @@ export async function deploySiteAndWait(
   const baseUrl = sitePath(server_id, site_id, ctx);
 
   // 1. Trigger deploy
-  await ctx.client.post(`${baseUrl}/deployments`);
+  await ctx.client.post(`${baseUrl}/deployments`, {});
 
   const startTime = Date.now();
   let logOffset = 0;

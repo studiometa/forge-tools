@@ -8,12 +8,12 @@ describe("getCertificate", () => {
   it("should get a certificate for a domain", async () => {
     const getMock = async () =>
       mockDocument(10, "certificates", {
-        domain: "example.com",
         type: "letsencrypt",
+        verification_method: null,
+        key_type: null,
+        preferred_chain: null,
         request_status: "success",
         status: "installed",
-        existing: false,
-        active: true,
         created_at: "2024-01-01T00:00:00.000000Z",
         updated_at: "2024-01-01T00:00:00.000000Z",
       });
@@ -25,6 +25,6 @@ describe("getCertificate", () => {
 
     const result = await getCertificate({ server_id: "1", site_id: "2", domain_id: "5" }, ctx);
 
-    expect(result.data.domain).toBe("example.com");
+    expect(result.data.type).toBe("letsencrypt");
   });
 });

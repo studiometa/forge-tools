@@ -42,8 +42,9 @@ function createTrackingClient(): {
           const isId = /\/\d+(\?|$)/.test(u);
           const attrs = {
             name: "deploy-key",
-            fingerprint: null,
+            user: "forge",
             status: "created",
+            created_by: null,
             created_at: "",
             updated_at: "",
           };

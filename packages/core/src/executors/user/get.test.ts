@@ -10,13 +10,6 @@ describe("getUser", () => {
       mockDocument(1, "users", {
         name: "John Doe",
         email: "john@example.com",
-        two_factor_enabled: true,
-        two_factor_confirmed: true,
-        github_connected: true,
-        gitlab_connected: false,
-        bitbucket_connected: false,
-        do_connected: false,
-        timezone: "UTC",
         created_at: "2024-01-01T00:00:00.000000Z",
         updated_at: "2024-01-01T00:00:00.000000Z",
       });
@@ -31,20 +24,13 @@ describe("getUser", () => {
     expect(result.data.name).toBe("John Doe");
   });
 
-  it("should show disabled 2FA and not connected services", async () => {
+  it("should get user with minimal fields", async () => {
     const getMock = async () =>
       mockDocument(2, "users", {
         name: "Jane",
         email: "jane@example.com",
-        two_factor_enabled: false,
-        two_factor_confirmed: false,
-        github_connected: false,
-        gitlab_connected: true,
-        bitbucket_connected: false,
-        do_connected: false,
-        timezone: "UTC",
-        created_at: "2024-01-01T00:00:00.000000Z",
-        updated_at: "2024-01-01T00:00:00.000000Z",
+        created_at: null,
+        updated_at: null,
       });
 
     const ctx = createTestExecutorContext({

@@ -14,16 +14,20 @@ vi.mock("@studiometa/forge-core", () => ({
 
 const mockBackup: BackupConfigAttributes & { id: number } = {
   id: 1,
+  name: "Amazon S3",
+  storage_provider_id: null,
+  provider: "s3",
+  bucket: null,
+  directory: "/backups",
+  schedule: "weekly",
+  displayable_schedule: "Weekly",
+  next_run_time: "2024-01-16",
+  status: "active",
   day_of_week: null,
   time: null,
-  provider: "s3",
-  provider_name: "Amazon S3",
-  frequency: "weekly",
-  directory: null,
-  email: null,
+  cron_schedule: null,
   retention: 5,
-  status: "active",
-  last_backup_time: null,
+  notify_email: null,
 };
 
 describe("backupsList", () => {
