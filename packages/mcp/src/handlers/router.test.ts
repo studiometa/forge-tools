@@ -157,7 +157,8 @@ vi.mock("@studiometa/forge-api", async (importOriginal) => {
               links: { self: { href: "/env/1" } },
             },
           };
-        if (path.match(/\/sites\/\d+\/nginx$/)) return "";
+        if (path.match(/\/sites\/\d+\/nginx$/))
+          return { data: { id: "1", type: "nginx-configs", attributes: { content: "" } } };
         return {};
       }
       async post() {

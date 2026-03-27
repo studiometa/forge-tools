@@ -161,7 +161,13 @@ vi.mock("@studiometa/forge-api", async (importOriginal) => {
           };
         }
         if (path.match(/^\/orgs\/test-org\/servers\/\d+\/sites\/\d+\/nginx$/)) {
-          return "";
+          return {
+            data: {
+              id: "1",
+              type: "nginx-configs",
+              attributes: { content: "" },
+            },
+          };
         }
         return {};
       }
