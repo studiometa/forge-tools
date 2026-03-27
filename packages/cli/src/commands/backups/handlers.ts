@@ -71,13 +71,13 @@ export async function backupsGet(args: string[], ctx: CommandContext): Promise<v
 
 export async function backupsCreate(ctx: CommandContext): Promise<void> {
   const server = String(ctx.options.server ?? "");
-  const provider = String(ctx.options.provider ?? "");
+  const storageProviderId = Number(ctx.options.provider ?? 0);
   const frequency = String(ctx.options.frequency ?? "");
-  const databasesRaw = ctx.options.databases;
-  const databases = Array.isArray(databasesRaw)
-    ? databasesRaw.map(Number)
-    : databasesRaw
-      ? [Number(databasesRaw)]
+  const databaseIdsRaw = ctx.options.databases;
+  const database_ids = Array.isArray(databaseIdsRaw)
+    ? databaseIdsRaw.map(Number)
+    : databaseIdsRaw
+      ? [Number(databaseIdsRaw)]
       : [];
 
   if (!server) {
@@ -88,7 +88,7 @@ export async function backupsCreate(ctx: CommandContext): Promise<void> {
     );
   }
 
-  if (!provider) {
+  if (!storageProviderId) {
     exitWithValidationError(
       "provider",
       "forge backups create --server <server_id> --provider <provider> --frequency <frequency>",
@@ -109,7 +109,7 @@ export async function backupsCreate(ctx: CommandContext): Promise<void> {
     const execCtx = ctx.createExecutorContext(token);
     const server_id = await resolveServerId(server, execCtx);
     await createBackupConfig(
-      { server_id, provider, frequency, credentials: {}, databases },
+      { server_id, storage_provider_id: storageProviderId, frequency, retention: 5, database_ids },
       execCtx,
     );
     ctx.formatter.success("Backup configuration created.");

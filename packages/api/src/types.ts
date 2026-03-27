@@ -25,31 +25,55 @@ export interface RateLimitOptions {
 // ── Servers ──────────────────────────────────────────
 
 export interface CreateServerData {
-  provider: string;
-  credential_id: number;
   name: string;
+  provider: string;
   type: string;
-  size: string;
-  region: string;
+  ubuntu_version: string;
+  credential_id?: string;
+  team_id?: number | null;
   php_version?: string;
-  database?: string;
   database_type?: string;
-  ip_address?: string;
-  private_ip_address?: string;
-  recipe_id?: number;
-  network?: number[];
+  recipe_id?: number | null;
+  tags?: string[] | null;
+  /** Provider-specific config (DigitalOcean). */
+  ocean2?: Record<string, unknown>;
+  /** Provider-specific config (AWS). */
+  aws?: Record<string, unknown>;
+  /** Provider-specific config (Hetzner). */
+  hetzner?: Record<string, unknown>;
+  /** Provider-specific config (Vultr). */
+  vultr?: Record<string, unknown>;
+  /** Provider-specific config (Akamai/Linode). */
+  akamai?: Record<string, unknown>;
+  /** Provider-specific config (Laravel Cloud). */
+  laravel?: Record<string, unknown>;
+  /** Provider-specific config (Custom VPS). */
+  custom?: Record<string, unknown>;
 }
 
 // ── Sites ────────────────────────────────────────────
 
 export interface CreateSiteData {
-  domain: string;
-  project_type: string;
-  directory?: string;
-  isolated?: boolean;
-  username?: string;
+  type: string;
+  name?: string;
+  domain_mode?: string;
+  www_redirect_type?: string;
+  allow_wildcard_subdomains?: string;
+  root_directory?: string | null;
+  web_directory?: string | null;
+  is_isolated?: boolean;
+  isolated_user?: string;
   php_version?: string;
-  aliases?: string[];
+  zero_downtime_deployments?: boolean;
+  nginx_template_id?: number;
+  source_control_provider?: string | null;
+  repository?: string | null;
+  branch?: string | null;
+  database_id?: number | null;
+  database_user_id?: string;
+  push_to_deploy?: boolean;
+  tags?: string[] | null;
+  shared_paths?: string[];
 }
 
 // ── Certificates ─────────────────────────────────────
@@ -83,38 +107,44 @@ export interface CreateCertificateData {
 
 export interface CreateDatabaseData {
   name: string;
-  user?: string;
-  password?: string;
+  user?: string | null;
+  password?: string | null;
 }
 
 export interface CreateDatabaseUserData {
   name: string;
   password: string;
-  databases?: number[];
+  read_only?: boolean;
+  database_ids?: number[];
 }
 
 // ── Daemons (Background Processes) ───────────────────
 
 export interface CreateDaemonData {
+  name: string;
   command: string;
-  user?: string;
-  directory?: string;
-  processes?: number;
+  user: string;
+  directory?: string | null;
+  processes: number;
   startsecs?: number;
-  stopsignal?: string;
   stopwaitsecs?: number;
+  stopsignal?: string | null;
 }
 
 // ── Backups ──────────────────────────────────────────
 
 export interface CreateBackupConfigData {
-  provider: string;
-  credentials: Record<string, string>;
+  storage_provider_id: number;
   frequency: string;
-  directory?: string;
-  email?: string;
-  retention?: number;
-  databases: number[];
+  retention: number;
+  database_ids: number[];
+  name?: string | null;
+  bucket?: string | null;
+  directory?: string | null;
+  day?: string;
+  time?: string;
+  cron?: string;
+  notification_email?: string | null;
 }
 
 // ── Commands ─────────────────────────────────────────
@@ -127,21 +157,20 @@ export interface CreateCommandData {
 
 export interface CreateScheduledJobData {
   command: string;
-  user?: string;
-  frequency?: string;
-  minute?: string;
-  hour?: string;
-  day?: string;
-  month?: string;
-  weekday?: string;
+  user: string;
+  frequency: string;
+  name?: string | null;
+  cron?: string | null;
+  heartbeat?: boolean | null;
+  grace_period?: string;
 }
 
 // ── Firewall Rules ───────────────────────────────────
 
 export interface CreateFirewallRuleData {
   name: string;
-  port: number | string;
-  type?: string;
+  type: string;
+  port?: string | null;
   ip_address?: string;
 }
 
@@ -150,7 +179,7 @@ export interface CreateFirewallRuleData {
 export interface CreateSshKeyData {
   name: string;
   key: string;
-  username?: string;
+  user?: string | null;
 }
 
 // ── Security Rules ───────────────────────────────────
@@ -166,7 +195,7 @@ export interface CreateSecurityRuleData {
 export interface CreateRedirectRuleData {
   from: string;
   to: string;
-  type?: string;
+  type: string;
 }
 
 // ── Monitors ─────────────────────────────────────────
@@ -175,7 +204,8 @@ export interface CreateMonitorData {
   type: string;
   operator: string;
   threshold: number;
-  minutes: number;
+  notify: string;
+  minutes?: number;
 }
 
 // ── Nginx Templates ──────────────────────────────────
@@ -189,8 +219,9 @@ export interface CreateNginxTemplateData {
 
 export interface CreateRecipeData {
   name: string;
-  user?: string;
+  user: string;
   script: string;
+  team_id?: string;
 }
 
 // ── Config types ─────────────────────────────────────

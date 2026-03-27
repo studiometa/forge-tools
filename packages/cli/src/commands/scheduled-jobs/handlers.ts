@@ -76,11 +76,14 @@ export async function scheduledJobsGet(args: string[], ctx: CommandContext): Pro
 export async function scheduledJobsCreate(ctx: CommandContext): Promise<void> {
   const server = String(ctx.options.server ?? "");
   const command = String(ctx.options.command ?? "");
+  const user = String(ctx.options.user ?? "forge");
+  const frequency = String(ctx.options.frequency ?? "custom");
+  const cron = ctx.options.cron ? String(ctx.options.cron) : undefined;
 
   if (!server) {
     exitWithValidationError(
       "server_id",
-      "forge scheduled-jobs create --server <server_id> --command <command>",
+      "forge scheduled-jobs create --server <server_id> --command <command> --user <user> --frequency <frequency>",
       ctx.formatter,
     );
   }
@@ -88,7 +91,7 @@ export async function scheduledJobsCreate(ctx: CommandContext): Promise<void> {
   if (!command) {
     exitWithValidationError(
       "command",
-      "forge scheduled-jobs create --server <server_id> --command <command>",
+      "forge scheduled-jobs create --server <server_id> --command <command> --user <user> --frequency <frequency>",
       ctx.formatter,
     );
   }
@@ -97,7 +100,7 @@ export async function scheduledJobsCreate(ctx: CommandContext): Promise<void> {
     const token = ctx.getToken();
     const execCtx = ctx.createExecutorContext(token);
     const server_id = await resolveServerId(server, execCtx);
-    const result = await createScheduledJob({ server_id, command }, execCtx);
+    const result = await createScheduledJob({ server_id, command, user, frequency, cron }, execCtx);
     ctx.formatter.outputOne(result.data, [
       "id",
       "command",

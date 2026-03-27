@@ -139,7 +139,7 @@ describe("backupsCreate", () => {
     const ctx = createTestContext({
       token: "test",
       mockClient: {} as never,
-      options: { format: "json", server: "10", provider: "s3", frequency: "weekly" },
+      options: { format: "json", server: "10", provider: "1", frequency: "weekly" },
     });
 
     await backupsCreate(ctx);
@@ -156,7 +156,7 @@ describe("backupsCreate", () => {
       options: {
         format: "json",
         server: "10",
-        provider: "s3",
+        provider: "1",
         frequency: "weekly",
         databases: ["1", "2"],
       },
@@ -164,7 +164,7 @@ describe("backupsCreate", () => {
 
     await backupsCreate(ctx);
     expect(vi.mocked(createBackupConfig)).toHaveBeenCalledWith(
-      expect.objectContaining({ databases: [1, 2] }),
+      expect.objectContaining({ database_ids: [1, 2] }),
       expect.anything(),
     );
   });
@@ -179,7 +179,7 @@ describe("backupsCreate", () => {
       options: {
         format: "json",
         server: "10",
-        provider: "s3",
+        provider: "1",
         frequency: "weekly",
         databases: "1",
       },
@@ -187,7 +187,7 @@ describe("backupsCreate", () => {
 
     await backupsCreate(ctx);
     expect(vi.mocked(createBackupConfig)).toHaveBeenCalledWith(
-      expect.objectContaining({ databases: [1] }),
+      expect.objectContaining({ database_ids: [1] }),
       expect.anything(),
     );
   });
@@ -196,7 +196,7 @@ describe("backupsCreate", () => {
     const ctx = createTestContext({
       token: "test",
       mockClient: {} as never,
-      options: { format: "json", provider: "s3", frequency: "weekly" },
+      options: { format: "json", provider: "1", frequency: "weekly" },
     });
 
     await backupsCreate(ctx).catch(() => {});
@@ -218,7 +218,7 @@ describe("backupsCreate", () => {
     const ctx = createTestContext({
       token: "test",
       mockClient: {} as never,
-      options: { format: "json", server: "10", provider: "s3" },
+      options: { format: "json", server: "10", provider: "1" },
     });
 
     await backupsCreate(ctx).catch(() => {});
