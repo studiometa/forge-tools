@@ -68,7 +68,7 @@ import { RESOURCES, ACTIONS } from "@studiometa/forge-core";
 
 ### Certificates
 
-- `listCertificates`, `getCertificate`, `createCertificate`, `deleteCertificate`, `activateCertificate`
+- `getCertificate`, `createCertificate`, `deleteCertificate`, `activateCertificate` (per-domain in v2 — requires `domain_id`)
 
 ### Databases
 

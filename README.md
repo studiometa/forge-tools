@@ -27,7 +27,7 @@ npm install -g @studiometa/forge-cli
 
 ```bash
 # Save your API token
-forge config set YOUR_FORGE_TOKEN
+forge config set apiToken YOUR_FORGE_TOKEN
 
 # List all servers
 forge servers list
@@ -51,7 +51,7 @@ npm install @studiometa/forge-sdk
 ```typescript
 import { Forge } from "@studiometa/forge-sdk";
 
-const forge = new Forge("your-api-token");
+const forge = new Forge("your-api-token", "your-org-slug");
 
 // List all servers
 const servers = await forge.servers.list();

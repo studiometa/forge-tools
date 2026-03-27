@@ -153,15 +153,17 @@ forge.server(id).site(siteId).deployments.script(); // Get deploy script
 forge.server(id).site(siteId).deployments.updateScript("npm run build");
 ```
 
-### Certificates
+### Certificates (per-domain in v2)
 
 ```typescript
-forge.server(id).site(siteId).certificates.list();
-forge.server(id).site(siteId).certificates.get(certId);
-forge.server(id).site(siteId).certificates.create({ type: "new", domain: "example.com" });
-forge.server(id).site(siteId).certificates.letsEncrypt(["example.com"]);
-forge.server(id).site(siteId).certificates.activate(certId);
-forge.server(id).site(siteId).certificates.delete(certId);
+// Get certificate for a domain
+forge.server(id).site(siteId).certificates.get(domainId);
+// Create a certificate
+forge.server(id).site(siteId).certificates.create(domainId, { type: "letsencrypt" });
+// Activate a certificate
+forge.server(id).site(siteId).certificates.activate(domainId);
+// Delete a certificate
+forge.server(id).site(siteId).certificates.delete(domainId);
 ```
 
 ### Databases

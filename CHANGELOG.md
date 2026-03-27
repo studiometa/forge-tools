@@ -38,6 +38,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Core**: `getSite` uses org-scoped path (`/orgs/{slug}/sites/{id}`) since v2 does not support GET on server-scoped site path [[#85], [28264ae]]
 - **Core**: Deployments sorted by `-created_at` (v2 API defaults to oldest first) [[#85], [71b395d]]
 - **Core**: 5 create executors (firewall-rules, backups, commands, redirect-rules, ssh-keys) now return void since v2 returns 202 with no body [[#85], [4e32330]]
+- **All**: Certificates are now per-domain — `list` removed, all operations require `domain_id` instead of certificate `id`. URL: `/sites/{site}/domains/{domain}/certificate` [[#85], [bf661cf]]
+- **API**: Align all v2 attribute types with OpenAPI spec — fix `BackupConfigAttributes`, `BackupAttributes`, `CommandAttributes`, `CertificateAttributes`, `UserAttributes`, `BackgroundProcessAttributes`, `MonitorAttributes`, `SiteAttributes`, `SshKeyAttributes`, `ScheduledJobAttributes` [[#85], [a9ce75e]]
+- **API**: Add `SiteRepository`, `EnvironmentAttributes` types [[#85], [a9ce75e]]
+- **API**: Add `auto_source` field to `DeploymentScriptAttributes` [[#85], [a9ce75e]]
+- **Core**: Fix `getNginxConfig` to unwrap JSON:API response (was returning raw wrapper) [[#85], [fe42d56]]
+- **Core**: Deduplicate deployment list fetch in `deploySiteAndWait` [[#85], [fe42d56]]
+- **CLI**: Document `--org` flag and `FORGE_ORG` env var in help text [[#85], [a9ce75e]]
+- **CLI**: Fix `deploymentsDeploy` using `formatter.success()` for failed deployments [[#85], [a9ce75e]]
+- **MCP**: Validate `organizationSlug` early before routing to handlers [[#85], [a9ce75e]]
+- **MCP**: Fix HTTP transport reading wrong field name for `organizationSlug` [[#85], [fe42d56]]
 
 [#85]: https://github.com/studiometa/forge-tools/pull/85
 [37f4f10]: https://github.com/studiometa/forge-tools/commit/37f4f10
@@ -54,6 +64,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [28264ae]: https://github.com/studiometa/forge-tools/commit/28264ae
 [4e32330]: https://github.com/studiometa/forge-tools/commit/4e32330
 [71b395d]: https://github.com/studiometa/forge-tools/commit/71b395d
+[bf661cf]: https://github.com/studiometa/forge-tools/commit/bf661cf
+[a9ce75e]: https://github.com/studiometa/forge-tools/commit/a9ce75e
+[fe42d56]: https://github.com/studiometa/forge-tools/commit/fe42d56
+[92bceaa]: https://github.com/studiometa/forge-tools/commit/92bceaa
 
 ## 0.3.0 - 2026.02.27
 
