@@ -50,15 +50,15 @@ const RESOURCE_SCHEMAS: Record<string, ResourceSchemaData> = {
     required: {
       list: ["server_id"],
       get: ["server_id", "id"],
-      create: ["server_id", "domain", "project_type"],
+      create: ["server_id", "type"],
       delete: ["server_id", "id"],
       context: ["server_id", "id"],
       resolve: ["server_id", "query"],
     },
     create: {
-      domain: { required: true, type: "string — e.g. example.com" },
-      project_type: { required: true, type: "string — php, html, symfony, etc." },
-      directory: { required: false, type: "string — web root (/public)" },
+      type: { required: true, type: "string — php, html, symfony, etc." },
+      name: { required: false, type: "string — domain name (e.g. example.com)" },
+      web_directory: { required: false, type: "string — web root (/public)" },
     },
   },
 

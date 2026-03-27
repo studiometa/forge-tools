@@ -14,7 +14,7 @@ const _handleSites = createResourceHandler({
   requiredFields: {
     list: ["server_id"],
     get: ["server_id", "id"],
-    create: ["server_id", "domain"],
+    create: ["server_id", "type"],
     delete: ["server_id", "id"],
     resolve: ["server_id", "query"],
   },
@@ -35,9 +35,9 @@ const _handleSites = createResourceHandler({
       case "create":
         return {
           server_id: args.server_id,
-          domain: args.domain,
-          project_type: args.project_type ?? "php",
-          directory: args.directory,
+          type: args.type ?? "php",
+          name: args.name ?? args.domain,
+          web_directory: args.web_directory ?? args.directory,
         };
       case "delete":
         return { server_id: args.server_id, site_id: args.id };

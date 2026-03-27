@@ -81,7 +81,7 @@ describe("handleSites", () => {
   it("should create a site", async () => {
     const result = await handleSites(
       "create",
-      { resource: "sites", action: "create", server_id: "1", domain: "new.com" },
+      { resource: "sites", action: "create", server_id: "1", type: "php", name: "new.com" },
       createMockContext(),
     );
     expect(result.isError).toBeUndefined();

@@ -68,7 +68,7 @@ const RESOURCE_HELP: Record<string, ResourceHelp> = {
     actions: {
       list: "List all sites on a server",
       get: "Get a single site by ID",
-      create: "Create a new site (requires domain, project_type)",
+      create: "Create a new site (requires type; optionally name, web_directory)",
       delete: "Delete a site by ID",
       context:
         "Get full site context: site details + recent deployments (last 5) + redirect rules + security rules in one call",
@@ -78,8 +78,8 @@ const RESOURCE_HELP: Record<string, ResourceHelp> = {
       id: "Site ID",
       server_id: "Parent server ID",
       name: "Domain name (e.g. example.com)",
-      project_type: "Project type (php, html, symfony, symfony_dev, symfony_four, laravel)",
-      directory: "Web root directory (e.g. /public)",
+      type: "Site type (php, html, symfony, symfony_dev, symfony_four, laravel)",
+      web_directory: "Web root directory (e.g. /public)",
       repository: "Git repository URL (if connected)",
       deployment_status: "Last deployment status (null, deploying, deployed, failed)",
     },
@@ -98,9 +98,9 @@ const RESOURCE_HELP: Record<string, ResourceHelp> = {
           resource: "sites",
           action: "create",
           server_id: "123",
-          domain: "app.example.com",
-          project_type: "php",
-          directory: "/public",
+          type: "php",
+          name: "app.example.com",
+          web_directory: "/public",
         },
       },
       {

@@ -116,8 +116,8 @@ export class SitesCollection extends BaseCollection {
    * @example
    * ```ts
    * const site = await forge.server(123).sites.create({
-   *   domain: 'example.com',
-   *   project_type: 'php',
+   *   type: 'php',
+   *   name: 'example.com',
    *   directory: '/public',
    * });
    * ```

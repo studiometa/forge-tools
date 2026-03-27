@@ -211,12 +211,11 @@ const FORGE_WRITE_TOOL: Tool = {
           "Resource type (e.g. app, web, worker for servers; mysql, postgres for databases; disk_usage, used_memory for monitors)",
       },
       // Site fields
-      domain: { type: "string" as const, description: "Site domain name (e.g. example.com)" },
-      project_type: {
+      domain: {
         type: "string" as const,
-        description: "Site project type (e.g. php, html, symfony, laravel)",
+        description: "Site domain name (alias for name, e.g. example.com)",
       },
-      directory: {
+      web_directory: {
         type: "string" as const,
         description: "Web directory relative to site root (e.g. /public)",
       },
