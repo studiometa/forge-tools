@@ -71,7 +71,7 @@ const RESOURCE_HELP: Record<string, ResourceHelp> = {
       create: "Create a new site (requires domain, project_type)",
       delete: "Delete a site by ID",
       context:
-        "Get full site context: site details + recent deployments (last 5) + certificates + redirect rules + security rules in one call",
+        "Get full site context: site details + recent deployments (last 5) + redirect rules + security rules in one call",
       resolve: "Find sites by domain name (partial, case-insensitive match, requires server_id)",
     },
     fields: {
@@ -104,7 +104,7 @@ const RESOURCE_HELP: Record<string, ResourceHelp> = {
         },
       },
       {
-        description: "Get full site context (site + deployments + certificates + rules)",
+        description: "Get full site context (site + deployments + rules)",
         params: { resource: "sites", action: "context", server_id: "123", id: "456" },
       },
       {
@@ -550,7 +550,7 @@ const RESOURCE_HELP: Record<string, ResourceHelp> = {
     fields: {
       provider: "Backup provider (s3, spaces, custom)",
       credentials: "Provider credentials (keys, bucket, region)",
-      frequency: "Backup frequency (daily, weekly, custom)",
+      schedule: "Backup schedule (daily, weekly, custom cron)",
       databases: "Array of database IDs to back up",
       retention: "Number of backups to retain",
     },
@@ -637,7 +637,7 @@ const RESOURCE_HELP: Record<string, ResourceHelp> = {
     description: "Get the currently authenticated Forge user profile",
     scope: "global (no parent ID needed)",
     actions: {
-      get: "Get the authenticated user's profile (name, email, connected services)",
+      get: "Get the authenticated user's profile (name, email)",
     },
     examples: [
       {
