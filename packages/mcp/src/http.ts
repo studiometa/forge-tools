@@ -116,7 +116,9 @@ export function createMcpServer(options?: HttpServerOptions): Server {
         /* v8 ignore next */ (args as Record<string, unknown>) ?? {},
         {
           apiToken: token,
-          organizationSlug: (args as Record<string, unknown>).organization as string | undefined,
+          organizationSlug: (args as Record<string, unknown>).organizationSlug as
+            | string
+            | undefined,
         },
       );
       return result as unknown as Record<string, unknown>;

@@ -15,6 +15,10 @@ export interface ListSitesOptions {
  * Options for getting a single site.
  */
 export interface GetSiteOptions {
+  /**
+   * Server ID — kept for caller compatibility but unused in v2.
+   * The v2 API retrieves sites via the org-scoped path `/orgs/{slug}/sites/{id}`.
+   */
   server_id: string;
   site_id: string;
 }

@@ -112,30 +112,8 @@ export async function deploySiteAndWait(
 
   const elapsed_ms = Date.now() - startTime;
 
-  // 4. Final log fetch — emit any remaining content
+  // 4. Final log + status fetch (single deployments request)
   let log = "";
-  try {
-    const deploymentsResponse = await ctx.client.get<JsonApiListDocument<DeploymentAttributes>>(
-      `${baseUrl}/deployments?sort=-created_at&page[size]=1`,
-    );
-    const deployments = unwrapListDocument(deploymentsResponse);
-    if (deployments.length > 0) {
-      const latestId = deployments[0]!.id;
-      const logResponse = await ctx.client.get<JsonApiDocument<{ output: string }>>(
-        `${baseUrl}/deployments/${latestId}/log`,
-      );
-      const logData = unwrapDocument(logResponse);
-      log = logData.output ?? "";
-    }
-  } catch {
-    // log may not be available; continue
-  }
-
-  if (onLog && log.length > logOffset) {
-    onLog(log.slice(logOffset));
-  }
-
-  // 5. Determine success/failure from the most recent deployment
   let deployStatus: "success" | "failed" = "failed";
   try {
     const deploymentsResponse = await ctx.client.get<JsonApiListDocument<DeploymentAttributes>>(
@@ -145,9 +123,24 @@ export async function deploySiteAndWait(
     if (deployments.length > 0) {
       const latest = deployments[0]!;
       deployStatus = latest.status === "finished" ? "success" : "failed";
+
+      // Fetch final log
+      try {
+        const logResponse = await ctx.client.get<JsonApiDocument<{ output: string }>>(
+          `${baseUrl}/deployments/${latest.id}/log`,
+        );
+        const logData = unwrapDocument(logResponse);
+        log = logData.output ?? "";
+      } catch {
+        // log may not be available; continue
+      }
     }
   } catch {
     // If we can't fetch deployments, keep 'failed'
+  }
+
+  if (onLog && log.length > logOffset) {
+    onLog(log.slice(logOffset));
   }
 
   // 6. If we timed out, force 'failed'

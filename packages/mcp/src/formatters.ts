@@ -153,7 +153,7 @@ export function formatDeploymentList(
   }
   const lines = deployments.map(
     (d) =>
-      `• #${d.id} — ${d.status} — ${d.commit.hash?.slice(0, 7) ?? "no commit"} — ${d.started_at}`,
+      `• #${d.id} — ${d.status} — ${d.commit?.hash?.slice(0, 7) ?? "no commit"} — ${d.started_at}`,
   );
   return `${deployments.length} deployment(s):\n${lines.join("\n")}`;
 }
