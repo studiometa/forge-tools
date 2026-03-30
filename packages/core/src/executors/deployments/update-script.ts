@@ -1,5 +1,5 @@
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
-import { sitePath } from "../../utils/url-builder.ts";
+import { ROUTES, request } from "../../routes.ts";
 
 import type { UpdateDeploymentScriptOptions } from "./types.ts";
 
@@ -10,9 +10,12 @@ export async function updateDeploymentScript(
   options: UpdateDeploymentScriptOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<void>> {
-  await ctx.client.put(`${sitePath(options.server_id, options.site_id, ctx)}/deployments/script`, {
-    content: options.content,
-  });
+  await request(
+    ROUTES.deployments.updateScript,
+    ctx,
+    { server_id: options.server_id, site_id: options.site_id },
+    { body: { content: options.content } },
+  );
 
   return {
     data: undefined,

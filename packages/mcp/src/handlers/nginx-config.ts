@@ -1,3 +1,4 @@
+import * as v from "valibot";
 import { getNginxConfig, updateNginxConfig } from "@studiometa/forge-core";
 
 import { formatNginxConfig } from "../formatters.ts";
@@ -6,9 +7,9 @@ import { createResourceHandler } from "./factory.ts";
 export const handleNginxConfig = createResourceHandler({
   resource: "nginx",
   actions: ["get", "update"],
-  requiredFields: {
-    get: ["server_id", "site_id"],
-    update: ["server_id", "site_id", "content"],
+  inputSchemas: {
+    get: v.object({ server_id: v.string(), site_id: v.string() }),
+    update: v.object({ server_id: v.string(), site_id: v.string(), content: v.string() }),
   },
   executors: {
     get: getNginxConfig,

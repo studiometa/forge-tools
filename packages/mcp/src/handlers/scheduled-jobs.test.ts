@@ -8,10 +8,12 @@ import { handleScheduledJobs } from "./scheduled-jobs.ts";
 
 function makeJobAttrs(overrides: Record<string, unknown> = {}) {
   return {
+    name: null,
     command: "php artisan schedule:run",
     user: "forge",
     frequency: "minutely",
     cron: "* * * * *",
+    next_run_time: "2024-01-01 00:01:00",
     status: "running",
     created_at: "2024-01-01",
     updated_at: "2024-01-01",

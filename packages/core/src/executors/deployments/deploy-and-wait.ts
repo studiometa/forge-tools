@@ -8,7 +8,7 @@ import type {
 import { unwrapDocument, unwrapListDocument } from "@studiometa/forge-api";
 
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
-import { sitePath } from "../../utils/url-builder.ts";
+import { ROUTES, request, buildUrl } from "../../routes.ts";
 
 import type { DeploySiteAndWaitOptions, DeployResult } from "./types.ts";
 
@@ -35,10 +35,14 @@ export async function deploySiteAndWait(
     onLog,
   } = options;
 
-  const baseUrl = sitePath(server_id, site_id, ctx);
+  // Build site-scoped base URL for polling (raw client calls in try/catch loops)
+  const baseUrl = buildUrl(ROUTES.deployments.list, ctx, { server_id, site_id }).replace(
+    /\/deployments$/,
+    "",
+  );
 
   // 1. Trigger deploy
-  await ctx.client.post(`${baseUrl}/deployments`, {});
+  await request(ROUTES.deployments.create, ctx, { server_id, site_id }, { body: {} });
 
   const startTime = Date.now();
   let logOffset = 0;

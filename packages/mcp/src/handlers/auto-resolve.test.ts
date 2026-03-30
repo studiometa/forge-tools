@@ -6,6 +6,67 @@ import { autoResolveIds } from "./auto-resolve.ts";
 import type { CommonArgs } from "./types.ts";
 import type { ExecutorContext } from "@studiometa/forge-core";
 
+function makeServerAttrs(id: number, name: string) {
+  return {
+    id,
+    name,
+    credential_id: null,
+    type: "app",
+    ubuntu_version: "22.04",
+    ssh_port: 22,
+    provider: "ocean2",
+    identifier: null,
+    size: "s-1vcpu-1gb",
+    region: "nyc1",
+    php_version: "php84",
+    php_cli_version: "php84",
+    opcache_status: null,
+    database_type: null,
+    db_status: null,
+    redis_status: null,
+    ip_address: null,
+    private_ip_address: null,
+    revoked: false,
+    created_at: "2024-01-01",
+    updated_at: "2024-01-01",
+    connection_status: "connected",
+    timezone: "UTC",
+    local_public_key: null,
+    is_ready: true,
+  };
+}
+
+function makeSiteAttrs(id: number, name: string) {
+  return {
+    id,
+    name,
+    aliases: [],
+    root_directory: null,
+    web_directory: "/public",
+    wildcards: null,
+    status: "installed",
+    repository: null,
+    quick_deploy: null,
+    deployment_status: null,
+    deployment_url: "",
+    deployment_script: null,
+    php_version: "php84",
+    app_type: "php",
+    url: "",
+    https: false,
+    isolated: false,
+    user: "forge",
+    database: null,
+    shared_paths: null,
+    uses_envoyer: false,
+    zero_downtime_deployments: false,
+    maintenance_mode: null,
+    healthcheck_url: null,
+    created_at: "2024-01-01",
+    updated_at: "2024-01-01",
+  };
+}
+
 function createMockCtx(
   servers: Array<{ id: number; name: string }> = [],
   sites: Array<{ id: number; name: string }> = [],
@@ -17,12 +78,12 @@ function createMockCtx(
         if (url === "/orgs/test-org/servers")
           return mockListDocument(
             "servers",
-            servers.map((s) => ({ id: s.id, attributes: { id: s.id, name: s.name } as never })),
+            servers.map((s) => ({ id: s.id, attributes: makeServerAttrs(s.id, s.name) as never })),
           );
         if (url.match(/\/orgs\/test-org\/servers\/\d+\/sites$/))
           return mockListDocument(
             "sites",
-            sites.map((s) => ({ id: s.id, attributes: { id: s.id, name: s.name } as never })),
+            sites.map((s) => ({ id: s.id, attributes: makeSiteAttrs(s.id, s.name) as never })),
           );
         return {};
       },

@@ -1,7 +1,11 @@
 import type { JsonApiListDocument, DeploymentAttributes } from "@studiometa/forge-api";
-import { unwrapListDocument } from "@studiometa/forge-api";
+import {
+  unwrapListDocument,
+  jsonApiListDocumentSchema,
+  DeploymentAttributesSchema,
+} from "@studiometa/forge-api";
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
-import { sitePath } from "../../utils/url-builder.ts";
+import { ROUTES, request } from "../../routes.ts";
 
 import type { ListDeploymentsOptions } from "./types.ts";
 
@@ -12,8 +16,14 @@ export async function listDeployments(
   options: ListDeploymentsOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<Array<DeploymentAttributes & { id: number }>>> {
-  const response = await ctx.client.get<JsonApiListDocument<DeploymentAttributes>>(
-    `${sitePath(options.server_id, options.site_id, ctx)}/deployments?sort=-created_at`,
+  const response = await request<JsonApiListDocument<DeploymentAttributes>>(
+    ROUTES.deployments.list,
+    ctx,
+    { server_id: options.server_id, site_id: options.site_id },
+    {
+      query: { sort: "-created_at" },
+      schema: jsonApiListDocumentSchema(DeploymentAttributesSchema),
+    },
   );
 
   return {

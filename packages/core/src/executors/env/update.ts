@@ -1,5 +1,5 @@
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
-import { sitePath } from "../../utils/url-builder.ts";
+import { ROUTES, request } from "../../routes.ts";
 
 import type { UpdateEnvOptions } from "./types.ts";
 
@@ -10,9 +10,14 @@ export async function updateEnv(
   options: UpdateEnvOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<void>> {
-  await ctx.client.put(`${sitePath(options.server_id, options.site_id, ctx)}/environment`, {
-    content: options.content,
-  });
+  await request(
+    ROUTES.env.update,
+    ctx,
+    { server_id: options.server_id, site_id: options.site_id },
+    {
+      body: { content: options.content },
+    },
+  );
 
   return {
     data: undefined,

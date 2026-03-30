@@ -14,7 +14,7 @@ describe("listFirewallRules", () => {
               id: 1,
               attributes: {
                 name: "HTTP",
-                port: 80,
+                port: "80",
                 type: "allow",
                 ip_address: "",
                 status: "installed",

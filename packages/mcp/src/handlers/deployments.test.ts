@@ -195,7 +195,10 @@ describe("handleDeployments", () => {
         organizationSlug: "test-org",
         client: {
           get: async () =>
-            mockDocument(1, "deployment-scripts", { content: "#!/bin/bash\ncd /home/forge" }),
+            mockDocument(1, "deployment-scripts", {
+              content: "#!/bin/bash\ncd /home/forge",
+              auto_source: "",
+            }),
         } as never,
       },
       compact: true,

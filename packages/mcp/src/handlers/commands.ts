@@ -1,3 +1,4 @@
+import * as v from "valibot";
 import { createCommand, getCommand, listCommands } from "@studiometa/forge-core";
 
 import { formatCommand, formatCommandList } from "../formatters.ts";
@@ -6,10 +7,10 @@ import { createResourceHandler } from "./factory.ts";
 export const handleCommands = createResourceHandler({
   resource: "commands",
   actions: ["list", "get", "create"],
-  requiredFields: {
-    list: ["server_id", "site_id"],
-    get: ["server_id", "site_id", "id"],
-    create: ["server_id", "site_id", "command"],
+  inputSchemas: {
+    list: v.object({ server_id: v.string(), site_id: v.string() }),
+    get: v.object({ server_id: v.string(), site_id: v.string(), id: v.string() }),
+    create: v.object({ server_id: v.string(), site_id: v.string(), command: v.string() }),
   },
   executors: {
     list: listCommands,

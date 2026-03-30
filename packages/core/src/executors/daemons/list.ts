@@ -1,19 +1,26 @@
 import type { JsonApiListDocument, BackgroundProcessAttributes } from "@studiometa/forge-api";
-import { unwrapListDocument } from "@studiometa/forge-api";
+import {
+  unwrapListDocument,
+  jsonApiListDocumentSchema,
+  BackgroundProcessAttributesSchema,
+} from "@studiometa/forge-api";
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
-import { serverPath } from "../../utils/url-builder.ts";
+import { ROUTES, request } from "../../routes.ts";
 
 import type { ListDaemonsOptions } from "./types.ts";
 
 /**
- * List daemons (background processes) on a server.
+ * List daemons on a server.
  */
 export async function listDaemons(
   options: ListDaemonsOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<Array<BackgroundProcessAttributes & { id: number }>>> {
-  const response = await ctx.client.get<JsonApiListDocument<BackgroundProcessAttributes>>(
-    `${serverPath(options.server_id, ctx)}/background-processes`,
+  const response = await request<JsonApiListDocument<BackgroundProcessAttributes>>(
+    ROUTES.daemons.list,
+    ctx,
+    { server_id: options.server_id },
+    { schema: jsonApiListDocumentSchema(BackgroundProcessAttributesSchema) },
   );
 
   return {

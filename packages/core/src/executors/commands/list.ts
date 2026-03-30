@@ -1,7 +1,11 @@
 import type { JsonApiListDocument, CommandAttributes } from "@studiometa/forge-api";
-import { unwrapListDocument } from "@studiometa/forge-api";
+import {
+  unwrapListDocument,
+  jsonApiListDocumentSchema,
+  CommandAttributesSchema,
+} from "@studiometa/forge-api";
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
-import { sitePath } from "../../utils/url-builder.ts";
+import { ROUTES, request } from "../../routes.ts";
 
 import type { ListCommandsOptions } from "./types.ts";
 
@@ -12,8 +16,11 @@ export async function listCommands(
   options: ListCommandsOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<Array<CommandAttributes & { id: number }>>> {
-  const response = await ctx.client.get<JsonApiListDocument<CommandAttributes>>(
-    `${sitePath(options.server_id, options.site_id, ctx)}/commands`,
+  const response = await request<JsonApiListDocument<CommandAttributes>>(
+    ROUTES.commands.list,
+    ctx,
+    { server_id: options.server_id, site_id: options.site_id },
+    { schema: jsonApiListDocumentSchema(CommandAttributesSchema) },
   );
 
   return {

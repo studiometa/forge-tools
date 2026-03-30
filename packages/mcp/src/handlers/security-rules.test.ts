@@ -10,6 +10,7 @@ function makeRuleAttrs(overrides: Record<string, unknown> = {}) {
   return {
     name: "admin",
     path: "/admin",
+    status: null,
     created_at: "2024-01-01",
     updated_at: "2024-01-01",
     ...overrides,

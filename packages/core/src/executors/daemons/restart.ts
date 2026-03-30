@@ -1,5 +1,5 @@
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
-import { serverPath } from "../../utils/url-builder.ts";
+import { ROUTES, request } from "../../routes.ts";
 
 import type { RestartDaemonOptions } from "./types.ts";
 
@@ -10,9 +10,11 @@ export async function restartDaemon(
   options: RestartDaemonOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<void>> {
-  await ctx.client.post(
-    `${serverPath(options.server_id, ctx)}/background-processes/${options.id}/restart`,
-    {},
+  await request(
+    ROUTES.daemons.action,
+    ctx,
+    { server_id: options.server_id, id: options.id },
+    { body: { action: "restart" } },
   );
 
   return {

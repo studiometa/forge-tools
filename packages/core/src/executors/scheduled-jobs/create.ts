@@ -1,21 +1,27 @@
 import type { JsonApiDocument, ScheduledJobAttributes } from "@studiometa/forge-api";
-import { unwrapDocument } from "@studiometa/forge-api";
+import {
+  unwrapDocument,
+  jsonApiDocumentSchema,
+  ScheduledJobAttributesSchema,
+} from "@studiometa/forge-api";
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
-import { serverPath } from "../../utils/url-builder.ts";
+import { ROUTES, request } from "../../routes.ts";
 
 import type { CreateScheduledJobOptions } from "./types.ts";
 
 /**
- * Create a new scheduled job (cron).
+ * Create a scheduled job.
  */
 export async function createScheduledJob(
   options: CreateScheduledJobOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<ScheduledJobAttributes & { id: number }>> {
   const { server_id, ...data } = options;
-  const response = await ctx.client.post<JsonApiDocument<ScheduledJobAttributes>>(
-    `${serverPath(server_id, ctx)}/scheduled-jobs`,
-    data,
+  const response = await request<JsonApiDocument<ScheduledJobAttributes>>(
+    ROUTES.scheduledJobs.create,
+    ctx,
+    { server_id },
+    { body: data, schema: jsonApiDocumentSchema(ScheduledJobAttributesSchema) },
   );
 
   return {

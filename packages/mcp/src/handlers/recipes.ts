@@ -1,3 +1,4 @@
+import * as v from "valibot";
 import {
   createRecipe,
   deleteRecipe,
@@ -13,11 +14,11 @@ import { createResourceHandler } from "./factory.ts";
 export const handleRecipes = createResourceHandler({
   resource: "recipes",
   actions: ["list", "get", "create", "delete", "run"],
-  requiredFields: {
-    get: ["id"],
-    create: ["name", "script"],
-    delete: ["id"],
-    run: ["id", "servers"],
+  inputSchemas: {
+    get: v.object({ id: v.string() }),
+    create: v.object({ name: v.string(), script: v.string() }),
+    delete: v.object({ id: v.string() }),
+    run: v.object({ id: v.string(), servers: v.unknown() }),
   },
   executors: {
     list: listRecipes,

@@ -1,7 +1,11 @@
 import type { JsonApiDocument, DatabaseAttributes } from "@studiometa/forge-api";
-import { unwrapDocument } from "@studiometa/forge-api";
+import {
+  unwrapDocument,
+  jsonApiDocumentSchema,
+  DatabaseAttributesSchema,
+} from "@studiometa/forge-api";
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
-import { serverPath } from "../../utils/url-builder.ts";
+import { ROUTES, request } from "../../routes.ts";
 
 import type { GetDatabaseOptions } from "./types.ts";
 
@@ -12,8 +16,11 @@ export async function getDatabase(
   options: GetDatabaseOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<DatabaseAttributes & { id: number }>> {
-  const response = await ctx.client.get<JsonApiDocument<DatabaseAttributes>>(
-    `${serverPath(options.server_id, ctx)}/database/schemas/${options.id}`,
+  const response = await request<JsonApiDocument<DatabaseAttributes>>(
+    ROUTES.databases.get,
+    ctx,
+    { server_id: options.server_id, id: options.id },
+    { schema: jsonApiDocumentSchema(DatabaseAttributesSchema) },
   );
 
   return {

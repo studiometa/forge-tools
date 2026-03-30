@@ -1,7 +1,11 @@
 import type { JsonApiDocument, ScheduledJobAttributes } from "@studiometa/forge-api";
-import { unwrapDocument } from "@studiometa/forge-api";
+import {
+  unwrapDocument,
+  jsonApiDocumentSchema,
+  ScheduledJobAttributesSchema,
+} from "@studiometa/forge-api";
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
-import { serverPath } from "../../utils/url-builder.ts";
+import { ROUTES, request } from "../../routes.ts";
 
 import type { GetScheduledJobOptions } from "./types.ts";
 
@@ -12,8 +16,11 @@ export async function getScheduledJob(
   options: GetScheduledJobOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<ScheduledJobAttributes & { id: number }>> {
-  const response = await ctx.client.get<JsonApiDocument<ScheduledJobAttributes>>(
-    `${serverPath(options.server_id, ctx)}/scheduled-jobs/${options.id}`,
+  const response = await request<JsonApiDocument<ScheduledJobAttributes>>(
+    ROUTES.scheduledJobs.get,
+    ctx,
+    { server_id: options.server_id, id: options.id },
+    { schema: jsonApiDocumentSchema(ScheduledJobAttributesSchema) },
   );
 
   return {

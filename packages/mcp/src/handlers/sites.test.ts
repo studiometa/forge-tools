@@ -24,12 +24,12 @@ function makeSiteAttrs(overrides: Record<string, unknown> = {}) {
     url: "",
     https: false,
     isolated: false,
-    user: null,
+    user: "forge",
     database: null,
-    shared_paths: [],
+    shared_paths: null,
     uses_envoyer: false,
     zero_downtime_deployments: false,
-    maintenance_mode: false,
+    maintenance_mode: null,
     healthcheck_url: null,
     created_at: "2024-01-01",
     updated_at: "2024-01-01",
@@ -189,15 +189,41 @@ describe("handleSites", () => {
   });
 
   it("should resolve sites by domain name (partial match)", async () => {
+    const siteBase = {
+      aliases: [],
+      root_directory: null,
+      web_directory: "/public",
+      wildcards: null,
+      status: "installed",
+      repository: null,
+      quick_deploy: null,
+      deployment_status: null,
+      deployment_url: "https://site/deploy",
+      deployment_script: null,
+      php_version: "php83",
+      app_type: "php",
+      url: "https://site",
+      https: false,
+      isolated: false,
+      user: "forge",
+      database: null,
+      shared_paths: null,
+      uses_envoyer: false,
+      zero_downtime_deployments: false,
+      maintenance_mode: null,
+      healthcheck_url: null,
+      created_at: null,
+      updated_at: null,
+    };
     const ctx: HandlerContext = {
       executorContext: {
         organizationSlug: "test-org",
         client: {
           get: async () =>
             mockListDocument("sites", [
-              { id: 1, attributes: { name: "example.com" } as never },
-              { id: 2, attributes: { name: "api.example.com" } as never },
-              { id: 3, attributes: { name: "staging.myapp.io" } as never },
+              { id: 1, attributes: { ...siteBase, name: "example.com" } },
+              { id: 2, attributes: { ...siteBase, name: "api.example.com" } },
+              { id: 3, attributes: { ...siteBase, name: "staging.myapp.io" } },
             ]),
         } as never,
       },
@@ -215,13 +241,39 @@ describe("handleSites", () => {
   });
 
   it("should resolve sites — no matches", async () => {
+    const siteBase = {
+      aliases: [],
+      root_directory: null,
+      web_directory: "/public",
+      wildcards: null,
+      status: "installed",
+      repository: null,
+      quick_deploy: null,
+      deployment_status: null,
+      deployment_url: "https://site/deploy",
+      deployment_script: null,
+      php_version: "php83",
+      app_type: "php",
+      url: "https://site",
+      https: false,
+      isolated: false,
+      user: "forge",
+      database: null,
+      shared_paths: null,
+      uses_envoyer: false,
+      zero_downtime_deployments: false,
+      maintenance_mode: null,
+      healthcheck_url: null,
+      created_at: null,
+      updated_at: null,
+    };
     const ctx: HandlerContext = {
       executorContext: {
         organizationSlug: "test-org",
         client: {
           get: async () =>
             mockListDocument("sites", [
-              { id: 1, attributes: { name: "staging.myapp.io" } as never },
+              { id: 1, attributes: { ...siteBase, name: "staging.myapp.io" } },
             ]),
         } as never,
       },

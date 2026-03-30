@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 
+import * as v from "valibot";
+
 import type { ExecutorContext, ExecutorResult } from "@studiometa/forge-core";
 
 import type { ContextualHints } from "../hints.ts";
@@ -38,13 +40,13 @@ describe("createResourceHandler", () => {
     const handler = createResourceHandler({
       resource: "test",
       actions: ["list"],
-      requiredFields: { list: ["server_id"] },
+      inputSchemas: { list: v.object({ server_id: v.string() }) },
       executors: { list: async () => ({ data: [] }) },
     });
 
     const result = await handler("list", { resource: "test", action: "list" }, createMockContext());
     expect(result.isError).toBe(true);
-    expect(result.content[0]!.text).toContain("server_id");
+    expect(result.content[0]!.text).toContain("Invalid input");
   });
 
   it("should execute and return formatted text when compact and formatResult provided", async () => {

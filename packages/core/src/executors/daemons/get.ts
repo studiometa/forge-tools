@@ -1,7 +1,11 @@
 import type { JsonApiDocument, BackgroundProcessAttributes } from "@studiometa/forge-api";
-import { unwrapDocument } from "@studiometa/forge-api";
+import {
+  unwrapDocument,
+  jsonApiDocumentSchema,
+  BackgroundProcessAttributesSchema,
+} from "@studiometa/forge-api";
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
-import { serverPath } from "../../utils/url-builder.ts";
+import { ROUTES, request } from "../../routes.ts";
 
 import type { GetDaemonOptions } from "./types.ts";
 
@@ -12,8 +16,11 @@ export async function getDaemon(
   options: GetDaemonOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<BackgroundProcessAttributes & { id: number }>> {
-  const response = await ctx.client.get<JsonApiDocument<BackgroundProcessAttributes>>(
-    `${serverPath(options.server_id, ctx)}/background-processes/${options.id}`,
+  const response = await request<JsonApiDocument<BackgroundProcessAttributes>>(
+    ROUTES.daemons.get,
+    ctx,
+    { server_id: options.server_id, id: options.id },
+    { schema: jsonApiDocumentSchema(BackgroundProcessAttributesSchema) },
   );
 
   return {

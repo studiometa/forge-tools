@@ -9,7 +9,7 @@ import { handleFirewallRules } from "./firewall-rules.ts";
 function makeRuleAttrs(overrides: Record<string, unknown> = {}) {
   return {
     name: "SSH",
-    port: 22,
+    port: "22",
     type: "allow",
     ip_address: "0.0.0.0",
     status: "created",

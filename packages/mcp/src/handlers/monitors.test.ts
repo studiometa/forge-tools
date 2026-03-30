@@ -12,8 +12,12 @@ function makeMonitorAttrs(overrides: Record<string, unknown> = {}) {
     operator: ">",
     threshold: 80,
     minutes: 5,
+    notify: "email",
+    status: "active",
     state: "OK",
     state_changed_at: "2024-01-01",
+    created_at: "2024-01-01",
+    updated_at: "2024-01-01",
     ...overrides,
   };
 }

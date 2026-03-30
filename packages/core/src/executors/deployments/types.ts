@@ -50,6 +50,7 @@ export interface UpdateDeploymentScriptOptions {
 export interface GetDeploymentLogOptions {
   server_id: string;
   site_id: string;
+  deployment_id: string;
 }
 
 /**

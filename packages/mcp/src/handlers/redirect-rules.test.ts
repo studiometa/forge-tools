@@ -11,6 +11,7 @@ function makeRuleAttrs(overrides: Record<string, unknown> = {}) {
     from: "/old",
     to: "/new",
     type: "301",
+    status: "active",
     created_at: "2024-01-01",
     updated_at: "2024-01-01",
     ...overrides,

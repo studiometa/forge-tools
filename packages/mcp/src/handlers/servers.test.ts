@@ -258,15 +258,40 @@ describe("handleServers", () => {
   });
 
   it("should resolve servers by name (partial match)", async () => {
+    const serverBase = {
+      credential_id: null,
+      type: "app",
+      ubuntu_version: null,
+      ssh_port: 22,
+      provider: "ocean2",
+      identifier: null,
+      size: "01",
+      region: "ams3",
+      php_version: null,
+      php_cli_version: null,
+      opcache_status: null,
+      database_type: null,
+      db_status: null,
+      redis_status: null,
+      ip_address: null,
+      private_ip_address: null,
+      revoked: false,
+      created_at: "2024-01-01",
+      updated_at: "2024-01-01",
+      connection_status: "connected",
+      timezone: "UTC",
+      local_public_key: null,
+      is_ready: true,
+    };
     const ctx: HandlerContext = {
       executorContext: {
         organizationSlug: "test-org",
         client: {
           get: async () =>
             mockListDocument("servers", [
-              { id: 1, attributes: { id: 1, name: "prod-web-1" } as never },
-              { id: 2, attributes: { id: 2, name: "prod-web-2" } as never },
-              { id: 3, attributes: { id: 3, name: "staging-web-1" } as never },
+              { id: 1, attributes: { ...serverBase, id: 1, name: "prod-web-1" } },
+              { id: 2, attributes: { ...serverBase, id: 2, name: "prod-web-2" } },
+              { id: 3, attributes: { ...serverBase, id: 3, name: "staging-web-1" } },
             ]),
         } as never,
       },
@@ -284,13 +309,38 @@ describe("handleServers", () => {
   });
 
   it("should resolve servers — no matches", async () => {
+    const serverBase = {
+      credential_id: null,
+      type: "app",
+      ubuntu_version: null,
+      ssh_port: 22,
+      provider: "ocean2",
+      identifier: null,
+      size: "01",
+      region: "ams3",
+      php_version: null,
+      php_cli_version: null,
+      opcache_status: null,
+      database_type: null,
+      db_status: null,
+      redis_status: null,
+      ip_address: null,
+      private_ip_address: null,
+      revoked: false,
+      created_at: "2024-01-01",
+      updated_at: "2024-01-01",
+      connection_status: "connected",
+      timezone: "UTC",
+      local_public_key: null,
+      is_ready: true,
+    };
     const ctx: HandlerContext = {
       executorContext: {
         organizationSlug: "test-org",
         client: {
           get: async () =>
             mockListDocument("servers", [
-              { id: 1, attributes: { id: 1, name: "staging-web-1" } as never },
+              { id: 1, attributes: { ...serverBase, id: 1, name: "staging-web-1" } },
             ]),
         } as never,
       },

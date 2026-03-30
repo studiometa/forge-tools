@@ -1,16 +1,26 @@
 import type { JsonApiDocument, MonitorAttributes } from "@studiometa/forge-api";
-import { unwrapDocument } from "@studiometa/forge-api";
+import {
+  unwrapDocument,
+  jsonApiDocumentSchema,
+  MonitorAttributesSchema,
+} from "@studiometa/forge-api";
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
-import { serverPath } from "../../utils/url-builder.ts";
+import { ROUTES, request } from "../../routes.ts";
 
 import type { GetMonitorOptions } from "./types.ts";
 
+/**
+ * Get a single monitor.
+ */
 export async function getMonitor(
   options: GetMonitorOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<MonitorAttributes & { id: number }>> {
-  const response = await ctx.client.get<JsonApiDocument<MonitorAttributes>>(
-    `${serverPath(options.server_id, ctx)}/monitors/${options.id}`,
+  const response = await request<JsonApiDocument<MonitorAttributes>>(
+    ROUTES.monitors.get,
+    ctx,
+    { server_id: options.server_id, id: options.id },
+    { schema: jsonApiDocumentSchema(MonitorAttributesSchema) },
   );
 
   return {
