@@ -5,6 +5,70 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Breaking
+
+- **All**: Migrate from Forge v1 API (`/api/v1`) to v2 API (`/api`) — all endpoints now use org-scoped URLs, JSON:API response format, and cursor-based pagination [[#85]]
+- **All**: Remove all v1 type definitions (`ForgeServer`, `ForgeSite`, etc.) and response wrappers (`ServersResponse`, etc.) — replaced by `ServerAttributes`, `SiteAttributes`, and generic `JsonApiDocument<T>` / `JsonApiListDocument<T>` types [[#85], [0665a7e]]
+- **API**: Change `HttpClient` default base URL from `https://forge.laravel.com/api/v1` to `https://forge.laravel.com/api` [[#85], [697bae9]]
+- **API**: Add `organizationSlug` to `ForgeConfig` — required for all API calls via `FORGE_ORG` env var or config file [[#85], [015e537]]
+- **SDK**: `Forge` constructor now takes `(token, organizationSlug, options?)` instead of `(token, options?)` [[#85], [7881230]]
+- **SDK**: Switch from page-number to cursor-based pagination — `list({ page })` becomes `list({ cursor })` [[#85], [7881230]]
+- **Core**: `ExecutorContext` now requires `organizationSlug` field [[#85], [697bae9]]
+
+### Added
+
+- **API**: Add JSON:API generic types (`JsonApiResource`, `JsonApiDocument`, `JsonApiListDocument`, pagination types) [[#85], [37f4f10]]
+- **API**: Add v2 resource attribute types for all 25 resources (`ServerAttributes`, `SiteAttributes`, `DeploymentAttributes`, etc.) [[#85], [b34ea27]]
+- **API**: Add `unwrapDocument()`, `unwrapListDocument()` helpers to flatten JSON:API responses [[#85], [b0f0e5b]]
+- **API**: Add `getOrganizationSlug()` / `setOrganizationSlug()` config helpers [[#85], [015e537]]
+- **API**: Handle 202 responses with empty body (async create operations) [[#85], [4e32330]]
+- **Core**: Add URL builder helpers (`orgPrefix`, `serverPath`, `sitePath`) [[#85], [697bae9]]
+- **Core**: Add `mockDocument()` / `mockListDocument()` test helpers [[#85], [5772bc4]]
+- **CLI**: Add `forge config set organizationSlug <slug>` command [[#85], [6ca58b2]]
+- **CLI**: Add `--org` flag for per-command organization override [[#85], [6ca58b2]]
+- **MCP**: `forge_configure` tool now accepts `organizationSlug` parameter [[#85], [6ca58b2]]
+- **MCP**: `forge_get_config` tool now shows `organizationSlug` [[#85], [6ca58b2]]
+
+### Changed
+
+- **All**: All API URLs now prefixed with `/orgs/{slug}` [[#85], [d755287]]
+- **All**: v2 URL mapping: `/daemons` → `/background-processes`, `/databases` → `/database/schemas`, `/database-users` → `/database/users`, `/keys` → `/ssh-keys`, `/jobs` → `/scheduled-jobs`, `/backup-configs` → `/database/backups`, `/deployment-history` → `/deployments`, `/env` → `/environment` [[#85], [d755287]]
+- **Core**: `getSite` uses org-scoped path (`/orgs/{slug}/sites/{id}`) since v2 does not support GET on server-scoped site path [[#85], [28264ae]]
+- **Core**: Deployments sorted by `-created_at` (v2 API defaults to oldest first) [[#85], [71b395d]]
+- **Core**: 5 create executors (firewall-rules, backups, commands, redirect-rules, ssh-keys) now return void since v2 returns 202 with no body [[#85], [4e32330]]
+- **All**: Certificates are now per-domain — `list` removed, all operations require `domain_id` instead of certificate `id`. URL: `/sites/{site}/domains/{domain}/certificate` [[#85], [bf661cf]]
+- **API**: Align all v2 attribute types with OpenAPI spec — fix `BackupConfigAttributes`, `BackupAttributes`, `CommandAttributes`, `CertificateAttributes`, `UserAttributes`, `BackgroundProcessAttributes`, `MonitorAttributes`, `SiteAttributes`, `SshKeyAttributes`, `ScheduledJobAttributes` [[#85], [a9ce75e]]
+- **API**: Add `SiteRepository`, `EnvironmentAttributes` types [[#85], [a9ce75e]]
+- **API**: Add `auto_source` field to `DeploymentScriptAttributes` [[#85], [a9ce75e]]
+- **Core**: Fix `getNginxConfig` to unwrap JSON:API response (was returning raw wrapper) [[#85], [fe42d56]]
+- **Core**: Deduplicate deployment list fetch in `deploySiteAndWait` [[#85], [fe42d56]]
+- **CLI**: Document `--org` flag and `FORGE_ORG` env var in help text [[#85], [a9ce75e]]
+- **CLI**: Fix `deploymentsDeploy` using `formatter.success()` for failed deployments [[#85], [a9ce75e]]
+- **MCP**: Validate `organizationSlug` early before routing to handlers [[#85], [a9ce75e]]
+- **MCP**: Fix HTTP transport reading wrong field name for `organizationSlug` [[#85], [fe42d56]]
+
+[#85]: https://github.com/studiometa/forge-tools/pull/85
+[37f4f10]: https://github.com/studiometa/forge-tools/commit/37f4f10
+[b34ea27]: https://github.com/studiometa/forge-tools/commit/b34ea27
+[b0f0e5b]: https://github.com/studiometa/forge-tools/commit/b0f0e5b
+[015e537]: https://github.com/studiometa/forge-tools/commit/015e537
+[697bae9]: https://github.com/studiometa/forge-tools/commit/697bae9
+[d755287]: https://github.com/studiometa/forge-tools/commit/d755287
+[c4d119f]: https://github.com/studiometa/forge-tools/commit/c4d119f
+[7881230]: https://github.com/studiometa/forge-tools/commit/7881230
+[5772bc4]: https://github.com/studiometa/forge-tools/commit/5772bc4
+[6ca58b2]: https://github.com/studiometa/forge-tools/commit/6ca58b2
+[0665a7e]: https://github.com/studiometa/forge-tools/commit/0665a7e
+[28264ae]: https://github.com/studiometa/forge-tools/commit/28264ae
+[4e32330]: https://github.com/studiometa/forge-tools/commit/4e32330
+[71b395d]: https://github.com/studiometa/forge-tools/commit/71b395d
+[bf661cf]: https://github.com/studiometa/forge-tools/commit/bf661cf
+[a9ce75e]: https://github.com/studiometa/forge-tools/commit/a9ce75e
+[fe42d56]: https://github.com/studiometa/forge-tools/commit/fe42d56
+[92bceaa]: https://github.com/studiometa/forge-tools/commit/92bceaa
+
 ## 0.3.0 - 2026.02.27
 
 ### Breaking

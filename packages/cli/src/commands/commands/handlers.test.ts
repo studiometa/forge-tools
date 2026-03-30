@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
-import type { ForgeCommand } from "@studiometa/forge-api";
+import type { CommandAttributes } from "@studiometa/forge-api";
 
 import { createTestContext } from "../../context.ts";
 import { commandsList, commandsGet, commandsCreate } from "./handlers.ts";
@@ -11,17 +11,14 @@ vi.mock("@studiometa/forge-core", () => ({
   createCommand: vi.fn(),
 }));
 
-const mockCommand: ForgeCommand = {
+const mockCommand: CommandAttributes & { id: number } = {
   id: 1,
-  server_id: 10,
-  site_id: 20,
-  user_id: 5,
-  event_id: 100,
   command: "php artisan migrate",
   status: "finished",
+  duration: "2s",
+  user_id: 1,
   created_at: "2024-01-01T00:00:00Z",
-  profile_photo_url: "",
-  user_name: "forge",
+  updated_at: "2024-01-01T00:00:00Z",
 };
 
 describe("commandsList", () => {

@@ -1,44 +1,45 @@
 import { describe, expect, it } from "vitest";
 
+import { mockDocument, mockListDocument } from "@studiometa/forge-core";
+
 import type { HandlerContext } from "./types.ts";
 
 import { handleBackups } from "./backups.ts";
 
+function makeBackupAttrs(overrides: Record<string, unknown> = {}) {
+  return {
+    name: "S3 Backup",
+    storage_provider_id: null,
+    provider: "s3",
+    bucket: null,
+    directory: "/backups",
+    schedule: "daily",
+    displayable_schedule: "Daily at 00:00",
+    next_run_time: "2024-01-16",
+    status: "active",
+    day_of_week: null,
+    time: null,
+    cron_schedule: null,
+    retention: 7,
+    notify_email: null,
+    ...overrides,
+  };
+}
+
 function createMockContext(): HandlerContext {
   return {
     executorContext: {
+      organizationSlug: "test-org",
       client: {
-        get: async () => ({
-          backups: [
-            {
-              id: 1,
-              provider_name: "S3",
-              frequency: "daily",
-              status: "installed",
-              last_backup_time: null,
-            },
-          ],
-          backup: {
-            id: 1,
-            provider_name: "S3",
-            frequency: "daily",
-            status: "installed",
-            retention: 7,
-            databases: [],
-            last_backup_time: null,
-          },
-        }),
-        post: async () => ({
-          backup: {
-            id: 1,
-            provider_name: "S3",
-            frequency: "daily",
-            status: "active",
-            retention: 7,
-            databases: [],
-            last_backup_time: null,
-          },
-        }),
+        get: async (url: string) => {
+          if (url.match(/\/database\/backups\/\d+$/)) {
+            return mockDocument(1, "backup-configs", makeBackupAttrs());
+          }
+          return mockListDocument("backup-configs", [
+            { id: 1, attributes: makeBackupAttrs({ status: "installed" }) as never },
+          ]);
+        },
+        post: async () => undefined,
         delete: async () => undefined,
       } as never,
     },
@@ -54,7 +55,7 @@ describe("handleBackups", () => {
       createMockContext(),
     );
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("S3");
+    expect(result.content[0]!.text).toContain("S3 Backup");
   });
 
   it("should get a backup config", async () => {
@@ -64,7 +65,7 @@ describe("handleBackups", () => {
       createMockContext(),
     );
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("S3");
+    expect(result.content[0]!.text).toContain("S3 Backup");
   });
 
   it("should require server_id", async () => {
@@ -92,7 +93,7 @@ describe("handleBackups", () => {
       createMockContext(),
     );
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("S3");
+    expect(result.content[0]!.text).toContain("Done");
   });
 
   it("should delete a backup config", async () => {

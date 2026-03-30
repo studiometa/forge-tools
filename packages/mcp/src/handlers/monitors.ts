@@ -1,7 +1,5 @@
 import { createMonitor, deleteMonitor, getMonitor, listMonitors } from "@studiometa/forge-core";
 
-import type { ForgeMonitor } from "@studiometa/forge-api";
-
 import { formatMonitor, formatMonitorList } from "../formatters.ts";
 import { createResourceHandler } from "./factory.ts";
 
@@ -23,11 +21,11 @@ export const handleMonitors = createResourceHandler({
   formatResult: (action, data, args) => {
     switch (action) {
       case "list":
-        return formatMonitorList(data as ForgeMonitor[]);
+        return formatMonitorList(data);
       case "get":
-        return formatMonitor(data as ForgeMonitor);
+        return formatMonitor(data);
       case "create":
-        return formatMonitor(data as ForgeMonitor);
+        return formatMonitor(data);
       case "delete":
         return `Monitor ${args.id} deleted.`;
       /* v8 ignore next */

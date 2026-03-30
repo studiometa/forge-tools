@@ -1,5 +1,7 @@
-import type { BackupConfigsResponse, ForgeBackupConfig } from "@studiometa/forge-api";
+import type { JsonApiListDocument, BackupConfigAttributes } from "@studiometa/forge-api";
+import { unwrapListDocument } from "@studiometa/forge-api";
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
+import { serverPath } from "../../utils/url-builder.ts";
 
 import type { ListBackupConfigsOptions } from "./types.ts";
 
@@ -9,13 +11,12 @@ import type { ListBackupConfigsOptions } from "./types.ts";
 export async function listBackupConfigs(
   options: ListBackupConfigsOptions,
   ctx: ExecutorContext,
-): Promise<ExecutorResult<ForgeBackupConfig[]>> {
-  const response = await ctx.client.get<BackupConfigsResponse>(
-    `/servers/${options.server_id}/backup-configs`,
+): Promise<ExecutorResult<Array<BackupConfigAttributes & { id: number }>>> {
+  const response = await ctx.client.get<JsonApiListDocument<BackupConfigAttributes>>(
+    `${serverPath(options.server_id, ctx)}/database/backups`,
   );
-  const backups = response.backups;
 
   return {
-    data: backups,
+    data: unwrapListDocument(response),
   };
 }

@@ -36,10 +36,10 @@ export interface ResourceHandlerConfig {
   /**
    * Generate contextual hints for the get action response.
    *
-   * Called with the executor result data and the resource id.
+   * Called with the executor result data, the resource id, and the full args.
    * Only injected when `ctx.includeHints` is true.
    */
-  hints?: (data: unknown, id: string) => ContextualHints;
+  hints?: (data: unknown, id: string, args: CommonArgs) => ContextualHints;
 
   /** Map tool args to executor options. Defaults to pass-through. */
   mapOptions?: (action: string, args: CommonArgs) => Record<string, unknown>;
@@ -158,7 +158,7 @@ export function createResourceHandler(
       /* v8 ignore stop */
       const responseData = {
         ...(result.data as Record<string, unknown>),
-        _hints: hints(result.data, String(id)),
+        _hints: hints(result.data, String(id), args),
       };
       return jsonResult(responseData);
     }

@@ -1,4 +1,5 @@
-import type { ForgeUser, UserResponse } from "@studiometa/forge-api";
+import type { JsonApiDocument, UserAttributes } from "@studiometa/forge-api";
+import { unwrapDocument } from "@studiometa/forge-api";
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
 
 import type { GetUserOptions } from "./types.ts";
@@ -9,11 +10,10 @@ import type { GetUserOptions } from "./types.ts";
 export async function getUser(
   _options: GetUserOptions,
   ctx: ExecutorContext,
-): Promise<ExecutorResult<ForgeUser>> {
-  const response = await ctx.client.get<UserResponse>("/user");
-  const user = response.user;
+): Promise<ExecutorResult<UserAttributes & { id: number }>> {
+  const response = await ctx.client.get<JsonApiDocument<UserAttributes>>("/user");
 
   return {
-    data: user,
+    data: unwrapDocument(response),
   };
 }

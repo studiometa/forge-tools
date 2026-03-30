@@ -110,9 +110,8 @@ describe("getCertificateHints", () => {
     const hints = getCertificateHints("3", "7", "55");
 
     expect(hints.related_resources).toBeDefined();
-    expect(hints.related_resources![0]!.resource).toBe("certificates");
+    expect(hints.related_resources![0]!.resource).toBe("sites");
     expect(hints.related_resources![0]!.example.server_id).toBe("3");
-    expect(hints.related_resources![0]!.example.site_id).toBe("7");
 
     expect(hints.common_actions).toBeDefined();
     const actions = hints.common_actions!.map((a) => a.example);

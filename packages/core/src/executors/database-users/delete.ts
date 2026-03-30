@@ -1,4 +1,5 @@
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
+import { serverPath } from "../../utils/url-builder.ts";
 
 import type { DeleteDatabaseUserOptions } from "./types.ts";
 
@@ -9,7 +10,7 @@ export async function deleteDatabaseUser(
   options: DeleteDatabaseUserOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<void>> {
-  await ctx.client.delete(`/servers/${options.server_id}/database-users/${options.id}`);
+  await ctx.client.delete(`${serverPath(options.server_id, ctx)}/database/users/${options.id}`);
 
   return {
     data: undefined,

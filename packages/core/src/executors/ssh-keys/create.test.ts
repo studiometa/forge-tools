@@ -1,7 +1,5 @@
 import { describe, expect, it } from "vitest";
 
-import type { SshKeyResponse } from "@studiometa/forge-api";
-
 import { createTestExecutorContext } from "../../context.ts";
 import { createSshKey } from "./create.ts";
 
@@ -9,11 +7,9 @@ describe("createSshKey", () => {
   it("should create an SSH key and format output", async () => {
     const ctx = createTestExecutorContext({
       client: {
-        post: async () =>
-          ({
-            key: { id: 12, name: "deploy-key" },
-          }) as SshKeyResponse,
+        post: async () => undefined,
       } as never,
+      organizationSlug: "test-org",
     });
 
     const result = await createSshKey(
@@ -21,6 +17,6 @@ describe("createSshKey", () => {
       ctx,
     );
 
-    expect(result.data.name).toBe("deploy-key");
+    expect(result.data).toBeUndefined();
   });
 });

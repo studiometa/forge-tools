@@ -2,7 +2,14 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type { ForgeConfig } from "./types.ts";
 
-import { createConfigStore, deleteToken, getToken, setToken } from "./config.ts";
+import {
+  createConfigStore,
+  deleteToken,
+  getToken,
+  setToken,
+  getOrganizationSlug,
+  setOrganizationSlug,
+} from "./config.ts";
 import { ConfigStore } from "./utils/config-store.ts";
 
 function createMockStore(config: ForgeConfig | null = null) {
@@ -63,6 +70,41 @@ describe("deleteToken", () => {
     const store = createMockStore({ apiToken: "to-delete" });
     deleteToken(store);
     expect(store.delete).toHaveBeenCalled();
+  });
+});
+
+describe("getOrganizationSlug", () => {
+  afterEach(() => {
+    delete process.env.FORGE_ORG;
+  });
+
+  it("should return env var when set", () => {
+    process.env.FORGE_ORG = "my-org";
+    expect(getOrganizationSlug()).toBe("my-org");
+  });
+
+  it("should return config file slug when no env var", () => {
+    const store = createMockStore({ apiToken: "t", organizationSlug: "studio-meta" });
+    expect(getOrganizationSlug(store)).toBe("studio-meta");
+  });
+
+  it("should prefer env var over config file", () => {
+    process.env.FORGE_ORG = "env-org";
+    const store = createMockStore({ apiToken: "t", organizationSlug: "file-org" });
+    expect(getOrganizationSlug(store)).toBe("env-org");
+  });
+
+  it("should return null when nothing is configured", () => {
+    const store = createMockStore();
+    expect(getOrganizationSlug(store)).toBeNull();
+  });
+});
+
+describe("setOrganizationSlug", () => {
+  it("should save slug to config store", () => {
+    const store = createMockStore();
+    setOrganizationSlug("studio-meta", store);
+    expect(store.update).toHaveBeenCalledWith({ organizationSlug: "studio-meta" });
   });
 });
 

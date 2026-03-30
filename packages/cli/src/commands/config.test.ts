@@ -8,7 +8,9 @@ vi.mock("../config.ts", async (importOriginal) => {
     ...actual,
     createConfigStore: vi.fn().mockReturnValue({}),
     getToken: vi.fn().mockReturnValue(null),
+    getOrganizationSlug: vi.fn().mockReturnValue(null),
     setToken: vi.fn(),
+    setOrganizationSlug: vi.fn(),
     deleteToken: vi.fn(),
   };
 });
@@ -40,7 +42,7 @@ describe("handleConfigCommand", () => {
     it("should save token", async () => {
       const { setToken } = await import("../config.ts");
 
-      handleConfigCommand("set", ["my-token"], { format: "json" });
+      handleConfigCommand("set", ["apiToken", "my-token"], { format: "json" });
 
       expect(setToken).toHaveBeenCalledWith("my-token", expect.anything());
       expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining("success"));

@@ -1,46 +1,36 @@
 import { describe, expect, it } from "vitest";
 
+import { mockDocument, mockListDocument } from "@studiometa/forge-core";
+
 import type { HandlerContext } from "./types.ts";
 
 import { handleRedirectRules } from "./redirect-rules.ts";
 
+function makeRuleAttrs(overrides: Record<string, unknown> = {}) {
+  return {
+    from: "/old",
+    to: "/new",
+    type: "301",
+    created_at: "2024-01-01",
+    updated_at: "2024-01-01",
+    ...overrides,
+  };
+}
+
 function createMockContext(): HandlerContext {
   return {
     executorContext: {
+      organizationSlug: "test-org",
       client: {
-        get: async () => ({
-          redirect_rules: [
-            {
-              id: 1,
-              from: "/old",
-              to: "/new",
-              type: "301",
-              server_id: 1,
-              site_id: 10,
-              created_at: "2024-01-01",
-            },
-          ],
-          redirect_rule: {
-            id: 1,
-            from: "/old",
-            to: "/new",
-            type: "301",
-            server_id: 1,
-            site_id: 10,
-            created_at: "2024-01-01",
-          },
-        }),
-        post: async () => ({
-          redirect_rule: {
-            id: 2,
-            from: "/src",
-            to: "/dst",
-            type: "302",
-            server_id: 1,
-            site_id: 10,
-            created_at: "2024-01-01",
-          },
-        }),
+        get: async (url: string) => {
+          if (url.match(/\/redirect-rules\/\d+$/)) {
+            return mockDocument(1, "redirect-rules", makeRuleAttrs());
+          }
+          return mockListDocument("redirect-rules", [
+            { id: 1, attributes: makeRuleAttrs() as never },
+          ]);
+        },
+        post: async () => undefined,
         delete: async () => undefined,
       } as never,
     },
@@ -83,7 +73,7 @@ describe("handleRedirectRules", () => {
       createMockContext(),
     );
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("/src");
+    expect(result.content[0]!.text).toContain("Done");
   });
 
   it("should delete a redirect rule", async () => {

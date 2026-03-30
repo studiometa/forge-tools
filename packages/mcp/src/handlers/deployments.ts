@@ -6,8 +6,6 @@ import {
   updateDeploymentScript,
 } from "@studiometa/forge-core";
 
-import type { ForgeDeployment } from "@studiometa/forge-api";
-
 import {
   formatDeploymentList,
   formatDeploymentOutput,
@@ -50,7 +48,7 @@ export async function handleDeployments(
     case "list": {
       const result = await listDeployments(opts, ctx.executorContext);
       if (ctx.compact) {
-        return jsonResult(formatDeploymentList(result.data as ForgeDeployment[]));
+        return jsonResult(formatDeploymentList(result.data));
       }
       return jsonResult(result.data);
     }
@@ -66,10 +64,10 @@ export async function handleDeployments(
           { ...opts, deployment_id: args.id },
           ctx.executorContext,
         );
-        return jsonResult(formatDeploymentOutput(args.id, result.data as string));
+        return jsonResult(formatDeploymentOutput(args.id, result.data));
       }
       const result = await getDeploymentScript(opts, ctx.executorContext);
-      return jsonResult(formatDeploymentScript(result.data as string));
+      return jsonResult(formatDeploymentScript(result.data));
     }
 
     case "update": {

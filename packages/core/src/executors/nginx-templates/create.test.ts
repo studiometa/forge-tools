@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import type { NginxTemplateResponse } from "@studiometa/forge-api";
-
+import { mockDocument } from "../../test-helpers.ts";
 import { createTestExecutorContext } from "../../context.ts";
 import { createNginxTemplate } from "./create.ts";
 
@@ -10,10 +9,14 @@ describe("createNginxTemplate", () => {
     const ctx = createTestExecutorContext({
       client: {
         post: async () =>
-          ({
-            template: { id: 6, name: "custom-php" },
-          }) as NginxTemplateResponse,
+          mockDocument(6, "nginx-templates", {
+            name: "custom-php",
+            content: "server {}",
+            created_at: "2024-01-01T00:00:00.000000Z",
+            updated_at: "2024-01-01T00:00:00.000000Z",
+          }),
       } as never,
+      organizationSlug: "test-org",
     });
 
     const result = await createNginxTemplate(

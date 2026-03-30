@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
-import type { ForgeScheduledJob } from "@studiometa/forge-api";
+import type { ScheduledJobAttributes } from "@studiometa/forge-api";
 
 import { createTestContext } from "../../context.ts";
 import {
@@ -17,15 +17,15 @@ vi.mock("@studiometa/forge-core", () => ({
   deleteScheduledJob: vi.fn(),
 }));
 
-const mockJob: ForgeScheduledJob = {
+const mockJob: ScheduledJobAttributes & { id: number } = {
   id: 1,
-  server_id: 10,
   command: "php artisan schedule:run",
   user: "forge",
   frequency: "minutely",
   cron: "* * * * *",
   status: "active",
   created_at: "2024-01-01T00:00:00Z",
+  updated_at: "2024-01-01T00:00:00Z",
 };
 
 describe("scheduledJobsList", () => {

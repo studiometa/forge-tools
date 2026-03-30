@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
-import type { ForgeServer } from "@studiometa/forge-api";
+import type { ServerAttributes } from "@studiometa/forge-api";
 
 import { createTestContext } from "../../context.ts";
 import { serversList, serversGet, serversReboot } from "./handlers.ts";
@@ -11,13 +11,13 @@ vi.mock("@studiometa/forge-core", () => ({
   rebootServer: vi.fn(),
 }));
 
-const mockServer: ForgeServer = {
+const mockServer: ServerAttributes & { id: number } = {
   id: 1,
   credential_id: 0,
   name: "my-server",
   type: "app",
   provider: "ocean2",
-  provider_id: "abc",
+  identifier: null,
   size: "01",
   region: "nyc3",
   ubuntu_version: "22.04",
@@ -29,12 +29,14 @@ const mockServer: ForgeServer = {
   ip_address: "1.2.3.4",
   ssh_port: 22,
   private_ip_address: "10.0.0.1",
-  local_public_key: "ssh-rsa ...",
+  local_public_key: null,
+  opcache_status: null,
+  connection_status: "connected",
+  timezone: "UTC",
   is_ready: true,
   revoked: false,
   created_at: "2024-01-01T00:00:00Z",
-  network: [],
-  tags: [],
+  updated_at: "2024-01-01T00:00:00Z",
 };
 
 describe("serversList", () => {

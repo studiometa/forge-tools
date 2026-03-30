@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
-import type { ForgeDatabaseUser } from "@studiometa/forge-api";
+import type { DatabaseUserAttributes } from "@studiometa/forge-api";
 
 import { createTestContext } from "../../context.ts";
 import {
@@ -17,13 +17,12 @@ vi.mock("@studiometa/forge-core", () => ({
   deleteDatabaseUser: vi.fn(),
 }));
 
-const mockUser: ForgeDatabaseUser = {
+const mockUser: DatabaseUserAttributes & { id: number } = {
   id: 1,
-  server_id: 10,
   name: "forge",
   status: "installed",
-  databases: [],
   created_at: "2024-01-01T00:00:00Z",
+  updated_at: "2024-01-01T00:00:00Z",
 };
 
 describe("databaseUsersList", () => {
@@ -144,7 +143,7 @@ describe("databaseUsersCreate", () => {
 
   it("should create a database user with databases array", async () => {
     const { createDatabaseUser } = await import("@studiometa/forge-core");
-    vi.mocked(createDatabaseUser).mockResolvedValue({ data: { ...mockUser, databases: [1, 2] } });
+    vi.mocked(createDatabaseUser).mockResolvedValue({ data: { ...mockUser } });
 
     const ctx = createTestContext({
       token: "test",
@@ -167,7 +166,7 @@ describe("databaseUsersCreate", () => {
 
   it("should create a database user with single database", async () => {
     const { createDatabaseUser } = await import("@studiometa/forge-core");
-    vi.mocked(createDatabaseUser).mockResolvedValue({ data: { ...mockUser, databases: [1] } });
+    vi.mocked(createDatabaseUser).mockResolvedValue({ data: { ...mockUser } });
 
     const ctx = createTestContext({
       token: "test",

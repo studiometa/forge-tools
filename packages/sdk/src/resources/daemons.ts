@@ -1,10 +1,12 @@
 import type {
   CreateDaemonData,
-  ForgeDaemon,
   HttpClient,
-  DaemonResponse,
-  DaemonsResponse,
+  JsonApiDocument,
+  JsonApiListDocument,
+  BackgroundProcessAttributes,
 } from "@studiometa/forge-api";
+
+import { unwrapDocument, unwrapListDocument } from "@studiometa/forge-api";
 
 import { BaseCollection } from "./base.ts";
 import { AsyncPaginatedIterator } from "../pagination.ts";
@@ -13,8 +15,8 @@ import { AsyncPaginatedIterator } from "../pagination.ts";
  * Options for listing daemons.
  */
 export interface DaemonListOptions {
-  /** Page number to fetch (1-indexed). */
-  page?: number;
+  /** Cursor for pagination (from previous response's next_cursor). */
+  cursor?: string;
 }
 
 /**
@@ -31,13 +33,14 @@ export class DaemonsCollection extends BaseCollection {
   /** @internal */
   constructor(
     client: HttpClient,
+    orgSlug: string,
     private readonly serverId: number,
   ) {
-    super(client);
+    super(client, orgSlug);
   }
 
   private get basePath(): string {
-    return `/servers/${this.serverId}/daemons`;
+    return `/orgs/${this.orgSlug}/servers/${this.serverId}/background-processes`;
   }
 
   /**
@@ -47,14 +50,18 @@ export class DaemonsCollection extends BaseCollection {
    * ```ts
    * const daemons = await forge.server(123).daemons.list();
    *
-   * // Fetch a specific page:
-   * const page2 = await forge.server(123).daemons.list({ page: 2 });
+   * // Fetch a specific cursor page:
+   * const page2 = await forge.server(123).daemons.list({ cursor: 'next-cursor-value' });
    * ```
    */
-  async list(options: DaemonListOptions = {}): Promise<ForgeDaemon[]> {
-    const query = options.page !== undefined ? `?page=${options.page}` : "";
-    const response = await this.client.get<DaemonsResponse>(`${this.basePath}${query}`);
-    return response.daemons;
+  async list(
+    options: DaemonListOptions = {},
+  ): Promise<Array<BackgroundProcessAttributes & { id: number }>> {
+    const query = options.cursor !== undefined ? `?page[cursor]=${options.cursor}` : "";
+    const response = await this.client.get<JsonApiListDocument<BackgroundProcessAttributes>>(
+      `${this.basePath}${query}`,
+    );
+    return unwrapListDocument(response);
   }
 
   /**
@@ -70,8 +77,19 @@ export class DaemonsCollection extends BaseCollection {
    * const daemons = await forge.server(123).daemons.all().toArray();
    * ```
    */
-  all(options: Omit<DaemonListOptions, "page"> = {}): AsyncPaginatedIterator<ForgeDaemon> {
-    return new AsyncPaginatedIterator<ForgeDaemon>((page) => this.list({ ...options, page }));
+  all(): AsyncPaginatedIterator<BackgroundProcessAttributes & { id: number }> {
+    return new AsyncPaginatedIterator<BackgroundProcessAttributes & { id: number }>(
+      async (cursor) => {
+        const query = cursor !== null ? `?page[cursor]=${cursor}` : "";
+        const response = await this.client.get<JsonApiListDocument<BackgroundProcessAttributes>>(
+          `${this.basePath}${query}`,
+        );
+        return {
+          items: unwrapListDocument(response),
+          nextCursor: response.meta.next_cursor ?? null,
+        };
+      },
+    );
   }
 
   /**
@@ -82,9 +100,11 @@ export class DaemonsCollection extends BaseCollection {
    * const daemon = await forge.server(123).daemons.get(789);
    * ```
    */
-  async get(daemonId: number): Promise<ForgeDaemon> {
-    const response = await this.client.get<DaemonResponse>(`${this.basePath}/${daemonId}`);
-    return response.daemon;
+  async get(daemonId: number): Promise<BackgroundProcessAttributes & { id: number }> {
+    const response = await this.client.get<JsonApiDocument<BackgroundProcessAttributes>>(
+      `${this.basePath}/${daemonId}`,
+    );
+    return unwrapDocument(response);
   }
 
   /**
@@ -98,9 +118,12 @@ export class DaemonsCollection extends BaseCollection {
    * });
    * ```
    */
-  async create(data: CreateDaemonData): Promise<ForgeDaemon> {
-    const response = await this.client.post<DaemonResponse>(this.basePath, data);
-    return response.daemon;
+  async create(data: CreateDaemonData): Promise<BackgroundProcessAttributes & { id: number }> {
+    const response = await this.client.post<JsonApiDocument<BackgroundProcessAttributes>>(
+      this.basePath,
+      data,
+    );
+    return unwrapDocument(response);
   }
 
   /**

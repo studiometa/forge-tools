@@ -38,7 +38,6 @@ describe("@studiometa/forge-core", () => {
   });
 
   it("should export certificate executors", () => {
-    expect(core.listCertificates).toBeTypeOf("function");
     expect(core.getCertificate).toBeTypeOf("function");
     expect(core.createCertificate).toBeTypeOf("function");
     expect(core.deleteCertificate).toBeTypeOf("function");

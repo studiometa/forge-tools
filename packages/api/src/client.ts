@@ -3,7 +3,7 @@ import type { ForgeOptions } from "./types.ts";
 import { ForgeApiError } from "./errors.ts";
 import { RateLimiter } from "./rate-limiter.ts";
 
-const DEFAULT_BASE_URL = "https://forge.laravel.com/api/v1";
+const DEFAULT_BASE_URL = "https://forge.laravel.com/api";
 
 /**
  * Low-level HTTP client for the Laravel Forge API.
@@ -17,7 +17,7 @@ const DEFAULT_BASE_URL = "https://forge.laravel.com/api/v1";
  *   token: 'your-api-token',
  * });
  *
- * const servers = await client.get<ServersResponse>('/servers');
+ * const servers = await client.get<JsonApiListDocument<ServerAttributes>>('/orgs/my-org/servers');
  * ```
  */
 export class HttpClient {
@@ -115,14 +115,17 @@ export class HttpClient {
         });
       }
 
-      // 204 No Content — return void
-      if (response.status === 204) {
+      // No content — 204 or 202 with empty/html body (async actions)
+      const contentType = response.headers.get("content-type");
+      if (response.status === 204 || (response.status === 202 && !contentType?.includes("json"))) {
         return undefined as T;
       }
 
-      // Parse response
-      const contentType = response.headers.get("content-type");
-      if (contentType?.includes("application/json")) {
+      // Parse JSON:API or plain JSON response
+      if (
+        contentType?.includes("application/json") ||
+        contentType?.includes("application/vnd.api+json")
+      ) {
         return (await response.json()) as T;
       }
 

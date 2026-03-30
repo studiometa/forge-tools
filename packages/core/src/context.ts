@@ -9,6 +9,8 @@ import type { HttpClient } from "@studiometa/forge-api";
 export interface ExecutorContext {
   /** HTTP client for Forge API calls. */
   client: HttpClient;
+  /** Organization slug for v2 API (required when client targets v2). */
+  organizationSlug?: string;
 }
 
 /**
@@ -17,8 +19,6 @@ export interface ExecutorContext {
 export interface ExecutorResult<T> {
   /** The response data. */
   data: T;
-  /** Pagination metadata (for list operations). */
-  meta?: { total_count?: number; current_page?: number };
 }
 
 /**

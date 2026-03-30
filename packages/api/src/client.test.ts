@@ -131,7 +131,7 @@ describe("HttpClient", () => {
 
       await client.get("/servers");
 
-      expect(calls[0]!.url).toBe("https://forge.laravel.com/api/v1/servers");
+      expect(calls[0]!.url).toBe("https://forge.laravel.com/api/servers");
     });
 
     it("should use custom base URL", async () => {
@@ -422,6 +422,28 @@ describe("HttpClient", () => {
 
       const result = await client.get<string>("/servers/1/sites/1/env");
       expect(result).toBe("APP_ENV=production\nAPP_DEBUG=false");
+    });
+  });
+
+  describe("base URL", () => {
+    it("should default to https://forge.laravel.com/api", async () => {
+      const { fetch, calls } = createSequenceFetch([{ body: {} }]);
+      const client = new HttpClient({ ...defaultOptions, fetch });
+
+      await client.get("/orgs/my-org/servers");
+      expect(calls[0]!.url).toBe("https://forge.laravel.com/api/orgs/my-org/servers");
+    });
+
+    it("should use explicit baseUrl when provided", async () => {
+      const { fetch, calls } = createSequenceFetch([{ body: {} }]);
+      const client = new HttpClient({
+        ...defaultOptions,
+        fetch,
+        baseUrl: "https://custom.example.com/api",
+      });
+
+      await client.get("/servers");
+      expect(calls[0]!.url).toBe("https://custom.example.com/api/servers");
     });
   });
 });

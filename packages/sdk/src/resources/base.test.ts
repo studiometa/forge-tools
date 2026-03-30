@@ -22,19 +22,30 @@ class TestCollection extends BaseCollection {
   getClient(): HttpClient {
     return this.client;
   }
+
+  getOrgSlug(): string {
+    return this.orgSlug;
+  }
 }
 
 describe("BaseCollection", () => {
   it("should store the client as a protected property", () => {
     const client = createClient();
-    const collection = new TestCollection(client);
+    const collection = new TestCollection(client, "my-org");
 
     expect(collection.getClient()).toBe(client);
   });
 
+  it("should store the orgSlug as a protected property", () => {
+    const client = createClient();
+    const collection = new TestCollection(client, "my-org");
+
+    expect(collection.getOrgSlug()).toBe("my-org");
+  });
+
   it("should allow subclasses to use the client", async () => {
     const client = createClient();
-    const collection = new TestCollection(client);
+    const collection = new TestCollection(client, "my-org");
 
     expect(collection.getClient()).toBeInstanceOf(HttpClient);
   });

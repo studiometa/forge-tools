@@ -5,8 +5,6 @@ import {
   listSecurityRules,
 } from "@studiometa/forge-core";
 
-import type { ForgeSecurityRule } from "@studiometa/forge-api";
-
 import { formatSecurityRule, formatSecurityRuleList } from "../formatters.ts";
 import { createResourceHandler } from "./factory.ts";
 
@@ -28,11 +26,11 @@ export const handleSecurityRules = createResourceHandler({
   formatResult: (action, data, args) => {
     switch (action) {
       case "list":
-        return formatSecurityRuleList(data as ForgeSecurityRule[]);
+        return formatSecurityRuleList(data);
       case "get":
-        return formatSecurityRule(data as ForgeSecurityRule);
+        return formatSecurityRule(data);
       case "create":
-        return formatSecurityRule(data as ForgeSecurityRule);
+        return formatSecurityRule(data);
       case "delete":
         return `Security rule ${args.id} deleted.`;
       /* v8 ignore next */

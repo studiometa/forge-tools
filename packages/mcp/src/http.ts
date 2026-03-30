@@ -114,7 +114,12 @@ export function createMcpServer(options?: HttpServerOptions): Server {
       const result = await executeToolWithCredentials(
         name,
         /* v8 ignore next */ (args as Record<string, unknown>) ?? {},
-        { apiToken: token },
+        {
+          apiToken: token,
+          organizationSlug: (args as Record<string, unknown>).organizationSlug as
+            | string
+            | undefined,
+        },
       );
       return result as unknown as Record<string, unknown>;
     } catch (error) {

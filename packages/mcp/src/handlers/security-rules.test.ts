@@ -1,46 +1,36 @@
 import { describe, expect, it } from "vitest";
 
+import { mockDocument, mockListDocument } from "@studiometa/forge-core";
+
 import type { HandlerContext } from "./types.ts";
 
 import { handleSecurityRules } from "./security-rules.ts";
 
+function makeRuleAttrs(overrides: Record<string, unknown> = {}) {
+  return {
+    name: "admin",
+    path: "/admin",
+    created_at: "2024-01-01",
+    updated_at: "2024-01-01",
+    ...overrides,
+  };
+}
+
 function createMockContext(): HandlerContext {
   return {
     executorContext: {
+      organizationSlug: "test-org",
       client: {
-        get: async () => ({
-          security_rules: [
-            {
-              id: 1,
-              name: "admin",
-              path: "/admin",
-              credentials: [],
-              server_id: 1,
-              site_id: 10,
-              created_at: "2024-01-01",
-            },
-          ],
-          security_rule: {
-            id: 1,
-            name: "admin",
-            path: "/admin",
-            credentials: [],
-            server_id: 1,
-            site_id: 10,
-            created_at: "2024-01-01",
-          },
-        }),
-        post: async () => ({
-          security_rule: {
-            id: 2,
-            name: "secret",
-            path: "/secret",
-            credentials: [],
-            server_id: 1,
-            site_id: 10,
-            created_at: "2024-01-01",
-          },
-        }),
+        get: async (url: string) => {
+          if (url.match(/\/security-rules\/\d+$/)) {
+            return mockDocument(1, "security-rules", makeRuleAttrs());
+          }
+          return mockListDocument("security-rules", [
+            { id: 1, attributes: makeRuleAttrs() as never },
+          ]);
+        },
+        post: async () =>
+          mockDocument(2, "security-rules", makeRuleAttrs({ name: "secret", path: "/secret" })),
         delete: async () => undefined,
       } as never,
     },

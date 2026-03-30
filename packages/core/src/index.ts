@@ -7,11 +7,13 @@ export type { Action, Resource } from "./constants.ts";
 // Utilities
 export { matchByName } from "./utils/name-matcher.ts";
 export type { NameMatch } from "./utils/name-matcher.ts";
+export { orgPrefix, serverPath, sitePath } from "./utils/url-builder.ts";
 
 // Audit logging
 export { createAuditLogger, sanitizeArgs, getAuditLogPath } from "./logger.ts";
 export type { AuditLogger, AuditLogEntry } from "./logger.ts";
 export { createTestExecutorContext } from "./context.ts";
+export { mockResource, mockDocument, mockListDocument } from "./test-helpers.ts";
 export type { ExecutorContext, ExecutorResult } from "./context.ts";
 export type { Executor } from "./executors/types.ts";
 
@@ -80,14 +82,12 @@ export {
   createCertificate,
   deleteCertificate,
   getCertificate,
-  listCertificates,
 } from "./executors/certificates/index.ts";
 export type {
   ActivateCertificateOptions,
   CreateCertificateOptions,
   DeleteCertificateOptions,
   GetCertificateOptions,
-  ListCertificatesOptions,
 } from "./executors/certificates/index.ts";
 
 // Databases

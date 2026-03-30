@@ -1,26 +1,19 @@
 import { colors } from "../../utils/colors.ts";
 
 export function showCertificatesHelp(subcommand?: string): void {
-  if (subcommand === "list" || subcommand === "ls") {
+  if (subcommand === "get") {
     console.log(`
-${colors.bold("forge certificates list")} - List certificates for a site
+${colors.bold("forge certificates get")} - Get certificate for a domain
 
 ${colors.bold("USAGE:")}
-  forge certificates list --server <server_id> --site <site_id> [options]
-`);
-  } else if (subcommand === "get") {
-    console.log(`
-${colors.bold("forge certificates get")} - Get certificate details
-
-${colors.bold("USAGE:")}
-  forge certificates get <cert_id> --server <server_id> --site <site_id>
+  forge certificates get --server <server_id> --site <site_id> --domain <domain_id>
 `);
   } else if (subcommand === "activate") {
     console.log(`
 ${colors.bold("forge certificates activate")} - Activate a certificate
 
 ${colors.bold("USAGE:")}
-  forge certificates activate <cert_id> --server <server_id> --site <site_id>
+  forge certificates activate --server <server_id> --site <site_id> --domain <domain_id>
 `);
   } else {
     console.log(`
@@ -33,14 +26,17 @@ ${colors.bold("ALIASES:")}
   forge certs
 
 ${colors.bold("SUBCOMMANDS:")}
-  list, ls            List certificates
-  get <id>            Get certificate details
-  activate <id>       Activate a certificate
+  get                 Get certificate for a domain
+  activate            Activate a certificate
 
 ${colors.bold("OPTIONS:")}
   --server <id>       Server ID (required)
   --site <id>         Site ID (required)
+  --domain <id>       Domain record ID (required)
   -f, --format <fmt>  Output format: json, human, table
+
+${colors.bold("NOTE:")}
+  In Forge v2, certificates are per-domain. Use domains to manage certificates.
 
 Run ${colors.cyan("forge certificates <subcommand> --help")} for details.
 `);

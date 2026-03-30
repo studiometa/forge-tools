@@ -1,149 +1,99 @@
 import type {
   CreateCertificateData,
-  ForgeCertificate,
   HttpClient,
-  CertificateResponse,
-  CertificatesResponse,
+  JsonApiDocument,
+  CertificateAttributes,
 } from "@studiometa/forge-api";
 
+import { unwrapDocument } from "@studiometa/forge-api";
+
 import { BaseCollection } from "./base.ts";
-import { AsyncPaginatedIterator } from "../pagination.ts";
 
 /**
- * Options for listing certificates.
- */
-export interface CertificateListOptions {
-  /** Page number to fetch (1-indexed). */
-  page?: number;
-}
-
-/**
- * Collection of SSL certificates for a site.
+ * SSL certificates for a site, accessed per-domain.
+ *
+ * In v2, certificates are a singular sub-resource of a domain:
+ * `/orgs/{org}/servers/{server}/sites/{site}/domains/{domain}/certificate`
  *
  * Access via `forge.server(id).site(id).certificates`.
  *
  * @example
  * ```ts
- * const certs = await forge.server(123).site(456).certificates.list();
+ * const cert = await forge.server(123).site(456).certificates.get(789);
  * ```
  */
 export class CertificatesCollection extends BaseCollection {
   /** @internal */
   constructor(
     client: HttpClient,
+    orgSlug: string,
     private readonly serverId: number,
     private readonly siteId: number,
   ) {
-    super(client);
+    super(client, orgSlug);
   }
 
-  private get basePath(): string {
-    return `/servers/${this.serverId}/sites/${this.siteId}/certificates`;
-  }
-
-  /**
-   * List certificates for this site.
-   *
-   * @example
-   * ```ts
-   * const certs = await forge.server(123).site(456).certificates.list();
-   *
-   * // Fetch a specific page:
-   * const page2 = await forge.server(123).site(456).certificates.list({ page: 2 });
-   * ```
-   */
-  async list(options: CertificateListOptions = {}): Promise<ForgeCertificate[]> {
-    const query = options.page !== undefined ? `?page=${options.page}` : "";
-    const response = await this.client.get<CertificatesResponse>(`${this.basePath}${query}`);
-    return response.certificates;
+  private domainPath(domainId: number): string {
+    return `/orgs/${this.orgSlug}/servers/${this.serverId}/sites/${this.siteId}/domains/${domainId}/certificate`;
   }
 
   /**
-   * Iterate over all certificates across all pages.
-   *
-   * @example
-   * ```ts
-   * for await (const cert of forge.server(123).site(456).certificates.all()) {
-   *   console.log(cert);
-   * }
-   *
-   * // Or collect all at once:
-   * const certs = await forge.server(123).site(456).certificates.all().toArray();
-   * ```
-   */
-  all(
-    options: Omit<CertificateListOptions, "page"> = {},
-  ): AsyncPaginatedIterator<ForgeCertificate> {
-    return new AsyncPaginatedIterator<ForgeCertificate>((page) => this.list({ ...options, page }));
-  }
-
-  /**
-   * Get a specific certificate.
+   * Get the certificate for a domain.
    *
    * @example
    * ```ts
    * const cert = await forge.server(123).site(456).certificates.get(789);
    * ```
    */
-  async get(certificateId: number): Promise<ForgeCertificate> {
-    const response = await this.client.get<CertificateResponse>(
-      `${this.basePath}/${certificateId}`,
+  async get(domainId: number): Promise<CertificateAttributes & { id: number }> {
+    const response = await this.client.get<JsonApiDocument<CertificateAttributes>>(
+      this.domainPath(domainId),
     );
-    return response.certificate;
+    return unwrapDocument(response);
   }
 
   /**
-   * Create a new SSL certificate.
+   * Create a certificate for a domain.
    *
    * @example
    * ```ts
-   * const cert = await forge.server(123).site(456).certificates.create({
-   *   type: 'new',
-   *   domain: 'example.com',
+   * const cert = await forge.server(123).site(456).certificates.create(789, {
+   *   type: 'letsencrypt',
    * });
    * ```
    */
-  async create(data: CreateCertificateData): Promise<ForgeCertificate> {
-    const response = await this.client.post<CertificateResponse>(this.basePath, data);
-    return response.certificate;
+  async create(
+    domainId: number,
+    data: CreateCertificateData,
+  ): Promise<CertificateAttributes & { id: number }> {
+    const response = await this.client.post<JsonApiDocument<CertificateAttributes>>(
+      this.domainPath(domainId),
+      data,
+    );
+    return unwrapDocument(response);
   }
 
   /**
-   * Install a Let's Encrypt certificate.
-   *
-   * @example
-   * ```ts
-   * await forge.server(123).site(456).certificates.letsEncrypt(['example.com', 'www.example.com']);
-   * ```
-   */
-  async letsEncrypt(domains: string[]): Promise<ForgeCertificate> {
-    const response = await this.client.post<CertificateResponse>(`${this.basePath}/letsencrypt`, {
-      domains,
-    });
-    return response.certificate;
-  }
-
-  /**
-   * Delete a certificate.
+   * Delete the certificate for a domain.
    *
    * @example
    * ```ts
    * await forge.server(123).site(456).certificates.delete(789);
    * ```
    */
-  async delete(certificateId: number): Promise<void> {
-    await this.client.delete(`${this.basePath}/${certificateId}`);
+  async delete(domainId: number): Promise<void> {
+    await this.client.delete(this.domainPath(domainId));
   }
 
   /**
-   * Activate a certificate.
+   * Activate the certificate for a domain.
    *
    * @example
    * ```ts
    * await forge.server(123).site(456).certificates.activate(789);
    * ```
    */
-  async activate(certificateId: number): Promise<void> {
-    await this.client.post(`${this.basePath}/${certificateId}/activate`);
+  async activate(domainId: number): Promise<void> {
+    await this.client.post(`${this.domainPath(domainId)}/actions`, { action: "activate" });
   }
 }

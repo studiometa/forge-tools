@@ -15,66 +15,197 @@ vi.mock("@studiometa/forge-api", async (importOriginal) => {
     ...mod,
     HttpClient: class MockHttpClient {
       async get(path: string) {
-        if (path === "/servers") {
+        if (path === "/orgs/test-org/servers") {
           return {
-            servers: [
+            data: [
               {
+                id: "1",
+                type: "servers",
+                attributes: {
+                  id: 1,
+                  name: "web-1",
+                  provider: "hetzner",
+                  region: "eu",
+                  ip_address: "1.2.3.4",
+                  is_ready: true,
+                  credential_id: null,
+                  type: "app",
+                  identifier: null,
+                  size: "01",
+                  ubuntu_version: null,
+                  php_version: null,
+                  php_cli_version: null,
+                  opcache_status: null,
+                  database_type: null,
+                  db_status: null,
+                  redis_status: null,
+                  private_ip_address: null,
+                  local_public_key: null,
+                  revoked: false,
+                  created_at: "2024-01-01",
+                  updated_at: "2024-01-01",
+                  connection_status: "connected",
+                  timezone: "UTC",
+                  ssh_port: 22,
+                },
+                links: { self: { href: "/orgs/test-org/servers/1" } },
+              },
+            ],
+            links: { next: null, prev: null },
+            meta: { per_page: 30, next_cursor: null, prev_cursor: null },
+          };
+        }
+        if (path.match(/^\/orgs\/test-org\/servers\/\d+$/)) {
+          return {
+            data: {
+              id: "1",
+              type: "servers",
+              attributes: {
                 id: 1,
                 name: "web-1",
                 provider: "hetzner",
                 region: "eu",
                 ip_address: "1.2.3.4",
                 is_ready: true,
+                credential_id: null,
+                type: "app",
+                identifier: null,
+                size: "01",
+                ubuntu_version: "24.04",
+                php_version: "php84",
+                php_cli_version: null,
+                opcache_status: null,
+                database_type: null,
+                db_status: null,
+                redis_status: null,
+                private_ip_address: null,
+                local_public_key: null,
+                revoked: false,
+                created_at: "2024-01-01",
+                updated_at: "2024-01-01",
+                connection_status: "connected",
+                timezone: "UTC",
+                ssh_port: 22,
               },
-            ],
-          };
-        }
-        if (path.match(/^\/servers\/\d+$/)) {
-          return {
-            server: {
-              id: 1,
-              name: "web-1",
-              provider: "hetzner",
-              region: "eu",
-              ip_address: "1.2.3.4",
-              is_ready: true,
-              php_version: "php84",
-              ubuntu_version: "24.04",
-              created_at: "2024-01-01",
+              links: { self: { href: "/orgs/test-org/servers/1" } },
             },
           };
         }
-        if (path.match(/^\/servers\/\d+\/sites$/)) {
+        if (path.match(/^\/orgs\/test-org\/servers\/\d+\/sites$/)) {
           return {
-            sites: [
+            data: [
               {
-                id: 10,
-                name: "example.com",
-                project_type: "php",
-                status: "installed",
-                deployment_status: null,
-                directory: "/public",
-                repository: null,
-                repository_branch: null,
-                quick_deploy: false,
-                php_version: "php84",
-                created_at: "2024-01-01",
+                id: "10",
+                type: "sites",
+                attributes: {
+                  name: "example.com",
+                  app_type: "php",
+                  status: "installed",
+                  aliases: [],
+                  root_directory: "/public",
+                  web_directory: "/public",
+                  wildcards: false,
+                  repository: null,
+                  quick_deploy: false,
+                  deployment_status: null,
+                  deployment_url: "",
+                  deployment_script: null,
+                  php_version: "php84",
+                  url: "",
+                  https: false,
+                  isolated: false,
+                  user: null,
+                  database: null,
+                  shared_paths: [],
+                  uses_envoyer: false,
+                  zero_downtime_deployments: false,
+                  maintenance_mode: false,
+                  healthcheck_url: null,
+                  created_at: "2024-01-01",
+                  updated_at: "2024-01-01",
+                },
+                links: { self: { href: "/orgs/test-org/servers/1/sites/10" } },
               },
             ],
+            links: { next: null, prev: null },
+            meta: { per_page: 30, next_cursor: null, prev_cursor: null },
           };
         }
-        if (path.match(/^\/servers\/\d+\/databases$/)) {
+        if (path.match(/^\/orgs\/test-org\/servers\/\d+\/database\/schemas$/)) {
           return {
-            databases: [{ id: 5, name: "myapp", status: "installed" }],
+            data: [
+              {
+                id: "5",
+                type: "databases",
+                attributes: {
+                  name: "myapp",
+                  status: "installed",
+                  created_at: "2024-01-01",
+                  updated_at: "2024-01-01",
+                },
+                links: { self: { href: "/db/5" } },
+              },
+            ],
+            links: { next: null, prev: null },
+            meta: { per_page: 30, next_cursor: null, prev_cursor: null },
           };
         }
-        if (path.match(/^\/servers\/\d+\/sites\/\d+\/env$/)) {
-          return "APP_ENV=production";
+        if (path.match(/^\/orgs\/test-org\/servers\/\d+\/sites\/\d+\/environment$/)) {
+          return {
+            data: {
+              id: "1",
+              type: "environments",
+              attributes: { content: "APP_ENV=production" },
+              links: { self: { href: "/env/1" } },
+            },
+          };
+        }
+        if (path.match(/^\/orgs\/test-org\/servers\/\d+\/sites\/\d+\/nginx$/)) {
+          return {
+            data: {
+              id: "1",
+              type: "nginx-configs",
+              attributes: { content: "" },
+            },
+          };
         }
         return {};
       }
       async post() {
-        return { server: { id: 1, name: "new", is_ready: false } };
+        return {
+          data: {
+            id: "1",
+            type: "servers",
+            attributes: {
+              id: 1,
+              name: "new",
+              provider: "ocean2",
+              region: "nyc1",
+              ip_address: null,
+              is_ready: false,
+              credential_id: null,
+              type: "app",
+              identifier: null,
+              size: "01",
+              ubuntu_version: null,
+              php_version: null,
+              php_cli_version: null,
+              opcache_status: null,
+              database_type: null,
+              db_status: null,
+              redis_status: null,
+              private_ip_address: null,
+              local_public_key: null,
+              revoked: false,
+              created_at: "2024-01-01",
+              updated_at: "2024-01-01",
+              connection_status: "connecting",
+              timezone: "UTC",
+              ssh_port: 22,
+            },
+            links: { self: { href: "/orgs/test-org/servers/1" } },
+          },
+        };
       }
       async put() {
         return {};
@@ -86,7 +217,7 @@ vi.mock("@studiometa/forge-api", async (importOriginal) => {
   };
 });
 
-const creds = { apiToken: "test-token" };
+const creds = { apiToken: "test-token", organizationSlug: "test-org" };
 
 describe("E2E: executeToolWithCredentials", () => {
   it("should return error for missing resource/action", async () => {
@@ -546,7 +677,7 @@ describe("E2E: executeToolWithCredentials", () => {
   });
 
   it("should auto-resolve non-numeric server_id to numeric ID end-to-end", async () => {
-    // The mock returns server "web-1" (id=1) for /servers.
+    // The mock returns server "web-1" (id=1) for /orgs/test-org/servers.
     // Passing server_id="web-1" should resolve to "1" and then list sites.
     const result = await executeToolWithCredentials(
       "forge",

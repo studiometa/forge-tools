@@ -57,12 +57,11 @@ export async function sitesGet(args: string[], ctx: CommandContext): Promise<voi
       "name",
       "status",
       "php_version",
-      "project_type",
+      "app_type",
       "repository",
-      "repository_branch",
       "quick_deploy",
       "deployment_status",
-      "is_secured",
+      "https",
       "created_at",
     ]);
   }, ctx.formatter);

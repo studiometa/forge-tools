@@ -1,38 +1,61 @@
 import { describe, expect, it } from "vitest";
 
+import { mockDocument, mockListDocument } from "@studiometa/forge-core";
+
 import type { HandlerContext } from "./types.ts";
 import { handleServerContext, handleSiteContext } from "./context.ts";
 
 function createMockContext(): HandlerContext {
   return {
     executorContext: {
+      organizationSlug: "test-org",
       client: {
         get: async (url: string) => {
           // Server sub-resources
-          if (url.match(/\/servers\/\d+\/sites$/)) return { sites: [{ id: 1, name: "app.com" }] };
-          if (url.match(/\/servers\/\d+\/databases$/))
-            return { databases: [{ id: 1, name: "mydb" }] };
-          if (url.match(/\/servers\/\d+\/database-users$/))
-            return { users: [{ id: 1, name: "forge" }] };
-          if (url.match(/\/servers\/\d+\/daemons$/)) return { daemons: [] };
-          if (url.match(/\/servers\/\d+\/firewall-rules$/)) return { rules: [] };
-          if (url.match(/\/servers\/\d+\/jobs$/)) return { jobs: [] };
+          if (url.match(/\/orgs\/test-org\/servers\/\d+\/sites$/))
+            return mockListDocument("sites", [{ id: 1, attributes: { name: "app.com" } as never }]);
+          if (url.match(/\/orgs\/test-org\/servers\/\d+\/database\/schemas$/))
+            return mockListDocument("databases", [
+              { id: 1, attributes: { name: "mydb" } as never },
+            ]);
+          if (url.match(/\/orgs\/test-org\/servers\/\d+\/database\/users$/))
+            return mockListDocument("database-users", [
+              { id: 1, attributes: { name: "forge" } as never },
+            ]);
+          if (url.match(/\/orgs\/test-org\/servers\/\d+\/background-processes$/))
+            return mockListDocument("background-processes", []);
+          if (url.match(/\/orgs\/test-org\/servers\/\d+\/firewall-rules$/))
+            return mockListDocument("firewall-rules", []);
+          if (url.match(/\/orgs\/test-org\/servers\/\d+\/scheduled-jobs$/))
+            return mockListDocument("scheduled-jobs", []);
           // Site sub-resources (must come before server get)
-          if (url.match(/\/servers\/\d+\/sites\/\d+\/deployments$/)) {
-            return {
-              deployments: Array.from({ length: 8 }, (_, i) => ({ id: i + 1 })),
-            };
+          if (url.match(/\/orgs\/test-org\/servers\/\d+\/sites\/\d+\/deployments/)) {
+            return mockListDocument(
+              "deployments",
+              Array.from({ length: 8 }, (_, i) => ({
+                id: i + 1,
+                attributes: {
+                  commit: { hash: "abc", author: null, message: null, branch: null },
+                  status: "finished",
+                  type: "push",
+                  started_at: "2024-01-01",
+                  ended_at: null,
+                  created_at: "2024-01-01",
+                  updated_at: "2024-01-01",
+                } as never,
+              })),
+            );
           }
-          if (url.match(/\/servers\/\d+\/sites\/\d+\/certificates$/)) return { certificates: [] };
-          if (url.match(/\/servers\/\d+\/sites\/\d+\/redirect-rules$/))
-            return { redirect_rules: [] };
-          if (url.match(/\/servers\/\d+\/sites\/\d+\/security-rules$/))
-            return { security_rules: [] };
+          if (url.match(/\/orgs\/test-org\/servers\/\d+\/sites\/\d+\/redirect-rules$/))
+            return mockListDocument("redirect-rules", []);
+          if (url.match(/\/orgs\/test-org\/servers\/\d+\/sites\/\d+\/security-rules$/))
+            return mockListDocument("security-rules", []);
           // Site get (must come before server get)
-          if (url.match(/\/servers\/\d+\/sites\/\d+$/))
-            return { site: { id: 1, name: "app.com", server_id: 1 } };
+          if (url.match(/\/orgs\/test-org\/sites\/\d+$/))
+            return mockDocument(1, "sites", { name: "app.com" } as never);
           // Server get
-          if (url.match(/\/servers\/\d+$/)) return { server: { id: 1, name: "web-1" } };
+          if (url.match(/\/orgs\/test-org\/servers\/\d+$/))
+            return mockDocument(1, "servers", { id: 1, name: "web-1", is_ready: true } as never);
           return {};
         },
       } as never,
@@ -90,7 +113,6 @@ describe("handleSiteContext", () => {
     expect(data.site).toBeDefined();
     expect(data.site.name).toBe("app.com");
     expect(data.deployments).toBeDefined();
-    expect(data.certificates).toBeDefined();
     expect(data.redirect_rules).toBeDefined();
     expect(data.security_rules).toBeDefined();
   });
@@ -132,21 +154,19 @@ describe("handleSiteContext", () => {
     expect(result.structuredContent?.success).toBe(true);
   });
 
-  it("handles non-array deployments data gracefully", async () => {
+  it("handles empty deployments list gracefully", async () => {
     const ctx: HandlerContext = {
       executorContext: {
+        organizationSlug: "test-org",
         client: {
           get: async (url: string) => {
-            if (url.match(/\/servers\/\d+\/sites\/\d+\/deployments$/)) {
-              return { deployments: "none" }; // non-array
-            }
-            if (url.match(/\/servers\/\d+\/sites\/\d+\/certificates$/)) return { certificates: [] };
-            if (url.match(/\/servers\/\d+\/sites\/\d+\/redirect-rules$/))
-              return { redirect_rules: [] };
-            if (url.match(/\/servers\/\d+\/sites\/\d+\/security-rules$/))
-              return { security_rules: [] };
-            if (url.match(/\/servers\/\d+\/sites\/\d+$/))
-              return { site: { id: 1, name: "app.com" } };
+            if (url.match(/\/sites\/\d+\/deployments/)) return mockListDocument("deployments", []);
+            if (url.match(/\/sites\/\d+\/redirect-rules$/))
+              return mockListDocument("redirect-rules", []);
+            if (url.match(/\/sites\/\d+\/security-rules$/))
+              return mockListDocument("security-rules", []);
+            if (url.match(/\/sites\/\d+$/))
+              return mockDocument(1, "sites", { name: "app.com" } as never);
             return {};
           },
         } as never,
@@ -159,6 +179,7 @@ describe("handleSiteContext", () => {
     );
     expect(result.isError).toBeUndefined();
     const data = JSON.parse(result.content[0]!.text);
-    expect(data.deployments).toBe("none");
+    expect(Array.isArray(data.deployments)).toBe(true);
+    expect(data.deployments).toHaveLength(0);
   });
 });

@@ -1,10 +1,13 @@
 /**
- * Function that fetches a page of results.
+ * Function that fetches a page of results using cursor-based pagination.
+ * Pass `null` for the first page, or a cursor string for subsequent pages.
  */
-export type PageFetcher<T> = (page: number) => Promise<T[]>;
+export type PageFetcher<T> = (
+  cursor: string | null,
+) => Promise<{ items: T[]; nextCursor: string | null }>;
 
 /**
- * Async paginated iterator that auto-fetches all pages.
+ * Async paginated iterator that auto-fetches all pages using cursor-based pagination.
  *
  * @example
  * ```ts
@@ -19,28 +22,27 @@ export type PageFetcher<T> = (page: number) => Promise<T[]>;
  */
 export class AsyncPaginatedIterator<T> {
   private fetchPage: PageFetcher<T>;
-  private perPage: number;
 
-  constructor(fetchPage: PageFetcher<T>, perPage = 200) {
+  constructor(fetchPage: PageFetcher<T>) {
     this.fetchPage = fetchPage;
-    this.perPage = perPage;
   }
 
   async *[Symbol.asyncIterator](): AsyncGenerator<T, void, undefined> {
-    let page = 1;
+    let cursor: string | null = null;
     let hasMore = true;
 
     while (hasMore) {
-      const items = await this.fetchPage(page);
+      const { items, nextCursor } = await this.fetchPage(cursor);
 
       for (const item of items) {
         yield item;
       }
 
-      // If we got fewer items than perPage, we've reached the last page
-      hasMore = items.length >= this.perPage;
-
-      page++;
+      if (nextCursor) {
+        cursor = nextCursor;
+      } else {
+        hasMore = false;
+      }
     }
   }
 

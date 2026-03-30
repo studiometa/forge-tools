@@ -18,7 +18,7 @@ npm install @studiometa/forge-sdk
 ```typescript
 import { Forge } from "@studiometa/forge-sdk";
 
-const forge = new Forge("your-api-token");
+const forge = new Forge("your-api-token", "your-org-slug");
 
 // List all servers
 const servers = await forge.servers.list();
@@ -153,15 +153,17 @@ forge.server(id).site(siteId).deployments.script(); // Get deploy script
 forge.server(id).site(siteId).deployments.updateScript("npm run build");
 ```
 
-### Certificates
+### Certificates (per-domain in v2)
 
 ```typescript
-forge.server(id).site(siteId).certificates.list();
-forge.server(id).site(siteId).certificates.get(certId);
-forge.server(id).site(siteId).certificates.create({ type: "new", domain: "example.com" });
-forge.server(id).site(siteId).certificates.letsEncrypt(["example.com"]);
-forge.server(id).site(siteId).certificates.activate(certId);
-forge.server(id).site(siteId).certificates.delete(certId);
+// Get certificate for a domain
+forge.server(id).site(siteId).certificates.get(domainId);
+// Create a certificate
+forge.server(id).site(siteId).certificates.create(domainId, { type: "letsencrypt" });
+// Activate a certificate
+forge.server(id).site(siteId).certificates.activate(domainId);
+// Delete a certificate
+forge.server(id).site(siteId).certificates.delete(domainId);
 ```
 
 ### Databases
@@ -208,12 +210,12 @@ The SDK supports dependency injection for testing:
 
 ```typescript
 const mockFetch = async (url, init) => {
-  return new Response(JSON.stringify({ servers: [] }), {
+  return new Response(JSON.stringify({ data: [] }), {
     headers: { "content-type": "application/json" },
   });
 };
 
-const forge = new Forge("test-token", { fetch: mockFetch });
+const forge = new Forge("test-token", "test-org", { fetch: mockFetch });
 const servers = await forge.servers.list(); // Uses mock fetch
 ```
 
@@ -222,7 +224,7 @@ const servers = await forge.servers.list(); // Uses mock fetch
 ```typescript
 import { Forge } from "@studiometa/forge-sdk";
 
-const forge = new Forge(process.env.FORGE_API_TOKEN);
+const forge = new Forge(process.env.FORGE_API_TOKEN, process.env.FORGE_ORG);
 
 // Deploy after successful CI using resolve() to find the server and site by name
 const serverResult = await forge.servers.resolve("prod");

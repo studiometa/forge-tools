@@ -1,26 +1,33 @@
 import { describe, expect, it } from "vitest";
 
-import type { CertificateResponse } from "@studiometa/forge-api";
-
+import { mockDocument } from "../../test-helpers.ts";
 import { createTestExecutorContext } from "../../context.ts";
 import { createCertificate } from "./create.ts";
 
 describe("createCertificate", () => {
-  it("should create a certificate and format output", async () => {
+  it("should create a certificate for a domain", async () => {
     const ctx = createTestExecutorContext({
       client: {
         post: async () =>
-          ({
-            certificate: { id: 10, domain: "example.com" },
-          }) as CertificateResponse,
+          mockDocument(10, "certificates", {
+            type: "letsencrypt",
+            verification_method: null,
+            key_type: null,
+            preferred_chain: null,
+            request_status: "pending",
+            status: "installing",
+            created_at: "2024-01-01T00:00:00.000000Z",
+            updated_at: "2024-01-01T00:00:00.000000Z",
+          }),
       } as never,
+      organizationSlug: "test-org",
     });
 
     const result = await createCertificate(
-      { server_id: "1", site_id: "2", domain: "example.com", type: "new" },
+      { server_id: "1", site_id: "2", domain_id: "5", type: "letsencrypt" },
       ctx,
     );
 
-    expect(result.data.domain).toBe("example.com");
+    expect(result.data.type).toBe("letsencrypt");
   });
 });

@@ -1,6 +1,6 @@
-import type { ForgeOptions, ForgeUser, UserResponse } from "@studiometa/forge-api";
+import type { ForgeOptions, JsonApiDocument, UserAttributes } from "@studiometa/forge-api";
 
-import { HttpClient } from "@studiometa/forge-api";
+import { HttpClient, unwrapDocument } from "@studiometa/forge-api";
 
 import { ServersCollection, ServerResource } from "./resources/servers.ts";
 import { RecipesCollection } from "./resources/recipes.ts";
@@ -15,7 +15,7 @@ import { RecipesCollection } from "./resources/recipes.ts";
  * ```ts
  * import { Forge } from '@studiometa/forge-sdk';
  *
- * const forge = new Forge('your-api-token');
+ * const forge = new Forge('your-api-token', 'my-org');
  *
  * // List all servers
  * const servers = await forge.servers.list();
@@ -34,6 +34,9 @@ export class Forge {
   /** @internal */
   readonly client: HttpClient;
 
+  /** The organization slug used for v2 API URL prefixing. */
+  readonly organizationSlug: string;
+
   /** Server operations (list, get, create, update, delete, reboot). */
   readonly servers: ServersCollection;
 
@@ -44,26 +47,28 @@ export class Forge {
    * Create a new Forge SDK instance.
    *
    * @param token Your Laravel Forge API token.
+   * @param organizationSlug Your organization slug (used for v2 API URLs).
    * @param options Optional configuration (custom fetch, base URL, rate limiting).
    *
    * @example
    * ```ts
    * // Basic usage
-   * const forge = new Forge('your-api-token');
+   * const forge = new Forge('your-api-token', 'my-org');
    *
    * // With custom options
-   * const forge = new Forge('your-api-token', {
-   *   baseUrl: 'https://custom-forge-instance.com/api/v1',
+   * const forge = new Forge('your-api-token', 'my-org', {
+   *   baseUrl: 'https://forge.laravel.com/api/v2',
    * });
    *
    * // With mock fetch for testing
-   * const forge = new Forge('test-token', { fetch: mockFetch });
+   * const forge = new Forge('test-token', 'test-org', { fetch: mockFetch });
    * ```
    */
-  constructor(token: string, options?: ForgeOptions) {
+  constructor(token: string, organizationSlug: string, options?: ForgeOptions) {
     this.client = new HttpClient({ token, ...options });
-    this.servers = new ServersCollection(this.client);
-    this.recipes = new RecipesCollection(this.client);
+    this.organizationSlug = organizationSlug;
+    this.servers = new ServersCollection(this.client, organizationSlug);
+    this.recipes = new RecipesCollection(this.client, organizationSlug);
   }
 
   /**
@@ -90,7 +95,7 @@ export class Forge {
    * ```
    */
   server(serverId: number): ServerResource {
-    return new ServerResource(this.client, serverId);
+    return new ServerResource(this.client, this.organizationSlug, serverId);
   }
 
   /**
@@ -102,8 +107,8 @@ export class Forge {
    * console.log(user.name, user.email);
    * ```
    */
-  async user(): Promise<ForgeUser> {
-    const response = await this.client.get<UserResponse>("/user");
-    return response.user;
+  async user(): Promise<UserAttributes & { id: number }> {
+    const response = await this.client.get<JsonApiDocument<UserAttributes>>("/user");
+    return unwrapDocument(response);
   }
 }

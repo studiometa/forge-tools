@@ -1,7 +1,6 @@
 import {
   getServer,
   getSite,
-  listCertificates,
   listDaemons,
   listDatabaseUsers,
   listDatabases,
@@ -68,10 +67,9 @@ export async function handleSiteContext(
 
   const execCtx = ctx.executorContext;
 
-  const [site, deployments, certificates, redirectRules, securityRules] = await Promise.all([
+  const [site, deployments, redirectRules, securityRules] = await Promise.all([
     getSite({ server_id: serverId, site_id: siteId }, execCtx),
     listDeployments({ server_id: serverId, site_id: siteId }, execCtx),
-    listCertificates({ server_id: serverId, site_id: siteId }, execCtx),
     listRedirectRules({ server_id: serverId, site_id: siteId }, execCtx),
     listSecurityRules({ server_id: serverId, site_id: siteId }, execCtx),
   ]);
@@ -83,7 +81,6 @@ export async function handleSiteContext(
   return jsonResult({
     site: site.data,
     deployments: recentDeployments,
-    certificates: certificates.data,
     redirect_rules: redirectRules.data,
     security_rules: securityRules.data,
   });

@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 
+import { mockDocument } from "@studiometa/forge-core";
+
 import type { HandlerContext } from "./types.ts";
 
 import { handleUser } from "./user.ts";
@@ -7,17 +9,15 @@ import { handleUser } from "./user.ts";
 function createMockContext(): HandlerContext {
   return {
     executorContext: {
+      organizationSlug: "test-org",
       client: {
-        get: async () => ({
-          user: {
-            id: 1,
+        get: async () =>
+          mockDocument(1, "users", {
             name: "John Doe",
             email: "john@example.com",
-            connected_to_github: true,
-            connected_to_gitlab: false,
-            two_factor_enabled: true,
-          },
-        }),
+            created_at: "2024-01-01",
+            updated_at: "2024-01-01",
+          }),
       } as never,
     },
     compact: true,

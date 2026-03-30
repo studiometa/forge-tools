@@ -1,4 +1,5 @@
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
+import { sitePath } from "../../utils/url-builder.ts";
 
 import type { DeleteSiteOptions } from "./types.ts";
 
@@ -9,7 +10,7 @@ export async function deleteSite(
   options: DeleteSiteOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<void>> {
-  await ctx.client.delete(`/servers/${options.server_id}/sites/${options.site_id}`);
+  await ctx.client.delete(sitePath(options.server_id, options.site_id, ctx));
 
   return {
     data: undefined,

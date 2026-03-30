@@ -1,5 +1,7 @@
-import type { ForgeServer, ServerResponse } from "@studiometa/forge-api";
+import type { JsonApiDocument, ServerAttributes } from "@studiometa/forge-api";
+import { unwrapDocument } from "@studiometa/forge-api";
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
+import { serverPath } from "../../utils/url-builder.ts";
 
 import type { GetServerOptions } from "./types.ts";
 
@@ -9,11 +11,12 @@ import type { GetServerOptions } from "./types.ts";
 export async function getServer(
   options: GetServerOptions,
   ctx: ExecutorContext,
-): Promise<ExecutorResult<ForgeServer>> {
-  const response = await ctx.client.get<ServerResponse>(`/servers/${options.server_id}`);
-  const server = response.server;
+): Promise<ExecutorResult<ServerAttributes & { id: number }>> {
+  const response = await ctx.client.get<JsonApiDocument<ServerAttributes>>(
+    serverPath(options.server_id, ctx),
+  );
 
   return {
-    data: server,
+    data: unwrapDocument(response),
   };
 }

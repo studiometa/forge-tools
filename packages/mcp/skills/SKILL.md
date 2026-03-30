@@ -49,7 +49,7 @@ forge_write(resource, action, [parameters...])
 | `deployments`     | `list`                              | `deploy`, `update`             | site   |
 | `env`             | `get`                               | `update`                       | site   |
 | `nginx`           | `get`                               | `update`                       | site   |
-| `certificates`    | `list`, `get`                       | `create`, `delete`, `activate` | site   |
+| `certificates`    | `get`                               | `create`, `delete`, `activate` | domain |
 | `databases`       | `list`, `get`                       | `create`, `delete`             | server |
 | `database-users`  | `list`, `get`                       | `create`, `delete`             | server |
 | `daemons`         | `list`, `get`                       | `create`, `delete`, `restart`  | server |
@@ -70,7 +70,8 @@ forge_write(resource, action, [parameters...])
 
 - **global**: No parent ID needed (e.g. `servers`, `recipes`)
 - **server**: Requires `server_id` (e.g. `sites`, `databases`, `daemons`)
-- **site**: Requires `server_id` + `site_id` (e.g. `deployments`, `env`, `certificates`)
+- **site**: Requires `server_id` + `site_id` (e.g. `deployments`, `env`)
+- **domain**: Requires `server_id` + `site_id` + `domain_id` (e.g. `certificates`)
 
 ### Auto-Resolve: Names Instead of IDs
 
@@ -121,6 +122,7 @@ Use `action: "schema"` for a compact machine-readable spec:
 | `id`         | string  | Resource ID (for `get`, `delete`, `activate`, `restart`)                                                |
 | `server_id`  | string  | Server ID **or name** — numeric IDs are used as-is; names are auto-resolved via partial match           |
 | `site_id`    | string  | Site ID **or domain name** — auto-resolved via partial match; requires `server_id`                      |
+| `domain_id`  | string  | Domain record ID (for certificate operations)                                                           |
 | `query`      | string  | Search query for `resolve` action (partial, case-insensitive match against resource names/domains)      |
 | `compact`    | boolean | Compact output (default: true)                                                                          |
 | `content`    | string  | Content for env/nginx `update` and deployment script `update`                                           |
@@ -158,17 +160,17 @@ Use `action: "schema"` for a compact machine-readable spec:
 { "resource": "daemons", "action": "list", "server_id": "123" }
 ```
 
-### Manage SSL Certificates
+### Manage SSL Certificates (per-domain)
 
 ```json
-// List existing certs (forge)
-{ "resource": "certificates", "action": "list", "server_id": "123", "site_id": "456" }
+// Get certificate for a domain (forge)
+{ "resource": "certificates", "action": "get", "server_id": "123", "site_id": "456", "domain_id": "789" }
 
 // Request a new Let's Encrypt cert (forge_write)
-{ "resource": "certificates", "action": "create", "server_id": "123", "site_id": "456", "domain": "example.com", "type": "new" }
+{ "resource": "certificates", "action": "create", "server_id": "123", "site_id": "456", "domain_id": "789", "type": "letsencrypt" }
 
 // Activate it (forge_write)
-{ "resource": "certificates", "action": "activate", "server_id": "123", "site_id": "456", "id": "789" }
+{ "resource": "certificates", "action": "activate", "server_id": "123", "site_id": "456", "domain_id": "789" }
 ```
 
 ### Update Environment Variables
@@ -240,7 +242,7 @@ Use `action: "resolve"` to search resources by name before acting:
 //                           daemons, firewall_rules, scheduled_jobs
 { "resource": "servers", "action": "context", "id": "123" }
 
-// Site context (forge) — returns site + deployments (last 5), certificates,
+// Site context (forge) — returns site + deployments (last 5),
 //                          redirect_rules, security_rules
 { "resource": "sites", "action": "context", "server_id": "123", "id": "456" }
 
@@ -269,7 +271,7 @@ Use `action: "resolve"` to search resources by name before acting:
   "action": "run",
   "operations": [
     { "resource": "env",          "action": "get",  "server_id": "123", "site_id": "456" },
-    { "resource": "certificates", "action": "list", "server_id": "123", "site_id": "456" },
+    { "resource": "commands",     "action": "list", "server_id": "123", "site_id": "456" },
     { "resource": "deployments",  "action": "list", "server_id": "123", "site_id": "456" }
   ]
 }

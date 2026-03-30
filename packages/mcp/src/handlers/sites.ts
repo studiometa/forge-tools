@@ -1,6 +1,5 @@
 import { createSite, deleteSite, getSite, listSites, resolveSites } from "@studiometa/forge-core";
 
-import type { ForgeSite } from "@studiometa/forge-api";
 import type { ResolveSiteResult } from "@studiometa/forge-core";
 
 import { formatSite, formatSiteList } from "../formatters.ts";
@@ -15,7 +14,7 @@ const _handleSites = createResourceHandler({
   requiredFields: {
     list: ["server_id"],
     get: ["server_id", "id"],
-    create: ["server_id", "domain"],
+    create: ["server_id", "type"],
     delete: ["server_id", "id"],
     resolve: ["server_id", "query"],
   },
@@ -26,10 +25,7 @@ const _handleSites = createResourceHandler({
     delete: deleteSite,
     resolve: resolveSites,
   },
-  hints: (data, id) => {
-    const site = data as ForgeSite;
-    return getSiteHints(String(site.server_id), id);
-  },
+  hints: (_data, id, args) => getSiteHints(String(args.server_id), id),
   mapOptions: (action, args) => {
     switch (action) {
       case "list":
@@ -39,9 +35,9 @@ const _handleSites = createResourceHandler({
       case "create":
         return {
           server_id: args.server_id,
-          domain: args.domain,
-          project_type: args.project_type ?? "php",
-          directory: args.directory,
+          type: args.type ?? "php",
+          name: args.name ?? args.domain,
+          web_directory: args.web_directory ?? args.directory,
         };
       case "delete":
         return { server_id: args.server_id, site_id: args.id };
@@ -55,11 +51,11 @@ const _handleSites = createResourceHandler({
   formatResult: (action, data, args) => {
     switch (action) {
       case "list":
-        return formatSiteList(data as ForgeSite[], args.server_id as string | undefined);
+        return formatSiteList(data, args.server_id as string | undefined);
       case "get":
-        return formatSite(data as ForgeSite);
+        return formatSite(data);
       case "create":
-        return formatSite(data as ForgeSite);
+        return formatSite(data);
       case "delete":
         return `Site ${args.id} deleted from server ${args.server_id}.`;
       case "resolve": {

@@ -72,6 +72,7 @@ export async function redirectRulesCreate(ctx: CommandContext): Promise<void> {
   const { server, site } = requireServerAndSiteRaw(ctx, usage);
   const from = String(ctx.options.from ?? "");
   const to = String(ctx.options.to ?? "");
+  const type = String(ctx.options.type ?? "redirect");
 
   if (!from) {
     exitWithValidationError("from", usage, ctx.formatter);
@@ -86,8 +87,8 @@ export async function redirectRulesCreate(ctx: CommandContext): Promise<void> {
     const execCtx = ctx.createExecutorContext(token);
     const server_id = await resolveServerId(server, execCtx);
     const site_id = await resolveSiteId(site, server_id, execCtx);
-    const result = await createRedirectRule({ server_id, site_id, from, to }, execCtx);
-    ctx.formatter.outputOne(result.data, ["id", "from", "to", "type", "created_at"]);
+    await createRedirectRule({ server_id, site_id, from, to, type }, execCtx);
+    ctx.formatter.success("Redirect rule created.");
   }, ctx.formatter);
 }
 

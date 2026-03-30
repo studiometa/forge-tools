@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { mockDocument } from "../../test-helpers.ts";
 import { createTestExecutorContext } from "../../context.ts";
 import { getDeploymentOutput } from "./get-output.ts";
 
@@ -7,8 +8,12 @@ describe("getDeploymentOutput", () => {
   it("should return deployment output", async () => {
     const ctx = createTestExecutorContext({
       client: {
-        get: async () => "Deployment successful\nBuild completed",
+        get: async () =>
+          mockDocument(789, "deployment-outputs", {
+            output: "Deployment successful\nBuild completed",
+          }),
       } as never,
+      organizationSlug: "test-org",
     });
 
     const result = await getDeploymentOutput(

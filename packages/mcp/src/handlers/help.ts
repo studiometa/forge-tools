@@ -68,18 +68,18 @@ const RESOURCE_HELP: Record<string, ResourceHelp> = {
     actions: {
       list: "List all sites on a server",
       get: "Get a single site by ID",
-      create: "Create a new site (requires domain, project_type)",
+      create: "Create a new site (requires type; optionally name, web_directory)",
       delete: "Delete a site by ID",
       context:
-        "Get full site context: site details + recent deployments (last 5) + certificates + redirect rules + security rules in one call",
+        "Get full site context: site details + recent deployments (last 5) + redirect rules + security rules in one call",
       resolve: "Find sites by domain name (partial, case-insensitive match, requires server_id)",
     },
     fields: {
       id: "Site ID",
       server_id: "Parent server ID",
       name: "Domain name (e.g. example.com)",
-      project_type: "Project type (php, html, symfony, symfony_dev, symfony_four, laravel)",
-      directory: "Web root directory (e.g. /public)",
+      type: "Site type (php, html, symfony, symfony_dev, symfony_four, laravel)",
+      web_directory: "Web root directory (e.g. /public)",
       repository: "Git repository URL (if connected)",
       deployment_status: "Last deployment status (null, deploying, deployed, failed)",
     },
@@ -98,13 +98,13 @@ const RESOURCE_HELP: Record<string, ResourceHelp> = {
           resource: "sites",
           action: "create",
           server_id: "123",
-          domain: "app.example.com",
-          project_type: "php",
-          directory: "/public",
+          type: "php",
+          name: "app.example.com",
+          web_directory: "/public",
         },
       },
       {
-        description: "Get full site context (site + deployments + certificates + rules)",
+        description: "Get full site context (site + deployments + rules)",
         params: { resource: "sites", action: "context", server_id: "123", id: "456" },
       },
       {
@@ -205,19 +205,25 @@ const RESOURCE_HELP: Record<string, ResourceHelp> = {
   },
 
   certificates: {
-    description: "Manage SSL/TLS certificates for a site — Let's Encrypt, custom, or cloned",
-    scope: "site (requires server_id + site_id)",
+    description:
+      "Manage SSL/TLS certificates per domain — Let's Encrypt, CSR, existing, or cloned (v2: one cert per domain)",
+    scope: "domain (requires server_id + site_id + domain_id)",
     actions: {
-      list: "List certificates for a site",
-      get: "Get certificate details",
-      create: "Create/request a new certificate",
-      delete: "Delete a certificate",
-      activate: "Activate a certificate (make it the active cert for the site)",
+      get: "Get certificate for a domain",
+      create: "Create/request a new certificate for a domain",
+      delete: "Delete a domain certificate",
+      activate: "Activate a domain certificate",
     },
     examples: [
       {
-        description: "List certificates",
-        params: { resource: "certificates", action: "list", server_id: "123", site_id: "456" },
+        description: "Get certificate for a domain",
+        params: {
+          resource: "certificates",
+          action: "get",
+          server_id: "123",
+          site_id: "456",
+          domain_id: "789",
+        },
       },
       {
         description: "Create Let's Encrypt cert",
@@ -226,8 +232,8 @@ const RESOURCE_HELP: Record<string, ResourceHelp> = {
           action: "create",
           server_id: "123",
           site_id: "456",
-          domain: "example.com",
-          type: "new",
+          domain_id: "789",
+          type: "letsencrypt",
         },
       },
       {
@@ -237,7 +243,7 @@ const RESOURCE_HELP: Record<string, ResourceHelp> = {
           action: "activate",
           server_id: "123",
           site_id: "456",
-          id: "789",
+          domain_id: "789",
         },
       },
     ],
@@ -544,7 +550,7 @@ const RESOURCE_HELP: Record<string, ResourceHelp> = {
     fields: {
       provider: "Backup provider (s3, spaces, custom)",
       credentials: "Provider credentials (keys, bucket, region)",
-      frequency: "Backup frequency (daily, weekly, custom)",
+      schedule: "Backup schedule (daily, weekly, custom cron)",
       databases: "Array of database IDs to back up",
       retention: "Number of backups to retain",
     },
@@ -631,7 +637,7 @@ const RESOURCE_HELP: Record<string, ResourceHelp> = {
     description: "Get the currently authenticated Forge user profile",
     scope: "global (no parent ID needed)",
     actions: {
-      get: "Get the authenticated user's profile (name, email, connected services)",
+      get: "Get the authenticated user's profile (name, email)",
     },
     examples: [
       {

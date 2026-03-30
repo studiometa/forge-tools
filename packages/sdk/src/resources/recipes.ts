@@ -1,10 +1,12 @@
 import type {
   CreateRecipeData,
-  ForgeRecipe,
   HttpClient,
-  RecipeResponse,
-  RecipesResponse,
+  JsonApiDocument,
+  JsonApiListDocument,
+  RecipeAttributes,
 } from "@studiometa/forge-api";
+
+import { unwrapDocument, unwrapListDocument } from "@studiometa/forge-api";
 
 import { BaseCollection } from "./base.ts";
 import { AsyncPaginatedIterator } from "../pagination.ts";
@@ -13,8 +15,8 @@ import { AsyncPaginatedIterator } from "../pagination.ts";
  * Options for listing recipes.
  */
 export interface RecipeListOptions {
-  /** Page number to fetch (1-indexed). */
-  page?: number;
+  /** Cursor for pagination (from previous response's next_cursor). */
+  cursor?: string;
 }
 
 /**
@@ -37,12 +39,12 @@ export interface RunRecipeOptions {
  */
 export class RecipesCollection extends BaseCollection {
   /** @internal */
-  constructor(client: HttpClient) {
-    super(client);
+  constructor(client: HttpClient, orgSlug: string) {
+    super(client, orgSlug);
   }
 
   private get basePath(): string {
-    return `/recipes`;
+    return `/orgs/${this.orgSlug}/recipes`;
   }
 
   /**
@@ -52,14 +54,16 @@ export class RecipesCollection extends BaseCollection {
    * ```ts
    * const recipes = await forge.recipes.list();
    *
-   * // Fetch a specific page:
-   * const page2 = await forge.recipes.list({ page: 2 });
+   * // Fetch a specific cursor page:
+   * const page2 = await forge.recipes.list({ cursor: 'next-cursor-value' });
    * ```
    */
-  async list(options: RecipeListOptions = {}): Promise<ForgeRecipe[]> {
-    const query = options.page !== undefined ? `?page=${options.page}` : "";
-    const response = await this.client.get<RecipesResponse>(`${this.basePath}${query}`);
-    return response.recipes;
+  async list(options: RecipeListOptions = {}): Promise<Array<RecipeAttributes & { id: number }>> {
+    const query = options.cursor !== undefined ? `?page[cursor]=${options.cursor}` : "";
+    const response = await this.client.get<JsonApiListDocument<RecipeAttributes>>(
+      `${this.basePath}${query}`,
+    );
+    return unwrapListDocument(response);
   }
 
   /**
@@ -75,8 +79,17 @@ export class RecipesCollection extends BaseCollection {
    * const recipes = await forge.recipes.all().toArray();
    * ```
    */
-  all(options: Omit<RecipeListOptions, "page"> = {}): AsyncPaginatedIterator<ForgeRecipe> {
-    return new AsyncPaginatedIterator<ForgeRecipe>((page) => this.list({ ...options, page }));
+  all(): AsyncPaginatedIterator<RecipeAttributes & { id: number }> {
+    return new AsyncPaginatedIterator<RecipeAttributes & { id: number }>(async (cursor) => {
+      const query = cursor !== null ? `?page[cursor]=${cursor}` : "";
+      const response = await this.client.get<JsonApiListDocument<RecipeAttributes>>(
+        `${this.basePath}${query}`,
+      );
+      return {
+        items: unwrapListDocument(response),
+        nextCursor: response.meta.next_cursor ?? null,
+      };
+    });
   }
 
   /**
@@ -87,9 +100,11 @@ export class RecipesCollection extends BaseCollection {
    * const recipe = await forge.recipes.get(789);
    * ```
    */
-  async get(recipeId: number): Promise<ForgeRecipe> {
-    const response = await this.client.get<RecipeResponse>(`${this.basePath}/${recipeId}`);
-    return response.recipe;
+  async get(recipeId: number): Promise<RecipeAttributes & { id: number }> {
+    const response = await this.client.get<JsonApiDocument<RecipeAttributes>>(
+      `${this.basePath}/${recipeId}`,
+    );
+    return unwrapDocument(response);
   }
 
   /**
@@ -104,9 +119,9 @@ export class RecipesCollection extends BaseCollection {
    * });
    * ```
    */
-  async create(data: CreateRecipeData): Promise<ForgeRecipe> {
-    const response = await this.client.post<RecipeResponse>(this.basePath, data);
-    return response.recipe;
+  async create(data: CreateRecipeData): Promise<RecipeAttributes & { id: number }> {
+    const response = await this.client.post<JsonApiDocument<RecipeAttributes>>(this.basePath, data);
+    return unwrapDocument(response);
   }
 
   /**

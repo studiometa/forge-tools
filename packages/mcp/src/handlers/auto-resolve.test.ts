@@ -1,4 +1,7 @@
 import { describe, expect, it } from "vitest";
+
+import { mockListDocument } from "@studiometa/forge-core";
+
 import { autoResolveIds } from "./auto-resolve.ts";
 import type { CommonArgs } from "./types.ts";
 import type { ExecutorContext } from "@studiometa/forge-core";
@@ -8,10 +11,19 @@ function createMockCtx(
   sites: Array<{ id: number; name: string }> = [],
 ): ExecutorContext {
   return {
+    organizationSlug: "test-org",
     client: {
       get: async (url: string) => {
-        if (url === "/servers") return { servers };
-        if (url.match(/\/servers\/\d+\/sites$/)) return { sites };
+        if (url === "/orgs/test-org/servers")
+          return mockListDocument(
+            "servers",
+            servers.map((s) => ({ id: s.id, attributes: { id: s.id, name: s.name } as never })),
+          );
+        if (url.match(/\/orgs\/test-org\/servers\/\d+\/sites$/))
+          return mockListDocument(
+            "sites",
+            sites.map((s) => ({ id: s.id, attributes: { id: s.id, name: s.name } as never })),
+          );
         return {};
       },
     } as never,

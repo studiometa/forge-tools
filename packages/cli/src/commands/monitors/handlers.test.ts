@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
-import type { ForgeMonitor } from "@studiometa/forge-api";
+import type { MonitorAttributes } from "@studiometa/forge-api";
 
 import { createTestContext } from "../../context.ts";
 import { monitorsList, monitorsGet, monitorsCreate, monitorsDelete } from "./handlers.ts";
@@ -12,9 +12,8 @@ vi.mock("@studiometa/forge-core", () => ({
   deleteMonitor: vi.fn(),
 }));
 
-const mockMonitor: ForgeMonitor = {
+const mockMonitor: MonitorAttributes & { id: number } = {
   id: 1,
-  server_id: 10,
   type: "cpu_load",
   operator: ">=",
   threshold: 80,

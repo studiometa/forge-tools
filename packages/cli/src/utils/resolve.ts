@@ -6,7 +6,7 @@
 
 import { listServers, listSites, matchByName } from "@studiometa/forge-core";
 import type { ExecutorContext } from "@studiometa/forge-core";
-import type { ForgeServer, ForgeSite } from "@studiometa/forge-api";
+import type { ServerAttributes, SiteAttributes } from "@studiometa/forge-api";
 import { ValidationError } from "../errors.ts";
 
 /**
@@ -23,7 +23,7 @@ export async function resolveServerId(value: string, execCtx: ExecutorContext): 
   }
 
   const result = await listServers({}, execCtx);
-  const servers = result.data as ForgeServer[];
+  const servers = result.data as Array<ServerAttributes & { id: number }>;
 
   const { exact, partial } = matchByName(servers, value, (s) => s.name);
 
@@ -68,7 +68,7 @@ export async function resolveSiteId(
   }
 
   const result = await listSites({ server_id: serverId }, execCtx);
-  const sites = result.data as ForgeSite[];
+  const sites = result.data as Array<SiteAttributes & { id: number }>;
 
   const { exact, partial } = matchByName(sites, value, (s) => s.name);
 

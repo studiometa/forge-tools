@@ -1,17 +1,19 @@
-import type { ForgeRedirectRule, RedirectRulesResponse } from "@studiometa/forge-api";
+import type { JsonApiListDocument, RedirectRuleAttributes } from "@studiometa/forge-api";
+import { unwrapListDocument } from "@studiometa/forge-api";
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
+import { sitePath } from "../../utils/url-builder.ts";
 
 import type { ListRedirectRulesOptions } from "./types.ts";
 
 export async function listRedirectRules(
   options: ListRedirectRulesOptions,
   ctx: ExecutorContext,
-): Promise<ExecutorResult<ForgeRedirectRule[]>> {
-  const response = await ctx.client.get<RedirectRulesResponse>(
-    `/servers/${options.server_id}/sites/${options.site_id}/redirect-rules`,
+): Promise<ExecutorResult<Array<RedirectRuleAttributes & { id: number }>>> {
+  const response = await ctx.client.get<JsonApiListDocument<RedirectRuleAttributes>>(
+    `${sitePath(options.server_id, options.site_id, ctx)}/redirect-rules`,
   );
-  const rules = response.redirect_rules;
+
   return {
-    data: rules,
+    data: unwrapListDocument(response),
   };
 }

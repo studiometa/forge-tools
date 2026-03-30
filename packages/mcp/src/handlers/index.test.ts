@@ -56,7 +56,7 @@ vi.mock("@studiometa/forge-api", async (importOriginal) => {
 
 import { executeToolWithCredentials } from "./index.ts";
 
-const creds = { apiToken: "test-token" };
+const creds = { apiToken: "test-token", organizationSlug: "test-org" };
 
 describe("executeToolWithCredentials error handling", () => {
   it("should catch UserInputError thrown by a handler and return formatted error message", async () => {

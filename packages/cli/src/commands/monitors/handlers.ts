@@ -69,6 +69,7 @@ export async function monitorsCreate(ctx: CommandContext): Promise<void> {
   const type = String(ctx.options.type ?? "");
   const operator = String(ctx.options.operator ?? "");
   const threshold = Number(ctx.options.threshold ?? 0);
+  const notify = String(ctx.options.notify ?? "");
   const minutes = Number(ctx.options.minutes ?? 0);
 
   if (!server) {
@@ -99,7 +100,10 @@ export async function monitorsCreate(ctx: CommandContext): Promise<void> {
     const token = ctx.getToken();
     const execCtx = ctx.createExecutorContext(token);
     const server_id = await resolveServerId(server, execCtx);
-    const result = await createMonitor({ server_id, type, operator, threshold, minutes }, execCtx);
+    const result = await createMonitor(
+      { server_id, type, operator, threshold, notify, minutes },
+      execCtx,
+    );
     ctx.formatter.outputOne(result.data, [
       "id",
       "type",

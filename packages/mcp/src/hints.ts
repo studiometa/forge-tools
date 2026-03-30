@@ -75,8 +75,14 @@ export function getSiteHints(serverId: string, siteId: string): ContextualHints 
       },
       {
         resource: "certificates",
-        description: "List SSL certificates",
-        example: { resource: "certificates", action: "list", server_id: serverId, site_id: siteId },
+        description: "Get certificate for a domain (requires domain_id)",
+        example: {
+          resource: "certificates",
+          action: "get",
+          server_id: serverId,
+          site_id: siteId,
+          domain_id: "<domain_id>",
+        },
       },
       {
         resource: "nginx",
@@ -181,18 +187,18 @@ export function getDaemonHints(serverId: string, daemonId: string): ContextualHi
 export function getCertificateHints(
   serverId: string,
   siteId: string,
-  certificateId: string,
+  domainId: string,
 ): ContextualHints {
   return {
     related_resources: [
       {
-        resource: "certificates",
-        description: "List all certificates for this site",
+        resource: "sites",
+        description: "Get the parent site",
         example: {
-          resource: "certificates",
-          action: "list",
+          resource: "sites",
+          action: "get",
           server_id: serverId,
-          site_id: siteId,
+          id: siteId,
         },
       },
     ],
@@ -204,7 +210,7 @@ export function getCertificateHints(
           action: "activate",
           server_id: serverId,
           site_id: siteId,
-          id: certificateId,
+          domain_id: domainId,
         },
       },
       {
@@ -214,7 +220,7 @@ export function getCertificateHints(
           action: "delete",
           server_id: serverId,
           site_id: siteId,
-          id: certificateId,
+          domain_id: domainId,
         },
       },
     ],

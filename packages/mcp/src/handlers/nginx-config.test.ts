@@ -7,8 +7,15 @@ import { handleNginxConfig } from "./nginx-config.ts";
 function createMockContext(): HandlerContext {
   return {
     executorContext: {
+      organizationSlug: "test-org",
       client: {
-        get: async () => "server { listen 80; }",
+        get: async () => ({
+          data: {
+            id: "1",
+            type: "nginx-configs",
+            attributes: { content: "server { listen 80; }" },
+          },
+        }),
         put: async () => ({}),
       } as never,
     },

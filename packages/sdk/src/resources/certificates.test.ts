@@ -1,120 +1,99 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
-import { HttpClient } from "@studiometa/forge-api";
-
-import { AsyncPaginatedIterator } from "../pagination.ts";
+import { Forge } from "../forge.ts";
+import { createMockFetch } from "../test-utils.ts";
 import { CertificatesCollection } from "./certificates.ts";
 
-function createTrackingClient(): {
-  client: HttpClient;
-  calls: Array<{ method: string; url: string; body?: unknown }>;
-} {
-  const calls: Array<{ method: string; url: string; body?: unknown }> = [];
+const ORG = "test-org";
+const SERVER_ID = 123;
+const SITE_ID = 456;
+const DOMAIN_ID = 789;
 
-  const client = new HttpClient({
-    token: "test",
-    fetch: async (url: string | URL | Request, init?: RequestInit) => {
-      calls.push({
-        method: init?.method ?? "GET",
-        url: url.toString(),
-        body: init?.body ? JSON.parse(init.body as string) : undefined,
-      });
-      return {
-        ok: true,
-        status: 200,
-        headers: new Headers({ "content-type": "application/json" }),
-        json: async () => ({ certificate: { id: 1 }, certificates: [] }),
-        text: async () => "{}",
-      } as Response;
-    },
-  });
+const BASE_PATH = `/orgs/${ORG}/servers/${SERVER_ID}/sites/${SITE_ID}/domains/${DOMAIN_ID}/certificate`;
 
-  return { client, calls };
+function mockDocument<T>(id: string | number, attributes: T) {
+  return { data: { id: String(id), type: "resource", attributes } };
 }
 
+const CERT_ATTRS = {
+  type: "letsencrypt",
+  verification_method: null,
+  key_type: null,
+  preferred_chain: null,
+  request_status: "complete",
+  status: "active",
+  created_at: "",
+  updated_at: "",
+};
+
 describe("CertificatesCollection", () => {
-  it("should list certificates", async () => {
-    const { client, calls } = createTrackingClient();
-    const collection = new CertificatesCollection(client, 123, 456);
+  it("should get a certificate for a domain", async () => {
+    const mockFetch = createMockFetch((url) => {
+      expect(url).toContain(BASE_PATH);
+      return mockDocument("1", CERT_ATTRS);
+    });
+    const forge = new Forge("test-token", ORG, { fetch: mockFetch });
+    const cert = await forge.server(SERVER_ID).site(SITE_ID).certificates.get(DOMAIN_ID);
 
-    await collection.list();
-    expect(calls[0]!.url).toContain("/servers/123/sites/456/certificates");
+    expect(cert.id).toBe(1);
+    expect(cert.type).toBe("letsencrypt");
+    expect(mockFetch).toHaveBeenCalledTimes(1);
   });
 
-  it("should list certificates with page option", async () => {
-    const { client, calls } = createTrackingClient();
-    const collection = new CertificatesCollection(client, 123, 456);
+  it("should create a certificate for a domain", async () => {
+    const mockFetch = createMockFetch((url, init) => {
+      expect(url).toContain(BASE_PATH);
+      expect(init?.method).toBe("POST");
+      const body = JSON.parse(init?.body as string);
+      expect(body).toEqual({ type: "letsencrypt" });
+      return mockDocument("2", CERT_ATTRS);
+    });
+    const forge = new Forge("test-token", ORG, { fetch: mockFetch });
+    const cert = await forge
+      .server(SERVER_ID)
+      .site(SITE_ID)
+      .certificates.create(DOMAIN_ID, { type: "letsencrypt" });
 
-    await collection.list({ page: 2 });
-    expect(calls[0]!.url).toContain("/servers/123/sites/456/certificates?page=2");
+    expect(cert.id).toBe(2);
+    expect(mockFetch).toHaveBeenCalledTimes(1);
   });
 
-  it("should get a certificate", async () => {
-    const { client, calls } = createTrackingClient();
-    const collection = new CertificatesCollection(client, 123, 456);
+  it("should delete a certificate for a domain", async () => {
+    const mockFetch = createMockFetch((url, init) => {
+      expect(url).toContain(BASE_PATH);
+      expect(init?.method).toBe("DELETE");
+      return {};
+    });
+    const forge = new Forge("test-token", ORG, { fetch: mockFetch });
+    await forge.server(SERVER_ID).site(SITE_ID).certificates.delete(DOMAIN_ID);
 
-    await collection.get(789);
-    expect(calls[0]!.url).toContain("/servers/123/sites/456/certificates/789");
+    expect(mockFetch).toHaveBeenCalledTimes(1);
   });
 
-  it("should create a certificate", async () => {
-    const { client, calls } = createTrackingClient();
-    const collection = new CertificatesCollection(client, 123, 456);
+  it("should activate a certificate for a domain", async () => {
+    const mockFetch = createMockFetch((url, init) => {
+      expect(url).toContain(`${BASE_PATH}/actions`);
+      expect(init?.method).toBe("POST");
+      const body = JSON.parse(init?.body as string);
+      expect(body).toEqual({ action: "activate" });
+      return {};
+    });
+    const forge = new Forge("test-token", ORG, { fetch: mockFetch });
+    await forge.server(SERVER_ID).site(SITE_ID).certificates.activate(DOMAIN_ID);
 
-    await collection.create({ type: "new", domain: "example.com" });
-    expect(calls[0]!.method).toBe("POST");
-    expect(calls[0]!.body).toEqual({ type: "new", domain: "example.com" });
+    expect(mockFetch).toHaveBeenCalledTimes(1);
   });
 
-  it("should install Let's Encrypt certificate", async () => {
-    const { client, calls } = createTrackingClient();
-    const collection = new CertificatesCollection(client, 123, 456);
+  it("should build correct domain path", async () => {
+    const mockFetch = createMockFetch((url) => {
+      expect(url).toContain(
+        `/orgs/${ORG}/servers/${SERVER_ID}/sites/${SITE_ID}/domains/999/certificate`,
+      );
+      return mockDocument("1", CERT_ATTRS);
+    });
+    const forge = new Forge("test-token", ORG, { fetch: mockFetch });
+    await forge.server(SERVER_ID).site(SITE_ID).certificates.get(999);
 
-    await collection.letsEncrypt(["example.com", "www.example.com"]);
-    expect(calls[0]!.url).toContain("/certificates/letsencrypt");
-    expect(calls[0]!.body).toEqual({ domains: ["example.com", "www.example.com"] });
-  });
-
-  it("should delete a certificate", async () => {
-    const { client, calls } = createTrackingClient();
-    const collection = new CertificatesCollection(client, 123, 456);
-
-    await collection.delete(789);
-    expect(calls[0]!.method).toBe("DELETE");
-  });
-
-  it("should activate a certificate", async () => {
-    const { client, calls } = createTrackingClient();
-    const collection = new CertificatesCollection(client, 123, 456);
-
-    await collection.activate(789);
-    expect(calls[0]!.method).toBe("POST");
-    expect(calls[0]!.url).toContain("/certificates/789/activate");
-  });
-
-  it("should return an AsyncPaginatedIterator from all()", () => {
-    const { client } = createTrackingClient();
-    const collection = new CertificatesCollection(client, 123, 456);
-
-    const iter = collection.all();
-    expect(iter).toBeInstanceOf(AsyncPaginatedIterator);
-  });
-
-  it("should iterate all certificates across pages via all()", async () => {
-    const page1 = Array.from({ length: 200 }, (_, i) => ({ id: i + 1 }) as never);
-    const page2 = [{ id: 201 } as never];
-    const { client } = createTrackingClient();
-    const collection = new CertificatesCollection(client, 123, 456);
-
-    const listSpy = vi
-      .spyOn(collection, "list")
-      .mockResolvedValueOnce(page1)
-      .mockResolvedValueOnce(page2);
-
-    const results = await collection.all().toArray();
-
-    expect(results).toHaveLength(201);
-    expect(listSpy).toHaveBeenCalledWith({ page: 1 });
-    expect(listSpy).toHaveBeenCalledWith({ page: 2 });
+    expect(mockFetch).toHaveBeenCalledTimes(1);
   });
 });

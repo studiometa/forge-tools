@@ -13,12 +13,13 @@ Executors are pure functions with dependency injection via `ExecutorContext`:
 import { listServers, createTestExecutorContext } from "@studiometa/forge-core";
 
 const ctx = createTestExecutorContext({
+  organizationSlug: "my-org",
   client: mockClient,
 });
 
 const result = await listServers({}, ctx);
 console.log(result.text); // "2 server(s): ..."
-console.log(result.data); // ForgeServer[]
+console.log(result.data); // Array<ServerAttributes & { id: number }>
 ```
 
 ## Constants
@@ -67,7 +68,7 @@ import { RESOURCES, ACTIONS } from "@studiometa/forge-core";
 
 ### Certificates
 
-- `listCertificates`, `getCertificate`, `createCertificate`, `deleteCertificate`, `activateCertificate`
+- `getCertificate`, `createCertificate`, `deleteCertificate`, `activateCertificate` (per-domain in v2 — requires `domain_id`)
 
 ### Databases
 
@@ -188,8 +189,9 @@ const ctx = createTestExecutorContext();
 
 // Override specific methods
 const ctx = createTestExecutorContext({
+  organizationSlug: "test-org",
   client: {
-    get: async () => ({ servers: [{ id: 1, name: "test" }] }),
+    get: async () => ({ data: [] }),
   } as never,
 });
 ```

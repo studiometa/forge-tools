@@ -1,4 +1,5 @@
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
+import { orgPrefix } from "../../utils/url-builder.ts";
 
 import type { DeleteRecipeOptions } from "./types.ts";
 
@@ -6,7 +7,7 @@ export async function deleteRecipe(
   options: DeleteRecipeOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<void>> {
-  await ctx.client.delete(`/recipes/${options.id}`);
+  await ctx.client.delete(`${orgPrefix(ctx)}/recipes/${options.id}`);
 
   return {
     data: undefined,

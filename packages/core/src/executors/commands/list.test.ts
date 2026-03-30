@@ -1,20 +1,29 @@
 import { describe, expect, it } from "vitest";
 
-import type { CommandsResponse } from "@studiometa/forge-api";
-
+import { mockListDocument } from "../../test-helpers.ts";
 import { createTestExecutorContext } from "../../context.ts";
 import { listCommands } from "./list.ts";
 
 describe("listCommands", () => {
   it("should list commands and format output", async () => {
-    const commands = [
-      { id: 1, status: "finished", user_name: "forge", command: "php artisan migrate" },
-    ];
+    const getMock = async () =>
+      mockListDocument("commands", [
+        {
+          id: 1,
+          attributes: {
+            command: "php artisan migrate",
+            status: "finished",
+            duration: "2s",
+            user_id: 1,
+            created_at: "2024-01-01T00:00:00.000000Z",
+            updated_at: "2024-01-01T00:00:00.000000Z",
+          },
+        },
+      ]);
 
     const ctx = createTestExecutorContext({
-      client: {
-        get: async () => ({ commands }) as CommandsResponse,
-      } as never,
+      client: { get: getMock } as never,
+      organizationSlug: "test-org",
     });
 
     const result = await listCommands({ server_id: "1", site_id: "2" }, ctx);
@@ -24,7 +33,8 @@ describe("listCommands", () => {
 
   it("should handle empty list", async () => {
     const ctx = createTestExecutorContext({
-      client: { get: async () => ({ commands: [] }) } as never,
+      client: { get: async () => mockListDocument("commands", []) } as never,
+      organizationSlug: "test-org",
     });
 
     const result = await listCommands({ server_id: "1", site_id: "2" }, ctx);

@@ -1,33 +1,45 @@
 import { describe, expect, it } from "vitest";
 
+import { mockDocument, mockListDocument } from "@studiometa/forge-core";
+
 import type { HandlerContext } from "./types.ts";
 
 import { handleDeployments } from "./deployments.ts";
 
+function makeDeploymentAttrs(overrides: Record<string, unknown> = {}) {
+  return {
+    commit: { hash: "abc1234", author: "user", message: "deploy", branch: "main" },
+    status: "finished",
+    type: "push",
+    started_at: "2024-01-01",
+    ended_at: "2024-01-01",
+    created_at: "2024-01-01",
+    updated_at: "2024-01-01",
+    ...overrides,
+  };
+}
+
 function createMockContext(): HandlerContext {
   return {
     executorContext: {
+      organizationSlug: "test-org",
       client: {
         get: async (url: string) => {
-          if ((url as string).endsWith("/deployment/log")) {
-            return "Build succeeded.";
+          // Log endpoint for specific deployment (e.g. /deployments/1/log)
+          if ((url as string).match(/\/deployments\/\d+\/log$/)) {
+            return mockDocument(1, "deployment-outputs", { output: "Build succeeded." });
           }
-          if ((url as string).endsWith("/deployments")) {
-            return {
-              deployments: [
-                { id: 1, status: "finished", commit_hash: "abc1234", started_at: "2024-01-01" },
-              ],
-            };
+          // Deployments list (with sort/pagination params)
+          if ((url as string).includes("/deployments?")) {
+            return mockListDocument("deployments", [
+              { id: 1, attributes: makeDeploymentAttrs() as never },
+            ]);
           }
-          if ((url as string).endsWith("/deployments")) {
-            return {
-              deployments: [
-                { id: 1, status: "deployed", commit_hash: "abc1234", started_at: "2024-01-01" },
-              ],
-            };
+          // Deployment status — return null status so deploySiteAndWait exits immediately
+          if ((url as string).includes("/deployments/status")) {
+            return mockDocument(1, "deploymentStatuses", { status: null, started_at: null });
           }
-          // site poll — return null deployment_status immediately (done)
-          return { site: { id: 456, deployment_status: null } };
+          return {};
         },
         post: async () => ({}),
         put: async () => ({}),
@@ -97,12 +109,12 @@ describe("handleDeployments", () => {
   it("should list deployments", async () => {
     const ctx: HandlerContext = {
       executorContext: {
+        organizationSlug: "test-org",
         client: {
-          get: async () => ({
-            deployments: [
-              { id: 1, status: "deployed", commit_hash: "abc1234", started_at: "2024-01-01" },
-            ],
-          }),
+          get: async () =>
+            mockListDocument("deployments", [
+              { id: 1, attributes: makeDeploymentAttrs() as never },
+            ]),
         } as never,
       },
       compact: true,
@@ -161,8 +173,10 @@ describe("handleDeployments", () => {
   it("should get deployment output with id", async () => {
     const ctx: HandlerContext = {
       executorContext: {
+        organizationSlug: "test-org",
         client: {
-          get: async () => ({ output: "Deployment output log" }),
+          get: async () =>
+            mockDocument(1, "deployment-outputs", { output: "Deployment output log" }),
         } as never,
       },
       compact: true,
@@ -178,8 +192,10 @@ describe("handleDeployments", () => {
   it("should get deployment script without id", async () => {
     const ctx: HandlerContext = {
       executorContext: {
+        organizationSlug: "test-org",
         client: {
-          get: async () => "#!/bin/bash\ncd /home/forge",
+          get: async () =>
+            mockDocument(1, "deployment-scripts", { content: "#!/bin/bash\ncd /home/forge" }),
         } as never,
       },
       compact: true,
@@ -195,6 +211,7 @@ describe("handleDeployments", () => {
   it("should update deployment script with content", async () => {
     const ctx: HandlerContext = {
       executorContext: {
+        organizationSlug: "test-org",
         client: {
           put: async () => ({}),
         } as never,
@@ -219,12 +236,12 @@ describe("handleDeployments", () => {
   it("should list deployments in non-compact mode", async () => {
     const ctx: HandlerContext = {
       executorContext: {
+        organizationSlug: "test-org",
         client: {
-          get: async () => ({
-            deployments: [
-              { id: 1, status: "deployed", commit_hash: "abc1234", started_at: "2024-01-01" },
-            ],
-          }),
+          get: async () =>
+            mockListDocument("deployments", [
+              { id: 1, attributes: makeDeploymentAttrs() as never },
+            ]),
         } as never,
       },
       compact: false,

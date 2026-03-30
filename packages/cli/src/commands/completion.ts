@@ -30,7 +30,7 @@ _forge_completions() {
   local daemons_cmds="list ls get restart"
   local env_cmds="get update"
   local nginx_cmds="get update"
-  local certificates_cmds="list ls get activate"
+  local certificates_cmds="get activate"
   local firewall_rules_cmds="list ls get"
   local ssh_keys_cmds="list ls get"
   local backups_cmds="list ls get create delete"
@@ -286,9 +286,7 @@ _forge() {
         certificates|certs)
           local -a certificates_cmds
           certificates_cmds=(
-            'list:List certificates'
-            'ls:List certificates (alias)'
-            'get:Get certificate details'
+            'get:Get certificate for a domain'
             'activate:Activate a certificate'
           )
           _describe 'certificates command' certificates_cmds
@@ -536,8 +534,7 @@ complete -c forge -f -n "__fish_seen_subcommand_from nginx" -a "get" -d "Get ngi
 complete -c forge -f -n "__fish_seen_subcommand_from nginx" -a "update" -d "Update nginx config"
 
 # certificates subcommands
-complete -c forge -f -n "__fish_seen_subcommand_from certificates certs" -a "list" -d "List certificates"
-complete -c forge -f -n "__fish_seen_subcommand_from certificates certs" -a "ls" -d "List certificates (alias)"
+complete -c forge -f -n "__fish_seen_subcommand_from certificates certs" -a "get" -d "Get certificate for a domain"
 complete -c forge -f -n "__fish_seen_subcommand_from certificates certs" -a "get" -d "Get certificate details"
 complete -c forge -f -n "__fish_seen_subcommand_from certificates certs" -a "activate" -d "Activate a certificate"
 

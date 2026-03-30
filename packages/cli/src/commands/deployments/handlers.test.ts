@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
-import type { ForgeDeployment } from "@studiometa/forge-api";
+import type { DeploymentAttributes } from "@studiometa/forge-api";
 
 import { createTestContext } from "../../context.ts";
 import { deploymentsList, deploymentsDeploy } from "./handlers.ts";
@@ -10,18 +10,20 @@ vi.mock("@studiometa/forge-core", () => ({
   deploySiteAndWait: vi.fn(),
 }));
 
-const mockDeployment: ForgeDeployment = {
+const mockDeployment: DeploymentAttributes & { id: number } = {
   id: 1,
-  server_id: 10,
-  site_id: 100,
-  type: 1,
-  commit_hash: "abc123",
-  commit_author: "John",
-  commit_message: "Deploy",
+  commit: {
+    hash: "abc123",
+    author: "John",
+    message: "Deploy",
+    branch: "main",
+  },
+  status: "finished",
+  type: "push",
   started_at: "2024-01-01T00:00:00Z",
   ended_at: "2024-01-01T00:01:00Z",
-  status: "finished",
-  displayable_type: "push",
+  created_at: "2024-01-01T00:00:00Z",
+  updated_at: "2024-01-01T00:00:00Z",
 };
 
 describe("deploymentsList", () => {
@@ -189,7 +191,7 @@ describe("deploymentsList — human format lineFormat", () => {
   });
   afterEach(() => vi.restoreAllMocks());
 
-  it("should render human format with commit_hash", async () => {
+  it("should render human format with commit hash", async () => {
     const { listDeployments } = await import("@studiometa/forge-core");
     vi.mocked(listDeployments).mockResolvedValue({ data: [mockDeployment] });
     const ctx = createTestContext({
@@ -201,10 +203,12 @@ describe("deploymentsList — human format lineFormat", () => {
     expect(vi.mocked(console.log)).toHaveBeenCalled();
   });
 
-  it("should render '—' when commit_hash is null", async () => {
+  it("should render '—' when commit hash is null", async () => {
     const { listDeployments } = await import("@studiometa/forge-core");
     vi.mocked(listDeployments).mockResolvedValue({
-      data: [{ ...mockDeployment, commit_hash: null }],
+      data: [
+        { ...mockDeployment, commit: { hash: null, author: null, message: null, branch: null } },
+      ],
     });
     const ctx = createTestContext({
       token: "test",

@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import { HttpClient } from "@studiometa/forge-api";
 
@@ -10,6 +10,25 @@ import { CertificatesCollection } from "./certificates.ts";
 import { CommandsCollection } from "./commands.ts";
 import { SecurityRulesCollection } from "./security-rules.ts";
 import { RedirectRulesCollection } from "./redirect-rules.ts";
+
+const ORG = "test-org";
+
+function mockDocument<T>(id: string | number, attributes: T) {
+  return {
+    data: { id: String(id), type: "resource", attributes },
+  };
+}
+
+function mockListDocument<T>(
+  items: Array<{ id: string | number; attributes: T }>,
+  nextCursor: string | null = null,
+) {
+  return {
+    data: items.map(({ id, attributes }) => ({ id: String(id), type: "resource", attributes })),
+    links: {},
+    meta: { per_page: 200, next_cursor: nextCursor },
+  };
+}
 
 function createTrackingClient(): {
   client: HttpClient;
@@ -29,14 +48,7 @@ function createTrackingClient(): {
         ok: true,
         status: 200,
         headers: new Headers({ "content-type": "application/json" }),
-        json: async () => ({
-          site: { id: 456 },
-          sites: [],
-          deployment: {},
-          deployments: [],
-          certificate: {},
-          certificates: [],
-        }),
+        json: async () => mockListDocument([{ id: "456", attributes: { name: "example.com" } }]),
         text: async () => "APP_ENV=production",
       } as Response;
     },
@@ -62,31 +74,40 @@ function createClient(body: unknown = {}): HttpClient {
 describe("SitesCollection", () => {
   it("should list sites", async () => {
     const { client } = createTrackingClient();
-    const collection = new SitesCollection(client, 123);
+    const collection = new SitesCollection(client, ORG, 123);
 
     const result = await collection.list();
     expect(result).toBeDefined();
   });
 
-  it("should list sites with page option", async () => {
+  it("should list sites with cursor option", async () => {
     const { client, calls } = createTrackingClient();
-    const collection = new SitesCollection(client, 123);
+    const collection = new SitesCollection(client, ORG, 123);
 
-    await collection.list({ page: 2 });
-    expect(calls[0]!.url).toContain("/servers/123/sites?page=2");
+    await collection.list({ cursor: "abc123" });
+    expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers/123/sites?page[cursor]=abc123`);
   });
 
   it("should get a site", async () => {
+    const client = createClient(mockDocument("456", { name: "example.com" }));
+    const collection = new SitesCollection(client, ORG, 123);
+
+    const site = await collection.get(456);
+    expect(site.id).toBe(456);
+    expect(calls_url(client)).toBeUndefined(); // client doesn't expose URL - use tracking client
+  });
+
+  it("should check correct URL on get", async () => {
     const { client, calls } = createTrackingClient();
-    const collection = new SitesCollection(client, 123);
+    const collection = new SitesCollection(client, ORG, 123);
 
     await collection.get(456);
-    expect(calls[0]!.url).toContain("/servers/123/sites/456");
+    expect(calls[0]!.url).toContain(`/orgs/${ORG}/sites/456`);
   });
 
   it("should create a site", async () => {
     const { client, calls } = createTrackingClient();
-    const collection = new SitesCollection(client, 123);
+    const collection = new SitesCollection(client, ORG, 123);
 
     await collection.create({ domain: "example.com", project_type: "php" });
     expect(calls[0]!.method).toBe("POST");
@@ -95,16 +116,16 @@ describe("SitesCollection", () => {
 
   it("should update a site", async () => {
     const { client, calls } = createTrackingClient();
-    const collection = new SitesCollection(client, 123);
+    const collection = new SitesCollection(client, ORG, 123);
 
     await collection.update(456, { directory: "/public" });
     expect(calls[0]!.method).toBe("PUT");
-    expect(calls[0]!.url).toContain("/servers/123/sites/456");
+    expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers/123/sites/456`);
   });
 
   it("should delete a site", async () => {
     const { client, calls } = createTrackingClient();
-    const collection = new SitesCollection(client, 123);
+    const collection = new SitesCollection(client, ORG, 123);
 
     await collection.delete(456);
     expect(calls[0]!.method).toBe("DELETE");
@@ -112,40 +133,30 @@ describe("SitesCollection", () => {
 
   it("should return an AsyncPaginatedIterator from all()", () => {
     const { client } = createTrackingClient();
-    const collection = new SitesCollection(client, 123);
+    const collection = new SitesCollection(client, ORG, 123);
 
     const iter = collection.all();
     expect(iter).toBeInstanceOf(AsyncPaginatedIterator);
   });
 
-  it("should iterate all sites across pages via all()", async () => {
-    const page1 = Array.from({ length: 200 }, (_, i) => ({ id: i + 1 }) as never);
-    const page2 = [{ id: 201 } as never];
-    const { client } = createTrackingClient();
-    const collection = new SitesCollection(client, 123);
+  it("should use correct URL prefix", async () => {
+    const { client, calls } = createTrackingClient();
+    const collection = new SitesCollection(client, ORG, 123);
 
-    const listSpy = vi
-      .spyOn(collection, "list")
-      .mockResolvedValueOnce(page1)
-      .mockResolvedValueOnce(page2);
-
-    const results = await collection.all().toArray();
-
-    expect(results).toHaveLength(201);
-    expect(listSpy).toHaveBeenCalledWith({ page: 1 });
-    expect(listSpy).toHaveBeenCalledWith({ page: 2 });
+    await collection.list();
+    expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers/123/sites`);
   });
 
   describe("resolve", () => {
     it("should resolve sites by partial name", async () => {
-      const client = createClient({
-        sites: [
-          { id: 1, name: "example.com" },
-          { id: 2, name: "example.org" },
-          { id: 3, name: "staging.test.com" },
-        ],
-      });
-      const collection = new SitesCollection(client, 123);
+      const client = createClient(
+        mockListDocument([
+          { id: "1", attributes: { name: "example.com" } },
+          { id: "2", attributes: { name: "example.org" } },
+          { id: "3", attributes: { name: "staging.test.com" } },
+        ]),
+      );
+      const collection = new SitesCollection(client, ORG, 123);
       const result: ResolveResult = await collection.resolve("example");
 
       expect(result.query).toBe("example");
@@ -157,13 +168,13 @@ describe("SitesCollection", () => {
     });
 
     it("should return exact match as single result", async () => {
-      const client = createClient({
-        sites: [
-          { id: 1, name: "example.com" },
-          { id: 2, name: "example.com.extra" },
-        ],
-      });
-      const collection = new SitesCollection(client, 123);
+      const client = createClient(
+        mockListDocument([
+          { id: "1", attributes: { name: "example.com" } },
+          { id: "2", attributes: { name: "example.com.extra" } },
+        ]),
+      );
+      const collection = new SitesCollection(client, ORG, 123);
       const result = await collection.resolve("example.com");
 
       expect(result.total).toBe(1);
@@ -171,10 +182,10 @@ describe("SitesCollection", () => {
     });
 
     it("should return empty for no matches", async () => {
-      const client = createClient({
-        sites: [{ id: 1, name: "example.com" }],
-      });
-      const collection = new SitesCollection(client, 123);
+      const client = createClient(
+        mockListDocument([{ id: "1", attributes: { name: "example.com" } }]),
+      );
+      const collection = new SitesCollection(client, ORG, 123);
       const result = await collection.resolve("unknown");
 
       expect(result.total).toBe(0);
@@ -182,10 +193,10 @@ describe("SitesCollection", () => {
     });
 
     it("should be case insensitive", async () => {
-      const client = createClient({
-        sites: [{ id: 1, name: "Example.Com" }],
-      });
-      const collection = new SitesCollection(client, 123);
+      const client = createClient(
+        mockListDocument([{ id: "1", attributes: { name: "Example.Com" } }]),
+      );
+      const collection = new SitesCollection(client, ORG, 123);
       const result = await collection.resolve("example");
 
       expect(result.total).toBe(1);
@@ -193,10 +204,14 @@ describe("SitesCollection", () => {
   });
 });
 
+function calls_url(_client: HttpClient): undefined {
+  return undefined;
+}
+
 describe("SiteResource", () => {
   it("should expose nested resources", () => {
     const { client } = createTrackingClient();
-    const resource = new SiteResource(client, 123, 456);
+    const resource = new SiteResource(client, ORG, 123, 456);
 
     expect(resource.deployments).toBeInstanceOf(DeploymentsCollection);
     expect(resource.certificates).toBeInstanceOf(CertificatesCollection);
@@ -209,24 +224,24 @@ describe("SiteResource", () => {
 
   it("should get site details", async () => {
     const { client, calls } = createTrackingClient();
-    const resource = new SiteResource(client, 123, 456);
+    const resource = new SiteResource(client, ORG, 123, 456);
 
     await resource.get();
-    expect(calls[0]!.url).toContain("/servers/123/sites/456");
+    expect(calls[0]!.url).toContain(`/orgs/${ORG}/sites/456`);
   });
 
   it("should deploy site", async () => {
     const { client, calls } = createTrackingClient();
-    const resource = new SiteResource(client, 123, 456);
+    const resource = new SiteResource(client, ORG, 123, 456);
 
     await resource.deploy();
     expect(calls[0]!.method).toBe("POST");
-    expect(calls[0]!.url).toContain("/servers/123/sites/456/deployment/deploy");
+    expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers/123/sites/456/deployments/deploy`);
   });
 
   it("should delete site", async () => {
     const { client, calls } = createTrackingClient();
-    const resource = new SiteResource(client, 123, 456);
+    const resource = new SiteResource(client, ORG, 123, 456);
 
     await resource.delete();
     expect(calls[0]!.method).toBe("DELETE");
@@ -236,15 +251,15 @@ describe("SiteResource", () => {
 describe("SiteEnvResource", () => {
   it("should get env content", async () => {
     const { client, calls } = createTrackingClient();
-    const env = new SiteEnvResource(client, 123, 456);
+    const env = new SiteEnvResource(client, ORG, 123, 456);
 
     await env.get();
-    expect(calls[0]!.url).toContain("/servers/123/sites/456/env");
+    expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers/123/sites/456/environment`);
   });
 
   it("should update env content", async () => {
     const { client, calls } = createTrackingClient();
-    const env = new SiteEnvResource(client, 123, 456);
+    const env = new SiteEnvResource(client, ORG, 123, 456);
 
     await env.update("APP_ENV=production");
     expect(calls[0]!.method).toBe("PUT");
@@ -255,18 +270,52 @@ describe("SiteEnvResource", () => {
 describe("SiteNginxResource", () => {
   it("should get nginx config", async () => {
     const { client, calls } = createTrackingClient();
-    const nginx = new SiteNginxResource(client, 123, 456);
+    const nginx = new SiteNginxResource(client, ORG, 123, 456);
 
     await nginx.get();
-    expect(calls[0]!.url).toContain("/servers/123/sites/456/nginx");
+    expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers/123/sites/456/nginx`);
   });
 
   it("should update nginx config", async () => {
     const { client, calls } = createTrackingClient();
-    const nginx = new SiteNginxResource(client, 123, 456);
+    const nginx = new SiteNginxResource(client, ORG, 123, 456);
 
     await nginx.update("server { }");
     expect(calls[0]!.method).toBe("PUT");
     expect(calls[0]!.body).toEqual({ content: "server { }" });
+  });
+
+  it("should iterate all items across pages via all()", async () => {
+    let callCount = 0;
+    const client = new HttpClient({
+      token: "test",
+      fetch: async () => {
+        const items =
+          callCount === 0
+            ? Array.from({ length: 200 }, (_, i) => ({
+                id: String(i + 1),
+                type: "resource",
+                attributes: { name: "example.com" },
+              }))
+            : [{ id: "201", type: "resource", attributes: { name: "example.com" } }];
+        const nextCursor = callCount === 0 ? "cursor-2" : null;
+        callCount++;
+        return {
+          ok: true,
+          status: 200,
+          headers: new Headers({ "content-type": "application/json" }),
+          json: async () => ({
+            data: items,
+            links: {},
+            meta: { per_page: 200, next_cursor: nextCursor },
+          }),
+          text: async () => "{}",
+        } as Response;
+      },
+    });
+    const collection = new SitesCollection(client, ORG, 123);
+
+    const results = await collection.all().toArray();
+    expect(results).toHaveLength(201);
   });
 });

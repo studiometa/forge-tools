@@ -1,10 +1,12 @@
 import type {
   CreateServerData,
-  ForgeServer,
   HttpClient,
-  ServerResponse,
-  ServersResponse,
+  JsonApiDocument,
+  JsonApiListDocument,
+  ServerAttributes,
 } from "@studiometa/forge-api";
+
+import { unwrapDocument, unwrapListDocument } from "@studiometa/forge-api";
 
 import { AsyncPaginatedIterator } from "../pagination.ts";
 import { matchByName } from "../utils/name-matcher.ts";
@@ -41,8 +43,8 @@ export interface ResolveResult {
  * Options for listing servers.
  */
 export interface ServerListOptions {
-  /** Page number to fetch (1-indexed). */
-  page?: number;
+  /** Cursor for pagination (from previous response's next_cursor). */
+  cursor?: string;
 }
 
 /**
@@ -64,8 +66,12 @@ export interface ServerListOptions {
  */
 export class ServersCollection extends BaseCollection {
   /** @internal */
-  constructor(client: HttpClient) {
-    super(client);
+  constructor(client: HttpClient, orgSlug: string) {
+    super(client, orgSlug);
+  }
+
+  private get basePath(): string {
+    return `/orgs/${this.orgSlug}/servers`;
   }
 
   /**
@@ -75,14 +81,16 @@ export class ServersCollection extends BaseCollection {
    * ```ts
    * const servers = await forge.servers.list();
    *
-   * // Fetch a specific page:
-   * const page2 = await forge.servers.list({ page: 2 });
+   * // Fetch a specific cursor page:
+   * const page2 = await forge.servers.list({ cursor: 'next-cursor-value' });
    * ```
    */
-  async list(options: ServerListOptions = {}): Promise<ForgeServer[]> {
-    const query = options.page !== undefined ? `?page=${options.page}` : "";
-    const response = await this.client.get<ServersResponse>(`/servers${query}`);
-    return response.servers;
+  async list(options: ServerListOptions = {}): Promise<Array<ServerAttributes & { id: number }>> {
+    const query = options.cursor !== undefined ? `?page[cursor]=${options.cursor}` : "";
+    const response = await this.client.get<JsonApiListDocument<ServerAttributes>>(
+      `${this.basePath}${query}`,
+    );
+    return unwrapListDocument(response);
   }
 
   /**
@@ -98,8 +106,17 @@ export class ServersCollection extends BaseCollection {
    * const servers = await forge.servers.all().toArray();
    * ```
    */
-  all(options: Omit<ServerListOptions, "page"> = {}): AsyncPaginatedIterator<ForgeServer> {
-    return new AsyncPaginatedIterator<ForgeServer>((page) => this.list({ ...options, page }));
+  all(): AsyncPaginatedIterator<ServerAttributes & { id: number }> {
+    return new AsyncPaginatedIterator<ServerAttributes & { id: number }>(async (cursor) => {
+      const query = cursor !== null ? `?page[cursor]=${cursor}` : "";
+      const response = await this.client.get<JsonApiListDocument<ServerAttributes>>(
+        `${this.basePath}${query}`,
+      );
+      return {
+        items: unwrapListDocument(response),
+        nextCursor: response.meta.next_cursor ?? null,
+      };
+    });
   }
 
   /**
@@ -110,9 +127,11 @@ export class ServersCollection extends BaseCollection {
    * const server = await forge.servers.get(123);
    * ```
    */
-  async get(serverId: number): Promise<ForgeServer> {
-    const response = await this.client.get<ServerResponse>(`/servers/${serverId}`);
-    return response.server;
+  async get(serverId: number): Promise<ServerAttributes & { id: number }> {
+    const response = await this.client.get<JsonApiDocument<ServerAttributes>>(
+      `${this.basePath}/${serverId}`,
+    );
+    return unwrapDocument(response);
   }
 
   /**
@@ -130,9 +149,9 @@ export class ServersCollection extends BaseCollection {
    * });
    * ```
    */
-  async create(data: CreateServerData): Promise<ForgeServer> {
-    const response = await this.client.post<ServerResponse>("/servers", data);
-    return response.server;
+  async create(data: CreateServerData): Promise<ServerAttributes & { id: number }> {
+    const response = await this.client.post<JsonApiDocument<ServerAttributes>>(this.basePath, data);
+    return unwrapDocument(response);
   }
 
   /**
@@ -143,9 +162,15 @@ export class ServersCollection extends BaseCollection {
    * await forge.servers.update(123, { name: 'web-1-renamed' });
    * ```
    */
-  async update(serverId: number, data: Partial<CreateServerData>): Promise<ForgeServer> {
-    const response = await this.client.put<ServerResponse>(`/servers/${serverId}`, data);
-    return response.server;
+  async update(
+    serverId: number,
+    data: Partial<CreateServerData>,
+  ): Promise<ServerAttributes & { id: number }> {
+    const response = await this.client.put<JsonApiDocument<ServerAttributes>>(
+      `${this.basePath}/${serverId}`,
+      data,
+    );
+    return unwrapDocument(response);
   }
 
   /**
@@ -157,7 +182,7 @@ export class ServersCollection extends BaseCollection {
    * ```
    */
   async delete(serverId: number): Promise<void> {
-    await this.client.delete(`/servers/${serverId}`);
+    await this.client.delete(`${this.basePath}/${serverId}`);
   }
 
   /**
@@ -169,7 +194,7 @@ export class ServersCollection extends BaseCollection {
    * ```
    */
   async reboot(serverId: number): Promise<void> {
-    await this.client.post(`/servers/${serverId}/reboot`);
+    await this.client.post(`${this.basePath}/${serverId}/reboot`);
   }
 
   /**
@@ -253,19 +278,20 @@ export class ServerResource extends BaseCollection {
   /** @internal */
   constructor(
     client: HttpClient,
+    orgSlug: string,
     private readonly serverId: number,
   ) {
-    super(client);
-    this.sites = new SitesCollection(client, serverId);
-    this.databases = new DatabasesCollection(client, serverId);
-    this.databaseUsers = new DatabaseUsersCollection(client, serverId);
-    this.daemons = new DaemonsCollection(client, serverId);
-    this.backups = new BackupsCollection(client, serverId);
-    this.scheduledJobs = new ScheduledJobsCollection(client, serverId);
-    this.monitors = new MonitorsCollection(client, serverId);
-    this.firewallRules = new FirewallRulesCollection(client, serverId);
-    this.sshKeys = new SshKeysCollection(client, serverId);
-    this.nginxTemplates = new NginxTemplatesCollection(client, serverId);
+    super(client, orgSlug);
+    this.sites = new SitesCollection(client, orgSlug, serverId);
+    this.databases = new DatabasesCollection(client, orgSlug, serverId);
+    this.databaseUsers = new DatabaseUsersCollection(client, orgSlug, serverId);
+    this.daemons = new DaemonsCollection(client, orgSlug, serverId);
+    this.backups = new BackupsCollection(client, orgSlug, serverId);
+    this.scheduledJobs = new ScheduledJobsCollection(client, orgSlug, serverId);
+    this.monitors = new MonitorsCollection(client, orgSlug, serverId);
+    this.firewallRules = new FirewallRulesCollection(client, orgSlug, serverId);
+    this.sshKeys = new SshKeysCollection(client, orgSlug, serverId);
+    this.nginxTemplates = new NginxTemplatesCollection(client, orgSlug, serverId);
   }
 
   /**
@@ -281,7 +307,7 @@ export class ServerResource extends BaseCollection {
    * ```
    */
   site(siteId: number): SiteResource {
-    return new SiteResource(this.client, this.serverId, siteId);
+    return new SiteResource(this.client, this.orgSlug, this.serverId, siteId);
   }
 
   /**
@@ -292,9 +318,11 @@ export class ServerResource extends BaseCollection {
    * const server = await forge.server(123).get();
    * ```
    */
-  async get(): Promise<ForgeServer> {
-    const response = await this.client.get<ServerResponse>(`/servers/${this.serverId}`);
-    return response.server;
+  async get(): Promise<ServerAttributes & { id: number }> {
+    const response = await this.client.get<JsonApiDocument<ServerAttributes>>(
+      `/orgs/${this.orgSlug}/servers/${this.serverId}`,
+    );
+    return unwrapDocument(response);
   }
 
   /**
@@ -306,7 +334,7 @@ export class ServerResource extends BaseCollection {
    * ```
    */
   async reboot(): Promise<void> {
-    await this.client.post(`/servers/${this.serverId}/reboot`);
+    await this.client.post(`/orgs/${this.orgSlug}/servers/${this.serverId}/reboot`);
   }
 
   /**
@@ -318,6 +346,6 @@ export class ServerResource extends BaseCollection {
    * ```
    */
   async delete(): Promise<void> {
-    await this.client.delete(`/servers/${this.serverId}`);
+    await this.client.delete(`/orgs/${this.orgSlug}/servers/${this.serverId}`);
   }
 }

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
-import type { ForgeSshKey } from "@studiometa/forge-api";
+import type { SshKeyAttributes } from "@studiometa/forge-api";
 
 import { createTestContext } from "../../context.ts";
 import { sshKeysList, sshKeysGet } from "./handlers.ts";
@@ -10,12 +10,14 @@ vi.mock("@studiometa/forge-core", () => ({
   getSshKey: vi.fn(),
 }));
 
-const mockKey: ForgeSshKey = {
+const mockKey: SshKeyAttributes & { id: number } = {
   id: 1,
-  server_id: 10,
   name: "my-key",
+  user: "forge",
   status: "installed",
+  created_by: null,
   created_at: "2024-01-01T00:00:00Z",
+  updated_at: "2024-01-01T00:00:00Z",
 };
 
 describe("sshKeysList", () => {

@@ -3,14 +3,14 @@ import { describe, expect, it, vi } from "vitest";
 import { AsyncPaginatedIterator } from "./pagination.ts";
 
 describe("AsyncPaginatedIterator", () => {
-  it("iterates across multiple pages", async () => {
+  it("iterates across multiple pages using cursors", async () => {
     const fetcher = vi
       .fn()
-      .mockResolvedValueOnce(["a", "b"])
-      .mockResolvedValueOnce(["c", "d"])
-      .mockResolvedValueOnce(["e"]);
+      .mockResolvedValueOnce({ items: ["a", "b"], nextCursor: "cursor-2" })
+      .mockResolvedValueOnce({ items: ["c", "d"], nextCursor: "cursor-3" })
+      .mockResolvedValueOnce({ items: ["e"], nextCursor: null });
 
-    const iter = new AsyncPaginatedIterator(fetcher, 2);
+    const iter = new AsyncPaginatedIterator(fetcher);
     const results: string[] = [];
     for await (const item of iter) {
       results.push(item);
@@ -18,18 +18,18 @@ describe("AsyncPaginatedIterator", () => {
 
     expect(results).toEqual(["a", "b", "c", "d", "e"]);
     expect(fetcher).toHaveBeenCalledTimes(3);
-    expect(fetcher).toHaveBeenNthCalledWith(1, 1);
-    expect(fetcher).toHaveBeenNthCalledWith(2, 2);
-    expect(fetcher).toHaveBeenNthCalledWith(3, 3);
+    expect(fetcher).toHaveBeenNthCalledWith(1, null);
+    expect(fetcher).toHaveBeenNthCalledWith(2, "cursor-2");
+    expect(fetcher).toHaveBeenNthCalledWith(3, "cursor-3");
   });
 
-  it("stops when data.length < perPage", async () => {
+  it("stops when nextCursor is null", async () => {
     const fetcher = vi
       .fn()
-      .mockResolvedValueOnce(["a", "b", "c"])
-      .mockResolvedValueOnce(["d", "e"]);
+      .mockResolvedValueOnce({ items: ["a", "b", "c"], nextCursor: "cursor-2" })
+      .mockResolvedValueOnce({ items: ["d", "e"], nextCursor: null });
 
-    const iter = new AsyncPaginatedIterator(fetcher, 3);
+    const iter = new AsyncPaginatedIterator(fetcher);
     const results: string[] = [];
     for await (const item of iter) {
       results.push(item);
@@ -40,9 +40,9 @@ describe("AsyncPaginatedIterator", () => {
   });
 
   it("handles single page result", async () => {
-    const fetcher = vi.fn().mockResolvedValueOnce(["x", "y"]);
+    const fetcher = vi.fn().mockResolvedValueOnce({ items: ["x", "y"], nextCursor: null });
 
-    const iter = new AsyncPaginatedIterator(fetcher, 10);
+    const iter = new AsyncPaginatedIterator(fetcher);
     const results: string[] = [];
     for await (const item of iter) {
       results.push(item);
@@ -53,7 +53,7 @@ describe("AsyncPaginatedIterator", () => {
   });
 
   it("handles empty first page", async () => {
-    const fetcher = vi.fn().mockResolvedValueOnce([]);
+    const fetcher = vi.fn().mockResolvedValueOnce({ items: [], nextCursor: null });
 
     const iter = new AsyncPaginatedIterator(fetcher);
     const results: string[] = [];
@@ -66,25 +66,32 @@ describe("AsyncPaginatedIterator", () => {
   });
 
   it("toArray() collects all items", async () => {
-    const fetcher = vi.fn().mockResolvedValueOnce([1, 2, 3]).mockResolvedValueOnce([4, 5]);
+    const fetcher = vi
+      .fn()
+      .mockResolvedValueOnce({ items: [1, 2, 3], nextCursor: "cursor-2" })
+      .mockResolvedValueOnce({ items: [4, 5], nextCursor: null });
 
-    const iter = new AsyncPaginatedIterator(fetcher, 3);
+    const iter = new AsyncPaginatedIterator(fetcher);
     const result = await iter.toArray();
 
     expect(result).toEqual([1, 2, 3, 4, 5]);
     expect(fetcher).toHaveBeenCalledTimes(2);
   });
 
-  it("uses default perPage of 200", async () => {
-    // Return exactly 200 items — should trigger another fetch
+  it("passes null for first page and cursor for subsequent pages", async () => {
     const page1 = Array.from({ length: 200 }, (_, i) => i);
     const page2 = [200, 201];
-    const fetcher = vi.fn().mockResolvedValueOnce(page1).mockResolvedValueOnce(page2);
+    const fetcher = vi
+      .fn()
+      .mockResolvedValueOnce({ items: page1, nextCursor: "abc123" })
+      .mockResolvedValueOnce({ items: page2, nextCursor: null });
 
     const iter = new AsyncPaginatedIterator(fetcher);
     const result = await iter.toArray();
 
     expect(result).toHaveLength(202);
     expect(fetcher).toHaveBeenCalledTimes(2);
+    expect(fetcher).toHaveBeenNthCalledWith(1, null);
+    expect(fetcher).toHaveBeenNthCalledWith(2, "abc123");
   });
 });

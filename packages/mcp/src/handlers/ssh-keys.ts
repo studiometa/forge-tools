@@ -1,7 +1,5 @@
 import { createSshKey, deleteSshKey, getSshKey, listSshKeys } from "@studiometa/forge-core";
 
-import type { ForgeSshKey } from "@studiometa/forge-api";
-
 import { formatSshKey, formatSshKeyList } from "../formatters.ts";
 import { getSshKeyHints } from "../hints.ts";
 import { createResourceHandler } from "./factory.ts";
@@ -21,18 +19,15 @@ export const handleSshKeys = createResourceHandler({
     create: createSshKey,
     delete: deleteSshKey,
   },
-  hints: (data, id) => {
-    const key = data as ForgeSshKey;
-    return getSshKeyHints(String(key.server_id), id);
-  },
+  hints: (_data, id, args) => getSshKeyHints(String(args.server_id), id),
   formatResult: (action, data, args) => {
     switch (action) {
       case "list":
-        return formatSshKeyList(data as ForgeSshKey[]);
+        return formatSshKeyList(data);
       case "get":
-        return formatSshKey(data as ForgeSshKey);
+        return formatSshKey(data);
       case "create":
-        return formatSshKey(data as ForgeSshKey);
+        return "Done.";
       case "delete":
         return `SSH key ${args.id} deleted.`;
       /* v8 ignore next */

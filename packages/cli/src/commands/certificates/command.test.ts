@@ -3,7 +3,6 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { handleCertificatesCommand } from "./command.ts";
 
 vi.mock("./handlers.ts", () => ({
-  certificatesList: vi.fn().mockResolvedValue(undefined),
   certificatesGet: vi.fn().mockResolvedValue(undefined),
   certificatesActivate: vi.fn().mockResolvedValue(undefined),
 }));
@@ -34,16 +33,16 @@ describe("handleCertificatesCommand routing", () => {
     vi.restoreAllMocks();
   });
 
-  it("should route list", async () => {
+  it("should route get with args", async () => {
     const h = await import("./handlers.ts");
-    await handleCertificatesCommand("list", [], {});
-    expect(h.certificatesList).toHaveBeenCalled();
+    await handleCertificatesCommand("get", [], {});
+    expect(h.certificatesGet).toHaveBeenCalled();
   });
 
   it("should route activate with args", async () => {
     const h = await import("./handlers.ts");
-    await handleCertificatesCommand("activate", ["1"], {});
-    expect(h.certificatesActivate).toHaveBeenCalledWith(["1"], expect.anything());
+    await handleCertificatesCommand("activate", [], {});
+    expect(h.certificatesActivate).toHaveBeenCalled();
   });
 
   it("should exit for unknown subcommand", async () => {

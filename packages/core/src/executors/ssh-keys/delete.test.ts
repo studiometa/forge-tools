@@ -6,11 +6,14 @@ import { deleteSshKey } from "./delete.ts";
 describe("deleteSshKey", () => {
   it("should delete an SSH key", async () => {
     const deleteMock = vi.fn(async () => undefined);
-    const ctx = createTestExecutorContext({ client: { delete: deleteMock } as never });
+    const ctx = createTestExecutorContext({
+      client: { delete: deleteMock } as never,
+      organizationSlug: "test-org",
+    });
 
     const result = await deleteSshKey({ server_id: "1", id: "12" }, ctx);
 
-    expect(deleteMock).toHaveBeenCalledWith("/servers/1/keys/12");
+    expect(deleteMock).toHaveBeenCalledWith("/orgs/test-org/servers/1/ssh-keys/12");
     expect(result.data).toBeUndefined();
   });
 });

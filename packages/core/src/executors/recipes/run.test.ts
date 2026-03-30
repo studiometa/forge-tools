@@ -6,11 +6,14 @@ import { runRecipe } from "./run.ts";
 describe("runRecipe", () => {
   it("should run a recipe on servers", async () => {
     const postMock = vi.fn(async () => undefined);
-    const ctx = createTestExecutorContext({ client: { post: postMock } as never });
+    const ctx = createTestExecutorContext({
+      client: { post: postMock } as never,
+      organizationSlug: "test-org",
+    });
 
     const result = await runRecipe({ id: "8", servers: [1, 2, 3] }, ctx);
 
-    expect(postMock).toHaveBeenCalledWith("/recipes/8/run", {
+    expect(postMock).toHaveBeenCalledWith("/orgs/test-org/recipes/8/runs", {
       servers: [1, 2, 3],
     });
     expect(result.data).toBeUndefined();

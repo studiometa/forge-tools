@@ -1,9 +1,23 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import { HttpClient } from "@studiometa/forge-api";
 
 import { AsyncPaginatedIterator } from "../pagination.ts";
 import { NginxTemplatesCollection } from "./nginx-templates.ts";
+
+const ORG = "test-org";
+
+function mockDocument<T>(id: string | number, attributes: T) {
+  return { data: { id: String(id), type: "resource", attributes } };
+}
+
+function mockListDocument<T>(id: string | number, attributes: T) {
+  return {
+    data: [{ id: String(id), type: "resource", attributes }],
+    links: {},
+    meta: { per_page: 200, next_cursor: null },
+  };
+}
 
 function createTrackingClient(): {
   client: HttpClient;
@@ -23,10 +37,17 @@ function createTrackingClient(): {
         ok: true,
         status: 200,
         headers: new Headers({ "content-type": "application/json" }),
-        json: async () => ({
-          template: { id: 1, name: "Laravel Template", content: "server { ... }" },
-          templates: [],
-        }),
+        json: async () => {
+          const u = url.toString();
+          const isId = /\/\d+(\?|$)/.test(u);
+          const attrs = {
+            name: "Laravel Template",
+            content: "server { ... }",
+            created_at: "",
+            updated_at: "",
+          };
+          return isId ? mockDocument("1", attrs) : mockListDocument("1", attrs);
+        },
         text: async () => "{}",
       } as Response;
     },
@@ -38,31 +59,31 @@ function createTrackingClient(): {
 describe("NginxTemplatesCollection", () => {
   it("should list Nginx templates", async () => {
     const { client, calls } = createTrackingClient();
-    const collection = new NginxTemplatesCollection(client, 123);
+    const collection = new NginxTemplatesCollection(client, ORG, 123);
 
     await collection.list();
-    expect(calls[0]!.url).toContain("/servers/123/nginx/templates");
+    expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers/123/nginx/templates`);
   });
 
-  it("should list Nginx templates with page option", async () => {
+  it("should list Nginx templates with cursor option", async () => {
     const { client, calls } = createTrackingClient();
-    const collection = new NginxTemplatesCollection(client, 123);
+    const collection = new NginxTemplatesCollection(client, ORG, 123);
 
-    await collection.list({ page: 2 });
-    expect(calls[0]!.url).toContain("/servers/123/nginx/templates?page=2");
+    await collection.list({ cursor: "abc123" });
+    expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers/123/nginx/templates?page[cursor]=abc123`);
   });
 
   it("should get a Nginx template", async () => {
     const { client, calls } = createTrackingClient();
-    const collection = new NginxTemplatesCollection(client, 123);
+    const collection = new NginxTemplatesCollection(client, ORG, 123);
 
     await collection.get(789);
-    expect(calls[0]!.url).toContain("/servers/123/nginx/templates/789");
+    expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers/123/nginx/templates/789`);
   });
 
   it("should create a Nginx template", async () => {
     const { client, calls } = createTrackingClient();
-    const collection = new NginxTemplatesCollection(client, 123);
+    const collection = new NginxTemplatesCollection(client, ORG, 123);
 
     await collection.create({ name: "Laravel Template", content: "server { ... }" });
     expect(calls[0]!.method).toBe("POST");
@@ -71,46 +92,62 @@ describe("NginxTemplatesCollection", () => {
 
   it("should update a Nginx template", async () => {
     const { client, calls } = createTrackingClient();
-    const collection = new NginxTemplatesCollection(client, 123);
+    const collection = new NginxTemplatesCollection(client, ORG, 123);
 
     await collection.update(789, { name: "Updated Template" });
     expect(calls[0]!.method).toBe("PUT");
-    expect(calls[0]!.url).toContain("/servers/123/nginx/templates/789");
+    expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers/123/nginx/templates/789`);
     expect(calls[0]!.body).toMatchObject({ name: "Updated Template" });
   });
 
   it("should delete a Nginx template", async () => {
     const { client, calls } = createTrackingClient();
-    const collection = new NginxTemplatesCollection(client, 123);
+    const collection = new NginxTemplatesCollection(client, ORG, 123);
 
     await collection.delete(789);
     expect(calls[0]!.method).toBe("DELETE");
-    expect(calls[0]!.url).toContain("/servers/123/nginx/templates/789");
+    expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers/123/nginx/templates/789`);
   });
 
   it("should return an AsyncPaginatedIterator from all()", () => {
     const { client } = createTrackingClient();
-    const collection = new NginxTemplatesCollection(client, 123);
+    const collection = new NginxTemplatesCollection(client, ORG, 123);
 
     const iter = collection.all();
     expect(iter).toBeInstanceOf(AsyncPaginatedIterator);
   });
 
-  it("should iterate all Nginx templates across pages via all()", async () => {
-    const page1 = Array.from({ length: 200 }, (_, i) => ({ id: i + 1 }) as never);
-    const page2 = [{ id: 201 } as never];
-    const { client } = createTrackingClient();
-    const collection = new NginxTemplatesCollection(client, 123);
-
-    const listSpy = vi
-      .spyOn(collection, "list")
-      .mockResolvedValueOnce(page1)
-      .mockResolvedValueOnce(page2);
+  it("should iterate all items across pages via all()", async () => {
+    let callCount = 0;
+    const client = new HttpClient({
+      token: "test",
+      fetch: async () => {
+        const items =
+          callCount === 0
+            ? Array.from({ length: 200 }, (_, i) => ({
+                id: String(i + 1),
+                type: "resource",
+                attributes: { name: "Laravel Template" },
+              }))
+            : [{ id: "201", type: "resource", attributes: { name: "Laravel Template" } }];
+        const nextCursor = callCount === 0 ? "cursor-2" : null;
+        callCount++;
+        return {
+          ok: true,
+          status: 200,
+          headers: new Headers({ "content-type": "application/json" }),
+          json: async () => ({
+            data: items,
+            links: {},
+            meta: { per_page: 200, next_cursor: nextCursor },
+          }),
+          text: async () => "{}",
+        } as Response;
+      },
+    });
+    const collection = new NginxTemplatesCollection(client, ORG, 123);
 
     const results = await collection.all().toArray();
-
     expect(results).toHaveLength(201);
-    expect(listSpy).toHaveBeenCalledWith({ page: 1 });
-    expect(listSpy).toHaveBeenCalledWith({ page: 2 });
   });
 });

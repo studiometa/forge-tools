@@ -6,7 +6,7 @@
 export interface ForgeOptions {
   /** Custom fetch implementation (for testing). */
   fetch?: typeof globalThis.fetch;
-  /** Custom base URL (default: https://forge.laravel.com/api/v1). */
+  /** Custom base URL (default: https://forge.laravel.com/api). */
   baseUrl?: string;
   /** Rate limiter options. */
   rateLimit?: RateLimitOptions;
@@ -22,278 +22,132 @@ export interface RateLimitOptions {
   baseDelay?: number;
 }
 
-// ── User ─────────────────────────────────────────────
-
-export interface ForgeUser {
-  id: number;
-  name: string;
-  email: string;
-  card_last_four: string;
-  connected_to_github: boolean;
-  connected_to_gitlab: boolean;
-  connected_to_bitbucket: boolean;
-  connected_to_bitbucket_two: boolean;
-  connected_to_digitalocean: boolean;
-  connected_to_linode: boolean;
-  connected_to_vultr: boolean;
-  connected_to_aws: boolean;
-  connected_to_hetzner: boolean;
-  ready_for_billing: boolean;
-  stripe_is_active: boolean;
-  two_factor_enabled: boolean;
-}
-
 // ── Servers ──────────────────────────────────────────
 
-export interface ForgeServer {
-  id: number;
-  credential_id: number;
-  name: string;
-  type: string;
-  provider: string;
-  provider_id: string;
-  size: string;
-  region: string;
-  ubuntu_version: string;
-  db_status: string | null;
-  redis_status: string | null;
-  php_version: string;
-  php_cli_version: string;
-  database_type: string;
-  ip_address: string;
-  ssh_port: number;
-  private_ip_address: string;
-  local_public_key: string;
-  is_ready: boolean;
-  revoked: boolean;
-  created_at: string;
-  network: ForgeServerNetwork[];
-  tags: ForgeTag[];
-}
-
-export interface ForgeServerNetwork {
-  id: number;
-  server_id: number;
-  networkable_id: number;
-  status: string;
-}
-
-export interface ForgeTag {
-  id: number;
-  name: string;
-}
-
 export interface CreateServerData {
-  provider: string;
-  credential_id: number;
   name: string;
+  provider: string;
   type: string;
-  size: string;
-  region: string;
+  ubuntu_version: string;
+  credential_id?: string;
+  team_id?: number | null;
   php_version?: string;
-  database?: string;
   database_type?: string;
-  ip_address?: string;
-  private_ip_address?: string;
-  recipe_id?: number;
-  network?: number[];
+  recipe_id?: number | null;
+  tags?: string[] | null;
+  /** Provider-specific config (DigitalOcean). */
+  ocean2?: Record<string, unknown>;
+  /** Provider-specific config (AWS). */
+  aws?: Record<string, unknown>;
+  /** Provider-specific config (Hetzner). */
+  hetzner?: Record<string, unknown>;
+  /** Provider-specific config (Vultr). */
+  vultr?: Record<string, unknown>;
+  /** Provider-specific config (Akamai/Linode). */
+  akamai?: Record<string, unknown>;
+  /** Provider-specific config (Laravel Cloud). */
+  laravel?: Record<string, unknown>;
+  /** Provider-specific config (Custom VPS). */
+  custom?: Record<string, unknown>;
 }
 
 // ── Sites ────────────────────────────────────────────
 
-export interface ForgeSite {
-  id: number;
-  server_id: number;
-  name: string;
-  aliases: string[];
-  directory: string;
-  wildcards: boolean;
-  status: string;
-  repository: string | null;
-  repository_provider: string | null;
-  repository_branch: string | null;
-  repository_status: string | null;
-  quick_deploy: boolean;
-  deployment_status: string | null;
-  project_type: string;
-  php_version: string;
-  app: string | null;
-  app_status: string | null;
-  slack_channel: string | null;
-  telegram_chat_id: string | null;
-  telegram_chat_title: string | null;
-  teams_webhook_url: string | null;
-  discord_webhook_url: string | null;
-  created_at: string;
-  telegram_secret: string;
-  username: string;
-  deployment_url: string;
-  is_secured: boolean;
-  tags: ForgeTag[];
-}
-
 export interface CreateSiteData {
-  domain: string;
-  project_type: string;
-  directory?: string;
-  isolated?: boolean;
-  username?: string;
+  type: string;
+  name?: string;
+  domain_mode?: string;
+  www_redirect_type?: string;
+  allow_wildcard_subdomains?: string;
+  root_directory?: string | null;
+  web_directory?: string | null;
+  is_isolated?: boolean;
+  isolated_user?: string;
   php_version?: string;
-  aliases?: string[];
-}
-
-// ── Deployments ──────────────────────────────────────
-
-export interface ForgeDeployment {
-  id: number;
-  server_id: number;
-  site_id: number;
-  type: number;
-  commit_hash: string | null;
-  commit_author: string | null;
-  commit_message: string | null;
-  started_at: string;
-  ended_at: string | null;
-  status: string;
-  displayable_type: string;
+  zero_downtime_deployments?: boolean;
+  nginx_template_id?: number;
+  source_control_provider?: string | null;
+  repository?: string | null;
+  branch?: string | null;
+  database_id?: number | null;
+  database_user_id?: string;
+  push_to_deploy?: boolean;
+  tags?: string[] | null;
+  shared_paths?: string[];
 }
 
 // ── Certificates ─────────────────────────────────────
 
-export interface ForgeCertificate {
-  id: number;
-  server_id: number;
-  site_id: number;
-  domain: string;
-  request_status: string;
-  status: string;
-  type: string;
-  created_at: string;
-  existing: boolean;
-  active: boolean;
-}
-
 export interface CreateCertificateData {
-  type: "new" | "existing" | "clone";
-  domain: string;
-  country?: string;
-  state?: string;
-  city?: string;
-  organization?: string;
-  department?: string;
-  certificate?: string;
-  key?: string;
+  type: "letsencrypt" | "csr" | "existing" | "clone";
+  letsencrypt?: {
+    verification_method?: "http-01" | "dns-01";
+    key_type?: "rsa" | "ecdsa";
+    preferred_chain?: "ISRG Root X1" | null;
+  };
+  existing?: {
+    key: string;
+    certificate: string;
+  };
+  csr?: {
+    domain: string;
+    sans?: string | null;
+    country: string;
+    state: string;
+    city: string;
+    organization: string;
+    department: string;
+  };
+  clone?: {
+    certificate_id: number;
+  };
 }
 
 // ── Databases ────────────────────────────────────────
 
-export interface ForgeDatabase {
-  id: number;
-  server_id: number;
-  name: string;
-  status: string;
-  created_at: string;
-}
-
-export interface ForgeDatabaseUser {
-  id: number;
-  server_id: number;
-  name: string;
-  status: string;
-  created_at: string;
-  databases: number[];
-}
-
 export interface CreateDatabaseData {
   name: string;
-  user?: string;
-  password?: string;
+  user?: string | null;
+  password?: string | null;
 }
 
 export interface CreateDatabaseUserData {
   name: string;
   password: string;
-  databases?: number[];
+  read_only?: boolean;
+  database_ids?: number[];
 }
 
 // ── Daemons (Background Processes) ───────────────────
 
-export interface ForgeDaemon {
-  id: number;
-  server_id: number;
+export interface CreateDaemonData {
+  name: string;
   command: string;
   user: string;
-  directory: string | null;
+  directory?: string | null;
   processes: number;
-  startsecs: number;
-  stopsignal: string;
-  stopwaitsecs: number;
-  status: string;
-  created_at: string;
-}
-
-export interface CreateDaemonData {
-  command: string;
-  user?: string;
-  directory?: string;
-  processes?: number;
   startsecs?: number;
-  stopsignal?: string;
   stopwaitsecs?: number;
+  stopsignal?: string | null;
 }
 
 // ── Backups ──────────────────────────────────────────
 
-export interface ForgeBackupConfig {
-  id: number;
-  server_id: number;
-  day_of_week: number | null;
-  time: string | null;
-  provider: string;
-  provider_name: string;
-  databases: { id: number; name: string }[];
-  frequency: string;
-  directory: string | null;
-  email: string | null;
-  retention: number;
-  status: string;
-  last_backup_time: string | null;
-}
-
-export interface ForgeBackup {
-  id: number;
-  backup_id: number;
-  status: string;
-  restore_status: string | null;
-  archive_size: number;
-  duration: number;
-  date: string;
-}
-
 export interface CreateBackupConfigData {
-  provider: string;
-  credentials: Record<string, string>;
+  storage_provider_id: number;
   frequency: string;
-  directory?: string;
-  email?: string;
-  retention?: number;
-  databases: number[];
+  retention: number;
+  database_ids: number[];
+  name?: string | null;
+  bucket?: string | null;
+  directory?: string | null;
+  day?: string;
+  time?: string;
+  cron?: string;
+  notification_email?: string | null;
 }
 
 // ── Commands ─────────────────────────────────────────
-
-export interface ForgeCommand {
-  id: number;
-  server_id: number;
-  site_id: number;
-  user_id: number;
-  event_id: number;
-  command: string;
-  status: string;
-  created_at: string;
-  profile_photo_url: string;
-  user_name: string;
-}
 
 export interface CreateCommandData {
   command: string;
@@ -301,75 +155,34 @@ export interface CreateCommandData {
 
 // ── Scheduled Jobs ───────────────────────────────────
 
-export interface ForgeScheduledJob {
-  id: number;
-  server_id: number;
+export interface CreateScheduledJobData {
   command: string;
   user: string;
   frequency: string;
-  cron: string;
-  status: string;
-  created_at: string;
-}
-
-export interface CreateScheduledJobData {
-  command: string;
-  user?: string;
-  frequency?: string;
-  minute?: string;
-  hour?: string;
-  day?: string;
-  month?: string;
-  weekday?: string;
+  name?: string | null;
+  cron?: string | null;
+  heartbeat?: boolean | null;
+  grace_period?: string;
 }
 
 // ── Firewall Rules ───────────────────────────────────
 
-export interface ForgeFirewallRule {
-  id: number;
-  server_id: number;
-  name: string;
-  port: number | string;
-  type: string;
-  ip_address: string;
-  status: string;
-  created_at: string;
-}
-
 export interface CreateFirewallRuleData {
   name: string;
-  port: number | string;
-  type?: string;
+  type: string;
+  port?: string | null;
   ip_address?: string;
 }
 
 // ── SSH Keys ─────────────────────────────────────────
 
-export interface ForgeSshKey {
-  id: number;
-  server_id: number;
-  name: string;
-  status: string;
-  created_at: string;
-}
-
 export interface CreateSshKeyData {
   name: string;
   key: string;
-  username?: string;
+  user?: string | null;
 }
 
 // ── Security Rules ───────────────────────────────────
-
-export interface ForgeSecurityRule {
-  id: number;
-  server_id: number;
-  site_id: number;
-  name: string;
-  path: string | null;
-  credentials: { id: number; username: string }[];
-  created_at: string;
-}
 
 export interface CreateSecurityRuleData {
   name: string;
@@ -379,51 +192,23 @@ export interface CreateSecurityRuleData {
 
 // ── Redirect Rules ───────────────────────────────────
 
-export interface ForgeRedirectRule {
-  id: number;
-  server_id: number;
-  site_id: number;
-  from: string;
-  to: string;
-  type: string;
-  created_at: string;
-}
-
 export interface CreateRedirectRuleData {
   from: string;
   to: string;
-  type?: string;
+  type: string;
 }
 
 // ── Monitors ─────────────────────────────────────────
-
-export interface ForgeMonitor {
-  id: number;
-  server_id: number;
-  type: string;
-  operator: string;
-  threshold: number;
-  minutes: number;
-  state: string;
-  state_changed_at: string;
-}
 
 export interface CreateMonitorData {
   type: string;
   operator: string;
   threshold: number;
-  minutes: number;
+  notify: string;
+  minutes?: number;
 }
 
 // ── Nginx Templates ──────────────────────────────────
-
-export interface ForgeNginxTemplate {
-  id: number;
-  server_id: number;
-  name: string;
-  content: string;
-  created_at: string;
-}
 
 export interface CreateNginxTemplateData {
   name: string;
@@ -432,164 +217,17 @@ export interface CreateNginxTemplateData {
 
 // ── Recipes ──────────────────────────────────────────
 
-export interface ForgeRecipe {
-  id: number;
+export interface CreateRecipeData {
   name: string;
   user: string;
   script: string;
-  created_at: string;
-}
-
-export interface CreateRecipeData {
-  name: string;
-  user?: string;
-  script: string;
+  team_id?: string;
 }
 
 // ── Config types ─────────────────────────────────────
 
 export interface ForgeConfig {
   apiToken: string;
-}
-
-// ── API response wrappers ────────────────────────────
-
-export interface ServerResponse {
-  server: ForgeServer;
-}
-
-export interface ServersResponse {
-  servers: ForgeServer[];
-}
-
-export interface SiteResponse {
-  site: ForgeSite;
-}
-
-export interface SitesResponse {
-  sites: ForgeSite[];
-}
-
-export interface DeploymentResponse {
-  deployment: ForgeDeployment;
-}
-
-export interface DeploymentsResponse {
-  deployments: ForgeDeployment[];
-}
-
-export interface CertificateResponse {
-  certificate: ForgeCertificate;
-}
-
-export interface CertificatesResponse {
-  certificates: ForgeCertificate[];
-}
-
-export interface DatabaseResponse {
-  database: ForgeDatabase;
-}
-
-export interface DatabasesResponse {
-  databases: ForgeDatabase[];
-}
-
-export interface DatabaseUserResponse {
-  user: ForgeDatabaseUser;
-}
-
-export interface DatabaseUsersResponse {
-  users: ForgeDatabaseUser[];
-}
-
-export interface DaemonResponse {
-  daemon: ForgeDaemon;
-}
-
-export interface DaemonsResponse {
-  daemons: ForgeDaemon[];
-}
-
-export interface UserResponse {
-  user: ForgeUser;
-}
-
-export interface BackupConfigResponse {
-  backup: ForgeBackupConfig;
-}
-
-export interface BackupConfigsResponse {
-  backups: ForgeBackupConfig[];
-}
-
-export interface CommandResponse {
-  command: ForgeCommand;
-}
-
-export interface CommandsResponse {
-  commands: ForgeCommand[];
-}
-
-export interface ScheduledJobResponse {
-  job: ForgeScheduledJob;
-}
-
-export interface ScheduledJobsResponse {
-  jobs: ForgeScheduledJob[];
-}
-
-export interface FirewallRuleResponse {
-  rule: ForgeFirewallRule;
-}
-
-export interface FirewallRulesResponse {
-  rules: ForgeFirewallRule[];
-}
-
-export interface SshKeyResponse {
-  key: ForgeSshKey;
-}
-
-export interface SshKeysResponse {
-  keys: ForgeSshKey[];
-}
-
-export interface SecurityRuleResponse {
-  security_rule: ForgeSecurityRule;
-}
-
-export interface SecurityRulesResponse {
-  security_rules: ForgeSecurityRule[];
-}
-
-export interface RedirectRuleResponse {
-  redirect_rule: ForgeRedirectRule;
-}
-
-export interface RedirectRulesResponse {
-  redirect_rules: ForgeRedirectRule[];
-}
-
-export interface MonitorResponse {
-  monitor: ForgeMonitor;
-}
-
-export interface MonitorsResponse {
-  monitors: ForgeMonitor[];
-}
-
-export interface NginxTemplateResponse {
-  template: ForgeNginxTemplate;
-}
-
-export interface NginxTemplatesResponse {
-  templates: ForgeNginxTemplate[];
-}
-
-export interface RecipeResponse {
-  recipe: ForgeRecipe;
-}
-
-export interface RecipesResponse {
-  recipes: ForgeRecipe[];
+  /** Default organization slug for v2 API (e.g. "studio-meta"). */
+  organizationSlug?: string;
 }

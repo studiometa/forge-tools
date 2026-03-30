@@ -1,25 +1,24 @@
 import { describe, expect, it } from "vitest";
 
-import type { MonitorResponse } from "@studiometa/forge-api";
-
+import { mockDocument } from "../../test-helpers.ts";
 import { createTestExecutorContext } from "../../context.ts";
 import { getMonitor } from "./get.ts";
 
 describe("getMonitor", () => {
   it("should get a monitor and format output", async () => {
-    const monitor = {
-      id: 4,
-      type: "disk",
-      operator: "gte",
-      threshold: "80",
-      state: "OK",
-      minutes: "5",
-    };
+    const getMock = async () =>
+      mockDocument(4, "monitors", {
+        type: "disk",
+        operator: "gte",
+        threshold: 80,
+        minutes: 5,
+        state: "OK",
+        state_changed_at: "2024-01-01T00:00:00.000000Z",
+      });
 
     const ctx = createTestExecutorContext({
-      client: {
-        get: async () => ({ monitor }) as MonitorResponse,
-      } as never,
+      client: { get: getMock } as never,
+      organizationSlug: "test-org",
     });
 
     const result = await getMonitor({ server_id: "1", id: "4" }, ctx);

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
-import type { ForgeFirewallRule } from "@studiometa/forge-api";
+import type { FirewallRuleAttributes } from "@studiometa/forge-api";
 
 import { createTestContext } from "../../context.ts";
 import { firewallRulesList, firewallRulesGet } from "./handlers.ts";
@@ -10,15 +10,15 @@ vi.mock("@studiometa/forge-core", () => ({
   getFirewallRule: vi.fn(),
 }));
 
-const mockRule: ForgeFirewallRule = {
+const mockRule: FirewallRuleAttributes & { id: number } = {
   id: 1,
-  server_id: 10,
   name: "Allow HTTP",
   port: 80,
   type: "allow",
   ip_address: "0.0.0.0",
   status: "installed",
   created_at: "2024-01-01T00:00:00Z",
+  updated_at: "2024-01-01T00:00:00Z",
 };
 
 describe("firewallRulesList", () => {

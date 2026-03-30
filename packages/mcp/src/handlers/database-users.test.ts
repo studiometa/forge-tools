@@ -1,43 +1,36 @@
 import { describe, expect, it } from "vitest";
 
+import { mockDocument, mockListDocument } from "@studiometa/forge-core";
+
 import type { HandlerContext } from "./types.ts";
 
 import { handleDatabaseUsers } from "./database-users.ts";
 
+function makeUserAttrs(overrides: Record<string, unknown> = {}) {
+  return {
+    name: "forge",
+    status: "installed",
+    created_at: "2024-01-01",
+    updated_at: "2024-01-01",
+    ...overrides,
+  };
+}
+
 function createMockContext(): HandlerContext {
   return {
     executorContext: {
+      organizationSlug: "test-org",
       client: {
-        get: async () => ({
-          users: [
-            {
-              id: 1,
-              name: "forge",
-              status: "installed",
-              server_id: 1,
-              databases: [],
-              created_at: "2024-01-01",
-            },
-          ],
-          user: {
-            id: 1,
-            name: "forge",
-            status: "installed",
-            server_id: 1,
-            databases: [1],
-            created_at: "2024-01-01",
-          },
-        }),
-        post: async () => ({
-          user: {
-            id: 2,
-            name: "newuser",
-            status: "creating",
-            server_id: 1,
-            databases: [],
-            created_at: "2024-01-01",
-          },
-        }),
+        get: async (url: string) => {
+          if (url.match(/\/database\/users\/\d+$/)) {
+            return mockDocument(1, "database-users", makeUserAttrs());
+          }
+          return mockListDocument("database-users", [
+            { id: 1, attributes: makeUserAttrs() as never },
+          ]);
+        },
+        post: async () =>
+          mockDocument(2, "database-users", makeUserAttrs({ name: "newuser", status: "creating" })),
         delete: async () => undefined,
       } as never,
     },

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
-import type { ForgeRedirectRule } from "@studiometa/forge-api";
+import type { RedirectRuleAttributes } from "@studiometa/forge-api";
 
 import { createTestContext } from "../../context.ts";
 import {
@@ -17,14 +17,13 @@ vi.mock("@studiometa/forge-core", () => ({
   deleteRedirectRule: vi.fn(),
 }));
 
-const mockRule: ForgeRedirectRule = {
+const mockRule: RedirectRuleAttributes & { id: number } = {
   id: 1,
-  server_id: 10,
-  site_id: 20,
   from: "/old-page",
   to: "/new-page",
   type: "redirect",
   created_at: "2024-01-01T00:00:00Z",
+  updated_at: "2024-01-01T00:00:00Z",
 };
 
 describe("redirectRulesList", () => {
