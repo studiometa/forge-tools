@@ -4,7 +4,6 @@
 
 import * as v from "valibot";
 
-import type { HttpClient } from "@studiometa/forge-api";
 import type { ExecutorContext } from "./context.ts";
 
 // ── Types ────────────────────────────────────────────
@@ -273,9 +272,7 @@ export async function request<T>(
   options?: RequestOptions,
 ): Promise<T> {
   const url = buildUrl(route, ctx, params, options?.query);
-  const client = ctx.client as HttpClient & {
-    patch: <U>(path: string, body?: unknown) => Promise<U>;
-  };
+  const client = ctx.client;
   let response: unknown;
 
   switch (route.method) {
