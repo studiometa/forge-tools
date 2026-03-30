@@ -16,7 +16,11 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
-import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprotocol/sdk/types.js";
+import {
+  CallToolRequestSchema,
+  ListToolsRequestSchema,
+  type CallToolResult,
+} from "@modelcontextprotocol/sdk/types.js";
 import { createApp, defineEventHandler, type H3 } from "h3";
 
 import { parseAuthHeader } from "./auth.ts";
@@ -111,17 +115,12 @@ export function createMcpServer(options?: HttpServerOptions): Server {
     }
 
     try {
-      const result = await executeToolWithCredentials(
-        name,
-        /* v8 ignore next */ (args as Record<string, unknown>) ?? {},
-        {
-          apiToken: token,
-          organizationSlug: (args as Record<string, unknown>).organizationSlug as
-            | string
-            | undefined,
-        },
-      );
-      return result as unknown as Record<string, unknown>;
+      const result = await executeToolWithCredentials(name, /* v8 ignore next */ args ?? {}, {
+        apiToken: token,
+        organizationSlug:
+          typeof args?.organizationSlug === "string" ? args.organizationSlug : undefined,
+      });
+      return result as CallToolResult;
     } catch (error) {
       /* v8 ignore start */
       const message = error instanceof Error ? error.message : String(error);
@@ -162,7 +161,8 @@ export async function handleMcpRequest(
   if (!credentials) {
     // Build resource_metadata URL for the WWW-Authenticate header (RFC 9728)
     const host = req.headers.host || "localhost:3000";
-    const protocol = (req.headers["x-forwarded-proto"] as string) || "http";
+    const proto = req.headers["x-forwarded-proto"];
+    const protocol = (typeof proto === "string" ? proto : undefined) || "http";
     const resourceMetadataUrl = `${protocol}://${host}/.well-known/oauth-protected-resource`;
 
     res.writeHead(401, {
@@ -182,17 +182,17 @@ export async function handleMcpRequest(
     return;
   }
 
-  // Inject auth info for the SDK transport
-  const authenticatedReq = req as IncomingMessage & {
-    auth?: { token: string; clientId: string; scopes: string[] };
-  };
-  authenticatedReq.auth = {
-    token: credentials.apiToken,
-    clientId: "forge-http-client",
-    scopes: [],
-  };
+  // Inject auth info for the SDK transport (MCP SDK expects auth on request)
+  Object.assign(req, {
+    auth: {
+      token: credentials.apiToken,
+      clientId: "forge-http-client",
+      scopes: [],
+    },
+  });
 
-  const sessionId = req.headers["mcp-session-id"] as string | undefined;
+  const sessionHeader = req.headers["mcp-session-id"];
+  const sessionId = typeof sessionHeader === "string" ? sessionHeader : undefined;
 
   if (sessionId) {
     // Existing session — route to its transport
@@ -212,7 +212,7 @@ export async function handleMcpRequest(
       return;
     }
 
-    await session.transport.handleRequest(authenticatedReq, res);
+    await session.transport.handleRequest(req, res);
     return;
   }
 
@@ -238,7 +238,7 @@ export async function handleMcpRequest(
   };
 
   // Handle the request (this will set transport.sessionId during initialize)
-  await transport.handleRequest(authenticatedReq, res);
+  await transport.handleRequest(req, res);
 
   // After handling, register the session if the transport got a session ID
   /* v8 ignore start */

@@ -106,7 +106,8 @@ export const registerHandler = defineEventHandler(async (event: H3Event) => {
 
   let body: Record<string, unknown>;
   try {
-    body = (await readBody(event)) as Record<string, unknown>;
+    const raw: unknown = await readBody(event);
+    body = typeof raw === "object" && raw !== null ? (raw as Record<string, unknown>) : {};
   } catch {
     setResponseStatus(event, 400);
     return {
@@ -116,8 +117,8 @@ export const registerHandler = defineEventHandler(async (event: H3Event) => {
   }
 
   // Extract client metadata
-  const clientName = (body.client_name as string) || "MCP Client";
-  const redirectUris = (body.redirect_uris as string[]) || [];
+  const clientName = typeof body.client_name === "string" ? body.client_name : "MCP Client";
+  const redirectUris = Array.isArray(body.redirect_uris) ? (body.redirect_uris as string[]) : [];
 
   // Generate a client_id based on the registration
   // Since we're stateless, we encode minimal info in the client_id
@@ -147,10 +148,10 @@ export const authorizeGetHandler = defineEventHandler((event: H3Event) => {
   const query = getQuery(event);
 
   // Extract OAuth parameters
-  const redirectUri = query.redirect_uri as string;
-  const state = query.state as string;
-  const codeChallenge = query.code_challenge as string;
-  const codeChallengeMethod = query.code_challenge_method as string;
+  const redirectUri = String(query.redirect_uri ?? "");
+  const state = String(query.state ?? "");
+  const codeChallenge = String(query.code_challenge ?? "");
+  const codeChallengeMethod = String(query.code_challenge_method ?? "");
 
   // Validate required parameters per OAuth 2.1
   if (!redirectUri) {
@@ -191,7 +192,7 @@ export const authorizeGetHandler = defineEventHandler((event: H3Event) => {
  * POST /authorize
  */
 export const authorizePostHandler = defineEventHandler(async (event: H3Event) => {
-  const body = (await readBody(event)) as Record<string, string>;
+  const body = ((await readBody(event)) ?? {}) as Record<string, string>;
 
   const { apiToken, redirectUri, state, codeChallenge, codeChallengeMethod } = body;
 
@@ -259,7 +260,7 @@ export const tokenHandler = defineEventHandler(async (event: H3Event) => {
   setResponseHeader(event, "Content-Type", "application/json");
 
   // h3 auto-parses both JSON and URL-encoded bodies into objects
-  const body = (await readBody(event)) as Record<string, string>;
+  const body = ((await readBody(event)) ?? {}) as Record<string, string>;
 
   const { grant_type, code, code_verifier, refresh_token } = body;
 

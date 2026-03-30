@@ -4,6 +4,7 @@
  */
 
 export type OptionValue = string | boolean | string[];
+export type CommandOptions = Record<string, OptionValue>;
 
 export interface ParsedArgs {
   command: string[];

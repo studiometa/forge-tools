@@ -129,7 +129,10 @@ export async function executeToolWithCredentials(
   args: Record<string, unknown>,
   credentials: { apiToken: string; organizationSlug?: string },
 ): Promise<ToolResult> {
-  const { resource, action, compact, ...rest } = args as CommonArgs;
+  const resource = typeof args.resource === "string" ? args.resource : undefined;
+  const action = typeof args.action === "string" ? args.action : undefined;
+  const compact = typeof args.compact === "boolean" ? args.compact : undefined;
+  const { resource: _r, action: _a, compact: _c, ...rest } = args;
 
   if (!resource || !action) {
     return errorResult('Missing required fields: "resource" and "action".');
@@ -154,12 +157,7 @@ export async function executeToolWithCredentials(
       executorContext,
       compact: compact ?? true,
     };
-    return routeToHandler(
-      resource,
-      action,
-      { resource, action, ...rest } as CommonArgs,
-      handlerContext,
-    );
+    return routeToHandler(resource, action, { resource, action, ...rest }, handlerContext);
   }
 
   // Validate action matches the tool
@@ -188,7 +186,7 @@ export async function executeToolWithCredentials(
   }
 
   // Validate resource
-  if (!VALID_RESOURCES.includes(resource as (typeof VALID_RESOURCES)[number])) {
+  if (!(VALID_RESOURCES as readonly string[]).includes(resource)) {
     return errorResult(
       `Unknown resource "${resource}". Valid resources: ${VALID_RESOURCES.join(", ")}. Use action="help" for documentation.`,
     );
@@ -214,7 +212,7 @@ export async function executeToolWithCredentials(
   };
 
   // Auto-resolve non-numeric server_id/site_id
-  const allArgs = { resource, action, ...rest } as CommonArgs;
+  const allArgs: CommonArgs = { resource, action, ...rest };
   const resolveResult = await autoResolveIds(allArgs, executorContext);
   if (!resolveResult.ok) {
     return resolveResult.error;
@@ -229,7 +227,7 @@ export async function executeToolWithCredentials(
         source: "mcp",
         resource,
         action,
-        args: rest as Record<string, unknown>,
+        args: rest,
         status: result.isError ? "error" : "success",
       });
     }
@@ -250,7 +248,7 @@ export async function executeToolWithCredentials(
         source: "mcp",
         resource,
         action,
-        args: rest as Record<string, unknown>,
+        args: rest,
         status: "error",
         error: errorMessage,
       });

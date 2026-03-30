@@ -11,6 +11,7 @@ import {
   setOrganizationSlug,
 } from "../config.ts";
 import { OutputFormatter } from "../output.ts";
+import { type OutputFormat, isOutputFormat } from "../types.ts";
 import { colors } from "../utils/colors.ts";
 
 export function showConfigHelp(): void {
@@ -42,11 +43,9 @@ export function handleConfigCommand(
   args: string[],
   options: Record<string, string | boolean | string[]>,
 ): void {
-  const format = String(options.format ?? options.f ?? "human");
-  const formatter = new OutputFormatter(
-    format as "json" | "human" | "table",
-    options["no-color"] === true,
-  );
+  const rawFormat = options.format ?? options.f ?? "human";
+  const format: OutputFormat = isOutputFormat(rawFormat) ? rawFormat : "human";
+  const formatter = new OutputFormatter(format, options["no-color"] === true);
 
   const store = createConfigStore();
 

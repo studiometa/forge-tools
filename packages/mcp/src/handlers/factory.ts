@@ -30,10 +30,9 @@ export interface ResourceHandlerConfig {
   inputSchemas?: Record<string, v.GenericSchema>;
 
   /** Executor functions keyed by action name */
-  // biome-ignore lint: executor signatures vary per resource
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- contravariant: executors accept specific option subtypes
   executors: Record<
     string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (options: any, ctx: ExecutorContext) => Promise<ExecutorResult<unknown>>
   >;
 
@@ -48,7 +47,7 @@ export interface ResourceHandlerConfig {
   /**
    * Format the executor result data into human-readable text for MCP output.
    */
-  // biome-ignore lint: formatter signatures vary per resource
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- data type varies per resource/action
   formatResult?: (action: string, data: any, args: CommonArgs) => string;
 }
 
@@ -121,7 +120,7 @@ export function createResourceHandler(
     }
 
     // Execute
-    const result = await executor(options as Record<string, unknown>, ctx.executorContext);
+    const result = await executor(options, ctx.executorContext);
 
     // Format result
     if (result.data === undefined) {
@@ -139,7 +138,9 @@ export function createResourceHandler(
       const id = args.id ?? args.server_id ?? "";
       /* v8 ignore stop */
       const responseData = {
-        ...(result.data as Record<string, unknown>),
+        ...(typeof result.data === "object" && result.data !== null
+          ? (result.data as Record<string, unknown>)
+          : {}),
         _hints: hints(result.data, String(id), args),
       };
       return jsonResult(responseData);

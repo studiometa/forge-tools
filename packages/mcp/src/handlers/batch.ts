@@ -17,7 +17,44 @@ type RouteHandler = (
   ctx: HandlerContext,
 ) => Promise<ToolResult>;
 
+/** A validated batch operation. */
+interface BatchOperation {
+  resource: string;
+  action: string;
+  [key: string]: unknown;
+}
+
 const MAX_OPERATIONS = 10;
+
+/**
+ * Validate and narrow an array element to a BatchOperation.
+ * Returns an error message string on failure, or the typed operation on success.
+ */
+function validateOperation(
+  op: unknown,
+  index: number,
+): { ok: true; value: BatchOperation } | { ok: false; error: string } {
+  if (!op || typeof op !== "object") {
+    return { ok: false, error: `Operation at index ${index} must be an object.` };
+  }
+  const record = op as Record<string, unknown>;
+  if (!record["resource"] || typeof record["resource"] !== "string") {
+    return {
+      ok: false,
+      error: `Operation at index ${index} is missing required field "resource".`,
+    };
+  }
+  if (!record["action"] || typeof record["action"] !== "string") {
+    return { ok: false, error: `Operation at index ${index} is missing required field "action".` };
+  }
+  if (!isReadAction(record["action"])) {
+    return {
+      ok: false,
+      error: `Operation at index ${index} has invalid action "${record["action"]}". Only read actions are allowed in batch: list, get, help, schema.`,
+    };
+  }
+  return { ok: true, value: record as BatchOperation };
+}
 
 /**
  * Handle batch action — executes multiple read operations in parallel.
@@ -48,35 +85,21 @@ export async function handleBatch(
     );
   }
 
-  // Validate each operation
+  // Validate and narrow all operations upfront
+  const validated: BatchOperation[] = [];
   for (let i = 0; i < operations.length; i++) {
-    const op = operations[i] as Record<string, unknown>;
-    if (!op || typeof op !== "object") {
-      return errorResult(`Operation at index ${i} must be an object.`);
+    const result = validateOperation(operations[i], i);
+    if (!result.ok) {
+      return errorResult(result.error);
     }
-    if (!op["resource"] || typeof op["resource"] !== "string") {
-      return errorResult(`Operation at index ${i} is missing required field "resource".`);
-    }
-    if (!op["action"] || typeof op["action"] !== "string") {
-      return errorResult(`Operation at index ${i} is missing required field "action".`);
-    }
-    if (!isReadAction(op["action"] as string)) {
-      return errorResult(
-        `Operation at index ${i} has invalid action "${op["action"]}". Only read actions are allowed in batch: list, get, help, schema.`,
-      );
-    }
+    validated.push(result.value);
   }
 
   // Execute all operations in parallel
   const settled = await Promise.allSettled(
-    operations.map((op) => {
-      const { resource, action: opAction, ...rest } = op as Record<string, unknown>;
-      return routeToHandler(
-        resource as string,
-        opAction as string,
-        { resource: resource as string, action: opAction as string, ...rest } as CommonArgs,
-        ctx,
-      );
+    validated.map((op) => {
+      const { resource, action: opAction, ...rest } = op;
+      return routeToHandler(resource, opAction, { resource, action: opAction, ...rest }, ctx);
     }),
   );
 
@@ -85,9 +108,7 @@ export async function handleBatch(
   let failed = 0;
 
   const results = settled.map((outcome, index) => {
-    const op = operations[index] as Record<string, unknown>;
-    const resource = op["resource"] as string;
-    const opAction = op["action"] as string;
+    const { resource, action: opAction } = validated[index]!;
 
     if (outcome.status === "fulfilled") {
       const toolResult = outcome.value;
@@ -124,7 +145,7 @@ export async function handleBatch(
 
   return jsonResult({
     _batch: {
-      total: operations.length,
+      total: validated.length,
       succeeded,
       failed,
     },

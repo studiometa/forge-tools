@@ -55,8 +55,7 @@ export function handleError(
   }
 
   // Output error in appropriate format
-  const opts = formatter as unknown as { format?: string };
-  if (opts.format === "json") {
+  if (formatter.isJson()) {
     formatter.output(cliError.toJSON());
   } else {
     formatter.error(cliError.toFormattedMessage());
