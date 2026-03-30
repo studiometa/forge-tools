@@ -1,4 +1,3 @@
-import type { JsonApiListDocument, ServerAttributes } from "@studiometa/forge-api";
 import {
   unwrapListDocument,
   jsonApiListDocumentSchema,
@@ -33,7 +32,7 @@ export async function resolveServers(
   options: ResolveServersOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<ResolveResult>> {
-  const response = await request<JsonApiListDocument<ServerAttributes>>(
+  const response = await request(
     ROUTES.servers.list,
     ctx,
     {},

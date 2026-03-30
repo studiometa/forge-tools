@@ -1,4 +1,4 @@
-import type { JsonApiListDocument, BackupConfigAttributes } from "@studiometa/forge-api";
+import type { BackupConfigAttributes } from "@studiometa/forge-api";
 import {
   unwrapListDocument,
   jsonApiListDocumentSchema,
@@ -16,7 +16,7 @@ export async function listBackupConfigs(
   options: ListBackupConfigsOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<Array<BackupConfigAttributes & { id: number }>>> {
-  const response = await request<JsonApiListDocument<BackupConfigAttributes>>(
+  const response = await request(
     ROUTES.backups.list,
     ctx,
     { server_id: options.server_id },

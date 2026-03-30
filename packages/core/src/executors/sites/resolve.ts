@@ -1,4 +1,3 @@
-import type { JsonApiListDocument, SiteAttributes } from "@studiometa/forge-api";
 import {
   unwrapListDocument,
   jsonApiListDocumentSchema,
@@ -31,7 +30,7 @@ export async function resolveSites(
   options: ResolveSitesOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<ResolveSiteResult>> {
-  const response = await request<JsonApiListDocument<SiteAttributes>>(
+  const response = await request(
     ROUTES.sites.list,
     ctx,
     { server_id: options.server_id },

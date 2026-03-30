@@ -1,4 +1,4 @@
-import type { JsonApiListDocument, SshKeyAttributes } from "@studiometa/forge-api";
+import type { SshKeyAttributes } from "@studiometa/forge-api";
 import {
   unwrapListDocument,
   jsonApiListDocumentSchema,
@@ -16,7 +16,7 @@ export async function listSshKeys(
   options: ListSshKeysOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<Array<SshKeyAttributes & { id: number }>>> {
-  const response = await request<JsonApiListDocument<SshKeyAttributes>>(
+  const response = await request(
     ROUTES.sshKeys.list,
     ctx,
     { server_id: options.server_id },

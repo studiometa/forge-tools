@@ -1,4 +1,4 @@
-import type { JsonApiListDocument, DatabaseAttributes } from "@studiometa/forge-api";
+import type { DatabaseAttributes } from "@studiometa/forge-api";
 import {
   unwrapListDocument,
   jsonApiListDocumentSchema,
@@ -16,7 +16,7 @@ export async function listDatabases(
   options: ListDatabasesOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<Array<DatabaseAttributes & { id: number }>>> {
-  const response = await request<JsonApiListDocument<DatabaseAttributes>>(
+  const response = await request(
     ROUTES.databases.list,
     ctx,
     { server_id: options.server_id },

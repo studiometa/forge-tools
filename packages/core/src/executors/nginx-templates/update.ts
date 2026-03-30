@@ -1,4 +1,4 @@
-import type { JsonApiDocument, NginxTemplateAttributes } from "@studiometa/forge-api";
+import type { NginxTemplateAttributes } from "@studiometa/forge-api";
 import {
   unwrapDocument,
   jsonApiDocumentSchema,
@@ -17,7 +17,7 @@ export async function updateNginxTemplate(
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<NginxTemplateAttributes & { id: number }>> {
   const { server_id, id, ...data } = options;
-  const response = await request<JsonApiDocument<NginxTemplateAttributes>>(
+  const response = await request(
     ROUTES.nginxTemplates.update,
     ctx,
     { server_id, id },

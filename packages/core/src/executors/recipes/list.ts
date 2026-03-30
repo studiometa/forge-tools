@@ -1,4 +1,4 @@
-import type { JsonApiListDocument, RecipeAttributes } from "@studiometa/forge-api";
+import type { RecipeAttributes } from "@studiometa/forge-api";
 import {
   unwrapListDocument,
   jsonApiListDocumentSchema,
@@ -16,7 +16,7 @@ export async function listRecipes(
   _options: ListRecipesOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<Array<RecipeAttributes & { id: number }>>> {
-  const response = await request<JsonApiListDocument<RecipeAttributes>>(
+  const response = await request(
     ROUTES.recipes.list,
     ctx,
     {},

@@ -1,4 +1,4 @@
-import type { JsonApiDocument, ScheduledJobAttributes } from "@studiometa/forge-api";
+import type { ScheduledJobAttributes } from "@studiometa/forge-api";
 import {
   unwrapDocument,
   jsonApiDocumentSchema,
@@ -17,7 +17,7 @@ export async function createScheduledJob(
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<ScheduledJobAttributes & { id: number }>> {
   const { server_id, ...data } = options;
-  const response = await request<JsonApiDocument<ScheduledJobAttributes>>(
+  const response = await request(
     ROUTES.scheduledJobs.create,
     ctx,
     { server_id },

@@ -1,4 +1,4 @@
-import type { JsonApiListDocument, RedirectRuleAttributes } from "@studiometa/forge-api";
+import type { RedirectRuleAttributes } from "@studiometa/forge-api";
 import {
   unwrapListDocument,
   jsonApiListDocumentSchema,
@@ -16,7 +16,7 @@ export async function listRedirectRules(
   options: ListRedirectRulesOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<Array<RedirectRuleAttributes & { id: number }>>> {
-  const response = await request<JsonApiListDocument<RedirectRuleAttributes>>(
+  const response = await request(
     ROUTES.redirectRules.list,
     ctx,
     { server_id: options.server_id, site_id: options.site_id },

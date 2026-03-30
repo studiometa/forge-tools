@@ -1,4 +1,3 @@
-import type { JsonApiDocument, DeploymentScriptAttributes } from "@studiometa/forge-api";
 import {
   unwrapDocument,
   jsonApiDocumentSchema,
@@ -16,7 +15,7 @@ export async function getDeploymentScript(
   options: GetDeploymentScriptOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<string>> {
-  const response = await request<JsonApiDocument<DeploymentScriptAttributes>>(
+  const response = await request(
     ROUTES.deployments.getScript,
     ctx,
     { server_id: options.server_id, site_id: options.site_id },

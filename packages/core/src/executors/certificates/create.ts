@@ -1,4 +1,4 @@
-import type { JsonApiDocument, CertificateAttributes } from "@studiometa/forge-api";
+import type { CertificateAttributes } from "@studiometa/forge-api";
 import {
   unwrapDocument,
   jsonApiDocumentSchema,
@@ -17,7 +17,7 @@ export async function createCertificate(
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<CertificateAttributes & { id: number }>> {
   const { server_id, site_id, domain_id, ...data } = options;
-  const response = await request<JsonApiDocument<CertificateAttributes>>(
+  const response = await request(
     ROUTES.certificates.create,
     ctx,
     { server_id, site_id, domain_id },

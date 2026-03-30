@@ -1,4 +1,4 @@
-import type { JsonApiDocument, FirewallRuleAttributes } from "@studiometa/forge-api";
+import type { FirewallRuleAttributes } from "@studiometa/forge-api";
 import {
   unwrapDocument,
   jsonApiDocumentSchema,
@@ -16,7 +16,7 @@ export async function getFirewallRule(
   options: GetFirewallRuleOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<FirewallRuleAttributes & { id: number }>> {
-  const response = await request<JsonApiDocument<FirewallRuleAttributes>>(
+  const response = await request(
     ROUTES.firewallRules.get,
     ctx,
     { server_id: options.server_id, id: options.id },

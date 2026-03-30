@@ -253,24 +253,36 @@ export function buildUrl(
 
 // ── Request helper ───────────────────────────────────
 
-export interface RequestOptions {
+export interface RequestOptions<S extends v.GenericSchema = v.GenericSchema> {
   body?: unknown;
-  schema?: v.GenericSchema;
+  schema?: S;
   query?: Record<string, string>;
 }
 
 /**
  * Make an HTTP request using a route definition.
  *
- * Combines route lookup, URL building, HTTP dispatch via the correct method,
- * and optional Valibot response validation.
+ * When a Valibot schema is provided, the return type is inferred from it.
+ * Without a schema, the caller must provide a generic type parameter.
  */
-export async function request<T>(
+export async function request<S extends v.GenericSchema>(
+  route: RouteDefinition,
+  ctx: ExecutorContext,
+  params: RouteParams,
+  options: RequestOptions<S> & { schema: S },
+): Promise<v.InferOutput<S>>;
+export async function request<T = void>(
+  route: RouteDefinition,
+  ctx: ExecutorContext,
+  params?: RouteParams,
+  options?: RequestOptions,
+): Promise<T>;
+export async function request(
   route: RouteDefinition,
   ctx: ExecutorContext,
   params: RouteParams = {},
   options?: RequestOptions,
-): Promise<T> {
+): Promise<unknown> {
   const url = buildUrl(route, ctx, params, options?.query);
   const client = ctx.client;
   let response: unknown;
@@ -294,8 +306,8 @@ export async function request<T>(
   }
 
   if (options?.schema) {
-    return v.parse(options.schema, response) as T;
+    return v.parse(options.schema, response);
   }
 
-  return response as T;
+  return response;
 }

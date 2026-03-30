@@ -1,4 +1,4 @@
-import type { JsonApiDocument, MonitorAttributes } from "@studiometa/forge-api";
+import type { MonitorAttributes } from "@studiometa/forge-api";
 import {
   unwrapDocument,
   jsonApiDocumentSchema,
@@ -16,7 +16,7 @@ export async function getMonitor(
   options: GetMonitorOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<MonitorAttributes & { id: number }>> {
-  const response = await request<JsonApiDocument<MonitorAttributes>>(
+  const response = await request(
     ROUTES.monitors.get,
     ctx,
     { server_id: options.server_id, id: options.id },

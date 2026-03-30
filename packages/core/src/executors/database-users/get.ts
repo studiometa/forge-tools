@@ -1,4 +1,4 @@
-import type { JsonApiDocument, DatabaseUserAttributes } from "@studiometa/forge-api";
+import type { DatabaseUserAttributes } from "@studiometa/forge-api";
 import {
   unwrapDocument,
   jsonApiDocumentSchema,
@@ -16,7 +16,7 @@ export async function getDatabaseUser(
   options: GetDatabaseUserOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<DatabaseUserAttributes & { id: number }>> {
-  const response = await request<JsonApiDocument<DatabaseUserAttributes>>(
+  const response = await request(
     ROUTES.databaseUsers.get,
     ctx,
     { server_id: options.server_id, id: options.id },

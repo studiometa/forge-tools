@@ -1,4 +1,4 @@
-import type { JsonApiListDocument, SecurityRuleAttributes } from "@studiometa/forge-api";
+import type { SecurityRuleAttributes } from "@studiometa/forge-api";
 import {
   unwrapListDocument,
   jsonApiListDocumentSchema,
@@ -16,7 +16,7 @@ export async function listSecurityRules(
   options: ListSecurityRulesOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<Array<SecurityRuleAttributes & { id: number }>>> {
-  const response = await request<JsonApiListDocument<SecurityRuleAttributes>>(
+  const response = await request(
     ROUTES.securityRules.list,
     ctx,
     { server_id: options.server_id, site_id: options.site_id },

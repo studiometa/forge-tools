@@ -1,4 +1,4 @@
-import type { JsonApiListDocument, ServerAttributes } from "@studiometa/forge-api";
+import type { ServerAttributes } from "@studiometa/forge-api";
 import {
   unwrapListDocument,
   jsonApiListDocumentSchema,
@@ -16,7 +16,7 @@ export async function listServers(
   _options: ListServersOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<Array<ServerAttributes & { id: number }>>> {
-  const response = await request<JsonApiListDocument<ServerAttributes>>(
+  const response = await request(
     ROUTES.servers.list,
     ctx,
     {},

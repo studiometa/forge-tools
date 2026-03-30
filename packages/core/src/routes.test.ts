@@ -149,7 +149,7 @@ describe("request", () => {
       organizationSlug: "test-org",
     });
 
-    const result = await request<{ value: number }>(ROUTES.user.get, ctx, {}, { schema });
+    const result = await request(ROUTES.user.get, ctx, {}, { schema });
     expect(result.value).toBe(42);
   });
 

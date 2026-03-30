@@ -1,5 +1,8 @@
-import type { JsonApiDocument } from "@studiometa/forge-api";
-import { unwrapDocument } from "@studiometa/forge-api";
+import {
+  unwrapDocument,
+  jsonApiDocumentSchema,
+  EnvironmentAttributesSchema,
+} from "@studiometa/forge-api";
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
 import { ROUTES, request } from "../../routes.ts";
 
@@ -12,10 +15,12 @@ export async function getNginxConfig(
   options: GetNginxConfigOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<string>> {
-  const response = await request<JsonApiDocument<{ content: string }>>(ROUTES.nginx.get, ctx, {
-    server_id: options.server_id,
-    site_id: options.site_id,
-  });
+  const response = await request(
+    ROUTES.nginx.get,
+    ctx,
+    { server_id: options.server_id, site_id: options.site_id },
+    { schema: jsonApiDocumentSchema(EnvironmentAttributesSchema) },
+  );
   const result = unwrapDocument(response);
 
   return {

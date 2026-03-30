@@ -1,4 +1,3 @@
-import type { JsonApiDocument, DeploymentOutputAttributes } from "@studiometa/forge-api";
 import {
   unwrapDocument,
   jsonApiDocumentSchema,
@@ -16,7 +15,7 @@ export async function getDeploymentLog(
   options: GetDeploymentLogOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<string>> {
-  const response = await request<JsonApiDocument<DeploymentOutputAttributes>>(
+  const response = await request(
     ROUTES.deployments.getLog,
     ctx,
     { server_id: options.server_id, site_id: options.site_id, id: options.deployment_id },

@@ -1,4 +1,4 @@
-import type { JsonApiDocument, CommandAttributes } from "@studiometa/forge-api";
+import type { CommandAttributes } from "@studiometa/forge-api";
 import {
   unwrapDocument,
   jsonApiDocumentSchema,
@@ -16,7 +16,7 @@ export async function getCommand(
   options: GetCommandOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<CommandAttributes & { id: number }>> {
-  const response = await request<JsonApiDocument<CommandAttributes>>(
+  const response = await request(
     ROUTES.commands.get,
     ctx,
     { server_id: options.server_id, site_id: options.site_id, id: options.id },

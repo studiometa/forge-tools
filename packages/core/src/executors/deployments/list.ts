@@ -1,4 +1,4 @@
-import type { JsonApiListDocument, DeploymentAttributes } from "@studiometa/forge-api";
+import type { DeploymentAttributes } from "@studiometa/forge-api";
 import {
   unwrapListDocument,
   jsonApiListDocumentSchema,
@@ -16,7 +16,7 @@ export async function listDeployments(
   options: ListDeploymentsOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<Array<DeploymentAttributes & { id: number }>>> {
-  const response = await request<JsonApiListDocument<DeploymentAttributes>>(
+  const response = await request(
     ROUTES.deployments.list,
     ctx,
     { server_id: options.server_id, site_id: options.site_id },

@@ -1,4 +1,4 @@
-import type { JsonApiDocument, SiteAttributes } from "@studiometa/forge-api";
+import type { SiteAttributes } from "@studiometa/forge-api";
 import { unwrapDocument, jsonApiDocumentSchema, SiteAttributesSchema } from "@studiometa/forge-api";
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
 import { ROUTES, request } from "../../routes.ts";
@@ -13,7 +13,7 @@ export async function createSite(
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<SiteAttributes & { id: number }>> {
   const { server_id, ...data } = options;
-  const response = await request<JsonApiDocument<SiteAttributes>>(
+  const response = await request(
     ROUTES.sites.create,
     ctx,
     { server_id },

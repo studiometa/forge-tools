@@ -1,4 +1,4 @@
-import type { JsonApiListDocument, MonitorAttributes } from "@studiometa/forge-api";
+import type { MonitorAttributes } from "@studiometa/forge-api";
 import {
   unwrapListDocument,
   jsonApiListDocumentSchema,
@@ -16,7 +16,7 @@ export async function listMonitors(
   options: ListMonitorsOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<Array<MonitorAttributes & { id: number }>>> {
-  const response = await request<JsonApiListDocument<MonitorAttributes>>(
+  const response = await request(
     ROUTES.monitors.list,
     ctx,
     { server_id: options.server_id },

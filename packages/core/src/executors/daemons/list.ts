@@ -1,4 +1,4 @@
-import type { JsonApiListDocument, BackgroundProcessAttributes } from "@studiometa/forge-api";
+import type { BackgroundProcessAttributes } from "@studiometa/forge-api";
 import {
   unwrapListDocument,
   jsonApiListDocumentSchema,
@@ -16,7 +16,7 @@ export async function listDaemons(
   options: ListDaemonsOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<Array<BackgroundProcessAttributes & { id: number }>>> {
-  const response = await request<JsonApiListDocument<BackgroundProcessAttributes>>(
+  const response = await request(
     ROUTES.daemons.list,
     ctx,
     { server_id: options.server_id },
