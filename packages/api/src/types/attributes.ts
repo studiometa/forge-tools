@@ -1,4 +1,4 @@
-// ── v2 API resource attribute types ──────────────────
+// ── API resource attribute types ─────────────────────
 // These match the `attributes` object in JSON:API responses
 // as defined in docs/forge-openapi-v2.json.
 

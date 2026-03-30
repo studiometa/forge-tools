@@ -107,7 +107,7 @@ npm run version:patch      # Bump patch version across all packages
 
 ### 1. API Types (`forge-api`)
 
-- Add v2 attribute types in `packages/api/src/types/v2-attributes.ts`
+- Add attribute types in `packages/api/src/types/attributes.ts`
 - Export from `packages/api/src/index.ts`
 - No client changes needed (generic `HttpClient.get<JsonApiDocument<T>>()`)
 

@@ -57,7 +57,7 @@ export type {
   BackupAttributes,
   OrganizationAttributes,
   EnvironmentAttributes,
-} from "./types/v2-attributes.ts";
+} from "./types/attributes.ts";
 
 // Config and input types
 export type {
