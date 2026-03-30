@@ -1,6 +1,6 @@
 import {
   deploySiteAndWait,
-  getDeploymentOutput,
+  getDeploymentLog,
   getDeploymentScript,
   listDeployments,
   updateDeploymentScript,
@@ -60,7 +60,7 @@ export async function handleDeployments(
 
     case "get": {
       if (args.id) {
-        const result = await getDeploymentOutput(
+        const result = await getDeploymentLog(
           { ...opts, deployment_id: args.id },
           ctx.executorContext,
         );

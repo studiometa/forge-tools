@@ -342,7 +342,7 @@ describe("deploySiteAndWait", () => {
   it("should emit remaining log content after polling via onLog", async () => {
     const postMock = vi.fn(async () => undefined);
 
-    let logCallCount = 0;
+    let _logCallCount = 0;
     const getMock = vi.fn(async (url: string) => {
       if (url.includes("/deployments/status")) {
         throw new Error("Not found"); // done immediately
@@ -364,7 +364,7 @@ describe("deploySiteAndWait", () => {
         ]);
       }
       if (url.includes("/deployments/") && url.includes("/log")) {
-        logCallCount++;
+        _logCallCount++;
         return mockDocument(1, "deployment-logs", {
           output: "Full log output here.",
         });

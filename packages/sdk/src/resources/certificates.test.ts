@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 
 import { Forge } from "../forge.ts";
 import { createMockFetch } from "../test-utils.ts";
-import { CertificatesCollection } from "./certificates.ts";
 
 const ORG = "test-org";
 const SERVER_ID = 123;
