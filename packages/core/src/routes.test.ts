@@ -108,6 +108,23 @@ describe("request", () => {
     expect(calledMethod).toBe("PUT");
   });
 
+  it("should dispatch PATCH for PATCH routes", async () => {
+    let calledMethod = "";
+    const ctx = createTestExecutorContext({
+      client: {
+        patch: async () => {
+          calledMethod = "PATCH";
+          return {};
+        },
+      } as never,
+      organizationSlug: "test-org",
+    });
+
+    const patchRoute = { method: "PATCH" as const, path: "/orgs/:org/servers/:server_id" };
+    await request(patchRoute, ctx, { server_id: "1" }, { body: { name: "updated" } });
+    expect(calledMethod).toBe("PATCH");
+  });
+
   it("should dispatch DELETE for DELETE routes", async () => {
     let calledMethod = "";
     const ctx = createTestExecutorContext({

@@ -187,6 +187,18 @@ describe("HttpClient", () => {
     });
   });
 
+  describe("patch", () => {
+    it("should make PATCH request with JSON body", async () => {
+      const { fetch, calls } = createSequenceFetch([{ body: { server: { id: 1 } } }]);
+      const client = new HttpClient({ ...defaultOptions, fetch });
+
+      await client.patch("/servers/1", { name: "patched" });
+
+      expect(calls[0]!.init?.method).toBe("PATCH");
+      expect(calls[0]!.init?.body).toBe(JSON.stringify({ name: "patched" }));
+    });
+  });
+
   describe("delete", () => {
     it("should make DELETE request", async () => {
       const mockFetch = createMockFetch({ status: 204 });
