@@ -54,7 +54,7 @@ describe("isUserInputError", () => {
   it("should return false for non-error values", () => {
     expect(isUserInputError("string")).toBe(false);
     expect(isUserInputError(null)).toBe(false);
-    expect(isUserInputError(undefined)).toBe(false);
+    expect(isUserInputError()).toBe(false);
   });
 });
 

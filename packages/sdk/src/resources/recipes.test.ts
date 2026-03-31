@@ -63,7 +63,7 @@ describe("RecipesCollection", () => {
     const collection = new RecipesCollection(client, ORG);
 
     await collection.list();
-    expect(calls[0]!.url).toContain(`/orgs/${ORG}/recipes`);
+    expect(calls[0].url).toContain(`/orgs/${ORG}/recipes`);
   });
 
   it("should list recipes with cursor option", async () => {
@@ -71,7 +71,7 @@ describe("RecipesCollection", () => {
     const collection = new RecipesCollection(client, ORG);
 
     await collection.list({ cursor: "abc123" });
-    expect(calls[0]!.url).toContain(`/orgs/${ORG}/recipes?page[cursor]=abc123`);
+    expect(calls[0].url).toContain(`/orgs/${ORG}/recipes?page[cursor]=abc123`);
   });
 
   it("should get a recipe", async () => {
@@ -79,7 +79,7 @@ describe("RecipesCollection", () => {
     const collection = new RecipesCollection(client, ORG);
 
     await collection.get(789);
-    expect(calls[0]!.url).toContain(`/orgs/${ORG}/recipes/789`);
+    expect(calls[0].url).toContain(`/orgs/${ORG}/recipes/789`);
   });
 
   it("should create a recipe", async () => {
@@ -87,8 +87,8 @@ describe("RecipesCollection", () => {
     const collection = new RecipesCollection(client, ORG);
 
     await collection.create({ name: "Install Node", script: "curl -fsSL ...", user: "root" });
-    expect(calls[0]!.method).toBe("POST");
-    expect(calls[0]!.body).toMatchObject({ name: "Install Node" });
+    expect(calls[0].method).toBe("POST");
+    expect(calls[0].body).toMatchObject({ name: "Install Node" });
   });
 
   it("should delete a recipe", async () => {
@@ -96,8 +96,8 @@ describe("RecipesCollection", () => {
     const collection = new RecipesCollection(client, ORG);
 
     await collection.delete(789);
-    expect(calls[0]!.method).toBe("DELETE");
-    expect(calls[0]!.url).toContain(`/orgs/${ORG}/recipes/789`);
+    expect(calls[0].method).toBe("DELETE");
+    expect(calls[0].url).toContain(`/orgs/${ORG}/recipes/789`);
   });
 
   it("should run a recipe on specified servers", async () => {
@@ -105,9 +105,9 @@ describe("RecipesCollection", () => {
     const collection = new RecipesCollection(client, ORG);
 
     await collection.run(789, { servers: [123, 456] });
-    expect(calls[0]!.method).toBe("POST");
-    expect(calls[0]!.url).toContain(`/orgs/${ORG}/recipes/789/run`);
-    expect(calls[0]!.body).toMatchObject({ servers: [123, 456] });
+    expect(calls[0].method).toBe("POST");
+    expect(calls[0].url).toContain(`/orgs/${ORG}/recipes/789/run`);
+    expect(calls[0].body).toMatchObject({ servers: [123, 456] });
   });
 
   it("should return an AsyncPaginatedIterator from all()", () => {

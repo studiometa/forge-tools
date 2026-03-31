@@ -65,7 +65,7 @@ describe("FirewallRulesCollection", () => {
     const collection = new FirewallRulesCollection(client, ORG, 123);
 
     await collection.list();
-    expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers/123/firewall-rules`);
+    expect(calls[0].url).toContain(`/orgs/${ORG}/servers/123/firewall-rules`);
   });
 
   it("should list firewall rules with cursor option", async () => {
@@ -73,7 +73,7 @@ describe("FirewallRulesCollection", () => {
     const collection = new FirewallRulesCollection(client, ORG, 123);
 
     await collection.list({ cursor: "abc123" });
-    expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers/123/firewall-rules?page[cursor]=abc123`);
+    expect(calls[0].url).toContain(`/orgs/${ORG}/servers/123/firewall-rules?page[cursor]=abc123`);
   });
 
   it("should get a firewall rule", async () => {
@@ -81,7 +81,7 @@ describe("FirewallRulesCollection", () => {
     const collection = new FirewallRulesCollection(client, ORG, 123);
 
     await collection.get(789);
-    expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers/123/firewall-rules/789`);
+    expect(calls[0].url).toContain(`/orgs/${ORG}/servers/123/firewall-rules/789`);
   });
 
   it("should create a firewall rule", async () => {
@@ -89,8 +89,8 @@ describe("FirewallRulesCollection", () => {
     const collection = new FirewallRulesCollection(client, ORG, 123);
 
     await collection.create({ name: "Allow HTTP", port: 80 });
-    expect(calls[0]!.method).toBe("POST");
-    expect(calls[0]!.body).toMatchObject({ name: "Allow HTTP", port: 80 });
+    expect(calls[0].method).toBe("POST");
+    expect(calls[0].body).toMatchObject({ name: "Allow HTTP", port: 80 });
   });
 
   it("should delete a firewall rule", async () => {
@@ -98,8 +98,8 @@ describe("FirewallRulesCollection", () => {
     const collection = new FirewallRulesCollection(client, ORG, 123);
 
     await collection.delete(789);
-    expect(calls[0]!.method).toBe("DELETE");
-    expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers/123/firewall-rules/789`);
+    expect(calls[0].method).toBe("DELETE");
+    expect(calls[0].url).toContain(`/orgs/${ORG}/servers/123/firewall-rules/789`);
   });
 
   it("should return an AsyncPaginatedIterator from all()", () => {

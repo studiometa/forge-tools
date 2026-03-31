@@ -296,7 +296,12 @@ describe("formatSite", () => {
       web_directory: "/public",
       wildcards: false,
       aliases: [],
-      repository: "git@github.com:user/repo.git",
+      repository: {
+        provider: "github",
+        url: "git@github.com:user/repo.git",
+        branch: "main",
+        status: "installed",
+      },
       quick_deploy: true,
       status: "installed",
       deployment_status: "finished",

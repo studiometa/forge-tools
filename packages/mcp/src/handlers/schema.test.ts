@@ -5,7 +5,7 @@ import { handleSchema, handleSchemaOverview } from "./schema.ts";
 describe("handleSchema", () => {
   it("should return schema for servers", () => {
     const result = handleSchema("servers");
-    const data = JSON.parse(result.content[0]!.text);
+    const data = JSON.parse(result.content[0].text);
     expect(data.resource).toBe("servers");
     expect(data.actions).toContain("list");
     expect(data.actions).toContain("reboot");
@@ -14,7 +14,7 @@ describe("handleSchema", () => {
 
   it("should return schema for sites with required fields", () => {
     const result = handleSchema("sites");
-    const data = JSON.parse(result.content[0]!.text);
+    const data = JSON.parse(result.content[0].text);
     expect(data.resource).toBe("sites");
     expect(data.required.list).toContain("server_id");
     expect(data.create).toBeDefined();
@@ -22,7 +22,7 @@ describe("handleSchema", () => {
 
   it("should return error for unknown resource", () => {
     const result = handleSchema("unknown");
-    const data = JSON.parse(result.content[0]!.text);
+    const data = JSON.parse(result.content[0].text);
     expect(data.error).toContain("Unknown resource");
   });
 
@@ -46,7 +46,7 @@ describe("handleSchema", () => {
     ];
     for (const resource of resources) {
       const result = handleSchema(resource);
-      const data = JSON.parse(result.content[0]!.text);
+      const data = JSON.parse(result.content[0].text);
       expect(data.resource).toBe(resource);
       expect(data.actions).toBeDefined();
       expect(data.scope).toBeDefined();
@@ -57,7 +57,7 @@ describe("handleSchema", () => {
 describe("handleSchemaOverview", () => {
   it("should return overview of all resources", () => {
     const result = handleSchemaOverview();
-    const data = JSON.parse(result.content[0]!.text);
+    const data = JSON.parse(result.content[0].text);
     expect(data.resources.length).toBeGreaterThan(10);
     expect(data._tip).toContain("schema");
   });

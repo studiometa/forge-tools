@@ -3,10 +3,10 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { handleDatabaseUsersCommand } from "./command.ts";
 
 vi.mock("./handlers.ts", () => ({
-  databaseUsersList: vi.fn().mockResolvedValue(undefined),
-  databaseUsersGet: vi.fn().mockResolvedValue(undefined),
-  databaseUsersCreate: vi.fn().mockResolvedValue(undefined),
-  databaseUsersDelete: vi.fn().mockResolvedValue(undefined),
+  databaseUsersList: vi.fn().mockResolvedValue(),
+  databaseUsersGet: vi.fn().mockResolvedValue(),
+  databaseUsersCreate: vi.fn().mockResolvedValue(),
+  databaseUsersDelete: vi.fn().mockResolvedValue(),
 }));
 
 vi.mock("../../context.ts", () => ({

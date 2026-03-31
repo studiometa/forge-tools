@@ -7,7 +7,7 @@ describe("createSshKey", () => {
   it("should create an SSH key and format output", async () => {
     const ctx = createTestExecutorContext({
       client: {
-        post: async () => undefined,
+        post: async () => {},
       } as never,
       organizationSlug: "test-org",
     });

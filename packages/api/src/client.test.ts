@@ -85,7 +85,7 @@ describe("HttpClient", () => {
 
       await client.get("/servers");
 
-      expect(calls[0]!.init?.headers).toEqual(
+      expect(calls[0].init?.headers).toEqual(
         expect.objectContaining({
           Authorization: "Bearer test-token",
           Accept: "application/json",
@@ -103,7 +103,7 @@ describe("HttpClient", () => {
 
       const result = await client.get<{ servers: Array<{ id: number; name: string }> }>("/servers");
       expect(result.servers).toHaveLength(1);
-      expect(result.servers[0]!.name).toBe("web-1");
+      expect(result.servers[0].name).toBe("web-1");
     });
 
     it("should use globalThis.fetch when no fetch option is provided", async () => {
@@ -131,7 +131,7 @@ describe("HttpClient", () => {
 
       await client.get("/servers");
 
-      expect(calls[0]!.url).toBe("https://forge.laravel.com/api/servers");
+      expect(calls[0].url).toBe("https://forge.laravel.com/api/servers");
     });
 
     it("should use custom base URL", async () => {
@@ -144,7 +144,7 @@ describe("HttpClient", () => {
 
       await client.get("/servers");
 
-      expect(calls[0]!.url).toBe("https://custom.api.com/servers");
+      expect(calls[0].url).toBe("https://custom.api.com/servers");
     });
   });
 
@@ -155,9 +155,9 @@ describe("HttpClient", () => {
 
       await client.post("/servers", { name: "web-2" });
 
-      expect(calls[0]!.init?.method).toBe("POST");
-      expect(calls[0]!.init?.body).toBe(JSON.stringify({ name: "web-2" }));
-      expect(calls[0]!.init?.headers).toEqual(
+      expect(calls[0].init?.method).toBe("POST");
+      expect(calls[0].init?.body).toBe(JSON.stringify({ name: "web-2" }));
+      expect(calls[0].init?.headers).toEqual(
         expect.objectContaining({
           "Content-Type": "application/json",
         }),
@@ -170,8 +170,8 @@ describe("HttpClient", () => {
 
       await client.post("/servers/1/reboot");
 
-      expect(calls[0]!.init?.method).toBe("POST");
-      expect(calls[0]!.init?.body).toBeUndefined();
+      expect(calls[0].init?.method).toBe("POST");
+      expect(calls[0].init?.body).toBeUndefined();
     });
   });
 
@@ -182,8 +182,8 @@ describe("HttpClient", () => {
 
       await client.put("/servers/1", { name: "updated" });
 
-      expect(calls[0]!.init?.method).toBe("PUT");
-      expect(calls[0]!.init?.body).toBe(JSON.stringify({ name: "updated" }));
+      expect(calls[0].init?.method).toBe("PUT");
+      expect(calls[0].init?.body).toBe(JSON.stringify({ name: "updated" }));
     });
   });
 
@@ -194,8 +194,8 @@ describe("HttpClient", () => {
 
       await client.patch("/servers/1", { name: "patched" });
 
-      expect(calls[0]!.init?.method).toBe("PATCH");
-      expect(calls[0]!.init?.body).toBe(JSON.stringify({ name: "patched" }));
+      expect(calls[0].init?.method).toBe("PATCH");
+      expect(calls[0].init?.body).toBe(JSON.stringify({ name: "patched" }));
     });
   });
 
@@ -443,7 +443,7 @@ describe("HttpClient", () => {
       const client = new HttpClient({ ...defaultOptions, fetch });
 
       await client.get("/orgs/my-org/servers");
-      expect(calls[0]!.url).toBe("https://forge.laravel.com/api/orgs/my-org/servers");
+      expect(calls[0].url).toBe("https://forge.laravel.com/api/orgs/my-org/servers");
     });
 
     it("should use explicit baseUrl when provided", async () => {
@@ -455,7 +455,7 @@ describe("HttpClient", () => {
       });
 
       await client.get("/servers");
-      expect(calls[0]!.url).toBe("https://custom.example.com/api/servers");
+      expect(calls[0].url).toBe("https://custom.example.com/api/servers");
     });
   });
 });

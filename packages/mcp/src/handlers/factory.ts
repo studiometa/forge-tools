@@ -99,8 +99,9 @@ export function createResourceHandler(
     // Validate ID-like fields to prevent path traversal
     for (const field of ["id", "server_id", "site_id"]) {
       const value = args[field];
-      if (value !== undefined && !sanitizeId(String(value))) {
-        return errorResult(`Invalid ${field}: "${value}". IDs must be alphanumeric.`);
+      const idStr = typeof value === "string" || typeof value === "number" ? String(value) : "";
+      if (value !== undefined && !sanitizeId(idStr)) {
+        return errorResult(`Invalid ${field}: "${idStr}". IDs must be alphanumeric.`);
       }
     }
 

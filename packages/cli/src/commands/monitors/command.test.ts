@@ -3,10 +3,10 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { handleMonitorsCommand } from "./command.ts";
 
 vi.mock("./handlers.ts", () => ({
-  monitorsList: vi.fn().mockResolvedValue(undefined),
-  monitorsGet: vi.fn().mockResolvedValue(undefined),
-  monitorsCreate: vi.fn().mockResolvedValue(undefined),
-  monitorsDelete: vi.fn().mockResolvedValue(undefined),
+  monitorsList: vi.fn().mockResolvedValue(),
+  monitorsGet: vi.fn().mockResolvedValue(),
+  monitorsCreate: vi.fn().mockResolvedValue(),
+  monitorsDelete: vi.fn().mockResolvedValue(),
 }));
 
 vi.mock("../../context.ts", () => ({

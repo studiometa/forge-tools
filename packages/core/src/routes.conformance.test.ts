@@ -15,7 +15,7 @@ const specPaths = Object.keys(spec.paths);
  * regardless of param naming differences.
  */
 function normalize(routePath: string): string {
-  return routePath.replace(/:[^/]+/g, "*").replace(/\{[^}]+\}/g, "*");
+  return routePath.replaceAll(/:[^/]+/g, "*").replaceAll(/\{[^}]+\}/g, "*");
 }
 
 /**

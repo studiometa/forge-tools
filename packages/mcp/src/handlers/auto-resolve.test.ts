@@ -80,7 +80,7 @@ function createMockCtx(
             "servers",
             servers.map((s) => ({ id: s.id, attributes: makeServerAttrs(s.id, s.name) as never })),
           );
-        if (url.match(/\/orgs\/test-org\/servers\/\d+\/sites$/))
+        if (/\/orgs\/test-org\/servers\/\d+\/sites$/.test(url))
           return mockListDocument(
             "sites",
             sites.map((s) => ({ id: s.id, attributes: makeSiteAttrs(s.id, s.name) as never })),
@@ -135,7 +135,7 @@ describe("autoResolveIds", () => {
     expect(result.ok).toBe(false);
     if (!result.ok) {
       expect(result.error.isError).toBe(true);
-      expect(result.error.content[0]!.text).toContain('No server matching "nonexistent"');
+      expect(result.error.content[0].text).toContain('No server matching "nonexistent"');
     }
   });
 
@@ -149,7 +149,7 @@ describe("autoResolveIds", () => {
     expect(result.ok).toBe(false);
     if (!result.ok) {
       expect(result.error.isError).toBe(true);
-      const text = result.error.content[0]!.text;
+      const text = result.error.content[0].text;
       expect(text).toContain('Ambiguous server name "prod"');
       expect(text).toContain("2 matches");
       expect(text).toContain("prod-web");
@@ -185,7 +185,7 @@ describe("autoResolveIds", () => {
     expect(result.ok).toBe(false);
     if (!result.ok) {
       expect(result.error.isError).toBe(true);
-      expect(result.error.content[0]!.text).toContain('No site matching "nonexistent.com"');
+      expect(result.error.content[0].text).toContain('No site matching "nonexistent.com"');
     }
   });
 
@@ -207,7 +207,7 @@ describe("autoResolveIds", () => {
     expect(result.ok).toBe(false);
     if (!result.ok) {
       expect(result.error.isError).toBe(true);
-      const text = result.error.content[0]!.text;
+      const text = result.error.content[0].text;
       expect(text).toContain('Ambiguous site name "example"');
       expect(text).toContain("app.example.com");
       expect(text).toContain("api.example.com");
@@ -225,7 +225,7 @@ describe("autoResolveIds", () => {
     expect(result.ok).toBe(false);
     if (!result.ok) {
       expect(result.error.isError).toBe(true);
-      expect(result.error.content[0]!.text).toContain(
+      expect(result.error.content[0].text).toContain(
         "Cannot resolve site name without a server_id",
       );
     }

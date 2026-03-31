@@ -115,7 +115,9 @@ describe("crypto", () => {
       const code = createAuthCode(credentials, 0.001);
 
       // Wait for expiration
-      await new Promise((resolve) => setTimeout(resolve, 10));
+      await new Promise<void>((resolve) => {
+        setTimeout(resolve, 10);
+      });
 
       expect(() => decodeAuthCode(code)).toThrow("Authorization code expired");
     });

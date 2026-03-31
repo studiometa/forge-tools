@@ -1,3 +1,4 @@
+/* eslint-disable typescript-eslint/no-base-to-string -- generic formatter converts unknown values to strings */
 import type { OutputFormat } from "./types.ts";
 
 import { colors } from "./utils/colors.ts";
@@ -31,7 +32,6 @@ export class OutputFormatter {
       case "table":
         this.outputTable(data);
         break;
-      case "human":
       default:
         console.log(data);
         break;

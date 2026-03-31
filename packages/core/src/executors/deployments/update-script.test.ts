@@ -5,7 +5,7 @@ import { updateDeploymentScript } from "./update-script.ts";
 
 describe("updateDeploymentScript", () => {
   it("should update deployment script", async () => {
-    const putMock = vi.fn(async () => undefined);
+    const putMock = vi.fn(async () => {});
     const ctx = createTestExecutorContext({
       client: { put: putMock } as never,
       organizationSlug: "test-org",

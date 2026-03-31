@@ -3,10 +3,10 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { handleRedirectRulesCommand } from "./command.ts";
 
 vi.mock("./handlers.ts", () => ({
-  redirectRulesList: vi.fn().mockResolvedValue(undefined),
-  redirectRulesGet: vi.fn().mockResolvedValue(undefined),
-  redirectRulesCreate: vi.fn().mockResolvedValue(undefined),
-  redirectRulesDelete: vi.fn().mockResolvedValue(undefined),
+  redirectRulesList: vi.fn().mockResolvedValue(),
+  redirectRulesGet: vi.fn().mockResolvedValue(),
+  redirectRulesCreate: vi.fn().mockResolvedValue(),
+  redirectRulesDelete: vi.fn().mockResolvedValue(),
 }));
 
 vi.mock("../../context.ts", () => ({

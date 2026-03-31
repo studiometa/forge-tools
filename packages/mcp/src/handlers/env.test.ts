@@ -28,7 +28,7 @@ describe("handleEnv", () => {
       createMockContext(),
     );
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("APP_ENV=production");
+    expect(result.content[0].text).toContain("APP_ENV=production");
   });
 
   it("should update environment variables", async () => {
@@ -44,7 +44,7 @@ describe("handleEnv", () => {
       createMockContext(),
     );
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("Environment variables updated");
+    expect(result.content[0].text).toContain("Environment variables updated");
   });
 
   it("should require server_id and site_id for get", async () => {

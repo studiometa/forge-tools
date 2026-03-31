@@ -51,16 +51,16 @@ describe("resolveSites", () => {
     expect(result.data.query).toBe("example");
     expect(result.data.total).toBe(2);
     expect(result.data.matches).toHaveLength(2);
-    expect(result.data.matches[0]!.name).toBe("example.com");
-    expect(result.data.matches[1]!.name).toBe("api.example.com");
+    expect(result.data.matches[0].name).toBe("example.com");
+    expect(result.data.matches[1].name).toBe("api.example.com");
   });
 
   it("should return exact match as single result", async () => {
     const result = await resolveSites({ server_id: "123", query: "example.com" }, createCtx());
     expect(result.data.total).toBe(1);
     expect(result.data.matches).toHaveLength(1);
-    expect(result.data.matches[0]!.id).toBe(1);
-    expect(result.data.matches[0]!.name).toBe("example.com");
+    expect(result.data.matches[0].id).toBe(1);
+    expect(result.data.matches[0].name).toBe("example.com");
   });
 
   it("should return empty for no matches", async () => {

@@ -5,7 +5,7 @@ import { deleteRedirectRule } from "./delete.ts";
 
 describe("deleteRedirectRule", () => {
   it("should delete a redirect rule", async () => {
-    const deleteMock = vi.fn(async () => undefined);
+    const deleteMock = vi.fn(async () => {});
     const ctx = createTestExecutorContext({
       client: { delete: deleteMock } as never,
       organizationSlug: "test-org",

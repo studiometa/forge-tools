@@ -24,12 +24,12 @@ function createMockContext(): HandlerContext {
       organizationSlug: "test-org",
       client: {
         get: async (url: string) => {
-          if (url.match(/\/commands\/\d+$/)) {
+          if (/\/commands\/\d+$/.test(url)) {
             return mockDocument(1, "commands", makeCommandAttrs());
           }
           return mockListDocument("commands", [{ id: 1, attributes: makeCommandAttrs() as never }]);
         },
-        post: async () => undefined,
+        post: async () => {},
       } as never,
     },
     compact: true,
@@ -44,7 +44,7 @@ describe("handleCommands", () => {
       createMockContext(),
     );
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("migrate");
+    expect(result.content[0].text).toContain("migrate");
   });
 
   it("should create a command", async () => {
@@ -60,7 +60,7 @@ describe("handleCommands", () => {
       createMockContext(),
     );
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("Done");
+    expect(result.content[0].text).toContain("Done");
   });
 
   it("should get a command", async () => {
@@ -70,7 +70,7 @@ describe("handleCommands", () => {
       createMockContext(),
     );
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("migrate");
+    expect(result.content[0].text).toContain("migrate");
   });
 
   it("should require server_id and site_id", async () => {
@@ -80,7 +80,7 @@ describe("handleCommands", () => {
       createMockContext(),
     );
     expect(result.isError).toBe(true);
-    expect(result.content[0]!.text).toContain("server_id");
+    expect(result.content[0].text).toContain("server_id");
   });
 
   it("should handle unknown action", async () => {
@@ -90,6 +90,6 @@ describe("handleCommands", () => {
       createMockContext(),
     );
     expect(result.isError).toBe(true);
-    expect(result.content[0]!.text).toContain("Unknown action");
+    expect(result.content[0].text).toContain("Unknown action");
   });
 });

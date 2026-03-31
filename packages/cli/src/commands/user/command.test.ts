@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { handleUserCommand } from "./command.ts";
 
 vi.mock("./handlers.ts", () => ({
-  userGet: vi.fn().mockResolvedValue(undefined),
+  userGet: vi.fn().mockResolvedValue(),
 }));
 
 vi.mock("../../context.ts", () => ({

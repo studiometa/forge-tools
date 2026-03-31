@@ -5,7 +5,7 @@ import { updateEnv } from "./update.ts";
 
 describe("updateEnv", () => {
   it("should update environment variables", async () => {
-    const putMock = vi.fn(async () => undefined);
+    const putMock = vi.fn(async () => {});
     const ctx = createTestExecutorContext({
       client: { put: putMock } as never,
       organizationSlug: "test-org",

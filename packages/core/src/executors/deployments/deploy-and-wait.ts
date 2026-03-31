@@ -87,7 +87,7 @@ export async function deploySiteAndWait(
           );
           const deployments = unwrapListDocument(deploymentsResponse);
           if (deployments.length > 0) {
-            const latestId = deployments[0]!.id;
+            const latestId = deployments[0].id;
             try {
               const logResponse = await request(
                 ROUTES.deployments.getLog,
@@ -114,7 +114,9 @@ export async function deploySiteAndWait(
         return;
       }
 
-      await new Promise<void>((r) => setTimeout(r, poll_interval_ms));
+      await new Promise<void>((r) => {
+        setTimeout(r, poll_interval_ms);
+      });
       await tick();
     };
 
@@ -138,7 +140,7 @@ export async function deploySiteAndWait(
     );
     const deployments = unwrapListDocument(deploymentsResponse);
     if (deployments.length > 0) {
-      const latest = deployments[0]!;
+      const latest = deployments[0];
       deployStatus = latest.status === "finished" ? "success" : "failed";
 
       // Fetch final log

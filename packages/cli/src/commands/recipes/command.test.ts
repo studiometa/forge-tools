@@ -3,9 +3,9 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { handleRecipesCommand } from "./command.ts";
 
 vi.mock("./handlers.ts", () => ({
-  recipesList: vi.fn().mockResolvedValue(undefined),
-  recipesGet: vi.fn().mockResolvedValue(undefined),
-  recipesRun: vi.fn().mockResolvedValue(undefined),
+  recipesList: vi.fn().mockResolvedValue(),
+  recipesGet: vi.fn().mockResolvedValue(),
+  recipesRun: vi.fn().mockResolvedValue(),
 }));
 
 vi.mock("../../context.ts", () => ({

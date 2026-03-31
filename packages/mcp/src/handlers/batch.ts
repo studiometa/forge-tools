@@ -108,7 +108,7 @@ export async function handleBatch(
   let failed = 0;
 
   const results = settled.map((outcome, index) => {
-    const { resource, action: opAction } = validated[index]!;
+    const { resource, action: opAction } = validated[index];
 
     if (outcome.status === "fulfilled") {
       const toolResult = outcome.value;

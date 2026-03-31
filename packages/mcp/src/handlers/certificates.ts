@@ -39,9 +39,9 @@ export const handleCertificates = createResourceHandler({
       case "create":
         return formatCertificate(data);
       case "delete":
-        return `Certificate for domain ${args.domain_id} deleted.`;
+        return `Certificate for domain ${String(args.domain_id)} deleted.`;
       case "activate":
-        return `Certificate for domain ${args.domain_id} activated.`;
+        return `Certificate for domain ${String(args.domain_id)} activated.`;
       /* v8 ignore next */
       default:
         return "Done.";

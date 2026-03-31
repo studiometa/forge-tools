@@ -5,7 +5,7 @@ import { deleteScheduledJob } from "./delete.ts";
 
 describe("deleteScheduledJob", () => {
   it("should delete a scheduled job", async () => {
-    const deleteMock = vi.fn(async () => undefined);
+    const deleteMock = vi.fn(async () => {});
     const ctx = createTestExecutorContext({
       client: { delete: deleteMock } as never,
       organizationSlug: "test-org",

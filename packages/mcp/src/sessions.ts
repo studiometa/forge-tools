@@ -40,6 +40,7 @@ const DEFAULT_SWEEP_INTERVAL = 60 * 1000; // 60 seconds
 
 export class SessionManager {
   private sessions = new Map<string, ManagedSession>();
+  // eslint-disable-next-line typescript-eslint/no-redundant-type-constituents -- NodeJS.Timeout resolves correctly at runtime
   private sweepTimer: ReturnType<typeof setInterval> | undefined;
   private readonly ttl: number;
 

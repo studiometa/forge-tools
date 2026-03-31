@@ -12,7 +12,7 @@ function createMockContext(): HandlerContext {
       client: {
         get: async (url: string) => {
           // Server sub-resources
-          if (url.match(/\/orgs\/test-org\/servers\/\d+\/sites$/))
+          if (/\/orgs\/test-org\/servers\/\d+\/sites$/.test(url))
             return mockListDocument("sites", [
               {
                 id: 1,
@@ -45,7 +45,7 @@ function createMockContext(): HandlerContext {
                 } as never,
               },
             ]);
-          if (url.match(/\/orgs\/test-org\/servers\/\d+\/database\/schemas$/))
+          if (/\/orgs\/test-org\/servers\/\d+\/database\/schemas$/.test(url))
             return mockListDocument("databases", [
               {
                 id: 1,
@@ -57,7 +57,7 @@ function createMockContext(): HandlerContext {
                 },
               },
             ]);
-          if (url.match(/\/orgs\/test-org\/servers\/\d+\/database\/users$/))
+          if (/\/orgs\/test-org\/servers\/\d+\/database\/users$/.test(url))
             return mockListDocument("database-users", [
               {
                 id: 1,
@@ -69,14 +69,14 @@ function createMockContext(): HandlerContext {
                 },
               },
             ]);
-          if (url.match(/\/orgs\/test-org\/servers\/\d+\/background-processes$/))
+          if (/\/orgs\/test-org\/servers\/\d+\/background-processes$/.test(url))
             return mockListDocument("background-processes", []);
-          if (url.match(/\/orgs\/test-org\/servers\/\d+\/firewall-rules$/))
+          if (/\/orgs\/test-org\/servers\/\d+\/firewall-rules$/.test(url))
             return mockListDocument("firewall-rules", []);
-          if (url.match(/\/orgs\/test-org\/servers\/\d+\/scheduled-jobs$/))
+          if (/\/orgs\/test-org\/servers\/\d+\/scheduled-jobs$/.test(url))
             return mockListDocument("scheduled-jobs", []);
           // Site sub-resources (must come before server get)
-          if (url.match(/\/orgs\/test-org\/servers\/\d+\/sites\/\d+\/deployments/)) {
+          if (/\/orgs\/test-org\/servers\/\d+\/sites\/\d+\/deployments/.test(url)) {
             return mockListDocument(
               "deployments",
               Array.from({ length: 8 }, (_, i) => ({
@@ -93,12 +93,12 @@ function createMockContext(): HandlerContext {
               })),
             );
           }
-          if (url.match(/\/orgs\/test-org\/servers\/\d+\/sites\/\d+\/redirect-rules$/))
+          if (/\/orgs\/test-org\/servers\/\d+\/sites\/\d+\/redirect-rules$/.test(url))
             return mockListDocument("redirect-rules", []);
-          if (url.match(/\/orgs\/test-org\/servers\/\d+\/sites\/\d+\/security-rules$/))
+          if (/\/orgs\/test-org\/servers\/\d+\/sites\/\d+\/security-rules$/.test(url))
             return mockListDocument("security-rules", []);
           // Site get (must come before server get)
-          if (url.match(/\/orgs\/test-org\/sites\/\d+$/))
+          if (/\/orgs\/test-org\/sites\/\d+$/.test(url))
             return mockDocument(1, "sites", {
               name: "app.com",
               aliases: [],
@@ -127,7 +127,7 @@ function createMockContext(): HandlerContext {
               updated_at: "2024-01-01",
             } as never);
           // Server get
-          if (url.match(/\/orgs\/test-org\/servers\/\d+$/))
+          if (/\/orgs\/test-org\/servers\/\d+$/.test(url))
             return mockDocument(1, "servers", {
               id: 1,
               name: "web-1",
@@ -170,7 +170,7 @@ describe("handleServerContext", () => {
       createMockContext(),
     );
     expect(result.isError).toBeUndefined();
-    const data = JSON.parse(result.content[0]!.text);
+    const data = JSON.parse(result.content[0].text);
     expect(data.server).toBeDefined();
     expect(data.server.name).toBe("web-1");
     expect(data.sites).toBeDefined();
@@ -188,7 +188,7 @@ describe("handleServerContext", () => {
       createMockContext(),
     );
     expect(result.isError).toBe(true);
-    expect(result.content[0]!.text).toContain("id");
+    expect(result.content[0].text).toContain("id");
   });
 
   it("includes structured content on success", async () => {
@@ -208,7 +208,7 @@ describe("handleSiteContext", () => {
       createMockContext(),
     );
     expect(result.isError).toBeUndefined();
-    const data = JSON.parse(result.content[0]!.text);
+    const data = JSON.parse(result.content[0].text);
     expect(data.site).toBeDefined();
     expect(data.site.name).toBe("app.com");
     expect(data.deployments).toBeDefined();
@@ -222,7 +222,7 @@ describe("handleSiteContext", () => {
       createMockContext(),
     );
     expect(result.isError).toBeUndefined();
-    const data = JSON.parse(result.content[0]!.text);
+    const data = JSON.parse(result.content[0].text);
     expect(data.deployments).toHaveLength(5);
   });
 
@@ -232,7 +232,7 @@ describe("handleSiteContext", () => {
       createMockContext(),
     );
     expect(result.isError).toBe(true);
-    expect(result.content[0]!.text).toContain("server_id");
+    expect(result.content[0].text).toContain("server_id");
   });
 
   it("returns error when id is missing", async () => {
@@ -241,7 +241,7 @@ describe("handleSiteContext", () => {
       createMockContext(),
     );
     expect(result.isError).toBe(true);
-    expect(result.content[0]!.text).toContain("id");
+    expect(result.content[0].text).toContain("id");
   });
 
   it("includes structured content on success", async () => {
@@ -259,12 +259,12 @@ describe("handleSiteContext", () => {
         organizationSlug: "test-org",
         client: {
           get: async (url: string) => {
-            if (url.match(/\/sites\/\d+\/deployments/)) return mockListDocument("deployments", []);
-            if (url.match(/\/sites\/\d+\/redirect-rules$/))
+            if (/\/sites\/\d+\/deployments/.test(url)) return mockListDocument("deployments", []);
+            if (/\/sites\/\d+\/redirect-rules$/.test(url))
               return mockListDocument("redirect-rules", []);
-            if (url.match(/\/sites\/\d+\/security-rules$/))
+            if (/\/sites\/\d+\/security-rules$/.test(url))
               return mockListDocument("security-rules", []);
-            if (url.match(/\/sites\/\d+$/))
+            if (/\/sites\/\d+$/.test(url))
               return mockDocument(1, "sites", {
                 name: "app.com",
                 aliases: [],
@@ -303,7 +303,7 @@ describe("handleSiteContext", () => {
       ctx,
     );
     expect(result.isError).toBeUndefined();
-    const data = JSON.parse(result.content[0]!.text);
+    const data = JSON.parse(result.content[0].text);
     expect(Array.isArray(data.deployments)).toBe(true);
     expect(data.deployments).toHaveLength(0);
   });

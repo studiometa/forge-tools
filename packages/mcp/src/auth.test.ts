@@ -4,7 +4,7 @@ import { parseAuthHeader } from "./auth.ts";
 
 describe("parseAuthHeader", () => {
   it("returns null for undefined header", () => {
-    expect(parseAuthHeader(undefined)).toBeNull();
+    expect(parseAuthHeader()).toBeNull();
   });
 
   it("returns null for null header", () => {

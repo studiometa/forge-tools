@@ -20,7 +20,7 @@ describe("matchByName", () => {
   it("returns exact match in exact array", () => {
     const { exact } = matchByName(items, "production", getName);
     expect(exact).toHaveLength(1);
-    expect(exact[0]!.id).toBe(4);
+    expect(exact[0].id).toBe(4);
   });
 
   it("returns partial matches in partial array", () => {
@@ -37,7 +37,7 @@ describe("matchByName", () => {
   it("is case insensitive for exact match", () => {
     const { exact } = matchByName(items, "PRODUCTION", getName);
     expect(exact).toHaveLength(1);
-    expect(exact[0]!.name).toBe("production");
+    expect(exact[0].name).toBe("production");
   });
 
   it("is case insensitive for partial match", () => {
@@ -66,7 +66,7 @@ describe("matchByName", () => {
     ];
     const { exact, partial } = matchByName(data, "alpha", (d) => d.label);
     expect(exact).toHaveLength(1);
-    expect(exact[0]!.id).toBe(1);
+    expect(exact[0].id).toBe(1);
     expect(partial).toHaveLength(2);
   });
 

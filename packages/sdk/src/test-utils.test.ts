@@ -26,7 +26,7 @@ describe("createMockFetch", () => {
       capturedUrl = url;
       return mockListDocument([]);
     });
-    await mockFetch("https://example.com/api/v2/orgs/test-org/servers", undefined);
+    await mockFetch("https://example.com/api/v2/orgs/test-org/servers");
     expect(capturedUrl).toBe("https://example.com/api/v2/orgs/test-org/servers");
   });
 
@@ -36,7 +36,7 @@ describe("createMockFetch", () => {
       capturedUrl = url;
       return {};
     });
-    await mockFetch(new URL("https://example.com/api/v2/orgs/test-org/servers"), undefined);
+    await mockFetch(new URL("https://example.com/api/v2/orgs/test-org/servers"));
     expect(capturedUrl).toBe("https://example.com/api/v2/orgs/test-org/servers");
   });
 
@@ -47,7 +47,7 @@ describe("createMockFetch", () => {
       return {};
     });
     const request = new Request("https://example.com/api/v2/orgs/test-org/servers");
-    await mockFetch(request, undefined);
+    await mockFetch(request);
     expect(capturedUrl).toBe("https://example.com/api/v2/orgs/test-org/servers");
   });
 
@@ -65,7 +65,7 @@ describe("createMockFetch", () => {
   it("should return a Response with JSON body", async () => {
     const data = mockListDocument([{ id: "1", attributes: { name: "web-01" } }]);
     const mockFetch = createMockFetch(() => data);
-    const response = await mockFetch("https://example.com/api/v2/orgs/test-org/servers", undefined);
+    const response = await mockFetch("https://example.com/api/v2/orgs/test-org/servers");
     expect(response).toBeInstanceOf(Response);
     const json = await response.json();
     expect(json).toEqual(data);
@@ -73,13 +73,13 @@ describe("createMockFetch", () => {
 
   it("should return a Response with status 200", async () => {
     const mockFetch = createMockFetch(() => ({}));
-    const response = await mockFetch("https://example.com/api", undefined);
+    const response = await mockFetch("https://example.com/api");
     expect(response.status).toBe(200);
   });
 
   it("should return a Response with application/json content type", async () => {
     const mockFetch = createMockFetch(() => ({}));
-    const response = await mockFetch("https://example.com/api", undefined);
+    const response = await mockFetch("https://example.com/api");
     expect(response.headers.get("Content-Type")).toBe("application/json");
   });
 
@@ -89,7 +89,7 @@ describe("createMockFetch", () => {
     const forge = new Forge("test-token", "test-org", { fetch: mockFetch });
     const servers = await forge.servers.list();
     expect(servers).toHaveLength(1);
-    expect(servers[0]!.name).toBe("web-01");
-    expect(servers[0]!.id).toBe(1);
+    expect(servers[0].name).toBe("web-01");
+    expect(servers[0].id).toBe(1);
   });
 });

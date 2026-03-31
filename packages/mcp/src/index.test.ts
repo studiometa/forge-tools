@@ -8,6 +8,7 @@ vi.mock("@modelcontextprotocol/sdk/server/index.js", () => ({
 }));
 
 vi.mock("@modelcontextprotocol/sdk/server/stdio.js", () => ({
+  // eslint-disable-next-line typescript-eslint/no-extraneous-class -- empty mock class
   StdioServerTransport: class MockStdioTransport {},
 }));
 

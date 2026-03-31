@@ -97,7 +97,9 @@ export class HttpClient {
       if (response.status === 429) {
         const retryDelay = this.rateLimiter.getRetryDelay(attempt, response.headers);
         if (retryDelay !== null) {
-          await new Promise((resolve) => setTimeout(resolve, retryDelay));
+          await new Promise<void>((resolve) => {
+            setTimeout(resolve, retryDelay);
+          });
           attempt++;
           continue;
         }

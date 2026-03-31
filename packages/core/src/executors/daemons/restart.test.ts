@@ -5,7 +5,7 @@ import { restartDaemon } from "./restart.ts";
 
 describe("restartDaemon", () => {
   it("should restart a daemon", async () => {
-    const postMock = vi.fn(async () => undefined);
+    const postMock = vi.fn(async () => {});
     const ctx = createTestExecutorContext({
       client: { post: postMock } as never,
       organizationSlug: "test-org",

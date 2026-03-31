@@ -226,6 +226,7 @@ export async function handleMcpRequest(
   await server.connect(transport);
 
   // Set up cleanup on close
+  // eslint-disable-next-line unicorn/prefer-add-event-listener -- MCP SDK uses property assignment
   transport.onclose = () => {
     const sid = transport.sessionId;
     /* v8 ignore start */

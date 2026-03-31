@@ -29,7 +29,7 @@
     "test": "vitest run",
     "test:watch": "npm run test:watch --workspaces",
     "test:ci": "npm run test:ci --workspaces --if-present",
-    "lint": "oxlint",
+    "lint": "oxlint --type-aware",
     "lint:fix": "oxlint --fix",
     "format": "oxfmt --write .",
     "format:check": "oxfmt --check .",
@@ -48,6 +48,7 @@
     "lint-staged": "16.2.7",
     "oxfmt": "0.28.0",
     "oxlint": "1.43.0",
+    "oxlint-tsgolint": "^0.18.1",
     "typescript": "^5.7.3",
     "vite": "^8.0.0-beta.14",
     "vitest": "^4.1.0-beta.4"

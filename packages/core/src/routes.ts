@@ -230,7 +230,7 @@ export function buildUrl(
   let url = route.path;
   const missing: string[] = [];
 
-  url = url.replace(/:(\w+)/g, (_, key: string) => {
+  url = url.replaceAll(/:(\w+)/g, (_, key: string) => {
     const value = allParams[key];
     if (value === undefined) {
       missing.push(key);

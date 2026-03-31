@@ -52,7 +52,7 @@ const _handleSites = createResourceHandler({
   formatResult: (action, data, args) => {
     switch (action) {
       case "list":
-        return formatSiteList(data, args.server_id as string | undefined);
+        return formatSiteList(data, args.server_id);
       case "get":
         return formatSite(data);
       case "create":

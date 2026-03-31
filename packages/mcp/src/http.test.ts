@@ -724,10 +724,10 @@ describe("Full server integration", () => {
 });
 
 describe("createMcpRequestHandler", () => {
-  it("should return a function that delegates to handleMcpRequest", () => {
+  it("should return a function that delegates to handleMcpRequest", async () => {
     const sessions = new SessionManager({ ttl: 0 });
     const handler = createMcpRequestHandler(sessions);
     expect(typeof handler).toBe("function");
-    sessions.closeAll();
+    await sessions.closeAll();
   });
 });

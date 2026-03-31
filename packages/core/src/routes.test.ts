@@ -182,9 +182,9 @@ describe("flattenRoutes", () => {
   it("should return all routes as a flat array", () => {
     const flat = flattenRoutes(ROUTES);
     expect(flat.length).toBeGreaterThan(50);
-    expect(flat[0]!.key).toContain(".");
-    expect(flat[0]!.route).toHaveProperty("method");
-    expect(flat[0]!.route).toHaveProperty("path");
+    expect(flat[0].key).toContain(".");
+    expect(flat[0].route).toHaveProperty("method");
+    expect(flat[0].route).toHaveProperty("path");
   });
 
   it("should include known routes", () => {

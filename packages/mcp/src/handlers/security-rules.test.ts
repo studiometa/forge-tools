@@ -23,7 +23,7 @@ function createMockContext(): HandlerContext {
       organizationSlug: "test-org",
       client: {
         get: async (url: string) => {
-          if (url.match(/\/security-rules\/\d+$/)) {
+          if (/\/security-rules\/\d+$/.test(url)) {
             return mockDocument(1, "security-rules", makeRuleAttrs());
           }
           return mockListDocument("security-rules", [
@@ -32,7 +32,7 @@ function createMockContext(): HandlerContext {
         },
         post: async () =>
           mockDocument(2, "security-rules", makeRuleAttrs({ name: "secret", path: "/secret" })),
-        delete: async () => undefined,
+        delete: async () => {},
       } as never,
     },
     compact: true,
@@ -47,7 +47,7 @@ describe("handleSecurityRules", () => {
       createMockContext(),
     );
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("admin");
+    expect(result.content[0].text).toContain("admin");
   });
 
   it("should get a security rule", async () => {
@@ -57,7 +57,7 @@ describe("handleSecurityRules", () => {
       createMockContext(),
     );
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("admin");
+    expect(result.content[0].text).toContain("admin");
   });
 
   it("should create a security rule", async () => {
@@ -74,7 +74,7 @@ describe("handleSecurityRules", () => {
       createMockContext(),
     );
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("secret");
+    expect(result.content[0].text).toContain("secret");
   });
 
   it("should delete a security rule", async () => {
@@ -84,7 +84,7 @@ describe("handleSecurityRules", () => {
       createMockContext(),
     );
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("deleted");
+    expect(result.content[0].text).toContain("deleted");
   });
 
   it("should require server_id and site_id for list", async () => {

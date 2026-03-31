@@ -35,11 +35,11 @@ function extractRedirectUrl(html: string): string {
     throw new Error("Could not extract redirect URL from success page");
   }
   return metaMatch[1]
-    .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&quot;/g, '"')
-    .replace(/&#039;/g, "'");
+    .replaceAll("&amp;", "&")
+    .replaceAll("&lt;", "<")
+    .replaceAll("&gt;", ">")
+    .replaceAll("&quot;", '"')
+    .replaceAll("&#039;", "'");
 }
 
 describe("OAuth endpoints", () => {
