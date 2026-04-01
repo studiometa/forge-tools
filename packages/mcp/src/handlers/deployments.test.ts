@@ -29,19 +29,21 @@ function createMockContext(): HandlerContext {
           if (/\/deployments\/\d+\/log$/.test(url)) {
             return mockDocument(1, "deployment-outputs", { output: "Build succeeded." });
           }
+          // Specific deployment by ID (e.g. /deployments/1) - return finished status
+          if (/\/deployments\/\d+$/.test(url)) {
+            return mockDocument(1, "deployments", makeDeploymentAttrs({ status: "finished" }));
+          }
           // Deployments list (with sort/pagination params)
           if (url.includes("/deployments?")) {
             return mockListDocument("deployments", [
               { id: 1, attributes: makeDeploymentAttrs() as never },
             ]);
           }
-          // Deployment status — return null status so deploySiteAndWait exits immediately
-          if (url.includes("/deployments/status")) {
-            return mockDocument(1, "deploymentStatuses", { status: null, started_at: null });
-          }
           return {};
         },
-        post: async () => ({}),
+        // POST to create deployment returns the deployment document with ID
+        post: async () =>
+          mockDocument(1, "deployments", makeDeploymentAttrs({ status: "queued", started_at: null })),
         put: async () => ({}),
       } as never,
     },
