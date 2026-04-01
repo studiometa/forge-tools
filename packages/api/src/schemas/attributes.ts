@@ -52,10 +52,10 @@ export type ServerAttributes = v.InferOutput<typeof ServerAttributesSchema>;
 // ── Sites ────────────────────────────────────────────
 
 export const SiteRepositorySchema = v.object({
-  provider: v.string(),
-  url: v.string(),
-  branch: v.string(),
-  status: v.string(),
+  provider: v.nullable(v.string()),
+  url: v.nullable(v.string()),
+  branch: v.nullable(v.string()),
+  status: v.nullable(v.string()),
 });
 
 export type SiteRepository = v.InferOutput<typeof SiteRepositorySchema>;
