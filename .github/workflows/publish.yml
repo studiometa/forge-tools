@@ -3,11 +3,39 @@ name: Publish
 on:
   push:
     tags:
-      - "[0-9]*"
+      - '*.*.*'
 
 jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build all packages
+        run: npm run build
+
+      - name: Type check
+        run: npm run typecheck
+
+      - name: Test
+        run: npm run test:ci
+
   publish:
-    name: Build & Publish
+    name: Publish to npm
+    needs: test
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -18,9 +46,9 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "24"
-          cache: "npm"
-          registry-url: "https://registry.npmjs.org"
+          node-version: '24'
+          cache: 'npm'
+          registry-url: https://registry.npmjs.org/
 
       - name: Install dependencies
         run: npm ci
@@ -28,38 +56,60 @@ jobs:
       - name: Build all packages
         run: npm run build
 
-      - name: Run tests
-        run: npm run test
+      - name: Determine npm tag and version
+        run: |
+          VERSION=${GITHUB_REF_NAME}
+          NPM_TAG='latest'
+          IS_PRERELEASE=false
+
+          if [[ $VERSION =~ (alpha|beta|rc) ]]; then
+            NPM_TAG='next'
+            IS_PRERELEASE=true
+          fi
+
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "NPM_TAG=$NPM_TAG" >> $GITHUB_ENV
+          echo "IS_PRERELEASE=$IS_PRERELEASE" >> $GITHUB_ENV
 
       - name: Sync inter-package versions
         run: node scripts/sync-versions.js
 
       - name: Publish @studiometa/forge-api
-        run: npm publish -w @studiometa/forge-api --provenance --access public
+        run: npm publish --provenance --access public --tag ${{ env.NPM_TAG }}
+        working-directory: packages/api
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Publish @studiometa/forge-sdk
-        run: npm publish -w @studiometa/forge-sdk --provenance --access public
+        run: npm publish --provenance --access public --tag ${{ env.NPM_TAG }}
+        working-directory: packages/sdk
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Publish @studiometa/forge-core
-        run: npm publish -w @studiometa/forge-core --provenance --access public
+        run: npm publish --provenance --access public --tag ${{ env.NPM_TAG }}
+        working-directory: packages/core
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Publish @studiometa/forge-mcp
-        run: npm publish -w @studiometa/forge-mcp --provenance --access public
+        run: npm publish --provenance --access public --tag ${{ env.NPM_TAG }}
+        working-directory: packages/mcp
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Publish @studiometa/forge-cli
-        run: npm publish -w @studiometa/forge-cli --provenance --access public
+        run: npm publish --provenance --access public --tag ${{ env.NPM_TAG }}
+        working-directory: packages/cli
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: ncipollo/release-action@v1
         with:
-          generate_release_notes: true
+          tag: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
+          body: |
+            Please refer to [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/${{ github.ref_name }}/CHANGELOG.md) for details.
+          draft: false
+          prerelease: ${{ env.IS_PRERELEASE }}
