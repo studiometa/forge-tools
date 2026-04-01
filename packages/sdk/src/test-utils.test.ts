@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { Forge } from "./forge.ts";
-import { createMockFetch } from "./test-utils.ts";
+import { createMockFetch, toUrlString } from "./test-utils.ts";
 
 function mockListDocument<T>(
   items: Array<{ id: string; attributes: T }>,
@@ -13,6 +13,23 @@ function mockListDocument<T>(
     meta: { per_page: 200, next_cursor: nextCursor },
   };
 }
+
+describe("toUrlString", () => {
+  it("should return a string URL as-is", () => {
+    const url = "https://example.com/api";
+    expect(toUrlString(url)).toBe(url);
+  });
+
+  it("should convert a URL object to string", () => {
+    const url = new URL("https://example.com/api");
+    expect(toUrlString(url)).toBe("https://example.com/api");
+  });
+
+  it("should extract URL from a Request object", () => {
+    const request = new Request("https://example.com/api");
+    expect(toUrlString(request)).toBe("https://example.com/api");
+  });
+});
 
 describe("createMockFetch", () => {
   it("should return a function", () => {
