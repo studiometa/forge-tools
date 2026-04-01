@@ -3,7 +3,7 @@ import { listSites, getSite, updateSite } from "@studiometa/forge-core";
 import type { CommandContext } from "../../context.ts";
 
 import { exitWithValidationError, runCommand } from "../../error-handler.ts";
-import { resolveServerId } from "../../utils/resolve.ts";
+import { resolveServerId, resolveSiteId } from "../../utils/resolve.ts";
 
 export async function sitesList(ctx: CommandContext): Promise<void> {
   const server = String(ctx.options.server ?? "");
@@ -28,10 +28,10 @@ export async function sitesList(ctx: CommandContext): Promise<void> {
 }
 
 export async function sitesGet(args: string[], ctx: CommandContext): Promise<void> {
-  const [site_id] = args;
+  const [siteArg] = args;
   const server = String(ctx.options.server ?? "");
 
-  if (!site_id) {
+  if (!siteArg) {
     exitWithValidationError(
       "site_id",
       "forge sites get <site_id> --server <server_id>",
@@ -51,6 +51,7 @@ export async function sitesGet(args: string[], ctx: CommandContext): Promise<voi
     const token = ctx.getToken();
     const execCtx = ctx.createExecutorContext(token);
     const server_id = await resolveServerId(server, execCtx);
+    const site_id = await resolveSiteId(siteArg, server_id, execCtx);
     const result = await getSite({ server_id, site_id }, execCtx);
     ctx.formatter.outputOne(result.data, [
       "id",
@@ -68,10 +69,10 @@ export async function sitesGet(args: string[], ctx: CommandContext): Promise<voi
 }
 
 export async function sitesUpdate(args: string[], ctx: CommandContext): Promise<void> {
-  const [site_id] = args;
+  const [siteArg] = args;
   const server = String(ctx.options.server ?? "");
 
-  if (!site_id) {
+  if (!siteArg) {
     exitWithValidationError(
       "site_id",
       "forge sites update <site_id> --server <server_id>",
@@ -91,6 +92,7 @@ export async function sitesUpdate(args: string[], ctx: CommandContext): Promise<
     const token = ctx.getToken();
     const execCtx = ctx.createExecutorContext(token);
     const server_id = await resolveServerId(server, execCtx);
+    const site_id = await resolveSiteId(siteArg, server_id, execCtx);
     const result = await updateSite(
       {
         server_id,
