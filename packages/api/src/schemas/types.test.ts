@@ -43,7 +43,14 @@ function testSchema(
 testSchema(
   "CreateServerDataSchema",
   CreateServerDataSchema,
-  { name: "web-1", provider: "ocean2", type: "app", ubuntu_version: "22.04" },
+  {
+    name: "web-1",
+    provider: "ocean2",
+    type: "app",
+    ubuntu_version: "22.04",
+    custom: { ip_address: "1.2.3.4", private_ip_address: "10.0.0.1" },
+    laravel: { region_id: "nyc1", size_id: "s-1vcpu-1gb" },
+  },
   { name: 123 },
 );
 

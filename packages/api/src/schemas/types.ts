@@ -22,8 +22,18 @@ export const CreateServerDataSchema = v.object({
   hetzner: v.optional(v.record(v.string(), v.unknown())),
   vultr: v.optional(v.record(v.string(), v.unknown())),
   akamai: v.optional(v.record(v.string(), v.unknown())),
-  laravel: v.optional(v.record(v.string(), v.unknown())),
-  custom: v.optional(v.record(v.string(), v.unknown())),
+  laravel: v.optional(
+    v.object({ region_id: v.optional(v.string()), size_id: v.optional(v.string()) }),
+  ),
+  custom: v.optional(
+    v.object({
+      ip_address: v.optional(v.string()),
+      private_ip_address: v.optional(v.string()),
+      ssh_port: v.optional(v.string()),
+      behind_nat: v.optional(v.string()),
+      nat_ssh_port: v.optional(v.string()),
+    }),
+  ),
 });
 
 export type CreateServerData = v.InferOutput<typeof CreateServerDataSchema>;
