@@ -86,4 +86,36 @@ describe("parseAuthHeader", () => {
       expect(result).toEqual({ apiToken: "A" });
     });
   });
+
+  // OAuth JSON-encoded access token tests (new format with organizationSlug)
+  describe("JSON-encoded access tokens (new OAuth format)", () => {
+    it("decodes a JSON token with only apiToken", () => {
+      const payload = { apiToken: "my-forge-api-token-1234" };
+      const base64Token = Buffer.from(JSON.stringify(payload)).toString("base64");
+      const result = parseAuthHeader(`Bearer ${base64Token}`);
+      expect(result).toEqual({ apiToken: "my-forge-api-token-1234" });
+    });
+
+    it("decodes a JSON token with apiToken and organizationSlug", () => {
+      const payload = { apiToken: "my-forge-api-token-1234", organizationSlug: "my-org" };
+      const base64Token = Buffer.from(JSON.stringify(payload)).toString("base64");
+      const result = parseAuthHeader(`Bearer ${base64Token}`);
+      expect(result).toEqual({ apiToken: "my-forge-api-token-1234", organizationSlug: "my-org" });
+    });
+
+    it("returns undefined organizationSlug when not in payload", () => {
+      const payload = { apiToken: "my-token" };
+      const base64Token = Buffer.from(JSON.stringify(payload)).toString("base64");
+      const result = parseAuthHeader(`Bearer ${base64Token}`);
+      expect(result?.organizationSlug).toBeUndefined();
+    });
+
+    it("ignores non-string organizationSlug in payload", () => {
+      const payload = { apiToken: "my-token", organizationSlug: 123 };
+      const base64Token = Buffer.from(JSON.stringify(payload)).toString("base64");
+      const result = parseAuthHeader(`Bearer ${base64Token}`);
+      expect(result).toEqual({ apiToken: "my-token" });
+      expect(result?.organizationSlug).toBeUndefined();
+    });
+  });
 });

@@ -21,12 +21,16 @@ import { createHash } from "node:crypto";
 import { createAuthCode, decodeAuthCode } from "./crypto.ts";
 
 /**
- * Create a base64-encoded access token from a Forge API token.
- * The access token is simply base64(apiToken) so that parseAuthHeader
- * can decode it on every request without any server-side lookup.
+ * Create a base64-encoded access token from Forge credentials.
+ * The access token is base64(JSON.stringify({apiToken, organizationSlug})) so that
+ * parseAuthHeader can decode it on every request without any server-side lookup.
  */
-export function createAccessToken(apiToken: string): string {
-  return Buffer.from(apiToken).toString("base64");
+export function createAccessToken(apiToken: string, organizationSlug?: string): string {
+  const payload: { apiToken: string; organizationSlug?: string } = { apiToken };
+  if (organizationSlug) {
+    payload.organizationSlug = organizationSlug;
+  }
+  return Buffer.from(JSON.stringify(payload)).toString("base64");
 }
 
 /**
@@ -185,7 +189,8 @@ export const authorizeGetHandler = defineEventHandler((event: H3Event) => {
 export const authorizePostHandler = defineEventHandler(async (event: H3Event) => {
   const body = (await readBody<Record<string, string>>(event)) ?? {};
 
-  const { apiToken, redirectUri, state, codeChallenge, codeChallengeMethod } = body;
+  const { apiToken, organizationSlug, redirectUri, state, codeChallenge, codeChallengeMethod } =
+    body;
 
   // Validate redirect URI first (security requirement)
   if (!redirectUri) {
@@ -223,6 +228,7 @@ export const authorizePostHandler = defineEventHandler(async (event: H3Event) =>
   // Create encrypted authorization code with PKCE challenge
   const code = createAuthCode({
     apiToken,
+    organizationSlug: organizationSlug || undefined,
     codeChallenge,
     codeChallengeMethod: codeChallengeMethod || "S256",
   });
@@ -301,12 +307,12 @@ export const tokenHandler = defineEventHandler(async (event: H3Event) => {
       }
     }
 
-    // Create access token: base64(apiToken) — decodable on every request
-    const accessToken = createAccessToken(payload.apiToken);
+    // Create access token: base64(JSON.stringify({apiToken, organizationSlug})) — decodable on every request
+    const accessToken = createAccessToken(payload.apiToken, payload.organizationSlug);
 
     // Create refresh token (encrypted credentials, longer expiry)
     const refreshToken = createAuthCode(
-      { apiToken: payload.apiToken },
+      { apiToken: payload.apiToken, organizationSlug: payload.organizationSlug },
       86400 * 30, // 30 days
     );
 
@@ -342,11 +348,11 @@ function handleRefreshToken(event: H3Event, refreshToken: string | undefined) {
     const payload = decodeAuthCode(refreshToken);
 
     // Create new access token
-    const accessToken = createAccessToken(payload.apiToken);
+    const accessToken = createAccessToken(payload.apiToken, payload.organizationSlug);
 
     // Create new refresh token (rotate for security)
     const newRefreshToken = createAuthCode(
-      { apiToken: payload.apiToken },
+      { apiToken: payload.apiToken, organizationSlug: payload.organizationSlug },
       86400 * 30, // 30 days
     );
 
@@ -543,6 +549,14 @@ function renderLoginForm(params: {
         <input type="password" id="apiToken" name="apiToken" required placeholder="Enter your Forge API token">
         <p class="help-text">
           Generate at <a href="https://forge.laravel.com/user-profile/api" target="_blank" rel="noopener">forge.laravel.com → API Tokens</a>
+        </p>
+      </div>
+
+      <div class="form-group">
+        <label for="organizationSlug">Organization Slug</label>
+        <input type="text" id="organizationSlug" name="organizationSlug" placeholder="e.g. my-organization">
+        <p class="help-text">
+          Your organization's slug from the Forge dashboard URL. Can also be overridden per-request.
         </p>
       </div>
 

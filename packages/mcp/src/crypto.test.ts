@@ -109,6 +109,24 @@ describe("crypto", () => {
       expect(decoded.codeChallengeMethod).toBeUndefined();
     });
 
+    it("creates and decodes an auth code with organizationSlug", () => {
+      const credentials = { apiToken: "pk_test", organizationSlug: "my-org" };
+      const code = createAuthCode(credentials);
+      const decoded = decodeAuthCode(code);
+
+      expect(decoded.apiToken).toBe("pk_test");
+      expect(decoded.organizationSlug).toBe("my-org");
+    });
+
+    it("creates and decodes an auth code without organizationSlug", () => {
+      const credentials = { apiToken: "pk_test" };
+      const code = createAuthCode(credentials);
+      const decoded = decodeAuthCode(code);
+
+      expect(decoded.apiToken).toBe("pk_test");
+      expect(decoded.organizationSlug).toBeUndefined();
+    });
+
     it("rejects expired auth codes", async () => {
       const credentials = { apiToken: "pk_test" };
       // Create code that expires in 1ms
