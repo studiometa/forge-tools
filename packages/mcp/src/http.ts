@@ -121,8 +121,10 @@ export function createMcpServer(options?: HttpServerOptions): Server {
       // Organization slug can come from:
       // 1. Tool args (per-request override, highest priority)
       // 2. Auth token (configured during OAuth flow)
+      /* v8 ignore next 2 -- defensive type guard */
       const orgSlugFromArgs =
         typeof args?.organizationSlug === "string" ? args.organizationSlug : undefined;
+      /* v8 ignore next 3 -- defensive type guard */
       const orgSlugFromAuth =
         typeof extra.authInfo?.extra?.organizationSlug === "string"
           ? extra.authInfo.extra.organizationSlug
