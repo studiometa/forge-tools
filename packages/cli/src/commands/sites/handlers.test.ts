@@ -174,6 +174,40 @@ describe("sitesUpdate", () => {
     );
   });
 
+  it("should handle push_to_deploy as boolean true", async () => {
+    const { updateSite } = await import("@studiometa/forge-core");
+    vi.mocked(updateSite).mockResolvedValue({ data: mockSite });
+
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "json", server: "10", push_to_deploy: true },
+    });
+
+    await sitesUpdate(["1"], ctx);
+    expect(vi.mocked(updateSite)).toHaveBeenCalledWith(
+      expect.objectContaining({ push_to_deploy: true }),
+      expect.anything(),
+    );
+  });
+
+  it("should omit push_to_deploy when not provided", async () => {
+    const { updateSite } = await import("@studiometa/forge-core");
+    vi.mocked(updateSite).mockResolvedValue({ data: mockSite });
+
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "json", server: "10" },
+    });
+
+    await sitesUpdate(["1"], ctx);
+    expect(vi.mocked(updateSite)).toHaveBeenCalledWith(
+      expect.objectContaining({ push_to_deploy: undefined }),
+      expect.anything(),
+    );
+  });
+
   it("should parse push_to_deploy false string", async () => {
     const { updateSite } = await import("@studiometa/forge-core");
     vi.mocked(updateSite).mockResolvedValue({ data: mockSite });
