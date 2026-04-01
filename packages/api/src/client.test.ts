@@ -53,7 +53,8 @@ function createSequenceFetch(
   let index = 0;
 
   const mockFetch = async (url: string | URL | Request, init?: RequestInit) => {
-    calls.push({ url: url.toString(), init });
+    const urlStr = typeof url === "string" ? url : url instanceof URL ? url.toString() : url.url;
+    calls.push({ url: urlStr, init });
     const response = responses[index] ?? responses.at(-1)!;
     index++;
 
