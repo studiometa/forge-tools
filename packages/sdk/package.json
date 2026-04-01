@@ -1,6 +1,6 @@
 {
   "name": "@studiometa/forge-sdk",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Laravel Forge TypeScript SDK — fluent, chainable, fully-typed API client",
   "keywords": [
     "api-client",
