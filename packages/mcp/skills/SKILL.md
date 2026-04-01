@@ -119,7 +119,7 @@ Use `action: "schema"` for a compact machine-readable spec:
 | ------------------ | ------- | ------------------------------------------------------------------------------------------------------- |
 | `resource`         | string  | **Required**. Resource type (see table above)                                                           |
 | `action`           | string  | **Required**. Action to perform                                                                         |
-| `organizationSlug` | string  | **Required**. Organization slug — pass in each call or configure via auth/env                           |
+| `organizationSlug` | string  | Organization slug — pass per-call to override configured value (auth/env/config)                        |
 | `id`               | string  | Resource ID (for `get`, `delete`, `activate`, `restart`)                                                |
 | `server_id`        | string  | Server ID **or name** — numeric IDs are used as-is; names are auto-resolved via partial match           |
 | `site_id`          | string  | Site ID **or domain name** — auto-resolved via partial match; requires `server_id`                      |
