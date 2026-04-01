@@ -9,6 +9,7 @@ import {
   CreateDatabaseUserDataSchema,
   CreateDaemonDataSchema,
   CreateBackupConfigDataSchema,
+  UpdateBackupConfigDataSchema,
   CreateCommandDataSchema,
   CreateScheduledJobDataSchema,
   CreateFirewallRuleDataSchema,
@@ -72,6 +73,13 @@ testSchema(
 testSchema(
   "CreateBackupConfigDataSchema",
   CreateBackupConfigDataSchema,
+  { storage_provider_id: 1, frequency: "daily", retention: 7, database_ids: [1] },
+  { storage_provider_id: "not-a-number" },
+);
+
+testSchema(
+  "UpdateBackupConfigDataSchema",
+  UpdateBackupConfigDataSchema,
   { storage_provider_id: 1, frequency: "daily", retention: 7, database_ids: [1] },
   { storage_provider_id: "not-a-number" },
 );

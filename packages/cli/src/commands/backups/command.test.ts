@@ -6,6 +6,7 @@ vi.mock("./handlers.ts", () => ({
   backupsList: vi.fn().mockResolvedValue(),
   backupsGet: vi.fn().mockResolvedValue(),
   backupsCreate: vi.fn().mockResolvedValue(),
+  backupsUpdate: vi.fn().mockResolvedValue(),
   backupsDelete: vi.fn().mockResolvedValue(),
 }));
 
@@ -57,6 +58,12 @@ describe("handleBackupsCommand routing", () => {
     const h = await import("./handlers.ts");
     await handleBackupsCommand("create", [], {});
     expect(h.backupsCreate).toHaveBeenCalled();
+  });
+
+  it("should route update with args", async () => {
+    const h = await import("./handlers.ts");
+    await handleBackupsCommand("update", ["5"], {});
+    expect(h.backupsUpdate).toHaveBeenCalledWith(["5"], expect.anything());
   });
 
   it("should route delete with args", async () => {

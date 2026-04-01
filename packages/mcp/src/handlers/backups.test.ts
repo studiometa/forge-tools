@@ -40,6 +40,7 @@ function createMockContext(): HandlerContext {
           ]);
         },
         post: async () => {},
+        put: async () => {},
         delete: async () => {},
       } as never,
     },
@@ -89,6 +90,25 @@ describe("handleBackups", () => {
         credentials: {},
         frequency: "daily",
         databases: [1],
+      },
+      createMockContext(),
+    );
+    expect(result.isError).toBeUndefined();
+    expect(result.content[0].text).toContain("Done");
+  });
+
+  it("should update a backup config", async () => {
+    const result = await handleBackups(
+      "update",
+      {
+        resource: "backups",
+        action: "update",
+        server_id: "1",
+        id: "5",
+        storage_provider_id: 1,
+        frequency: "weekly",
+        retention: 7,
+        database_ids: [1],
       },
       createMockContext(),
     );

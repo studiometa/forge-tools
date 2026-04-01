@@ -33,6 +33,28 @@ ${colors.bold("OPTIONS:")}
   --databases <ids>     Comma-separated database IDs to back up (optional)
   -f, --format <fmt>    Output format: json, human, table
 `);
+  } else if (subcommand === "update") {
+    console.log(`
+${colors.bold("forge backups update")} - Update a backup configuration
+
+${colors.bold("USAGE:")}
+  forge backups update <backup_id> --server <server_id> --provider <provider> --frequency <frequency> --retention <retention> [options]
+
+${colors.bold("OPTIONS:")}
+  --server <id>                  Server ID (required)
+  --provider <id>                Storage provider ID (required)
+  --frequency <freq>             Backup frequency (required)
+  --retention <n>                Retention count (required)
+  --databases <ids>              Comma-separated database IDs (optional)
+  --name <name>                  Backup name (optional)
+  --bucket <bucket>              Bucket name (optional)
+  --directory <dir>              Directory (optional)
+  --day <day>                    Day of week (optional)
+  --time <time>                  Time (optional)
+  --cron <cron>                  Cron expression (optional)
+  --notification-email <email>   Notification email (optional)
+  -f, --format <fmt>             Output format: json, human, table
+`);
   } else if (subcommand === "delete") {
     console.log(`
 ${colors.bold("forge backups delete")} - Delete a backup configuration
@@ -51,6 +73,7 @@ ${colors.bold("SUBCOMMANDS:")}
   list, ls            List backup configurations
   get <id>            Get backup configuration details
   create              Create a new backup configuration
+  update <id>         Update a backup configuration
   delete <id>         Delete a backup configuration
 
 ${colors.bold("OPTIONS:")}
