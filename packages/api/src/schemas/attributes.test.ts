@@ -128,6 +128,70 @@ testSchema(
   { name: 123 },
 );
 
+describe("SiteAttributesSchema — nullable aliases", () => {
+  it("should accept null aliases (API returns null for some sites)", () => {
+    const fixture = {
+      name: "example.com",
+      aliases: null,
+      root_directory: null,
+      web_directory: "/public",
+      wildcards: null,
+      status: "installed",
+      repository: null,
+      quick_deploy: null,
+      deployment_status: null,
+      deployment_url: "https://example.com",
+      deployment_script: null,
+      php_version: "8.2",
+      app_type: "php",
+      url: "https://example.com",
+      https: true,
+      isolated: false,
+      user: "forge",
+      database: null,
+      shared_paths: null,
+      uses_envoyer: false,
+      zero_downtime_deployments: false,
+      maintenance_mode: null,
+      healthcheck_url: null,
+      created_at: null,
+      updated_at: null,
+    };
+    expect(() => v.parse(SiteAttributesSchema, fixture)).not.toThrow();
+  });
+
+  it("should accept aliases with values", () => {
+    const fixture = {
+      name: "example.com",
+      aliases: ["www.example.com", "app.example.com"],
+      root_directory: null,
+      web_directory: "/public",
+      wildcards: null,
+      status: "installed",
+      repository: null,
+      quick_deploy: null,
+      deployment_status: null,
+      deployment_url: "https://example.com",
+      deployment_script: null,
+      php_version: "8.2",
+      app_type: "php",
+      url: "https://example.com",
+      https: true,
+      isolated: false,
+      user: "forge",
+      database: null,
+      shared_paths: null,
+      uses_envoyer: false,
+      zero_downtime_deployments: false,
+      maintenance_mode: null,
+      healthcheck_url: null,
+      created_at: null,
+      updated_at: null,
+    };
+    expect(() => v.parse(SiteAttributesSchema, fixture)).not.toThrow();
+  });
+});
+
 testSchema(
   "DeploymentCommitSchema",
   DeploymentCommitSchema,

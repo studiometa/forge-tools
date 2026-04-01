@@ -62,7 +62,7 @@ export type SiteRepository = v.InferOutput<typeof SiteRepositorySchema>;
 
 export const SiteAttributesSchema = v.object({
   name: v.string(),
-  aliases: v.array(v.string()),
+  aliases: v.nullable(v.array(v.string())),
   root_directory: v.nullable(v.string()),
   web_directory: v.string(),
   wildcards: v.nullable(v.boolean()),
