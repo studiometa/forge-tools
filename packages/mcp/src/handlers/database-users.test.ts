@@ -31,8 +31,7 @@ function createMockContext(): HandlerContext {
         },
         post: async () =>
           mockDocument(2, "database-users", makeUserAttrs({ name: "newuser", status: "creating" })),
-        put: async () =>
-          mockDocument(1, "database-users", makeUserAttrs({ name: "forge" })),
+        put: async () => mockDocument(1, "database-users", makeUserAttrs({ name: "forge" })),
         delete: async () => {},
       } as never,
     },

@@ -144,7 +144,12 @@ export async function databaseUsersUpdate(args: string[], ctx: CommandContext): 
     const execCtx = ctx.createExecutorContext(token);
     const server_id = await resolveServerId(server, execCtx);
     const result = await updateDatabaseUser(
-      { server_id, id, ...(password !== undefined ? { password } : {}), ...(database_ids ? { database_ids } : {}) },
+      {
+        server_id,
+        id,
+        ...(password !== undefined ? { password } : {}),
+        ...(database_ids ? { database_ids } : {}),
+      },
       execCtx,
     );
     ctx.formatter.outputOne(result.data, ["id", "name", "status", "created_at"]);
