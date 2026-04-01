@@ -321,6 +321,46 @@ describe("backupsUpdate", () => {
     expect(processExitSpy).toHaveBeenCalledWith(3);
   });
 
+  it("should update with optional fields", async () => {
+    const { updateBackupConfig } = await import("@studiometa/forge-core");
+    vi.mocked(updateBackupConfig).mockResolvedValue({ data: undefined });
+
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: {
+        format: "json",
+        server: "10",
+        provider: "1",
+        frequency: "daily",
+        retention: "14",
+        databases: "3",
+        name: "my-backup",
+        bucket: "s3-bucket",
+        directory: "/backups",
+        day: "monday",
+        time: "03:00",
+        cron: "0 3 * * *",
+        "notification-email": "admin@example.com",
+      },
+    });
+
+    await backupsUpdate(["5"], ctx);
+    expect(vi.mocked(updateBackupConfig)).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: "my-backup",
+        bucket: "s3-bucket",
+        directory: "/backups",
+        day: "monday",
+        time: "03:00",
+        cron: "0 3 * * *",
+        notification_email: "admin@example.com",
+        database_ids: [3],
+      }),
+      expect.anything(),
+    );
+  });
+
   it("should exit with error when no retention", async () => {
     const ctx = createTestContext({
       token: "test",
