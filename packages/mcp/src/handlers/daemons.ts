@@ -5,6 +5,7 @@ import {
   getDaemon,
   listDaemons,
   restartDaemon,
+  updateDaemon,
 } from "@studiometa/forge-core";
 
 import { formatDaemon, formatDaemonList } from "../formatters.ts";
@@ -13,11 +14,17 @@ import { createResourceHandler } from "./factory.ts";
 
 export const handleDaemons = createResourceHandler({
   resource: "daemons",
-  actions: ["list", "get", "create", "delete", "restart"],
+  actions: ["list", "get", "create", "update", "delete", "restart"],
   inputSchemas: {
     list: v.object({ server_id: v.string() }),
     get: v.object({ server_id: v.string(), id: v.string() }),
     create: v.object({ server_id: v.string(), command: v.string() }),
+    update: v.object({
+      server_id: v.string(),
+      id: v.string(),
+      name: v.string(),
+      config: v.optional(v.string()),
+    }),
     delete: v.object({ server_id: v.string(), id: v.string() }),
     restart: v.object({ server_id: v.string(), id: v.string() }),
   },
@@ -25,6 +32,7 @@ export const handleDaemons = createResourceHandler({
     list: listDaemons,
     get: getDaemon,
     create: createDaemon,
+    update: updateDaemon,
     delete: deleteDaemon,
     restart: restartDaemon,
   },
@@ -36,6 +44,8 @@ export const handleDaemons = createResourceHandler({
       case "get":
         return formatDaemon(data);
       case "create":
+        return formatDaemon(data);
+      case "update":
         return formatDaemon(data);
       case "delete":
         return `Daemon ${args.id} deleted.`;

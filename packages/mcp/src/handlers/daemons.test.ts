@@ -37,6 +37,8 @@ function createMockContext(): HandlerContext {
             "background-processes",
             makeDaemonAttrs({ command: "node server.js", status: "starting" }),
           ),
+        put: async () =>
+          mockDocument(1, "background-processes", makeDaemonAttrs({ command: "node worker.js" })),
         delete: async () => {},
       } as never,
     },
@@ -73,6 +75,16 @@ describe("handleDaemons", () => {
     );
     expect(result.isError).toBeUndefined();
     expect(result.content[0].text).toContain("node server.js");
+  });
+
+  it("should update a daemon", async () => {
+    const result = await handleDaemons(
+      "update",
+      { resource: "daemons", action: "update", server_id: "1", id: "1", name: "my-daemon" },
+      createMockContext(),
+    );
+    expect(result.isError).toBeUndefined();
+    expect(result.content[0].text).toContain("node worker.js");
   });
 
   it("should delete a daemon", async () => {

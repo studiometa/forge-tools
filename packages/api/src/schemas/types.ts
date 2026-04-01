@@ -126,6 +126,13 @@ export const CreateDaemonDataSchema = v.object({
 
 export type CreateDaemonData = v.InferOutput<typeof CreateDaemonDataSchema>;
 
+export const UpdateDaemonDataSchema = v.object({
+  name: v.string(),
+  config: v.optional(v.string()),
+});
+
+export type UpdateDaemonData = v.InferOutput<typeof UpdateDaemonDataSchema>;
+
 // ── Backups ──────────────────────────────────────────
 
 export const CreateBackupConfigDataSchema = v.object({

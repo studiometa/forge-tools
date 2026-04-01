@@ -15,6 +15,13 @@ ${colors.bold("forge daemons get")} - Get daemon details
 ${colors.bold("USAGE:")}
   forge daemons get <daemon_id> --server <server_id>
 `);
+  } else if (subcommand === "update") {
+    console.log(`
+${colors.bold("forge daemons update")} - Update a daemon
+
+${colors.bold("USAGE:")}
+  forge daemons update <daemon_id> --server <server_id> --name <name> [--config <config>]
+`);
   } else if (subcommand === "restart") {
     console.log(`
 ${colors.bold("forge daemons restart")} - Restart a daemon
@@ -32,6 +39,7 @@ ${colors.bold("USAGE:")}
 ${colors.bold("SUBCOMMANDS:")}
   list, ls            List daemons
   get <id>            Get daemon details
+  update <id>         Update a daemon
   restart <id>        Restart a daemon
 
 ${colors.bold("OPTIONS:")}

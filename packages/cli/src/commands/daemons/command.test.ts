@@ -6,6 +6,7 @@ vi.mock("./handlers.ts", () => ({
   daemonsList: vi.fn().mockResolvedValue(),
   daemonsGet: vi.fn().mockResolvedValue(),
   daemonsRestart: vi.fn().mockResolvedValue(),
+  daemonsUpdate: vi.fn().mockResolvedValue(),
 }));
 
 vi.mock("../../context.ts", () => ({
