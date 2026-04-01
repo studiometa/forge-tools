@@ -6,6 +6,7 @@ vi.mock("./handlers.ts", () => ({
   securityRulesList: vi.fn().mockResolvedValue(),
   securityRulesGet: vi.fn().mockResolvedValue(),
   securityRulesCreate: vi.fn().mockResolvedValue(),
+  securityRulesUpdate: vi.fn().mockResolvedValue(),
   securityRulesDelete: vi.fn().mockResolvedValue(),
 }));
 
@@ -57,6 +58,12 @@ describe("handleSecurityRulesCommand routing", () => {
     const h = await import("./handlers.ts");
     await handleSecurityRulesCommand("create", [], {});
     expect(h.securityRulesCreate).toHaveBeenCalled();
+  });
+
+  it("should route update with args", async () => {
+    const h = await import("./handlers.ts");
+    await handleSecurityRulesCommand("update", ["1"], {});
+    expect(h.securityRulesUpdate).toHaveBeenCalledWith(["1"], expect.anything());
   });
 
   it("should route delete with args", async () => {

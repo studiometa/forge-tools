@@ -2,7 +2,7 @@
  * Option types for security rule executors.
  */
 
-import type { CreateSecurityRuleData } from "@studiometa/forge-api";
+import type { CreateSecurityRuleData, UpdateSecurityRuleData } from "@studiometa/forge-api";
 
 /**
  * Options for listing security rules for a site.
@@ -27,6 +27,15 @@ export interface GetSecurityRuleOptions {
 export interface CreateSecurityRuleOptions extends CreateSecurityRuleData {
   server_id: string;
   site_id: string;
+}
+
+/**
+ * Options for updating a security rule.
+ */
+export interface UpdateSecurityRuleOptions extends UpdateSecurityRuleData {
+  server_id: string;
+  site_id: string;
+  id: string;
 }
 
 /**

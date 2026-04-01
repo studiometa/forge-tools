@@ -202,6 +202,19 @@ export const CreateSecurityRuleDataSchema = v.object({
 
 export type CreateSecurityRuleData = v.InferOutput<typeof CreateSecurityRuleDataSchema>;
 
+export const UpdateSecurityRuleDataSchema = v.object({
+  name: v.string(),
+  path: v.optional(v.nullable(v.string())),
+  credentials: v.array(
+    v.object({
+      username: v.string(),
+      password: v.string(),
+    }),
+  ),
+});
+
+export type UpdateSecurityRuleData = v.InferOutput<typeof UpdateSecurityRuleDataSchema>;
+
 // ── Redirect Rules ───────────────────────────────────
 
 export const CreateRedirectRuleDataSchema = v.object({
