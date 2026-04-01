@@ -94,7 +94,7 @@ const SHARED_INPUT_PROPERTIES = {
   organizationSlug: {
     type: "string" as const,
     description:
-      "Organization slug for v2 API. Overrides the value configured during authentication. Can also be set via FORGE_ORG env var.",
+      "Organization slug (required). Overrides the value configured during authentication. Can also be set via FORGE_ORG env var.",
   },
   compact: {
     type: "boolean" as const,
@@ -126,6 +126,7 @@ const FORGE_READ_TOOL: Tool = {
     "Deployment operations require server_id and site_id.",
     "Batch: use resource=batch action=run with an operations array to execute multiple reads in one call.",
     "resolve: find resources by name (partial, case-insensitive) — provide query field.",
+    "organizationSlug: required — pass in each call or configure via auth/env.",
   ].join("\n"),
   annotations: {
     title: "Laravel Forge",
@@ -177,6 +178,7 @@ const FORGE_WRITE_TOOL: Tool = {
     `Actions: ${[...WRITE_ACTIONS].join(", ")}.`,
     "Server operations require id. Site operations require server_id.",
     "Deployment operations require server_id and site_id.",
+    "organizationSlug: required — pass in each call or configure via auth/env.",
     "Use forge tool with action=help for resource documentation.",
   ].join("\n"),
   annotations: {
