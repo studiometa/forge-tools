@@ -103,6 +103,7 @@ export type {
 export {
   CreateServerDataSchema,
   CreateSiteDataSchema,
+  UpdateSiteDataSchema,
   CreateCertificateDataSchema,
   CreateDatabaseDataSchema,
   CreateDatabaseUserDataSchema,
@@ -122,6 +123,7 @@ export {
 export type {
   CreateServerData,
   CreateSiteData,
+  UpdateSiteData,
   CreateCertificateData,
   CreateDatabaseData,
   CreateDatabaseUserData,

@@ -1,5 +1,12 @@
 import * as v from "valibot";
-import { createSite, deleteSite, getSite, listSites, resolveSites } from "@studiometa/forge-core";
+import {
+  createSite,
+  deleteSite,
+  getSite,
+  listSites,
+  resolveSites,
+  updateSite,
+} from "@studiometa/forge-core";
 
 import type { ResolveSiteResult } from "@studiometa/forge-core";
 
@@ -11,11 +18,12 @@ import type { CommonArgs, HandlerContext, ToolResult } from "./types.ts";
 
 const _handleSites = createResourceHandler({
   resource: "sites",
-  actions: ["list", "get", "create", "delete", "resolve"],
+  actions: ["list", "get", "create", "update", "delete", "resolve"],
   inputSchemas: {
     list: v.object({ server_id: v.string() }),
     get: v.object({ server_id: v.string(), id: v.string() }),
     create: v.object({ server_id: v.string(), type: v.string() }),
+    update: v.object({ server_id: v.string(), id: v.string() }),
     delete: v.object({ server_id: v.string(), id: v.string() }),
     resolve: v.object({ server_id: v.string(), query: v.string() }),
   },
@@ -23,6 +31,7 @@ const _handleSites = createResourceHandler({
     list: listSites,
     get: getSite,
     create: createSite,
+    update: updateSite,
     delete: deleteSite,
     resolve: resolveSites,
   },
@@ -40,6 +49,17 @@ const _handleSites = createResourceHandler({
           name: args.name ?? args.domain,
           web_directory: args.web_directory ?? args.directory,
         };
+      case "update":
+        return {
+          server_id: args.server_id,
+          site_id: args.id,
+          root_path: args.root_path,
+          directory: args.directory,
+          type: args.type,
+          php_version: args.php_version,
+          push_to_deploy: args.push_to_deploy,
+          repository_branch: args.repository_branch,
+        };
       case "delete":
         return { server_id: args.server_id, site_id: args.id };
       case "resolve":
@@ -56,6 +76,8 @@ const _handleSites = createResourceHandler({
       case "get":
         return formatSite(data);
       case "create":
+        return formatSite(data);
+      case "update":
         return formatSite(data);
       case "delete":
         return `Site ${args.id} deleted from server ${args.server_id}.`;

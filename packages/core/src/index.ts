@@ -43,12 +43,14 @@ export {
   getSite,
   listSites,
   resolveSites,
+  updateSite,
 } from "./executors/sites/index.ts";
 export type {
   CreateSiteOptions,
   DeleteSiteOptions,
   GetSiteOptions,
   ListSitesOptions,
+  UpdateSiteOptions,
   ResolveSitesOptions,
   ResolveSiteMatch,
   ResolveSiteResult,

@@ -50,6 +50,7 @@ function createMockContext(): HandlerContext {
         },
         post: async () =>
           mockDocument(2, "sites", makeSiteAttrs({ name: "new.com", status: "installing" })),
+        put: async () => mockDocument(1, "sites", makeSiteAttrs({ php_version: "php83" })),
         delete: async () => {},
       } as never,
     },
@@ -86,6 +87,16 @@ describe("handleSites", () => {
     );
     expect(result.isError).toBeUndefined();
     expect(result.content[0].text).toContain("new.com");
+  });
+
+  it("should update a site", async () => {
+    const result = await handleSites(
+      "update",
+      { resource: "sites", action: "update", server_id: "1", id: "1", php_version: "php83" },
+      createMockContext(),
+    );
+    expect(result.isError).toBeUndefined();
+    expect(result.content[0].text).toContain("example.com");
   });
 
   it("should delete a site", async () => {
