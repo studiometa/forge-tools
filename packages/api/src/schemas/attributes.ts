@@ -105,7 +105,7 @@ export const DeploymentAttributesSchema = v.object({
   commit: DeploymentCommitSchema,
   status: v.string(),
   type: v.string(),
-  started_at: v.string(),
+  started_at: v.nullable(v.string()),
   ended_at: v.nullable(v.string()),
   created_at: v.string(),
   updated_at: v.string(),

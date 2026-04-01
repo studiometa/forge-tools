@@ -79,12 +79,14 @@ describe("deploymentsList", () => {
 describe("deploymentsDeploy", () => {
   let processExitSpy: ReturnType<typeof vi.spyOn>;
   let stderrSpy: ReturnType<typeof vi.spyOn>;
+  let stdoutSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
     processExitSpy = vi.spyOn(process, "exit").mockImplementation(() => undefined as never);
     vi.spyOn(console, "log").mockImplementation(() => {});
     vi.spyOn(console, "error").mockImplementation(() => {});
     stderrSpy = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
+    stdoutSpy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
   });
 
   afterEach(() => {
@@ -181,6 +183,72 @@ describe("deploymentsDeploy", () => {
 
     await deploymentsDeploy(ctx).catch(() => {});
     expect(processExitSpy).toHaveBeenCalledWith(3);
+  });
+
+  it("should stream logs via onLog when --stream flag is set", async () => {
+    const { deploySiteAndWait } = await import("@studiometa/forge-core");
+    vi.mocked(deploySiteAndWait).mockImplementation(async (opts) => {
+      // Verify onLog is provided and onProgress is not when streaming
+      expect(opts.onLog).toBeDefined();
+      expect(opts.onProgress).toBeUndefined();
+      if (opts.onLog) {
+        opts.onLog("Step 1\n");
+        opts.onLog("Step 2\n");
+      }
+      return { data: { status: "success", log: "Step 1\nStep 2\n", elapsed_ms: 3000 } };
+    });
+
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "human", server: "10", site: "100", stream: true },
+    });
+
+    await deploymentsDeploy(ctx);
+    expect(stdoutSpy).toHaveBeenCalledWith("Step 1\n");
+    expect(stdoutSpy).toHaveBeenCalledWith("Step 2\n");
+  });
+
+  it("should use onProgress when --stream flag is not set", async () => {
+    const { deploySiteAndWait } = await import("@studiometa/forge-core");
+    vi.mocked(deploySiteAndWait).mockImplementation(async (opts) => {
+      // Verify onProgress is provided and onLog is not when not streaming
+      expect(opts.onProgress).toBeDefined();
+      expect(opts.onLog).toBeUndefined();
+      if (opts.onProgress) {
+        opts.onProgress({ status: "deploying", elapsed_ms: 1000 });
+      }
+      return { data: { status: "success", log: "Done.", elapsed_ms: 3000 } };
+    });
+
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "human", server: "10", site: "100" },
+    });
+
+    await deploymentsDeploy(ctx);
+    expect(stderrSpy).toHaveBeenCalledWith(expect.stringContaining("deploying"));
+  });
+
+  it("should not output full log when --stream flag is set", async () => {
+    const { deploySiteAndWait } = await import("@studiometa/forge-core");
+    vi.mocked(deploySiteAndWait).mockResolvedValue({
+      data: { status: "success", log: "Full log content", elapsed_ms: 3000 },
+    });
+
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "human", server: "10", site: "100", stream: true },
+    });
+
+    await deploymentsDeploy(ctx);
+    // Should show success message but NOT the full log (since it was streamed)
+    expect(vi.mocked(console.log)).toHaveBeenCalledWith(expect.stringContaining("succeeded"));
+    expect(vi.mocked(console.log)).not.toHaveBeenCalledWith(
+      expect.stringContaining("Full log content"),
+    );
   });
 });
 

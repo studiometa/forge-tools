@@ -44,6 +44,7 @@ export async function deploymentsList(ctx: CommandContext): Promise<void> {
 export async function deploymentsDeploy(ctx: CommandContext): Promise<void> {
   const server = String(ctx.options.server ?? "");
   const site = String(ctx.options.site ?? "");
+  const streamLogs = Boolean(ctx.options.stream);
 
   if (!server) {
     exitWithValidationError(
@@ -71,15 +72,25 @@ export async function deploymentsDeploy(ctx: CommandContext): Promise<void> {
       {
         server_id,
         site_id,
-        onProgress: ({ status, elapsed_ms }) => {
-          process.stderr.write(`\rDeploying… ${status} (${(elapsed_ms / 1000).toFixed(1)}s)`);
-        },
+        // Use either progress callback OR log streaming, not both
+        onProgress: streamLogs
+          ? undefined
+          : ({ status, elapsed_ms }) => {
+              process.stderr.write(`\rDeploying… ${status} (${(elapsed_ms / 1000).toFixed(1)}s)`);
+            },
+        onLog: streamLogs
+          ? (chunk) => {
+              process.stdout.write(chunk);
+            }
+          : undefined,
       },
       execCtx,
     );
 
-    // Clear the progress line
-    process.stderr.write("\n");
+    // Clear the progress line (only needed in non-stream mode)
+    if (!streamLogs) {
+      process.stderr.write("\n");
+    }
 
     const elapsedSec = (result.data.elapsed_ms / 1000).toFixed(1);
 
@@ -89,7 +100,8 @@ export async function deploymentsDeploy(ctx: CommandContext): Promise<void> {
       ctx.formatter.error(`Deployment failed for site ${site_id} (${elapsedSec}s).`);
     }
 
-    if (result.data.log) {
+    // Only output full log if we didn't stream it
+    if (!streamLogs && result.data.log) {
       ctx.formatter.output(result.data.log);
     }
   }, ctx.formatter);

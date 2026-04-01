@@ -1,10 +1,7 @@
 import {
   unwrapDocument,
-  unwrapListDocument,
   jsonApiDocumentSchema,
-  jsonApiListDocumentSchema,
   DeploymentAttributesSchema,
-  DeploymentStatusAttributesSchema,
   DeploymentOutputAttributesSchema,
 } from "@studiometa/forge-api";
 
@@ -36,8 +33,15 @@ export async function deploySiteAndWait(
     onLog,
   } = options;
 
-  // 1. Trigger deploy
-  await request(ROUTES.deployments.create, ctx, { server_id, site_id }, { body: {} });
+  // 1. Trigger deploy and get the deployment ID
+  const createResponse = await request(
+    ROUTES.deployments.create,
+    ctx,
+    { server_id, site_id },
+    { body: {}, schema: jsonApiDocumentSchema(DeploymentAttributesSchema) },
+  );
+  const deployment = unwrapDocument(createResponse);
+  const deploymentId = deployment.id;
 
   const startTime = Date.now();
   let logOffset = 0;
@@ -52,19 +56,19 @@ export async function deploySiteAndWait(
         return;
       }
 
-      // Check deployment status
+      // Check deployment status by fetching the specific deployment
       let currentStatus: string | null = null;
       try {
-        const statusResponse = await request(
-          ROUTES.deployments.getStatus,
+        const deploymentResponse = await request(
+          ROUTES.deployments.get,
           ctx,
-          { server_id, site_id },
-          { schema: jsonApiDocumentSchema(DeploymentStatusAttributesSchema) },
+          { server_id, site_id, id: deploymentId },
+          { schema: jsonApiDocumentSchema(DeploymentAttributesSchema) },
         );
-        const status = unwrapDocument(statusResponse);
-        currentStatus = status.status;
+        const deploymentData = unwrapDocument(deploymentResponse);
+        currentStatus = deploymentData.status;
       } catch {
-        // Status endpoint may return 404 when no active deployment — treat as done
+        // If we can't fetch the deployment, treat as done (will check final status below)
         currentStatus = null;
       }
 
@@ -75,41 +79,25 @@ export async function deploySiteAndWait(
       // 3. Stream deployment log incrementally
       if (onLog) {
         try {
-          // Fetch the latest deployment to get its log
-          const deploymentsResponse = await request(
-            ROUTES.deployments.list,
+          const logResponse = await request(
+            ROUTES.deployments.getLog,
             ctx,
-            { server_id, site_id },
-            {
-              query: { sort: "-created_at", "page[size]": "1" },
-              schema: jsonApiListDocumentSchema(DeploymentAttributesSchema),
-            },
+            { server_id, site_id, id: deploymentId },
+            { schema: jsonApiDocumentSchema(DeploymentOutputAttributesSchema) },
           );
-          const deployments = unwrapListDocument(deploymentsResponse);
-          if (deployments.length > 0) {
-            const latestId = deployments[0].id;
-            try {
-              const logResponse = await request(
-                ROUTES.deployments.getLog,
-                ctx,
-                { server_id, site_id, id: latestId },
-                { schema: jsonApiDocumentSchema(DeploymentOutputAttributesSchema) },
-              );
-              const logData = unwrapDocument(logResponse);
-              if (logData.output && logData.output.length > logOffset) {
-                onLog(logData.output.slice(logOffset));
-                logOffset = logData.output.length;
-              }
-            } catch {
-              // Log may not be available yet; continue
-            }
+          const logData = unwrapDocument(logResponse);
+          if (logData.output && logData.output.length > logOffset) {
+            onLog(logData.output.slice(logOffset));
+            logOffset = logData.output.length;
           }
         } catch {
-          // Deployments list may fail; continue
+          // Log may not be available yet; continue
         }
       }
 
-      if (currentStatus === null) {
+      // Check if deployment is in a terminal state
+      const terminalStatuses = ["finished", "failed", "failed-build"];
+      if (currentStatus === null || terminalStatuses.includes(currentStatus)) {
         resolve();
         return;
       }
@@ -125,40 +113,34 @@ export async function deploySiteAndWait(
 
   const elapsed_ms = Date.now() - startTime;
 
-  // 4. Final log + status fetch (single deployments request)
+  // 4. Final log + status fetch for the specific deployment
   let log = "";
   let deployStatus: "success" | "failed" = "failed";
   try {
-    const deploymentsResponse = await request(
-      ROUTES.deployments.list,
+    const deploymentResponse = await request(
+      ROUTES.deployments.get,
       ctx,
-      { server_id, site_id },
-      {
-        query: { sort: "-created_at", "page[size]": "1" },
-        schema: jsonApiListDocumentSchema(DeploymentAttributesSchema),
-      },
+      { server_id, site_id, id: deploymentId },
+      { schema: jsonApiDocumentSchema(DeploymentAttributesSchema) },
     );
-    const deployments = unwrapListDocument(deploymentsResponse);
-    if (deployments.length > 0) {
-      const latest = deployments[0];
-      deployStatus = latest.status === "finished" ? "success" : "failed";
+    const finalDeployment = unwrapDocument(deploymentResponse);
+    deployStatus = finalDeployment.status === "finished" ? "success" : "failed";
 
-      // Fetch final log
-      try {
-        const logResponse = await request(
-          ROUTES.deployments.getLog,
-          ctx,
-          { server_id, site_id, id: latest.id },
-          { schema: jsonApiDocumentSchema(DeploymentOutputAttributesSchema) },
-        );
-        const logData = unwrapDocument(logResponse);
-        log = logData.output ?? "";
-      } catch {
-        // log may not be available; continue
-      }
+    // Fetch final log
+    try {
+      const logResponse = await request(
+        ROUTES.deployments.getLog,
+        ctx,
+        { server_id, site_id, id: deploymentId },
+        { schema: jsonApiDocumentSchema(DeploymentOutputAttributesSchema) },
+      );
+      const logData = unwrapDocument(logResponse);
+      log = logData.output ?? "";
+    } catch {
+      // log may not be available; continue
     }
   } catch {
-    // If we can't fetch deployments, keep 'failed'
+    // If we can't fetch the deployment, keep 'failed'
   }
 
   if (onLog && log.length > logOffset) {
