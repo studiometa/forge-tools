@@ -122,6 +122,7 @@ export {
   getDaemon,
   listDaemons,
   restartDaemon,
+  updateDaemon,
 } from "./executors/daemons/index.ts";
 export type {
   CreateDaemonOptions,
@@ -129,6 +130,7 @@ export type {
   GetDaemonOptions,
   ListDaemonsOptions,
   RestartDaemonOptions,
+  UpdateDaemonOptions,
 } from "./executors/daemons/index.ts";
 
 // Firewall Rules

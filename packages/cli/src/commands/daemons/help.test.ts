@@ -33,6 +33,11 @@ describe("showDaemonsHelp", () => {
     expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining("daemon_id"));
   });
 
+  it("should show update help", () => {
+    showDaemonsHelp("update");
+    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining("update"));
+  });
+
   it("should show restart help", () => {
     showDaemonsHelp("restart");
     expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining("restart"));

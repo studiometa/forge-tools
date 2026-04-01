@@ -2,7 +2,7 @@
  * Option types for daemon executors.
  */
 
-import type { CreateDaemonData } from "@studiometa/forge-api";
+import type { CreateDaemonData, UpdateDaemonData } from "@studiometa/forge-api";
 
 /**
  * Options for listing daemons on a server.
@@ -30,6 +30,14 @@ export interface CreateDaemonOptions extends CreateDaemonData {
  * Options for deleting a daemon.
  */
 export interface DeleteDaemonOptions {
+  server_id: string;
+  id: string;
+}
+
+/**
+ * Options for updating a daemon.
+ */
+export interface UpdateDaemonOptions extends UpdateDaemonData {
   server_id: string;
   id: string;
 }

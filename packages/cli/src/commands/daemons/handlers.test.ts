@@ -3,12 +3,13 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import type { BackgroundProcessAttributes } from "@studiometa/forge-api";
 
 import { createTestContext } from "../../context.ts";
-import { daemonsList, daemonsGet, daemonsRestart } from "./handlers.ts";
+import { daemonsList, daemonsGet, daemonsRestart, daemonsUpdate } from "./handlers.ts";
 
 vi.mock("@studiometa/forge-core", () => ({
   listDaemons: vi.fn(),
   getDaemon: vi.fn(),
   restartDaemon: vi.fn(),
+  updateDaemon: vi.fn(),
 }));
 
 const mockDaemon: BackgroundProcessAttributes & { id: number } = {
@@ -156,6 +157,84 @@ describe("daemonsRestart", () => {
     });
 
     await daemonsRestart(["1"], ctx).catch(() => {});
+    expect(processExitSpy).toHaveBeenCalledWith(3);
+  });
+});
+
+describe("daemonsUpdate", () => {
+  let processExitSpy: ReturnType<typeof vi.spyOn>;
+
+  beforeEach(() => {
+    processExitSpy = vi.spyOn(process, "exit").mockImplementation(() => undefined as never);
+    vi.spyOn(console, "log").mockImplementation(() => {});
+    vi.spyOn(console, "error").mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("should update a daemon", async () => {
+    const { updateDaemon } = await import("@studiometa/forge-core");
+    vi.mocked(updateDaemon).mockResolvedValue({ data: mockDaemon });
+
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "json", server: "10", name: "my-daemon" },
+    });
+
+    await daemonsUpdate(["1"], ctx);
+    expect(vi.mocked(console.log)).toHaveBeenCalledWith(expect.stringContaining('"running"'));
+  });
+
+  it("should update a daemon with config option", async () => {
+    const { updateDaemon } = await import("@studiometa/forge-core");
+    vi.mocked(updateDaemon).mockResolvedValue({ data: mockDaemon });
+
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "json", server: "10", name: "my-daemon", config: "numprocs=2" },
+    });
+
+    await daemonsUpdate(["1"], ctx);
+    expect(vi.mocked(updateDaemon)).toHaveBeenCalledWith(
+      expect.objectContaining({ config: "numprocs=2" }),
+      expect.anything(),
+    );
+  });
+
+  it("should exit with error when no daemon_id", async () => {
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "json", server: "10", name: "my-daemon" },
+    });
+
+    await daemonsUpdate([], ctx).catch(() => {});
+    expect(processExitSpy).toHaveBeenCalledWith(3);
+  });
+
+  it("should exit with error when no server_id", async () => {
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "json", name: "my-daemon" },
+    });
+
+    await daemonsUpdate(["1"], ctx).catch(() => {});
+    expect(processExitSpy).toHaveBeenCalledWith(3);
+  });
+
+  it("should exit with error when no name", async () => {
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "json", server: "10" },
+    });
+
+    await daemonsUpdate(["1"], ctx).catch(() => {});
     expect(processExitSpy).toHaveBeenCalledWith(3);
   });
 });

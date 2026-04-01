@@ -8,6 +8,7 @@ import {
   CreateDatabaseDataSchema,
   CreateDatabaseUserDataSchema,
   CreateDaemonDataSchema,
+  UpdateDaemonDataSchema,
   CreateBackupConfigDataSchema,
   CreateCommandDataSchema,
   CreateScheduledJobDataSchema,
@@ -67,6 +68,13 @@ testSchema(
   "CreateDaemonDataSchema",
   CreateDaemonDataSchema,
   { name: "queue", command: "php artisan queue:work", user: "forge", processes: 1 },
+  { name: 123 },
+);
+
+testSchema(
+  "UpdateDaemonDataSchema",
+  UpdateDaemonDataSchema,
+  { name: "queue-worker" },
   { name: 123 },
 );
 
