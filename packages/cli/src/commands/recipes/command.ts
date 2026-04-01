@@ -1,5 +1,5 @@
 import { createCommandRouter } from "../../utils/command-router.ts";
-import { recipesList, recipesGet, recipesRun } from "./handlers.ts";
+import { recipesList, recipesGet, recipesRun, recipesUpdate } from "./handlers.ts";
 
 export const handleRecipesCommand = createCommandRouter({
   resource: "recipes",
@@ -7,7 +7,8 @@ export const handleRecipesCommand = createCommandRouter({
     list: recipesList,
     ls: recipesList,
     get: [recipesGet, "args"],
+    update: [recipesUpdate, "args"],
     run: [recipesRun, "args"],
   },
-  writeSubcommands: ["run"],
+  writeSubcommands: ["update", "run"],
 });

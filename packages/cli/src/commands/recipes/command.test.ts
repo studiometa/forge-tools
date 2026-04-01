@@ -6,6 +6,7 @@ vi.mock("./handlers.ts", () => ({
   recipesList: vi.fn().mockResolvedValue(),
   recipesGet: vi.fn().mockResolvedValue(),
   recipesRun: vi.fn().mockResolvedValue(),
+  recipesUpdate: vi.fn().mockResolvedValue(),
 }));
 
 vi.mock("../../context.ts", () => ({

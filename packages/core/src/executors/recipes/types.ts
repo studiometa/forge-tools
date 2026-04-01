@@ -2,7 +2,7 @@
  * Option types for recipe executors.
  */
 
-import type { CreateRecipeData } from "@studiometa/forge-api";
+import type { CreateRecipeData, UpdateRecipeData } from "@studiometa/forge-api";
 
 /**
  * Options for listing recipes.
@@ -27,6 +27,13 @@ export interface CreateRecipeOptions extends CreateRecipeData {}
  * Options for deleting a recipe.
  */
 export interface DeleteRecipeOptions {
+  id: string;
+}
+
+/**
+ * Options for updating a recipe.
+ */
+export interface UpdateRecipeOptions extends UpdateRecipeData {
   id: string;
 }
 
