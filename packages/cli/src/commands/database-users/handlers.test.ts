@@ -261,6 +261,23 @@ describe("databaseUsersUpdate", () => {
     );
   });
 
+  it("should update with single database-id value", async () => {
+    const { updateDatabaseUser } = await import("@studiometa/forge-core");
+    vi.mocked(updateDatabaseUser).mockResolvedValue({ data: mockUser });
+
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "json", server: "10", "database-ids": "5" },
+    });
+
+    await databaseUsersUpdate(["1"], ctx);
+    expect(vi.mocked(updateDatabaseUser)).toHaveBeenCalledWith(
+      expect.objectContaining({ database_ids: [5] }),
+      expect.anything(),
+    );
+  });
+
   it("should exit with error when no user_id", async () => {
     const ctx = createTestContext({
       token: "test",
