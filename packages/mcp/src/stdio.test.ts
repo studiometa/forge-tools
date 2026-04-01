@@ -251,4 +251,33 @@ describe("handleToolCall", () => {
     expect(result.isError).toBeUndefined();
     expect(result.content[0].text).toContain("***1234");
   });
+
+  it("should use organizationSlug from args over config", async () => {
+    mockGetToken.mockReturnValue("test-token");
+    mockGetOrganizationSlug.mockReturnValue("config-org");
+
+    // Use help action which doesn't need org slug, but passes through the handler
+    const result = await handleToolCall("forge", {
+      resource: "servers",
+      action: "help",
+      organizationSlug: "args-org",
+    });
+
+    // Help action should succeed regardless of org slug
+    expect(result.isError).toBeUndefined();
+    expect(result.content[0].text).toContain("servers");
+  });
+
+  it("should fall back to config organizationSlug when not in args", async () => {
+    mockGetToken.mockReturnValue("test-token");
+    mockGetOrganizationSlug.mockReturnValue("config-org");
+
+    const result = await handleToolCall("forge", {
+      resource: "servers",
+      action: "help",
+    });
+
+    expect(result.isError).toBeUndefined();
+    expect(result.content[0].text).toContain("servers");
+  });
 });
