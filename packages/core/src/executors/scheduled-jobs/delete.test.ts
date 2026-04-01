@@ -16,4 +16,17 @@ describe("deleteScheduledJob", () => {
     expect(deleteMock).toHaveBeenCalledWith("/orgs/test-org/servers/1/scheduled-jobs/5");
     expect(result.data).toBeUndefined();
   });
+
+  it("should delete a site-scoped scheduled job", async () => {
+    const deleteMock = vi.fn(async () => {});
+    const ctx = createTestExecutorContext({
+      client: { delete: deleteMock } as never,
+      organizationSlug: "test-org",
+    });
+
+    const result = await deleteScheduledJob({ server_id: "1", id: "5", site_id: "42" }, ctx);
+
+    expect(deleteMock).toHaveBeenCalledWith("/orgs/test-org/servers/1/sites/42/scheduled-jobs/5");
+    expect(result.data).toBeUndefined();
+  });
 });
