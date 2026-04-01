@@ -3,12 +3,13 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import type { RecipeAttributes } from "@studiometa/forge-api";
 
 import { createTestContext } from "../../context.ts";
-import { recipesList, recipesGet, recipesRun } from "./handlers.ts";
+import { recipesList, recipesGet, recipesRun, recipesUpdate } from "./handlers.ts";
 
 vi.mock("@studiometa/forge-core", () => ({
   listRecipes: vi.fn(),
   getRecipe: vi.fn(),
   runRecipe: vi.fn(),
+  updateRecipe: vi.fn(),
 }));
 
 const mockRecipe: RecipeAttributes & { id: number } = {
@@ -147,6 +148,45 @@ describe("recipesRun", () => {
     });
 
     await recipesRun(["1"], ctx).catch(() => {});
+    expect(processExitSpy).toHaveBeenCalledWith(3);
+  });
+});
+
+describe("recipesUpdate", () => {
+  let processExitSpy: ReturnType<typeof vi.spyOn>;
+
+  beforeEach(() => {
+    processExitSpy = vi.spyOn(process, "exit").mockImplementation(() => undefined as never);
+    vi.spyOn(console, "log").mockImplementation(() => {});
+    vi.spyOn(console, "error").mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("should update recipe with name/user/script options", async () => {
+    const { updateRecipe } = await import("@studiometa/forge-core");
+    vi.mocked(updateRecipe).mockResolvedValue({ data: { ...mockRecipe, name: "Updated Script" } });
+
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "json", name: "Updated Script", user: "root", script: "echo hi" },
+    });
+
+    await recipesUpdate(["1"], ctx);
+    expect(vi.mocked(console.log)).toHaveBeenCalled();
+  });
+
+  it("should exit with error when no id", async () => {
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "json" },
+    });
+
+    await recipesUpdate([], ctx).catch(() => {});
     expect(processExitSpy).toHaveBeenCalledWith(3);
   });
 });
