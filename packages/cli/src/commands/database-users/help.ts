@@ -33,6 +33,19 @@ ${colors.bold("OPTIONS:")}
   --databases <ids>   Comma-separated database IDs to grant access to (optional)
   -f, --format <fmt>  Output format: json, human, table
 `);
+  } else if (subcommand === "update") {
+    console.log(`
+${colors.bold("forge database-users update")} - Update a database user
+
+${colors.bold("USAGE:")}
+  forge database-users update <user_id> --server <server_id> [options]
+
+${colors.bold("OPTIONS:")}
+  --server <id>           Server ID (required)
+  --password <pass>       New password (optional)
+  --database-ids <ids>    Comma-separated database IDs (optional)
+  -f, --format <fmt>      Output format: json, human, table
+`);
   } else if (subcommand === "delete") {
     console.log(`
 ${colors.bold("forge database-users delete")} - Delete a database user
@@ -51,6 +64,7 @@ ${colors.bold("SUBCOMMANDS:")}
   list, ls            List database users
   get <id>            Get database user details
   create              Create a new database user
+  update <id>         Update a database user
   delete <id>         Delete a database user
 
 ${colors.bold("OPTIONS:")}

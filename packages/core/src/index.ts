@@ -107,12 +107,14 @@ export {
   deleteDatabaseUser,
   getDatabaseUser,
   listDatabaseUsers,
+  updateDatabaseUser,
 } from "./executors/database-users/index.ts";
 export type {
   CreateDatabaseUserOptions,
   DeleteDatabaseUserOptions,
   GetDatabaseUserOptions,
   ListDatabaseUsersOptions,
+  UpdateDatabaseUserOptions,
 } from "./executors/database-users/index.ts";
 
 // Daemons

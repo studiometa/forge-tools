@@ -111,6 +111,13 @@ export const CreateDatabaseUserDataSchema = v.object({
 
 export type CreateDatabaseUserData = v.InferOutput<typeof CreateDatabaseUserDataSchema>;
 
+export const UpdateDatabaseUserDataSchema = v.object({
+  password: v.optional(v.nullable(v.string())),
+  database_ids: v.optional(v.array(v.number())),
+});
+
+export type UpdateDatabaseUserData = v.InferOutput<typeof UpdateDatabaseUserDataSchema>;
+
 // ── Daemons (Background Processes) ───────────────────
 
 export const CreateDaemonDataSchema = v.object({

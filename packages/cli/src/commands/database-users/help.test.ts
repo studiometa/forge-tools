@@ -38,6 +38,11 @@ describe("showDatabaseUsersHelp", () => {
     expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining("database-users create"));
   });
 
+  it("should show update help", () => {
+    showDatabaseUsersHelp("update");
+    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining("database-users update"));
+  });
+
   it("should show delete help", () => {
     showDatabaseUsersHelp("delete");
     expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining("database-users delete"));
