@@ -30,4 +30,37 @@ describe("createCertificate", () => {
 
     expect(result.data.type).toBe("letsencrypt");
   });
+
+  it("should create a clone certificate", async () => {
+    const ctx = createTestExecutorContext({
+      client: {
+        post: async () =>
+          mockDocument(11, "certificates", {
+            type: "clone",
+            verification_method: null,
+            key_type: null,
+            preferred_chain: null,
+            request_status: "pending",
+            status: "installing",
+            created_at: "2024-01-01T00:00:00.000000Z",
+            updated_at: "2024-01-01T00:00:00.000000Z",
+          }),
+      } as never,
+      organizationSlug: "test-org",
+    });
+
+    const result = await createCertificate(
+      {
+        server_id: "1",
+        site_id: "2",
+        domain_id: "5",
+        type: "clone",
+        clone: { certificate_id: 99 },
+      },
+      ctx,
+    );
+
+    expect(result.data.type).toBe("clone");
+    expect(result.data.id).toBe(11);
+  });
 });
