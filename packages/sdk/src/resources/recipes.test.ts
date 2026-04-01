@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 
 import { HttpClient } from "@studiometa/forge-api";
 
+import { toUrlString } from "../test-utils.ts";
+
 import { AsyncPaginatedIterator } from "../pagination.ts";
 import { RecipesCollection } from "./recipes.ts";
 
@@ -30,7 +32,7 @@ function createTrackingClient(): {
     fetch: async (url: string | URL | Request, init?: RequestInit) => {
       calls.push({
         method: init?.method ?? "GET",
-        url: url.toString(),
+        url: toUrlString(url),
         body: init?.body ? JSON.parse(init.body as string) : undefined,
       });
       return {
@@ -38,7 +40,7 @@ function createTrackingClient(): {
         status: 200,
         headers: new Headers({ "content-type": "application/json" }),
         json: async () => {
-          const u = url.toString();
+          const u = toUrlString(url);
           const isId = /\/\d+(\?|$)/.test(u);
           const attrs = {
             name: "Install Node",

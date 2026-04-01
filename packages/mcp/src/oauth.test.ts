@@ -1,4 +1,5 @@
-import { createApp, toNodeHandler } from "h3";
+import { H3 } from "h3";
+import { toNodeHandler } from "h3/node";
 import { createHash } from "node:crypto";
 import { createServer, type Server } from "node:http";
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
@@ -49,7 +50,7 @@ describe("OAuth endpoints", () => {
   beforeAll(async () => {
     process.env.OAUTH_SECRET = "test-oauth-secret";
 
-    const app = createApp();
+    const app = new H3();
     app.get("/.well-known/oauth-authorization-server", oauthMetadataHandler);
     app.get("/.well-known/oauth-protected-resource", protectedResourceHandler);
     app.post("/register", registerHandler);

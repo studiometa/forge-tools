@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/* eslint-disable typescript-eslint/no-deprecated -- Using low-level Server for StdioServerTransport */
 
 /**
  * Forge MCP Server — Stdio Transport
@@ -23,6 +24,8 @@
  *   }
  */
 
+// Using low-level Server for advanced transport handling (StdioServerTransport)
+// eslint-disable-next-line typescript-eslint/no-deprecated
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import {

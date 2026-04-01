@@ -1,3 +1,4 @@
+/* eslint-disable typescript-eslint/no-deprecated -- Using low-level Server for StreamableHTTPServerTransport */
 /**
  * Streamable HTTP transport for Forge MCP Server
  *
@@ -14,6 +15,8 @@
 import { randomUUID } from "node:crypto";
 import type { IncomingMessage, ServerResponse } from "node:http";
 
+// Using low-level Server for advanced transport handling (StreamableHTTPServerTransport)
+// eslint-disable-next-line typescript-eslint/no-deprecated
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import {
@@ -21,7 +24,7 @@ import {
   ListToolsRequestSchema,
   type CallToolResult,
 } from "@modelcontextprotocol/sdk/types.js";
-import { createApp, defineEventHandler, type H3 } from "h3";
+import { H3, defineEventHandler } from "h3";
 
 import { parseAuthHeader } from "./auth.ts";
 import { executeToolWithCredentials } from "./handlers/index.ts";
@@ -271,7 +274,7 @@ export function createMcpRequestHandler(
  * The MCP endpoint is handled separately by handleMcpRequest.
  */
 export function createHealthApp(): H3 {
-  const app = createApp();
+  const app = new H3();
 
   // Service info & health
   app.get(

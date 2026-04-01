@@ -18,6 +18,7 @@
     "typescript/no-floating-promises": "warn",
     "typescript/no-base-to-string": "warn",
     "typescript/restrict-template-expressions": "warn",
+    "typescript/no-deprecated": "warn",
 
     "no-await-in-loop": "off",
     "unicorn/consistent-function-scoping": "off",

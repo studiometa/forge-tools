@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 
 import { HttpClient } from "@studiometa/forge-api";
 
+import { toUrlString } from "../test-utils.ts";
+
 import { AsyncPaginatedIterator } from "../pagination.ts";
 import { ServersCollection, ServerResource, type ResolveResult } from "./servers.ts";
 import { SitesCollection, SiteResource } from "./sites.ts";
@@ -56,7 +58,7 @@ function createTrackingClient(): {
     fetch: async (url: string | URL | Request, init?: RequestInit) => {
       calls.push({
         method: init?.method ?? "GET",
-        url: url.toString(),
+        url: toUrlString(url),
         body: init?.body ? JSON.parse(init.body as string) : undefined,
       });
       return {

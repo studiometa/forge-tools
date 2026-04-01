@@ -1,6 +1,15 @@
 import { vi } from "vitest";
 
 /**
+ * Convert a fetch URL argument to a string.
+ * Handles string, URL, and Request objects safely.
+ */
+// eslint-disable-next-line typescript-eslint/no-redundant-type-constituents -- matches fetch() signature
+export function toUrlString(url: string | URL | Request): string {
+  return typeof url === "string" ? url : url instanceof URL ? url.toString() : url.url;
+}
+
+/**
  * Create a mock `fetch` function for use in SDK tests.
  *
  * The handler receives the request URL and init options, and should return
@@ -34,7 +43,7 @@ export function createMockFetch(
 ): typeof fetch {
   // eslint-disable-next-line typescript-eslint/no-redundant-type-constituents -- matches fetch() signature
   return vi.fn(async (url: string | URL | Request, init?: RequestInit) => {
-    const urlStr = typeof url === "string" ? url : url instanceof URL ? url.toString() : url.url;
+    const urlStr = toUrlString(url);
     const data = handler(urlStr, init);
     return new Response(JSON.stringify(data), {
       status: 200,
