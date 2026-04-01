@@ -3,8 +3,8 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { handleFirewallRulesCommand } from "./command.ts";
 
 vi.mock("./handlers.ts", () => ({
-  firewallRulesList: vi.fn().mockResolvedValue(undefined),
-  firewallRulesGet: vi.fn().mockResolvedValue(undefined),
+  firewallRulesList: vi.fn().mockResolvedValue(),
+  firewallRulesGet: vi.fn().mockResolvedValue(),
 }));
 
 vi.mock("../../context.ts", () => ({

@@ -5,7 +5,7 @@ import { deleteDaemon } from "./delete.ts";
 
 describe("deleteDaemon", () => {
   it("should delete a daemon", async () => {
-    const deleteMock = vi.fn(async () => undefined);
+    const deleteMock = vi.fn(async () => {});
     const ctx = createTestExecutorContext({
       client: { delete: deleteMock } as never,
       organizationSlug: "test-org",

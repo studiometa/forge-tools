@@ -1,3 +1,4 @@
+import * as v from "valibot";
 import {
   createSecurityRule,
   deleteSecurityRule,
@@ -11,11 +12,16 @@ import { createResourceHandler } from "./factory.ts";
 export const handleSecurityRules = createResourceHandler({
   resource: "security-rules",
   actions: ["list", "get", "create", "delete"],
-  requiredFields: {
-    list: ["server_id", "site_id"],
-    get: ["server_id", "site_id", "id"],
-    create: ["server_id", "site_id", "name", "credentials"],
-    delete: ["server_id", "site_id", "id"],
+  inputSchemas: {
+    list: v.object({ server_id: v.string(), site_id: v.string() }),
+    get: v.object({ server_id: v.string(), site_id: v.string(), id: v.string() }),
+    create: v.object({
+      server_id: v.string(),
+      site_id: v.string(),
+      name: v.string(),
+      credentials: v.unknown(),
+    }),
+    delete: v.object({ server_id: v.string(), site_id: v.string(), id: v.string() }),
   },
   executors: {
     list: listSecurityRules,

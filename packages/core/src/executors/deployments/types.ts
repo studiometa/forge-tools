@@ -19,15 +19,6 @@ export interface DeploySiteOptions {
 }
 
 /**
- * Options for getting deployment output.
- */
-export interface GetDeploymentOutputOptions {
-  server_id: string;
-  site_id: string;
-  deployment_id: string;
-}
-
-/**
  * Options for getting the deployment script.
  */
 export interface GetDeploymentScriptOptions {
@@ -50,6 +41,7 @@ export interface UpdateDeploymentScriptOptions {
 export interface GetDeploymentLogOptions {
   server_id: string;
   site_id: string;
+  deployment_id: string;
 }
 
 /**

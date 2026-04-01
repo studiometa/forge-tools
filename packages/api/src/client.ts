@@ -55,6 +55,13 @@ export class HttpClient {
   }
 
   /**
+   * Make a PATCH request.
+   */
+  async patch<T>(path: string, body?: unknown): Promise<T> {
+    return this.request<T>("PATCH", path, body);
+  }
+
+  /**
    * Make a DELETE request.
    */
   async delete(path: string): Promise<void> {
@@ -90,7 +97,9 @@ export class HttpClient {
       if (response.status === 429) {
         const retryDelay = this.rateLimiter.getRetryDelay(attempt, response.headers);
         if (retryDelay !== null) {
-          await new Promise((resolve) => setTimeout(resolve, retryDelay));
+          await new Promise<void>((resolve) => {
+            setTimeout(resolve, retryDelay);
+          });
           attempt++;
           continue;
         }

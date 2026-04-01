@@ -38,7 +38,7 @@ function createTrackingClient(): {
         url: urlStr,
         body: init?.body ? JSON.parse(init.body as string) : undefined,
       });
-      const lastSegment = urlStr.split("?")[0]!.split("/").pop()!;
+      const lastSegment = urlStr.split("?")[0].split("/").pop()!;
       const isList = !/^\d+$/.test(lastSegment);
       return {
         ok: true,
@@ -66,7 +66,7 @@ describe("DeploymentsCollection", () => {
     const collection = new DeploymentsCollection(client, ORG, 123, 456);
 
     await collection.list();
-    expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers/123/sites/456/deployments`);
+    expect(calls[0].url).toContain(`/orgs/${ORG}/servers/123/sites/456/deployments`);
   });
 
   it("should list deployments with cursor option", async () => {
@@ -74,9 +74,9 @@ describe("DeploymentsCollection", () => {
     const collection = new DeploymentsCollection(client, ORG, 123, 456);
 
     await collection.list({ cursor: "abc123" });
-    expect(calls[0]!.url).toContain("/deployments?");
-    expect(calls[0]!.url).toContain("sort=-created_at");
-    expect(calls[0]!.url).toContain("page%5Bcursor%5D=abc123");
+    expect(calls[0].url).toContain("/deployments?");
+    expect(calls[0].url).toContain("sort=-created_at");
+    expect(calls[0].url).toContain("page%5Bcursor%5D=abc123");
   });
 
   it("should get a deployment", async () => {
@@ -84,7 +84,7 @@ describe("DeploymentsCollection", () => {
     const collection = new DeploymentsCollection(client, ORG, 123, 456);
 
     await collection.get(789);
-    expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers/123/sites/456/deployments/789`);
+    expect(calls[0].url).toContain(`/orgs/${ORG}/servers/123/sites/456/deployments/789`);
   });
 
   it("should get deployment output", async () => {
@@ -132,9 +132,9 @@ describe("DeploymentsCollection", () => {
     const collection = new DeploymentsCollection(client, ORG, 123, 456);
 
     await collection.updateScript("npm run build");
-    expect(calls[0]!.method).toBe("PUT");
-    expect(calls[0]!.body).toEqual({ content: "npm run build" });
-    expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers/123/sites/456/deployments/script`);
+    expect(calls[0].method).toBe("PUT");
+    expect(calls[0].body).toEqual({ content: "npm run build" });
+    expect(calls[0].url).toContain(`/orgs/${ORG}/servers/123/sites/456/deployments/script`);
   });
 
   it("should return an AsyncPaginatedIterator from all()", () => {

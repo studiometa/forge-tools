@@ -1,5 +1,5 @@
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
-import { sitePath } from "../../utils/url-builder.ts";
+import { ROUTES, request } from "../../routes.ts";
 
 import type { CreateCommandOptions } from "./types.ts";
 
@@ -10,9 +10,14 @@ export async function createCommand(
   options: CreateCommandOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<void>> {
-  await ctx.client.post(`${sitePath(options.server_id, options.site_id, ctx)}/commands`, {
-    command: options.command,
-  });
+  await request(
+    ROUTES.commands.create,
+    ctx,
+    { server_id: options.server_id, site_id: options.site_id },
+    {
+      body: { command: options.command },
+    },
+  );
 
   return { data: undefined };
 }

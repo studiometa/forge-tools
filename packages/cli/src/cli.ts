@@ -238,11 +238,7 @@ async function main(): Promise<void> {
           showConfigHelp();
           process.exit(0);
         }
-        handleConfigCommand(
-          subcommand ?? "get",
-          positional,
-          options as Record<string, string | boolean | string[]>,
-        );
+        handleConfigCommand(subcommand ?? "get", positional, options);
         break;
 
       case "servers":
@@ -251,11 +247,7 @@ async function main(): Promise<void> {
           showServersHelp(subcommand);
           process.exit(0);
         }
-        await handleServersCommand(
-          subcommand ?? "list",
-          positional,
-          options as Record<string, string | boolean | string[]>,
-        );
+        await handleServersCommand(subcommand ?? "list", positional, options);
         break;
 
       case "sites":
@@ -263,11 +255,7 @@ async function main(): Promise<void> {
           showSitesHelp(subcommand);
           process.exit(0);
         }
-        await handleSitesCommand(
-          subcommand ?? "list",
-          positional,
-          options as Record<string, string | boolean | string[]>,
-        );
+        await handleSitesCommand(subcommand ?? "list", positional, options);
         break;
 
       case "deployments":
@@ -276,11 +264,7 @@ async function main(): Promise<void> {
           showDeploymentsHelp(subcommand);
           process.exit(0);
         }
-        await handleDeploymentsCommand(
-          subcommand ?? "list",
-          positional,
-          options as Record<string, string | boolean | string[]>,
-        );
+        await handleDeploymentsCommand(subcommand ?? "list", positional, options);
         break;
 
       case "databases":
@@ -289,11 +273,7 @@ async function main(): Promise<void> {
           showDatabasesHelp(subcommand);
           process.exit(0);
         }
-        await handleDatabasesCommand(
-          subcommand ?? "list",
-          positional,
-          options as Record<string, string | boolean | string[]>,
-        );
+        await handleDatabasesCommand(subcommand ?? "list", positional, options);
         break;
 
       case "database-users":
@@ -301,11 +281,7 @@ async function main(): Promise<void> {
           showDatabaseUsersHelp(subcommand);
           process.exit(0);
         }
-        await handleDatabaseUsersCommand(
-          subcommand ?? "list",
-          positional,
-          options as Record<string, string | boolean | string[]>,
-        );
+        await handleDatabaseUsersCommand(subcommand ?? "list", positional, options);
         break;
 
       case "daemons":
@@ -313,11 +289,7 @@ async function main(): Promise<void> {
           showDaemonsHelp(subcommand);
           process.exit(0);
         }
-        await handleDaemonsCommand(
-          subcommand ?? "list",
-          positional,
-          options as Record<string, string | boolean | string[]>,
-        );
+        await handleDaemonsCommand(subcommand ?? "list", positional, options);
         break;
 
       case "env":
@@ -325,11 +297,7 @@ async function main(): Promise<void> {
           showEnvHelp(subcommand);
           process.exit(0);
         }
-        await handleEnvCommand(
-          subcommand ?? "get",
-          positional,
-          options as Record<string, string | boolean | string[]>,
-        );
+        await handleEnvCommand(subcommand ?? "get", positional, options);
         break;
 
       case "nginx":
@@ -337,11 +305,7 @@ async function main(): Promise<void> {
           showNginxHelp(subcommand);
           process.exit(0);
         }
-        await handleNginxCommand(
-          subcommand ?? "get",
-          positional,
-          options as Record<string, string | boolean | string[]>,
-        );
+        await handleNginxCommand(subcommand ?? "get", positional, options);
         break;
 
       case "certificates":
@@ -350,11 +314,7 @@ async function main(): Promise<void> {
           showCertificatesHelp(subcommand);
           process.exit(0);
         }
-        await handleCertificatesCommand(
-          subcommand ?? "list",
-          positional,
-          options as Record<string, string | boolean | string[]>,
-        );
+        await handleCertificatesCommand(subcommand ?? "list", positional, options);
         break;
 
       case "firewall-rules":
@@ -363,11 +323,7 @@ async function main(): Promise<void> {
           showFirewallRulesHelp(subcommand);
           process.exit(0);
         }
-        await handleFirewallRulesCommand(
-          subcommand ?? "list",
-          positional,
-          options as Record<string, string | boolean | string[]>,
-        );
+        await handleFirewallRulesCommand(subcommand ?? "list", positional, options);
         break;
 
       case "ssh-keys":
@@ -375,11 +331,7 @@ async function main(): Promise<void> {
           showSshKeysHelp(subcommand);
           process.exit(0);
         }
-        await handleSshKeysCommand(
-          subcommand ?? "list",
-          positional,
-          options as Record<string, string | boolean | string[]>,
-        );
+        await handleSshKeysCommand(subcommand ?? "list", positional, options);
         break;
 
       case "backups":
@@ -387,11 +339,7 @@ async function main(): Promise<void> {
           showBackupsHelp(subcommand);
           process.exit(0);
         }
-        await handleBackupsCommand(
-          subcommand ?? "list",
-          positional,
-          options as Record<string, string | boolean | string[]>,
-        );
+        await handleBackupsCommand(subcommand ?? "list", positional, options);
         break;
 
       case "commands":
@@ -399,11 +347,7 @@ async function main(): Promise<void> {
           showCommandsHelp(subcommand);
           process.exit(0);
         }
-        await handleCommandsCommand(
-          subcommand ?? "list",
-          positional,
-          options as Record<string, string | boolean | string[]>,
-        );
+        await handleCommandsCommand(subcommand ?? "list", positional, options);
         break;
 
       case "scheduled-jobs":
@@ -411,11 +355,7 @@ async function main(): Promise<void> {
           showScheduledJobsHelp(subcommand);
           process.exit(0);
         }
-        await handleScheduledJobsCommand(
-          subcommand ?? "list",
-          positional,
-          options as Record<string, string | boolean | string[]>,
-        );
+        await handleScheduledJobsCommand(subcommand ?? "list", positional, options);
         break;
 
       case "user":
@@ -423,11 +363,7 @@ async function main(): Promise<void> {
           showUserHelp(subcommand);
           process.exit(0);
         }
-        await handleUserCommand(
-          subcommand ?? "get",
-          positional,
-          options as Record<string, string | boolean | string[]>,
-        );
+        await handleUserCommand(subcommand ?? "get", positional, options);
         break;
 
       case "monitors":
@@ -435,11 +371,7 @@ async function main(): Promise<void> {
           showMonitorsHelp(subcommand);
           process.exit(0);
         }
-        await handleMonitorsCommand(
-          subcommand ?? "list",
-          positional,
-          options as Record<string, string | boolean | string[]>,
-        );
+        await handleMonitorsCommand(subcommand ?? "list", positional, options);
         break;
 
       case "nginx-templates":
@@ -447,11 +379,7 @@ async function main(): Promise<void> {
           showNginxTemplatesHelp(subcommand);
           process.exit(0);
         }
-        await handleNginxTemplatesCommand(
-          subcommand ?? "list",
-          positional,
-          options as Record<string, string | boolean | string[]>,
-        );
+        await handleNginxTemplatesCommand(subcommand ?? "list", positional, options);
         break;
 
       case "security-rules":
@@ -459,11 +387,7 @@ async function main(): Promise<void> {
           showSecurityRulesHelp(subcommand);
           process.exit(0);
         }
-        await handleSecurityRulesCommand(
-          subcommand ?? "list",
-          positional,
-          options as Record<string, string | boolean | string[]>,
-        );
+        await handleSecurityRulesCommand(subcommand ?? "list", positional, options);
         break;
 
       case "redirect-rules":
@@ -471,11 +395,7 @@ async function main(): Promise<void> {
           showRedirectRulesHelp(subcommand);
           process.exit(0);
         }
-        await handleRedirectRulesCommand(
-          subcommand ?? "list",
-          positional,
-          options as Record<string, string | boolean | string[]>,
-        );
+        await handleRedirectRulesCommand(subcommand ?? "list", positional, options);
         break;
 
       case "recipes":
@@ -483,11 +403,7 @@ async function main(): Promise<void> {
           showRecipesHelp(subcommand);
           process.exit(0);
         }
-        await handleRecipesCommand(
-          subcommand ?? "list",
-          positional,
-          options as Record<string, string | boolean | string[]>,
-        );
+        await handleRecipesCommand(subcommand ?? "list", positional, options);
         break;
 
       case "completion":
@@ -495,7 +411,7 @@ async function main(): Promise<void> {
           showCompletionHelp();
           process.exit(0);
         }
-        handleCompletionCommand(subcommand, options as Record<string, string | boolean | string[]>);
+        handleCompletionCommand(subcommand, options);
         break;
 
       default:

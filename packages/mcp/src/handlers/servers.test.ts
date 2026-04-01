@@ -12,7 +12,7 @@ function createMockContext(): HandlerContext {
       organizationSlug: "test-org",
       client: {
         get: async (url: string) => {
-          if (url.match(/\/servers\/\d+$/)) {
+          if (/\/servers\/\d+$/.test(url)) {
             return mockDocument(1, "servers", {
               id: 1,
               name: "web-1",
@@ -71,7 +71,7 @@ function createMockContext(): HandlerContext {
             timezone: "UTC",
             ssh_port: 22,
           }),
-        delete: async () => undefined,
+        delete: async () => {},
       } as never,
     },
     compact: true,
@@ -95,7 +95,7 @@ describe("handleServers", () => {
       createMockContext(),
     );
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("web-1");
+    expect(result.content[0].text).toContain("web-1");
   });
 
   it("should require id for get", async () => {
@@ -105,7 +105,7 @@ describe("handleServers", () => {
       createMockContext(),
     );
     expect(result.isError).toBe(true);
-    expect(result.content[0]!.text).toContain("id");
+    expect(result.content[0].text).toContain("id");
   });
 
   it("should reboot a server", async () => {
@@ -115,7 +115,7 @@ describe("handleServers", () => {
       createMockContext(),
     );
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("reboot");
+    expect(result.content[0].text).toContain("reboot");
   });
 
   it("should handle unknown action", async () => {
@@ -125,7 +125,7 @@ describe("handleServers", () => {
       createMockContext(),
     );
     expect(result.isError).toBe(true);
-    expect(result.content[0]!.text).toContain("Unknown action");
+    expect(result.content[0].text).toContain("Unknown action");
   });
 
   it("should reject path traversal in id", async () => {
@@ -135,7 +135,7 @@ describe("handleServers", () => {
       createMockContext(),
     );
     expect(result.isError).toBe(true);
-    expect(result.content[0]!.text).toContain("Invalid");
+    expect(result.content[0].text).toContain("Invalid");
   });
 
   it("should create a server", async () => {
@@ -188,7 +188,7 @@ describe("handleServers", () => {
 
     const result = await handleServers("get", { resource: "servers", action: "get", id: "1" }, ctx);
     expect(result.isError).toBeUndefined();
-    const parsed = JSON.parse(result.content[0]!.text);
+    const parsed = JSON.parse(result.content[0].text);
     expect(parsed._hints).toBeDefined();
     expect(parsed._hints.related_resources).toBeDefined();
   });
@@ -199,19 +199,19 @@ describe("handleServers", () => {
         organizationSlug: "test-org",
         client: {
           get: async (url: string) => {
-            if (url.match(/\/orgs\/test-org\/servers\/\d+\/sites$/))
+            if (/\/orgs\/test-org\/servers\/\d+\/sites$/.test(url))
               return mockListDocument("sites", []);
-            if (url.match(/\/orgs\/test-org\/servers\/\d+\/database\/schemas$/))
+            if (/\/orgs\/test-org\/servers\/\d+\/database\/schemas$/.test(url))
               return mockListDocument("databases", []);
-            if (url.match(/\/orgs\/test-org\/servers\/\d+\/database\/users$/))
+            if (/\/orgs\/test-org\/servers\/\d+\/database\/users$/.test(url))
               return mockListDocument("database-users", []);
-            if (url.match(/\/orgs\/test-org\/servers\/\d+\/background-processes$/))
+            if (/\/orgs\/test-org\/servers\/\d+\/background-processes$/.test(url))
               return mockListDocument("background-processes", []);
-            if (url.match(/\/orgs\/test-org\/servers\/\d+\/firewall-rules$/))
+            if (/\/orgs\/test-org\/servers\/\d+\/firewall-rules$/.test(url))
               return mockListDocument("firewall-rules", []);
-            if (url.match(/\/orgs\/test-org\/servers\/\d+\/scheduled-jobs$/))
+            if (/\/orgs\/test-org\/servers\/\d+\/scheduled-jobs$/.test(url))
               return mockListDocument("scheduled-jobs", []);
-            if (url.match(/\/orgs\/test-org\/servers\/\d+$/))
+            if (/\/orgs\/test-org\/servers\/\d+$/.test(url))
               return mockDocument(1, "servers", {
                 id: 1,
                 name: "web-1",
@@ -251,22 +251,47 @@ describe("handleServers", () => {
       ctx,
     );
     expect(result.isError).toBeUndefined();
-    const data = JSON.parse(result.content[0]!.text);
+    const data = JSON.parse(result.content[0].text);
     expect(data.server).toBeDefined();
     expect(data.sites).toBeDefined();
     expect(data.databases).toBeDefined();
   });
 
   it("should resolve servers by name (partial match)", async () => {
+    const serverBase = {
+      credential_id: null,
+      type: "app",
+      ubuntu_version: null,
+      ssh_port: 22,
+      provider: "ocean2",
+      identifier: null,
+      size: "01",
+      region: "ams3",
+      php_version: null,
+      php_cli_version: null,
+      opcache_status: null,
+      database_type: null,
+      db_status: null,
+      redis_status: null,
+      ip_address: null,
+      private_ip_address: null,
+      revoked: false,
+      created_at: "2024-01-01",
+      updated_at: "2024-01-01",
+      connection_status: "connected",
+      timezone: "UTC",
+      local_public_key: null,
+      is_ready: true,
+    };
     const ctx: HandlerContext = {
       executorContext: {
         organizationSlug: "test-org",
         client: {
           get: async () =>
             mockListDocument("servers", [
-              { id: 1, attributes: { id: 1, name: "prod-web-1" } as never },
-              { id: 2, attributes: { id: 2, name: "prod-web-2" } as never },
-              { id: 3, attributes: { id: 3, name: "staging-web-1" } as never },
+              { id: 1, attributes: { ...serverBase, id: 1, name: "prod-web-1" } },
+              { id: 2, attributes: { ...serverBase, id: 2, name: "prod-web-2" } },
+              { id: 3, attributes: { ...serverBase, id: 3, name: "staging-web-1" } },
             ]),
         } as never,
       },
@@ -278,19 +303,44 @@ describe("handleServers", () => {
       ctx,
     );
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("prod-web-1");
-    expect(result.content[0]!.text).toContain("prod-web-2");
-    expect(result.content[0]!.text).toContain("2 server(s)");
+    expect(result.content[0].text).toContain("prod-web-1");
+    expect(result.content[0].text).toContain("prod-web-2");
+    expect(result.content[0].text).toContain("2 server(s)");
   });
 
   it("should resolve servers — no matches", async () => {
+    const serverBase = {
+      credential_id: null,
+      type: "app",
+      ubuntu_version: null,
+      ssh_port: 22,
+      provider: "ocean2",
+      identifier: null,
+      size: "01",
+      region: "ams3",
+      php_version: null,
+      php_cli_version: null,
+      opcache_status: null,
+      database_type: null,
+      db_status: null,
+      redis_status: null,
+      ip_address: null,
+      private_ip_address: null,
+      revoked: false,
+      created_at: "2024-01-01",
+      updated_at: "2024-01-01",
+      connection_status: "connected",
+      timezone: "UTC",
+      local_public_key: null,
+      is_ready: true,
+    };
     const ctx: HandlerContext = {
       executorContext: {
         organizationSlug: "test-org",
         client: {
           get: async () =>
             mockListDocument("servers", [
-              { id: 1, attributes: { id: 1, name: "staging-web-1" } as never },
+              { id: 1, attributes: { ...serverBase, id: 1, name: "staging-web-1" } },
             ]),
         } as never,
       },
@@ -302,7 +352,7 @@ describe("handleServers", () => {
       ctx,
     );
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain('No servers matching "prod"');
+    expect(result.content[0].text).toContain('No servers matching "prod"');
   });
 
   it("should require query for resolve", async () => {
@@ -312,6 +362,6 @@ describe("handleServers", () => {
       createMockContext(),
     );
     expect(result.isError).toBe(true);
-    expect(result.content[0]!.text).toContain("query");
+    expect(result.content[0].text).toContain("query");
   });
 });

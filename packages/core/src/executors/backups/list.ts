@@ -1,7 +1,11 @@
-import type { JsonApiListDocument, BackupConfigAttributes } from "@studiometa/forge-api";
-import { unwrapListDocument } from "@studiometa/forge-api";
+import type { BackupConfigAttributes } from "@studiometa/forge-api";
+import {
+  unwrapListDocument,
+  jsonApiListDocumentSchema,
+  BackupConfigAttributesSchema,
+} from "@studiometa/forge-api";
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
-import { serverPath } from "../../utils/url-builder.ts";
+import { ROUTES, request } from "../../routes.ts";
 
 import type { ListBackupConfigsOptions } from "./types.ts";
 
@@ -12,8 +16,11 @@ export async function listBackupConfigs(
   options: ListBackupConfigsOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<Array<BackupConfigAttributes & { id: number }>>> {
-  const response = await ctx.client.get<JsonApiListDocument<BackupConfigAttributes>>(
-    `${serverPath(options.server_id, ctx)}/database/backups`,
+  const response = await request(
+    ROUTES.backups.list,
+    ctx,
+    { server_id: options.server_id },
+    { schema: jsonApiListDocumentSchema(BackupConfigAttributesSchema) },
   );
 
   return {

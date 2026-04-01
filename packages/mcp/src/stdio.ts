@@ -8,6 +8,7 @@ import {
 import type { ToolResult } from "./handlers/types.ts";
 
 import { executeToolWithCredentials } from "./handlers/index.ts";
+import type { Tool } from "@modelcontextprotocol/sdk/types.js";
 import { getTools, STDIO_ONLY_TOOLS } from "./tools.ts";
 import type { GetToolsOptions } from "./tools.ts";
 
@@ -18,8 +19,7 @@ export type { ToolResult };
  *
  * @param options - Optional filtering. When `readOnly` is true, forge_write is excluded.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function getAvailableTools(options?: GetToolsOptions): any[] {
+export function getAvailableTools(options?: GetToolsOptions): Tool[] {
   return [...getTools(options), ...STDIO_ONLY_TOOLS];
 }
 
@@ -118,7 +118,11 @@ export async function handleToolCall(
   options?: HandleToolCallOptions,
 ): Promise<ToolResult> {
   if (name === "forge_configure") {
-    return handleConfigureTool(args as { apiToken: string });
+    return handleConfigureTool({
+      apiToken: typeof args.apiToken === "string" ? args.apiToken : undefined,
+      organizationSlug:
+        typeof args.organizationSlug === "string" ? args.organizationSlug : undefined,
+    });
   }
 
   if (name === "forge_get_config") {

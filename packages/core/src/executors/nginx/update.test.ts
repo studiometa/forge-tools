@@ -5,7 +5,7 @@ import { updateNginxConfig } from "./update.ts";
 
 describe("updateNginxConfig", () => {
   it("should update nginx configuration", async () => {
-    const putMock = vi.fn(async () => undefined);
+    const putMock = vi.fn(async () => {});
     const ctx = createTestExecutorContext({
       client: { put: putMock } as never,
       organizationSlug: "test-org",

@@ -3,11 +3,11 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { handleNginxTemplatesCommand } from "./command.ts";
 
 vi.mock("./handlers.ts", () => ({
-  nginxTemplatesList: vi.fn().mockResolvedValue(undefined),
-  nginxTemplatesGet: vi.fn().mockResolvedValue(undefined),
-  nginxTemplatesCreate: vi.fn().mockResolvedValue(undefined),
-  nginxTemplatesUpdate: vi.fn().mockResolvedValue(undefined),
-  nginxTemplatesDelete: vi.fn().mockResolvedValue(undefined),
+  nginxTemplatesList: vi.fn().mockResolvedValue(),
+  nginxTemplatesGet: vi.fn().mockResolvedValue(),
+  nginxTemplatesCreate: vi.fn().mockResolvedValue(),
+  nginxTemplatesUpdate: vi.fn().mockResolvedValue(),
+  nginxTemplatesDelete: vi.fn().mockResolvedValue(),
 }));
 
 vi.mock("../../context.ts", () => ({

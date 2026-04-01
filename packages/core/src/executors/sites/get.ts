@@ -1,7 +1,7 @@
-import type { JsonApiDocument, SiteAttributes } from "@studiometa/forge-api";
-import { unwrapDocument } from "@studiometa/forge-api";
+import type { SiteAttributes } from "@studiometa/forge-api";
+import { unwrapDocument, jsonApiDocumentSchema, SiteAttributesSchema } from "@studiometa/forge-api";
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
-import { orgPrefix } from "../../utils/url-builder.ts";
+import { ROUTES, request } from "../../routes.ts";
 
 import type { GetSiteOptions } from "./types.ts";
 
@@ -15,8 +15,11 @@ export async function getSite(
   options: GetSiteOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<SiteAttributes & { id: number }>> {
-  const response = await ctx.client.get<JsonApiDocument<SiteAttributes>>(
-    `${orgPrefix(ctx)}/sites/${options.site_id}`,
+  const response = await request(
+    ROUTES.sites.get,
+    ctx,
+    { site_id: options.site_id },
+    { schema: jsonApiDocumentSchema(SiteAttributesSchema) },
   );
 
   return {

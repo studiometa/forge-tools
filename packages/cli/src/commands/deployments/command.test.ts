@@ -3,8 +3,8 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { handleDeploymentsCommand } from "./command.ts";
 
 vi.mock("./handlers.ts", () => ({
-  deploymentsList: vi.fn().mockResolvedValue(undefined),
-  deploymentsDeploy: vi.fn().mockResolvedValue(undefined),
+  deploymentsList: vi.fn().mockResolvedValue(),
+  deploymentsDeploy: vi.fn().mockResolvedValue(),
 }));
 
 vi.mock("../../context.ts", () => ({

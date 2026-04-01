@@ -72,7 +72,7 @@ describe("BackupsCollection", () => {
     const collection = new BackupsCollection(client, ORG, 123);
 
     await collection.list();
-    expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers/123/database/backups`);
+    expect(calls[0].url).toContain(`/orgs/${ORG}/servers/123/database/backups`);
   });
 
   it("should list backup configurations with cursor option", async () => {
@@ -80,9 +80,7 @@ describe("BackupsCollection", () => {
     const collection = new BackupsCollection(client, ORG, 123);
 
     await collection.list({ cursor: "abc123" });
-    expect(calls[0]!.url).toContain(
-      `/orgs/${ORG}/servers/123/database/backups?page[cursor]=abc123`,
-    );
+    expect(calls[0].url).toContain(`/orgs/${ORG}/servers/123/database/backups?page[cursor]=abc123`);
   });
 
   it("should get a backup configuration", async () => {
@@ -90,7 +88,7 @@ describe("BackupsCollection", () => {
     const collection = new BackupsCollection(client, ORG, 123);
 
     await collection.get(789);
-    expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers/123/database/backups/789`);
+    expect(calls[0].url).toContain(`/orgs/${ORG}/servers/123/database/backups/789`);
   });
 
   it("should create a backup configuration", async () => {
@@ -103,8 +101,8 @@ describe("BackupsCollection", () => {
       frequency: "weekly",
       databases: [1],
     });
-    expect(calls[0]!.method).toBe("POST");
-    expect(calls[0]!.body).toMatchObject({ provider: "s3" });
+    expect(calls[0].method).toBe("POST");
+    expect(calls[0].body).toMatchObject({ provider: "s3" });
   });
 
   it("should delete a backup configuration", async () => {
@@ -112,8 +110,8 @@ describe("BackupsCollection", () => {
     const collection = new BackupsCollection(client, ORG, 123);
 
     await collection.delete(789);
-    expect(calls[0]!.method).toBe("DELETE");
-    expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers/123/database/backups/789`);
+    expect(calls[0].method).toBe("DELETE");
+    expect(calls[0].url).toContain(`/orgs/${ORG}/servers/123/database/backups/789`);
   });
 
   it("should return an AsyncPaginatedIterator from all()", () => {

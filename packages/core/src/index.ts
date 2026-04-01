@@ -7,7 +7,6 @@ export type { Action, Resource } from "./constants.ts";
 // Utilities
 export { matchByName } from "./utils/name-matcher.ts";
 export type { NameMatch } from "./utils/name-matcher.ts";
-export { orgPrefix, serverPath, sitePath } from "./utils/url-builder.ts";
 
 // Audit logging
 export { createAuditLogger, sanitizeArgs, getAuditLogPath } from "./logger.ts";
@@ -60,7 +59,6 @@ export {
   deploySite,
   deploySiteAndWait,
   getDeploymentLog,
-  getDeploymentOutput,
   getDeploymentScript,
   listDeployments,
   updateDeploymentScript,
@@ -70,7 +68,6 @@ export type {
   DeploySiteAndWaitOptions,
   DeploySiteOptions,
   GetDeploymentLogOptions,
-  GetDeploymentOutputOptions,
   GetDeploymentScriptOptions,
   ListDeploymentsOptions,
   UpdateDeploymentScriptOptions,

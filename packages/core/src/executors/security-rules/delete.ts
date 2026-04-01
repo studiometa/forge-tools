@@ -1,15 +1,20 @@
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
-import { sitePath } from "../../utils/url-builder.ts";
+import { ROUTES, request } from "../../routes.ts";
 
 import type { DeleteSecurityRuleOptions } from "./types.ts";
 
+/**
+ * Delete a security rule.
+ */
 export async function deleteSecurityRule(
   options: DeleteSecurityRuleOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<void>> {
-  await ctx.client.delete(
-    `${sitePath(options.server_id, options.site_id, ctx)}/security-rules/${options.id}`,
-  );
+  await request(ROUTES.securityRules.delete, ctx, {
+    server_id: options.server_id,
+    site_id: options.site_id,
+    id: options.id,
+  });
 
   return {
     data: undefined,

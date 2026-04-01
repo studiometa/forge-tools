@@ -5,7 +5,7 @@ import { rebootServer } from "./reboot.ts";
 
 describe("rebootServer", () => {
   it("should reboot a server", async () => {
-    const postMock = vi.fn(async () => undefined);
+    const postMock = vi.fn(async () => {});
     const ctx = createTestExecutorContext({
       client: { post: postMock } as never,
       organizationSlug: "test-org",

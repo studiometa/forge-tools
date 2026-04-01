@@ -12,8 +12,12 @@ function makeMonitorAttrs(overrides: Record<string, unknown> = {}) {
     operator: ">",
     threshold: 80,
     minutes: 5,
+    notify: "email",
+    status: "active",
     state: "OK",
     state_changed_at: "2024-01-01",
+    created_at: "2024-01-01",
+    updated_at: "2024-01-01",
     ...overrides,
   };
 }
@@ -24,7 +28,7 @@ function createMockContext(): HandlerContext {
       organizationSlug: "test-org",
       client: {
         get: async (url: string) => {
-          if (url.match(/\/monitors\/\d+$/)) {
+          if (/\/monitors\/\d+$/.test(url)) {
             return mockDocument(1, "monitors", makeMonitorAttrs());
           }
           return mockListDocument("monitors", [{ id: 1, attributes: makeMonitorAttrs() as never }]);
@@ -35,7 +39,7 @@ function createMockContext(): HandlerContext {
             "monitors",
             makeMonitorAttrs({ type: "disk", threshold: 90, minutes: 1 }),
           ),
-        delete: async () => undefined,
+        delete: async () => {},
       } as never,
     },
     compact: true,
@@ -50,7 +54,7 @@ describe("handleMonitors", () => {
       createMockContext(),
     );
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("cpu_load");
+    expect(result.content[0].text).toContain("cpu_load");
   });
 
   it("should get a monitor", async () => {
@@ -60,7 +64,7 @@ describe("handleMonitors", () => {
       createMockContext(),
     );
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("cpu_load");
+    expect(result.content[0].text).toContain("cpu_load");
   });
 
   it("should create a monitor", async () => {
@@ -78,7 +82,7 @@ describe("handleMonitors", () => {
       createMockContext(),
     );
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("disk");
+    expect(result.content[0].text).toContain("disk");
   });
 
   it("should delete a monitor", async () => {
@@ -88,7 +92,7 @@ describe("handleMonitors", () => {
       createMockContext(),
     );
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("deleted");
+    expect(result.content[0].text).toContain("deleted");
   });
 
   it("should require server_id for list", async () => {

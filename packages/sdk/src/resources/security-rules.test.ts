@@ -57,7 +57,7 @@ describe("SecurityRulesCollection", () => {
     const collection = new SecurityRulesCollection(client, ORG, 123, 456);
 
     await collection.list();
-    expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers/123/sites/456/security-rules`);
+    expect(calls[0].url).toContain(`/orgs/${ORG}/servers/123/sites/456/security-rules`);
   });
 
   it("should list security rules with cursor option", async () => {
@@ -65,7 +65,7 @@ describe("SecurityRulesCollection", () => {
     const collection = new SecurityRulesCollection(client, ORG, 123, 456);
 
     await collection.list({ cursor: "abc123" });
-    expect(calls[0]!.url).toContain(
+    expect(calls[0].url).toContain(
       `/orgs/${ORG}/servers/123/sites/456/security-rules?page[cursor]=abc123`,
     );
   });
@@ -75,7 +75,7 @@ describe("SecurityRulesCollection", () => {
     const collection = new SecurityRulesCollection(client, ORG, 123, 456);
 
     await collection.get(789);
-    expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers/123/sites/456/security-rules/789`);
+    expect(calls[0].url).toContain(`/orgs/${ORG}/servers/123/sites/456/security-rules/789`);
   });
 
   it("should create a security rule", async () => {
@@ -87,8 +87,8 @@ describe("SecurityRulesCollection", () => {
       path: "/admin",
       credentials: [{ username: "admin", password: "secret" }],
     });
-    expect(calls[0]!.method).toBe("POST");
-    expect(calls[0]!.body).toMatchObject({ name: "Admin Area" });
+    expect(calls[0].method).toBe("POST");
+    expect(calls[0].body).toMatchObject({ name: "Admin Area" });
   });
 
   it("should delete a security rule", async () => {
@@ -96,8 +96,8 @@ describe("SecurityRulesCollection", () => {
     const collection = new SecurityRulesCollection(client, ORG, 123, 456);
 
     await collection.delete(789);
-    expect(calls[0]!.method).toBe("DELETE");
-    expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers/123/sites/456/security-rules/789`);
+    expect(calls[0].method).toBe("DELETE");
+    expect(calls[0].url).toContain(`/orgs/${ORG}/servers/123/sites/456/security-rules/789`);
   });
 
   it("should return an AsyncPaginatedIterator from all()", () => {

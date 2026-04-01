@@ -3,8 +3,8 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { handleSshKeysCommand } from "./command.ts";
 
 vi.mock("./handlers.ts", () => ({
-  sshKeysList: vi.fn().mockResolvedValue(undefined),
-  sshKeysGet: vi.fn().mockResolvedValue(undefined),
+  sshKeysList: vi.fn().mockResolvedValue(),
+  sshKeysGet: vi.fn().mockResolvedValue(),
 }));
 
 vi.mock("../../context.ts", () => ({

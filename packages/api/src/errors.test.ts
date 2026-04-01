@@ -69,7 +69,7 @@ describe("isForgeApiError", () => {
 
   it("should return false for non-error values", () => {
     expect(isForgeApiError(null)).toBe(false);
-    expect(isForgeApiError(undefined)).toBe(false);
+    expect(isForgeApiError()).toBe(false);
     expect(isForgeApiError("string")).toBe(false);
     expect(isForgeApiError(42)).toBe(false);
   });

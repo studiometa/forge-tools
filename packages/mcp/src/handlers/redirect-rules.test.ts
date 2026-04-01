@@ -11,6 +11,7 @@ function makeRuleAttrs(overrides: Record<string, unknown> = {}) {
     from: "/old",
     to: "/new",
     type: "301",
+    status: "active",
     created_at: "2024-01-01",
     updated_at: "2024-01-01",
     ...overrides,
@@ -23,15 +24,15 @@ function createMockContext(): HandlerContext {
       organizationSlug: "test-org",
       client: {
         get: async (url: string) => {
-          if (url.match(/\/redirect-rules\/\d+$/)) {
+          if (/\/redirect-rules\/\d+$/.test(url)) {
             return mockDocument(1, "redirect-rules", makeRuleAttrs());
           }
           return mockListDocument("redirect-rules", [
             { id: 1, attributes: makeRuleAttrs() as never },
           ]);
         },
-        post: async () => undefined,
-        delete: async () => undefined,
+        post: async () => {},
+        delete: async () => {},
       } as never,
     },
     compact: true,
@@ -46,7 +47,7 @@ describe("handleRedirectRules", () => {
       createMockContext(),
     );
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("/old");
+    expect(result.content[0].text).toContain("/old");
   });
 
   it("should get a redirect rule", async () => {
@@ -56,7 +57,7 @@ describe("handleRedirectRules", () => {
       createMockContext(),
     );
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("/old");
+    expect(result.content[0].text).toContain("/old");
   });
 
   it("should create a redirect rule", async () => {
@@ -73,7 +74,7 @@ describe("handleRedirectRules", () => {
       createMockContext(),
     );
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("Done");
+    expect(result.content[0].text).toContain("Done");
   });
 
   it("should delete a redirect rule", async () => {
@@ -83,7 +84,7 @@ describe("handleRedirectRules", () => {
       createMockContext(),
     );
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("deleted");
+    expect(result.content[0].text).toContain("deleted");
   });
 
   it("should require server_id and site_id for list", async () => {

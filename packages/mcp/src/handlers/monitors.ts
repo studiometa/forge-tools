@@ -1,3 +1,4 @@
+import * as v from "valibot";
 import { createMonitor, deleteMonitor, getMonitor, listMonitors } from "@studiometa/forge-core";
 
 import { formatMonitor, formatMonitorList } from "../formatters.ts";
@@ -6,11 +7,17 @@ import { createResourceHandler } from "./factory.ts";
 export const handleMonitors = createResourceHandler({
   resource: "monitors",
   actions: ["list", "get", "create", "delete"],
-  requiredFields: {
-    list: ["server_id"],
-    get: ["server_id", "id"],
-    create: ["server_id", "type", "operator", "threshold", "minutes"],
-    delete: ["server_id", "id"],
+  inputSchemas: {
+    list: v.object({ server_id: v.string() }),
+    get: v.object({ server_id: v.string(), id: v.string() }),
+    create: v.object({
+      server_id: v.string(),
+      type: v.string(),
+      operator: v.string(),
+      threshold: v.string(),
+      minutes: v.string(),
+    }),
+    delete: v.object({ server_id: v.string(), id: v.string() }),
   },
   executors: {
     list: listMonitors,

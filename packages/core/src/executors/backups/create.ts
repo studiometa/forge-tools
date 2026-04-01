@@ -1,17 +1,17 @@
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
-import { serverPath } from "../../utils/url-builder.ts";
+import { ROUTES, request } from "../../routes.ts";
 
 import type { CreateBackupConfigOptions } from "./types.ts";
 
 /**
- * Create a new backup configuration.
+ * Create a backup configuration.
  */
 export async function createBackupConfig(
   options: CreateBackupConfigOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<void>> {
   const { server_id, ...data } = options;
-  await ctx.client.post(`${serverPath(server_id, ctx)}/database/backups`, data);
+  await request(ROUTES.backups.create, ctx, { server_id }, { body: data });
 
   return { data: undefined };
 }

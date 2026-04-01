@@ -62,7 +62,7 @@ describe("DatabaseUsersCollection", () => {
     const collection = new DatabaseUsersCollection(client, ORG, 123);
 
     await collection.list();
-    expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers/123/database/users`);
+    expect(calls[0].url).toContain(`/orgs/${ORG}/servers/123/database/users`);
   });
 
   it("should list database users with cursor option", async () => {
@@ -70,7 +70,7 @@ describe("DatabaseUsersCollection", () => {
     const collection = new DatabaseUsersCollection(client, ORG, 123);
 
     await collection.list({ cursor: "abc123" });
-    expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers/123/database/users?page[cursor]=abc123`);
+    expect(calls[0].url).toContain(`/orgs/${ORG}/servers/123/database/users?page[cursor]=abc123`);
   });
 
   it("should get a database user", async () => {
@@ -78,7 +78,7 @@ describe("DatabaseUsersCollection", () => {
     const collection = new DatabaseUsersCollection(client, ORG, 123);
 
     await collection.get(789);
-    expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers/123/database/users/789`);
+    expect(calls[0].url).toContain(`/orgs/${ORG}/servers/123/database/users/789`);
   });
 
   it("should create a database user", async () => {
@@ -86,8 +86,8 @@ describe("DatabaseUsersCollection", () => {
     const collection = new DatabaseUsersCollection(client, ORG, 123);
 
     await collection.create({ name: "forge", password: "secret", databases: [1, 2] });
-    expect(calls[0]!.method).toBe("POST");
-    expect(calls[0]!.body).toEqual({ name: "forge", password: "secret", databases: [1, 2] });
+    expect(calls[0].method).toBe("POST");
+    expect(calls[0].body).toEqual({ name: "forge", password: "secret", databases: [1, 2] });
   });
 
   it("should delete a database user", async () => {
@@ -95,8 +95,8 @@ describe("DatabaseUsersCollection", () => {
     const collection = new DatabaseUsersCollection(client, ORG, 123);
 
     await collection.delete(789);
-    expect(calls[0]!.method).toBe("DELETE");
-    expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers/123/database/users/789`);
+    expect(calls[0].method).toBe("DELETE");
+    expect(calls[0].url).toContain(`/orgs/${ORG}/servers/123/database/users/789`);
   });
 
   it("should return an AsyncPaginatedIterator from all()", () => {

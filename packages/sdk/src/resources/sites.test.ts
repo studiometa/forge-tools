@@ -85,7 +85,7 @@ describe("SitesCollection", () => {
     const collection = new SitesCollection(client, ORG, 123);
 
     await collection.list({ cursor: "abc123" });
-    expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers/123/sites?page[cursor]=abc123`);
+    expect(calls[0].url).toContain(`/orgs/${ORG}/servers/123/sites?page[cursor]=abc123`);
   });
 
   it("should get a site", async () => {
@@ -102,7 +102,7 @@ describe("SitesCollection", () => {
     const collection = new SitesCollection(client, ORG, 123);
 
     await collection.get(456);
-    expect(calls[0]!.url).toContain(`/orgs/${ORG}/sites/456`);
+    expect(calls[0].url).toContain(`/orgs/${ORG}/sites/456`);
   });
 
   it("should create a site", async () => {
@@ -110,8 +110,8 @@ describe("SitesCollection", () => {
     const collection = new SitesCollection(client, ORG, 123);
 
     await collection.create({ domain: "example.com", project_type: "php" });
-    expect(calls[0]!.method).toBe("POST");
-    expect(calls[0]!.body).toEqual({ domain: "example.com", project_type: "php" });
+    expect(calls[0].method).toBe("POST");
+    expect(calls[0].body).toEqual({ domain: "example.com", project_type: "php" });
   });
 
   it("should update a site", async () => {
@@ -119,8 +119,8 @@ describe("SitesCollection", () => {
     const collection = new SitesCollection(client, ORG, 123);
 
     await collection.update(456, { directory: "/public" });
-    expect(calls[0]!.method).toBe("PUT");
-    expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers/123/sites/456`);
+    expect(calls[0].method).toBe("PUT");
+    expect(calls[0].url).toContain(`/orgs/${ORG}/servers/123/sites/456`);
   });
 
   it("should delete a site", async () => {
@@ -128,7 +128,7 @@ describe("SitesCollection", () => {
     const collection = new SitesCollection(client, ORG, 123);
 
     await collection.delete(456);
-    expect(calls[0]!.method).toBe("DELETE");
+    expect(calls[0].method).toBe("DELETE");
   });
 
   it("should return an AsyncPaginatedIterator from all()", () => {
@@ -144,7 +144,7 @@ describe("SitesCollection", () => {
     const collection = new SitesCollection(client, ORG, 123);
 
     await collection.list();
-    expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers/123/sites`);
+    expect(calls[0].url).toContain(`/orgs/${ORG}/servers/123/sites`);
   });
 
   describe("resolve", () => {
@@ -178,7 +178,7 @@ describe("SitesCollection", () => {
       const result = await collection.resolve("example.com");
 
       expect(result.total).toBe(1);
-      expect(result.matches[0]!.id).toBe(1);
+      expect(result.matches[0].id).toBe(1);
     });
 
     it("should return empty for no matches", async () => {
@@ -227,7 +227,7 @@ describe("SiteResource", () => {
     const resource = new SiteResource(client, ORG, 123, 456);
 
     await resource.get();
-    expect(calls[0]!.url).toContain(`/orgs/${ORG}/sites/456`);
+    expect(calls[0].url).toContain(`/orgs/${ORG}/sites/456`);
   });
 
   it("should deploy site", async () => {
@@ -235,8 +235,8 @@ describe("SiteResource", () => {
     const resource = new SiteResource(client, ORG, 123, 456);
 
     await resource.deploy();
-    expect(calls[0]!.method).toBe("POST");
-    expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers/123/sites/456/deployments/deploy`);
+    expect(calls[0].method).toBe("POST");
+    expect(calls[0].url).toContain(`/orgs/${ORG}/servers/123/sites/456/deployments/deploy`);
   });
 
   it("should delete site", async () => {
@@ -244,7 +244,7 @@ describe("SiteResource", () => {
     const resource = new SiteResource(client, ORG, 123, 456);
 
     await resource.delete();
-    expect(calls[0]!.method).toBe("DELETE");
+    expect(calls[0].method).toBe("DELETE");
   });
 });
 
@@ -254,7 +254,7 @@ describe("SiteEnvResource", () => {
     const env = new SiteEnvResource(client, ORG, 123, 456);
 
     await env.get();
-    expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers/123/sites/456/environment`);
+    expect(calls[0].url).toContain(`/orgs/${ORG}/servers/123/sites/456/environment`);
   });
 
   it("should update env content", async () => {
@@ -262,8 +262,8 @@ describe("SiteEnvResource", () => {
     const env = new SiteEnvResource(client, ORG, 123, 456);
 
     await env.update("APP_ENV=production");
-    expect(calls[0]!.method).toBe("PUT");
-    expect(calls[0]!.body).toEqual({ content: "APP_ENV=production" });
+    expect(calls[0].method).toBe("PUT");
+    expect(calls[0].body).toEqual({ content: "APP_ENV=production" });
   });
 });
 
@@ -273,7 +273,7 @@ describe("SiteNginxResource", () => {
     const nginx = new SiteNginxResource(client, ORG, 123, 456);
 
     await nginx.get();
-    expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers/123/sites/456/nginx`);
+    expect(calls[0].url).toContain(`/orgs/${ORG}/servers/123/sites/456/nginx`);
   });
 
   it("should update nginx config", async () => {
@@ -281,8 +281,8 @@ describe("SiteNginxResource", () => {
     const nginx = new SiteNginxResource(client, ORG, 123, 456);
 
     await nginx.update("server { }");
-    expect(calls[0]!.method).toBe("PUT");
-    expect(calls[0]!.body).toEqual({ content: "server { }" });
+    expect(calls[0].method).toBe("PUT");
+    expect(calls[0].body).toEqual({ content: "server { }" });
   });
 
   it("should iterate all items across pages via all()", async () => {

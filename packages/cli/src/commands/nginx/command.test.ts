@@ -3,8 +3,8 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { handleNginxCommand } from "./command.ts";
 
 vi.mock("./handlers.ts", () => ({
-  nginxGet: vi.fn().mockResolvedValue(undefined),
-  nginxUpdate: vi.fn().mockResolvedValue(undefined),
+  nginxGet: vi.fn().mockResolvedValue(),
+  nginxUpdate: vi.fn().mockResolvedValue(),
 }));
 
 vi.mock("../../context.ts", () => ({

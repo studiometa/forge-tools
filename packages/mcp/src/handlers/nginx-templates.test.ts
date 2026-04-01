@@ -22,7 +22,7 @@ function createMockContext(): HandlerContext {
       organizationSlug: "test-org",
       client: {
         get: async (url: string) => {
-          if (url.match(/\/nginx\/templates\/\d+$/)) {
+          if (/\/nginx\/templates\/\d+$/.test(url)) {
             return mockDocument(
               1,
               "nginx-templates",
@@ -45,7 +45,7 @@ function createMockContext(): HandlerContext {
             "nginx-templates",
             makeTemplateAttrs({ name: "wordpress-updated", content: "server { root /var/www; }" }),
           ),
-        delete: async () => undefined,
+        delete: async () => {},
       } as never,
     },
     compact: true,
@@ -60,7 +60,7 @@ describe("handleNginxTemplates", () => {
       createMockContext(),
     );
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("wordpress");
+    expect(result.content[0].text).toContain("wordpress");
   });
 
   it("should get a nginx template", async () => {
@@ -70,7 +70,7 @@ describe("handleNginxTemplates", () => {
       createMockContext(),
     );
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("wordpress");
+    expect(result.content[0].text).toContain("wordpress");
   });
 
   it("should create a nginx template", async () => {
@@ -86,7 +86,7 @@ describe("handleNginxTemplates", () => {
       createMockContext(),
     );
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("laravel");
+    expect(result.content[0].text).toContain("laravel");
   });
 
   it("should update a nginx template", async () => {
@@ -102,7 +102,7 @@ describe("handleNginxTemplates", () => {
       createMockContext(),
     );
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("wordpress-updated");
+    expect(result.content[0].text).toContain("wordpress-updated");
   });
 
   it("should delete a nginx template", async () => {
@@ -112,7 +112,7 @@ describe("handleNginxTemplates", () => {
       createMockContext(),
     );
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("deleted");
+    expect(result.content[0].text).toContain("deleted");
   });
 
   it("should require server_id for list", async () => {
@@ -144,7 +144,7 @@ describe("handleNginxTemplates", () => {
       ctx,
     );
     expect(result.isError).toBeUndefined();
-    const parsed = JSON.parse(result.content[0]!.text);
+    const parsed = JSON.parse(result.content[0].text);
     expect(parsed._hints).toBeDefined();
     expect(parsed._hints.related_resources).toBeDefined();
   });

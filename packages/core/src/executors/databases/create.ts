@@ -1,7 +1,11 @@
-import type { JsonApiDocument, DatabaseAttributes } from "@studiometa/forge-api";
-import { unwrapDocument } from "@studiometa/forge-api";
+import type { DatabaseAttributes } from "@studiometa/forge-api";
+import {
+  unwrapDocument,
+  jsonApiDocumentSchema,
+  DatabaseAttributesSchema,
+} from "@studiometa/forge-api";
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
-import { serverPath } from "../../utils/url-builder.ts";
+import { ROUTES, request } from "../../routes.ts";
 
 import type { CreateDatabaseOptions } from "./types.ts";
 
@@ -13,9 +17,11 @@ export async function createDatabase(
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<DatabaseAttributes & { id: number }>> {
   const { server_id, ...data } = options;
-  const response = await ctx.client.post<JsonApiDocument<DatabaseAttributes>>(
-    `${serverPath(server_id, ctx)}/database/schemas`,
-    data,
+  const response = await request(
+    ROUTES.databases.create,
+    ctx,
+    { server_id },
+    { body: data, schema: jsonApiDocumentSchema(DatabaseAttributesSchema) },
   );
 
   return {

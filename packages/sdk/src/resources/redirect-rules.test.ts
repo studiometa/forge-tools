@@ -63,7 +63,7 @@ describe("RedirectRulesCollection", () => {
     const collection = new RedirectRulesCollection(client, ORG, 123, 456);
 
     await collection.list();
-    expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers/123/sites/456/redirect-rules`);
+    expect(calls[0].url).toContain(`/orgs/${ORG}/servers/123/sites/456/redirect-rules`);
   });
 
   it("should list redirect rules with cursor option", async () => {
@@ -71,7 +71,7 @@ describe("RedirectRulesCollection", () => {
     const collection = new RedirectRulesCollection(client, ORG, 123, 456);
 
     await collection.list({ cursor: "abc123" });
-    expect(calls[0]!.url).toContain(
+    expect(calls[0].url).toContain(
       `/orgs/${ORG}/servers/123/sites/456/redirect-rules?page[cursor]=abc123`,
     );
   });
@@ -81,7 +81,7 @@ describe("RedirectRulesCollection", () => {
     const collection = new RedirectRulesCollection(client, ORG, 123, 456);
 
     await collection.get(789);
-    expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers/123/sites/456/redirect-rules/789`);
+    expect(calls[0].url).toContain(`/orgs/${ORG}/servers/123/sites/456/redirect-rules/789`);
   });
 
   it("should create a redirect rule", async () => {
@@ -89,8 +89,8 @@ describe("RedirectRulesCollection", () => {
     const collection = new RedirectRulesCollection(client, ORG, 123, 456);
 
     await collection.create({ from: "/old-path", to: "/new-path", type: "redirect" });
-    expect(calls[0]!.method).toBe("POST");
-    expect(calls[0]!.body).toMatchObject({ from: "/old-path", to: "/new-path" });
+    expect(calls[0].method).toBe("POST");
+    expect(calls[0].body).toMatchObject({ from: "/old-path", to: "/new-path" });
   });
 
   it("should delete a redirect rule", async () => {
@@ -98,8 +98,8 @@ describe("RedirectRulesCollection", () => {
     const collection = new RedirectRulesCollection(client, ORG, 123, 456);
 
     await collection.delete(789);
-    expect(calls[0]!.method).toBe("DELETE");
-    expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers/123/sites/456/redirect-rules/789`);
+    expect(calls[0].method).toBe("DELETE");
+    expect(calls[0].url).toContain(`/orgs/${ORG}/servers/123/sites/456/redirect-rules/789`);
   });
 
   it("should return an AsyncPaginatedIterator from all()", () => {

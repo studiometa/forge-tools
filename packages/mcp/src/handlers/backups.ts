@@ -1,3 +1,4 @@
+import * as v from "valibot";
 import {
   createBackupConfig,
   deleteBackupConfig,
@@ -11,11 +12,17 @@ import { createResourceHandler } from "./factory.ts";
 export const handleBackups = createResourceHandler({
   resource: "backups",
   actions: ["list", "get", "create", "delete"],
-  requiredFields: {
-    list: ["server_id"],
-    get: ["server_id", "id"],
-    create: ["server_id", "provider", "credentials", "frequency", "databases"],
-    delete: ["server_id", "id"],
+  inputSchemas: {
+    list: v.object({ server_id: v.string() }),
+    get: v.object({ server_id: v.string(), id: v.string() }),
+    create: v.object({
+      server_id: v.string(),
+      provider: v.string(),
+      frequency: v.string(),
+      credentials: v.unknown(),
+      databases: v.unknown(),
+    }),
+    delete: v.object({ server_id: v.string(), id: v.string() }),
   },
   executors: {
     list: listBackupConfigs,

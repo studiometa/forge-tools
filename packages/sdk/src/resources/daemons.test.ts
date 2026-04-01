@@ -36,7 +36,7 @@ function createTrackingClient(): {
         body: init?.body ? JSON.parse(init.body as string) : undefined,
       });
       // Return list document for list endpoints, single document for others
-      const lastSegment = urlStr.split("?")[0]!.split("/").pop()!;
+      const lastSegment = urlStr.split("?")[0].split("/").pop()!;
       const isList = !/^\d+$/.test(lastSegment);
       return {
         ok: true,
@@ -64,7 +64,7 @@ describe("DaemonsCollection", () => {
     const collection = new DaemonsCollection(client, ORG, 123);
 
     await collection.list();
-    expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers/123/background-processes`);
+    expect(calls[0].url).toContain(`/orgs/${ORG}/servers/123/background-processes`);
   });
 
   it("should list daemons with cursor option", async () => {
@@ -72,7 +72,7 @@ describe("DaemonsCollection", () => {
     const collection = new DaemonsCollection(client, ORG, 123);
 
     await collection.list({ cursor: "abc123" });
-    expect(calls[0]!.url).toContain(
+    expect(calls[0].url).toContain(
       `/orgs/${ORG}/servers/123/background-processes?page[cursor]=abc123`,
     );
   });
@@ -82,7 +82,7 @@ describe("DaemonsCollection", () => {
     const collection = new DaemonsCollection(client, ORG, 123);
 
     await collection.get(789);
-    expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers/123/background-processes/789`);
+    expect(calls[0].url).toContain(`/orgs/${ORG}/servers/123/background-processes/789`);
   });
 
   it("should create a daemon", async () => {
@@ -90,8 +90,8 @@ describe("DaemonsCollection", () => {
     const collection = new DaemonsCollection(client, ORG, 123);
 
     await collection.create({ command: "php artisan queue:work", user: "forge" });
-    expect(calls[0]!.method).toBe("POST");
-    expect(calls[0]!.body).toEqual({ command: "php artisan queue:work", user: "forge" });
+    expect(calls[0].method).toBe("POST");
+    expect(calls[0].body).toEqual({ command: "php artisan queue:work", user: "forge" });
   });
 
   it("should delete a daemon", async () => {
@@ -99,8 +99,8 @@ describe("DaemonsCollection", () => {
     const collection = new DaemonsCollection(client, ORG, 123);
 
     await collection.delete(789);
-    expect(calls[0]!.method).toBe("DELETE");
-    expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers/123/background-processes/789`);
+    expect(calls[0].method).toBe("DELETE");
+    expect(calls[0].url).toContain(`/orgs/${ORG}/servers/123/background-processes/789`);
   });
 
   it("should restart a daemon", async () => {
@@ -108,8 +108,8 @@ describe("DaemonsCollection", () => {
     const collection = new DaemonsCollection(client, ORG, 123);
 
     await collection.restart(789);
-    expect(calls[0]!.method).toBe("POST");
-    expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers/123/background-processes/789/restart`);
+    expect(calls[0].method).toBe("POST");
+    expect(calls[0].url).toContain(`/orgs/${ORG}/servers/123/background-processes/789/restart`);
   });
 
   it("should return an AsyncPaginatedIterator from all()", () => {

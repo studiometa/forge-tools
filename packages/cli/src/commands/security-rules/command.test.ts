@@ -3,10 +3,10 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { handleSecurityRulesCommand } from "./command.ts";
 
 vi.mock("./handlers.ts", () => ({
-  securityRulesList: vi.fn().mockResolvedValue(undefined),
-  securityRulesGet: vi.fn().mockResolvedValue(undefined),
-  securityRulesCreate: vi.fn().mockResolvedValue(undefined),
-  securityRulesDelete: vi.fn().mockResolvedValue(undefined),
+  securityRulesList: vi.fn().mockResolvedValue(),
+  securityRulesGet: vi.fn().mockResolvedValue(),
+  securityRulesCreate: vi.fn().mockResolvedValue(),
+  securityRulesDelete: vi.fn().mockResolvedValue(),
 }));
 
 vi.mock("../../context.ts", () => ({

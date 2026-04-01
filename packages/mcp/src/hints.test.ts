@@ -19,11 +19,11 @@ describe("getServerHints", () => {
 
     expect(hints.related_resources).toBeDefined();
     expect(hints.related_resources!.length).toBeGreaterThan(0);
-    expect(hints.related_resources![0]!.resource).toBe("sites");
-    expect(hints.related_resources![0]!.example.server_id).toBe("123");
+    expect(hints.related_resources![0].resource).toBe("sites");
+    expect(hints.related_resources![0].example.server_id).toBe("123");
 
     expect(hints.common_actions).toBeDefined();
-    expect(hints.common_actions![0]!.example.id).toBe("123");
+    expect(hints.common_actions![0].example.id).toBe("123");
   });
 
   it("should include ssh-keys and firewall-rules as related resources", () => {
@@ -42,12 +42,12 @@ describe("getSiteHints", () => {
 
     expect(hints.related_resources).toBeDefined();
     expect(hints.related_resources!.length).toBeGreaterThan(0);
-    expect(hints.related_resources![0]!.resource).toBe("deployments");
-    expect(hints.related_resources![0]!.example.server_id).toBe("123");
-    expect(hints.related_resources![0]!.example.site_id).toBe("456");
+    expect(hints.related_resources![0].resource).toBe("deployments");
+    expect(hints.related_resources![0].example.server_id).toBe("123");
+    expect(hints.related_resources![0].example.site_id).toBe("456");
 
     expect(hints.common_actions).toBeDefined();
-    expect(hints.common_actions![0]!.example.server_id).toBe("123");
+    expect(hints.common_actions![0].example.server_id).toBe("123");
   });
 
   it("should include certificates, env and nginx as related resources", () => {
@@ -64,12 +64,12 @@ describe("getDatabaseHints", () => {
     const hints = getDatabaseHints("10", "99");
 
     expect(hints.related_resources).toBeDefined();
-    expect(hints.related_resources![0]!.resource).toBe("databases");
-    expect(hints.related_resources![0]!.example.server_id).toBe("10");
+    expect(hints.related_resources![0].resource).toBe("databases");
+    expect(hints.related_resources![0].example.server_id).toBe("10");
 
     expect(hints.common_actions).toBeDefined();
-    expect(hints.common_actions![0]!.example.server_id).toBe("10");
-    expect(hints.common_actions![0]!.example.id).toBe("99");
+    expect(hints.common_actions![0].example.server_id).toBe("10");
+    expect(hints.common_actions![0].example.id).toBe("99");
   });
 });
 
@@ -78,12 +78,12 @@ describe("getDatabaseUserHints", () => {
     const hints = getDatabaseUserHints("10", "5");
 
     expect(hints.related_resources).toBeDefined();
-    expect(hints.related_resources![0]!.resource).toBe("database-users");
-    expect(hints.related_resources![0]!.example.server_id).toBe("10");
+    expect(hints.related_resources![0].resource).toBe("database-users");
+    expect(hints.related_resources![0].example.server_id).toBe("10");
 
     expect(hints.common_actions).toBeDefined();
-    expect(hints.common_actions![0]!.example.server_id).toBe("10");
-    expect(hints.common_actions![0]!.example.id).toBe("5");
+    expect(hints.common_actions![0].example.server_id).toBe("10");
+    expect(hints.common_actions![0].example.id).toBe("5");
   });
 });
 
@@ -92,14 +92,14 @@ describe("getDaemonHints", () => {
     const hints = getDaemonHints("5", "77");
 
     expect(hints.related_resources).toBeDefined();
-    expect(hints.related_resources![0]!.resource).toBe("daemons");
-    expect(hints.related_resources![0]!.example.server_id).toBe("5");
+    expect(hints.related_resources![0].resource).toBe("daemons");
+    expect(hints.related_resources![0].example.server_id).toBe("5");
 
     expect(hints.common_actions).toBeDefined();
     // Should have restart and delete actions
     const actions = hints.common_actions!.map((a) => a.example);
-    const hasRestart = actions.some((a) => (a as Record<string, unknown>).action === "restart");
-    const hasDelete = actions.some((a) => (a as Record<string, unknown>).action === "delete");
+    const hasRestart = actions.some((a) => a.action === "restart");
+    const hasDelete = actions.some((a) => a.action === "delete");
     expect(hasRestart).toBe(true);
     expect(hasDelete).toBe(true);
   });
@@ -110,13 +110,13 @@ describe("getCertificateHints", () => {
     const hints = getCertificateHints("3", "7", "55");
 
     expect(hints.related_resources).toBeDefined();
-    expect(hints.related_resources![0]!.resource).toBe("sites");
-    expect(hints.related_resources![0]!.example.server_id).toBe("3");
+    expect(hints.related_resources![0].resource).toBe("sites");
+    expect(hints.related_resources![0].example.server_id).toBe("3");
 
     expect(hints.common_actions).toBeDefined();
     const actions = hints.common_actions!.map((a) => a.example);
-    const hasActivate = actions.some((a) => (a as Record<string, unknown>).action === "activate");
-    const hasDelete = actions.some((a) => (a as Record<string, unknown>).action === "delete");
+    const hasActivate = actions.some((a) => a.action === "activate");
+    const hasDelete = actions.some((a) => a.action === "delete");
     expect(hasActivate).toBe(true);
     expect(hasDelete).toBe(true);
   });
@@ -127,12 +127,12 @@ describe("getFirewallRuleHints", () => {
     const hints = getFirewallRuleHints("8", "33");
 
     expect(hints.related_resources).toBeDefined();
-    expect(hints.related_resources![0]!.resource).toBe("firewall-rules");
-    expect(hints.related_resources![0]!.example.server_id).toBe("8");
+    expect(hints.related_resources![0].resource).toBe("firewall-rules");
+    expect(hints.related_resources![0].example.server_id).toBe("8");
 
     expect(hints.common_actions).toBeDefined();
-    expect(hints.common_actions![0]!.example.id).toBe("33");
-    expect(hints.common_actions![0]!.example.server_id).toBe("8");
+    expect(hints.common_actions![0].example.id).toBe("33");
+    expect(hints.common_actions![0].example.server_id).toBe("8");
   });
 });
 
@@ -141,11 +141,11 @@ describe("getSshKeyHints", () => {
     const hints = getSshKeyHints("9", "44");
 
     expect(hints.related_resources).toBeDefined();
-    expect(hints.related_resources![0]!.resource).toBe("ssh-keys");
-    expect(hints.related_resources![0]!.example.server_id).toBe("9");
+    expect(hints.related_resources![0].resource).toBe("ssh-keys");
+    expect(hints.related_resources![0].example.server_id).toBe("9");
 
     expect(hints.common_actions).toBeDefined();
-    expect(hints.common_actions![0]!.example.id).toBe("44");
+    expect(hints.common_actions![0].example.id).toBe("44");
   });
 });
 
@@ -154,15 +154,15 @@ describe("getRecipeHints", () => {
     const hints = getRecipeHints("66");
 
     expect(hints.related_resources).toBeDefined();
-    expect(hints.related_resources![0]!.resource).toBe("recipes");
+    expect(hints.related_resources![0].resource).toBe("recipes");
 
     expect(hints.common_actions).toBeDefined();
     const actions = hints.common_actions!.map((a) => a.example);
-    const hasRun = actions.some((a) => (a as Record<string, unknown>).action === "run");
-    const hasDelete = actions.some((a) => (a as Record<string, unknown>).action === "delete");
+    const hasRun = actions.some((a) => a.action === "run");
+    const hasDelete = actions.some((a) => a.action === "delete");
     expect(hasRun).toBe(true);
     expect(hasDelete).toBe(true);
-    expect((hints.common_actions![0]!.example as Record<string, unknown>).id).toBe("66");
+    expect(hints.common_actions![0].example.id).toBe("66");
   });
 });
 
@@ -171,13 +171,13 @@ describe("getNginxTemplateHints", () => {
     const hints = getNginxTemplateHints("11", "22");
 
     expect(hints.related_resources).toBeDefined();
-    expect(hints.related_resources![0]!.resource).toBe("nginx-templates");
-    expect(hints.related_resources![0]!.example.server_id).toBe("11");
+    expect(hints.related_resources![0].resource).toBe("nginx-templates");
+    expect(hints.related_resources![0].example.server_id).toBe("11");
 
     expect(hints.common_actions).toBeDefined();
     const actions = hints.common_actions!.map((a) => a.example);
-    const hasUpdate = actions.some((a) => (a as Record<string, unknown>).action === "update");
-    const hasDelete = actions.some((a) => (a as Record<string, unknown>).action === "delete");
+    const hasUpdate = actions.some((a) => a.action === "update");
+    const hasDelete = actions.some((a) => a.action === "delete");
     expect(hasUpdate).toBe(true);
     expect(hasDelete).toBe(true);
   });

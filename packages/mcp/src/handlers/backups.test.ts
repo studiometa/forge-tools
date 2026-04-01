@@ -32,15 +32,15 @@ function createMockContext(): HandlerContext {
       organizationSlug: "test-org",
       client: {
         get: async (url: string) => {
-          if (url.match(/\/database\/backups\/\d+$/)) {
+          if (/\/database\/backups\/\d+$/.test(url)) {
             return mockDocument(1, "backup-configs", makeBackupAttrs());
           }
           return mockListDocument("backup-configs", [
             { id: 1, attributes: makeBackupAttrs({ status: "installed" }) as never },
           ]);
         },
-        post: async () => undefined,
-        delete: async () => undefined,
+        post: async () => {},
+        delete: async () => {},
       } as never,
     },
     compact: true,
@@ -55,7 +55,7 @@ describe("handleBackups", () => {
       createMockContext(),
     );
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("S3 Backup");
+    expect(result.content[0].text).toContain("S3 Backup");
   });
 
   it("should get a backup config", async () => {
@@ -65,7 +65,7 @@ describe("handleBackups", () => {
       createMockContext(),
     );
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("S3 Backup");
+    expect(result.content[0].text).toContain("S3 Backup");
   });
 
   it("should require server_id", async () => {
@@ -75,7 +75,7 @@ describe("handleBackups", () => {
       createMockContext(),
     );
     expect(result.isError).toBe(true);
-    expect(result.content[0]!.text).toContain("server_id");
+    expect(result.content[0].text).toContain("server_id");
   });
 
   it("should create a backup config", async () => {
@@ -93,7 +93,7 @@ describe("handleBackups", () => {
       createMockContext(),
     );
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("Done");
+    expect(result.content[0].text).toContain("Done");
   });
 
   it("should delete a backup config", async () => {
@@ -103,7 +103,7 @@ describe("handleBackups", () => {
       createMockContext(),
     );
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("deleted");
+    expect(result.content[0].text).toContain("deleted");
   });
 
   it("should handle unknown action", async () => {
@@ -113,6 +113,6 @@ describe("handleBackups", () => {
       createMockContext(),
     );
     expect(result.isError).toBe(true);
-    expect(result.content[0]!.text).toContain("Unknown action");
+    expect(result.content[0].text).toContain("Unknown action");
   });
 });

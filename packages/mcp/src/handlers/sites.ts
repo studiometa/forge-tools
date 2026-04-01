@@ -1,3 +1,4 @@
+import * as v from "valibot";
 import { createSite, deleteSite, getSite, listSites, resolveSites } from "@studiometa/forge-core";
 
 import type { ResolveSiteResult } from "@studiometa/forge-core";
@@ -11,12 +12,12 @@ import type { CommonArgs, HandlerContext, ToolResult } from "./types.ts";
 const _handleSites = createResourceHandler({
   resource: "sites",
   actions: ["list", "get", "create", "delete", "resolve"],
-  requiredFields: {
-    list: ["server_id"],
-    get: ["server_id", "id"],
-    create: ["server_id", "type"],
-    delete: ["server_id", "id"],
-    resolve: ["server_id", "query"],
+  inputSchemas: {
+    list: v.object({ server_id: v.string() }),
+    get: v.object({ server_id: v.string(), id: v.string() }),
+    create: v.object({ server_id: v.string(), type: v.string() }),
+    delete: v.object({ server_id: v.string(), id: v.string() }),
+    resolve: v.object({ server_id: v.string(), query: v.string() }),
   },
   executors: {
     list: listSites,
@@ -51,7 +52,7 @@ const _handleSites = createResourceHandler({
   formatResult: (action, data, args) => {
     switch (action) {
       case "list":
-        return formatSiteList(data, args.server_id as string | undefined);
+        return formatSiteList(data, args.server_id);
       case "get":
         return formatSite(data);
       case "create":

@@ -24,12 +24,12 @@ function makeSiteAttrs(overrides: Record<string, unknown> = {}) {
     url: "",
     https: false,
     isolated: false,
-    user: null,
+    user: "forge",
     database: null,
-    shared_paths: [],
+    shared_paths: null,
     uses_envoyer: false,
     zero_downtime_deployments: false,
-    maintenance_mode: false,
+    maintenance_mode: null,
     healthcheck_url: null,
     created_at: "2024-01-01",
     updated_at: "2024-01-01",
@@ -43,14 +43,14 @@ function createMockContext(): HandlerContext {
       organizationSlug: "test-org",
       client: {
         get: async (url: string) => {
-          if (url.match(/\/sites\/\d+$/)) {
+          if (/\/sites\/\d+$/.test(url)) {
             return mockDocument(1, "sites", makeSiteAttrs());
           }
           return mockListDocument("sites", [{ id: 1, attributes: makeSiteAttrs() as never }]);
         },
         post: async () =>
           mockDocument(2, "sites", makeSiteAttrs({ name: "new.com", status: "installing" })),
-        delete: async () => undefined,
+        delete: async () => {},
       } as never,
     },
     compact: true,
@@ -65,7 +65,7 @@ describe("handleSites", () => {
       createMockContext(),
     );
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("example.com");
+    expect(result.content[0].text).toContain("example.com");
   });
 
   it("should get a site", async () => {
@@ -75,7 +75,7 @@ describe("handleSites", () => {
       createMockContext(),
     );
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("example.com");
+    expect(result.content[0].text).toContain("example.com");
   });
 
   it("should create a site", async () => {
@@ -85,7 +85,7 @@ describe("handleSites", () => {
       createMockContext(),
     );
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("new.com");
+    expect(result.content[0].text).toContain("new.com");
   });
 
   it("should delete a site", async () => {
@@ -104,7 +104,7 @@ describe("handleSites", () => {
       createMockContext(),
     );
     expect(result.isError).toBe(true);
-    expect(result.content[0]!.text).toContain("server_id");
+    expect(result.content[0].text).toContain("server_id");
   });
 
   it("should handle unknown action", async () => {
@@ -114,7 +114,7 @@ describe("handleSites", () => {
       createMockContext(),
     );
     expect(result.isError).toBe(true);
-    expect(result.content[0]!.text).toContain("Unknown action");
+    expect(result.content[0].text).toContain("Unknown action");
   });
 
   it("should inject hints on get when includeHints=true", async () => {
@@ -128,7 +128,7 @@ describe("handleSites", () => {
       ctx,
     );
     expect(result.isError).toBeUndefined();
-    const parsed = JSON.parse(result.content[0]!.text);
+    const parsed = JSON.parse(result.content[0].text);
     expect(parsed._hints).toBeDefined();
     expect(parsed._hints.related_resources).toBeDefined();
   });
@@ -139,7 +139,7 @@ describe("handleSites", () => {
         organizationSlug: "test-org",
         client: {
           get: async (url: string) => {
-            if (url.match(/\/sites\/\d+\/deployments/))
+            if (/\/sites\/\d+\/deployments/.test(url))
               return mockListDocument("deployments", [
                 {
                   id: 1,
@@ -166,11 +166,11 @@ describe("handleSites", () => {
                   } as never,
                 },
               ]);
-            if (url.match(/\/sites\/\d+\/redirect-rules$/))
+            if (/\/sites\/\d+\/redirect-rules$/.test(url))
               return mockListDocument("redirect-rules", []);
-            if (url.match(/\/sites\/\d+\/security-rules$/))
+            if (/\/sites\/\d+\/security-rules$/.test(url))
               return mockListDocument("security-rules", []);
-            if (url.match(/\/sites\/\d+$/)) return mockDocument(1, "sites", makeSiteAttrs());
+            if (/\/sites\/\d+$/.test(url)) return mockDocument(1, "sites", makeSiteAttrs());
             return {};
           },
         } as never,
@@ -183,21 +183,47 @@ describe("handleSites", () => {
       ctx,
     );
     expect(result.isError).toBeUndefined();
-    const data = JSON.parse(result.content[0]!.text);
+    const data = JSON.parse(result.content[0].text);
     expect(data.site).toBeDefined();
     expect(data.deployments).toBeDefined();
   });
 
   it("should resolve sites by domain name (partial match)", async () => {
+    const siteBase = {
+      aliases: [],
+      root_directory: null,
+      web_directory: "/public",
+      wildcards: null,
+      status: "installed",
+      repository: null,
+      quick_deploy: null,
+      deployment_status: null,
+      deployment_url: "https://site/deploy",
+      deployment_script: null,
+      php_version: "php83",
+      app_type: "php",
+      url: "https://site",
+      https: false,
+      isolated: false,
+      user: "forge",
+      database: null,
+      shared_paths: null,
+      uses_envoyer: false,
+      zero_downtime_deployments: false,
+      maintenance_mode: null,
+      healthcheck_url: null,
+      created_at: null,
+      updated_at: null,
+    };
     const ctx: HandlerContext = {
       executorContext: {
         organizationSlug: "test-org",
         client: {
           get: async () =>
             mockListDocument("sites", [
-              { id: 1, attributes: { name: "example.com" } as never },
-              { id: 2, attributes: { name: "api.example.com" } as never },
-              { id: 3, attributes: { name: "staging.myapp.io" } as never },
+              { id: 1, attributes: { ...siteBase, name: "example.com" } },
+              { id: 2, attributes: { ...siteBase, name: "api.example.com" } },
+              { id: 3, attributes: { ...siteBase, name: "staging.myapp.io" } },
             ]),
         } as never,
       },
@@ -209,19 +235,45 @@ describe("handleSites", () => {
       ctx,
     );
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("example.com");
-    expect(result.content[0]!.text).toContain("api.example.com");
-    expect(result.content[0]!.text).toContain("2 site(s)");
+    expect(result.content[0].text).toContain("example.com");
+    expect(result.content[0].text).toContain("api.example.com");
+    expect(result.content[0].text).toContain("2 site(s)");
   });
 
   it("should resolve sites — no matches", async () => {
+    const siteBase = {
+      aliases: [],
+      root_directory: null,
+      web_directory: "/public",
+      wildcards: null,
+      status: "installed",
+      repository: null,
+      quick_deploy: null,
+      deployment_status: null,
+      deployment_url: "https://site/deploy",
+      deployment_script: null,
+      php_version: "php83",
+      app_type: "php",
+      url: "https://site",
+      https: false,
+      isolated: false,
+      user: "forge",
+      database: null,
+      shared_paths: null,
+      uses_envoyer: false,
+      zero_downtime_deployments: false,
+      maintenance_mode: null,
+      healthcheck_url: null,
+      created_at: null,
+      updated_at: null,
+    };
     const ctx: HandlerContext = {
       executorContext: {
         organizationSlug: "test-org",
         client: {
           get: async () =>
             mockListDocument("sites", [
-              { id: 1, attributes: { name: "staging.myapp.io" } as never },
+              { id: 1, attributes: { ...siteBase, name: "staging.myapp.io" } },
             ]),
         } as never,
       },
@@ -233,7 +285,7 @@ describe("handleSites", () => {
       ctx,
     );
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain('No sites matching "example"');
+    expect(result.content[0].text).toContain('No sites matching "example"');
   });
 
   it("should require server_id and query for resolve", async () => {
@@ -243,6 +295,6 @@ describe("handleSites", () => {
       createMockContext(),
     );
     expect(result.isError).toBe(true);
-    expect(result.content[0]!.text).toContain("query");
+    expect(result.content[0].text).toContain("query");
   });
 });

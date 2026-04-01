@@ -5,7 +5,7 @@ import { deploySite } from "./deploy.ts";
 
 describe("deploySite", () => {
   it("should trigger a deployment", async () => {
-    const postMock = vi.fn(async () => undefined);
+    const postMock = vi.fn(async () => {});
 
     const ctx = createTestExecutorContext({
       client: { post: postMock } as never,

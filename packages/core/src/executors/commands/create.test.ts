@@ -7,7 +7,7 @@ describe("createCommand", () => {
   it("should execute a command and format output", async () => {
     const ctx = createTestExecutorContext({
       client: {
-        post: async () => undefined,
+        post: async () => {},
       } as never,
       organizationSlug: "test-org",
     });

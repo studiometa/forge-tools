@@ -64,7 +64,7 @@ describe("SshKeysCollection", () => {
     const collection = new SshKeysCollection(client, ORG, 123);
 
     await collection.list();
-    expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers/123/ssh-keys`);
+    expect(calls[0].url).toContain(`/orgs/${ORG}/servers/123/ssh-keys`);
   });
 
   it("should list SSH keys with cursor option", async () => {
@@ -72,7 +72,7 @@ describe("SshKeysCollection", () => {
     const collection = new SshKeysCollection(client, ORG, 123);
 
     await collection.list({ cursor: "abc123" });
-    expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers/123/ssh-keys?page[cursor]=abc123`);
+    expect(calls[0].url).toContain(`/orgs/${ORG}/servers/123/ssh-keys?page[cursor]=abc123`);
   });
 
   it("should get an SSH key", async () => {
@@ -80,7 +80,7 @@ describe("SshKeysCollection", () => {
     const collection = new SshKeysCollection(client, ORG, 123);
 
     await collection.get(789);
-    expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers/123/ssh-keys/789`);
+    expect(calls[0].url).toContain(`/orgs/${ORG}/servers/123/ssh-keys/789`);
   });
 
   it("should create an SSH key", async () => {
@@ -88,8 +88,8 @@ describe("SshKeysCollection", () => {
     const collection = new SshKeysCollection(client, ORG, 123);
 
     await collection.create({ name: "deploy-key", key: "ssh-rsa AAAA..." });
-    expect(calls[0]!.method).toBe("POST");
-    expect(calls[0]!.body).toMatchObject({ name: "deploy-key" });
+    expect(calls[0].method).toBe("POST");
+    expect(calls[0].body).toMatchObject({ name: "deploy-key" });
   });
 
   it("should delete an SSH key", async () => {
@@ -97,8 +97,8 @@ describe("SshKeysCollection", () => {
     const collection = new SshKeysCollection(client, ORG, 123);
 
     await collection.delete(789);
-    expect(calls[0]!.method).toBe("DELETE");
-    expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers/123/ssh-keys/789`);
+    expect(calls[0].method).toBe("DELETE");
+    expect(calls[0].url).toContain(`/orgs/${ORG}/servers/123/ssh-keys/789`);
   });
 
   it("should return an AsyncPaginatedIterator from all()", () => {

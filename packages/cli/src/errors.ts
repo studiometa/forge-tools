@@ -104,8 +104,13 @@ export class ApiError extends CliError {
 
   static fromForgeError(error: unknown): ApiError {
     if (error instanceof Error && "statusCode" in error) {
-      const e = error as Error & { statusCode?: number };
-      return new ApiError(e.message, e.statusCode, undefined, e);
+      const code = (error as { statusCode: unknown }).statusCode;
+      return new ApiError(
+        error.message,
+        typeof code === "number" ? code : undefined,
+        undefined,
+        error,
+      );
     }
     if (error instanceof Error) {
       return new ApiError(error.message, undefined, undefined, error);

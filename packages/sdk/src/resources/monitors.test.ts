@@ -64,7 +64,7 @@ describe("MonitorsCollection", () => {
     const collection = new MonitorsCollection(client, ORG, 123);
 
     await collection.list();
-    expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers/123/monitors`);
+    expect(calls[0].url).toContain(`/orgs/${ORG}/servers/123/monitors`);
   });
 
   it("should list monitors with cursor option", async () => {
@@ -72,7 +72,7 @@ describe("MonitorsCollection", () => {
     const collection = new MonitorsCollection(client, ORG, 123);
 
     await collection.list({ cursor: "abc123" });
-    expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers/123/monitors?page[cursor]=abc123`);
+    expect(calls[0].url).toContain(`/orgs/${ORG}/servers/123/monitors?page[cursor]=abc123`);
   });
 
   it("should get a monitor", async () => {
@@ -80,7 +80,7 @@ describe("MonitorsCollection", () => {
     const collection = new MonitorsCollection(client, ORG, 123);
 
     await collection.get(789);
-    expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers/123/monitors/789`);
+    expect(calls[0].url).toContain(`/orgs/${ORG}/servers/123/monitors/789`);
   });
 
   it("should create a monitor", async () => {
@@ -88,8 +88,8 @@ describe("MonitorsCollection", () => {
     const collection = new MonitorsCollection(client, ORG, 123);
 
     await collection.create({ type: "cpu_load", operator: "gte", threshold: 80, minutes: 5 });
-    expect(calls[0]!.method).toBe("POST");
-    expect(calls[0]!.body).toMatchObject({ type: "cpu_load" });
+    expect(calls[0].method).toBe("POST");
+    expect(calls[0].body).toMatchObject({ type: "cpu_load" });
   });
 
   it("should delete a monitor", async () => {
@@ -97,8 +97,8 @@ describe("MonitorsCollection", () => {
     const collection = new MonitorsCollection(client, ORG, 123);
 
     await collection.delete(789);
-    expect(calls[0]!.method).toBe("DELETE");
-    expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers/123/monitors/789`);
+    expect(calls[0].method).toBe("DELETE");
+    expect(calls[0].url).toContain(`/orgs/${ORG}/servers/123/monitors/789`);
   });
 
   it("should return an AsyncPaginatedIterator from all()", () => {

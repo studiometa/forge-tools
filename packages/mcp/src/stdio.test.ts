@@ -58,7 +58,7 @@ describe("handleConfigureTool", () => {
   it("should return success with masked token", () => {
     const result = handleConfigureTool({ apiToken: "test-token-1234" });
     expect(result.isError).toBeUndefined();
-    const text = result.content[0]!.text;
+    const text = result.content[0].text;
     expect(text).toContain("success");
     expect(text).toContain("***1234");
     expect(text).not.toContain("test-token-1234");
@@ -76,7 +76,7 @@ describe("handleConfigureTool", () => {
   it("should reject empty token", () => {
     const result = handleConfigureTool({ apiToken: "" });
     expect(result.isError).toBe(true);
-    expect(result.content[0]!.text).toContain("required");
+    expect(result.content[0].text).toContain("required");
   });
 
   it("should include structuredContent on error", () => {
@@ -90,7 +90,7 @@ describe("handleConfigureTool", () => {
   it("should reject when both apiToken and organizationSlug are empty", () => {
     const result = handleConfigureTool({ apiToken: "", organizationSlug: "" });
     expect(result.isError).toBe(true);
-    expect(result.content[0]!.text).toContain("required");
+    expect(result.content[0].text).toContain("required");
   });
 });
 
@@ -107,7 +107,7 @@ describe("handleGetConfigTool", () => {
 
   it("should show not configured when no token", () => {
     const result = handleGetConfigTool();
-    const text = result.content[0]!.text;
+    const text = result.content[0].text;
     expect(text).toContain("not configured");
   });
 
@@ -123,7 +123,7 @@ describe("handleGetConfigTool", () => {
   it("should show masked token when token is available", () => {
     mockGetToken.mockReturnValue("env-token-5678");
     const result = handleGetConfigTool();
-    const text = result.content[0]!.text;
+    const text = result.content[0].text;
     expect(text).toContain("***5678");
     expect(text).toContain("configured");
   });
@@ -153,18 +153,18 @@ describe("handleToolCall", () => {
   it("should route forge_configure", async () => {
     const result = await handleToolCall("forge_configure", { apiToken: "my-token-1234" });
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("***1234");
+    expect(result.content[0].text).toContain("***1234");
   });
 
   it("should route forge_get_config", async () => {
     const result = await handleToolCall("forge_get_config", {});
-    expect(result.content[0]!.text).toContain("not configured");
+    expect(result.content[0].text).toContain("not configured");
   });
 
   it("should return error when no token configured for forge", async () => {
     const result = await handleToolCall("forge", { resource: "servers", action: "list" });
     expect(result.isError).toBe(true);
-    expect(result.content[0]!.text).toContain("not configured");
+    expect(result.content[0].text).toContain("not configured");
   });
 
   it("should return error when no token configured for forge_write", async () => {
@@ -173,14 +173,14 @@ describe("handleToolCall", () => {
       action: "create",
     });
     expect(result.isError).toBe(true);
-    expect(result.content[0]!.text).toContain("not configured");
+    expect(result.content[0].text).toContain("not configured");
   });
 
   it("should delegate forge to executeToolWithCredentials with token", async () => {
     mockGetToken.mockReturnValue("test-token-5678");
     const result = await handleToolCall("forge", { resource: "servers", action: "help" });
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("servers");
+    expect(result.content[0].text).toContain("servers");
   });
 
   it("should delegate forge_write to executeToolWithCredentials with token", async () => {
@@ -198,14 +198,14 @@ describe("handleToolCall", () => {
     // Should not be a routing error — it gets past the tool routing to the executor
     // The executor will fail because there's no real API, but we verify it's not
     // a "not configured" or "unknown tool" error
-    expect(result.content[0]!.text).not.toContain("not configured");
-    expect(result.content[0]!.text).not.toContain("Unknown tool");
+    expect(result.content[0].text).not.toContain("not configured");
+    expect(result.content[0].text).not.toContain("Unknown tool");
   });
 
   it("should return error for unknown tool names", async () => {
     const result = await handleToolCall("unknown_tool", { resource: "servers", action: "list" });
     expect(result.isError).toBe(true);
-    expect(result.content[0]!.text).toContain("Unknown tool");
+    expect(result.content[0].text).toContain("Unknown tool");
     expect(result.structuredContent).toEqual({
       success: false,
       error: 'Unknown tool "unknown_tool".',
@@ -220,7 +220,7 @@ describe("handleToolCall", () => {
       { readOnly: true },
     );
     expect(result.isError).toBe(true);
-    expect(result.content[0]!.text).toContain("read-only mode");
+    expect(result.content[0].text).toContain("read-only mode");
     expect(result.structuredContent?.success).toBe(false);
   });
 
@@ -239,7 +239,7 @@ describe("handleToolCall", () => {
       { readOnly: true },
     );
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("servers");
+    expect(result.content[0].text).toContain("servers");
   });
 
   it("should allow forge_configure in read-only mode", async () => {
@@ -249,6 +249,6 @@ describe("handleToolCall", () => {
       { readOnly: true },
     );
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("***1234");
+    expect(result.content[0].text).toContain("***1234");
   });
 });

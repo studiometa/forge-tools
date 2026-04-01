@@ -5,7 +5,7 @@ import { activateCertificate } from "./activate.ts";
 
 describe("activateCertificate", () => {
   it("should activate a certificate for a domain", async () => {
-    const postMock = vi.fn(async () => undefined);
+    const postMock = vi.fn(async () => {});
     const ctx = createTestExecutorContext({
       client: { post: postMock } as never,
       organizationSlug: "test-org",

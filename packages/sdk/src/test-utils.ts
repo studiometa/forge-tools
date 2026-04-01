@@ -32,6 +32,7 @@ import { vi } from "vitest";
 export function createMockFetch(
   handler: (url: string, init?: RequestInit) => unknown,
 ): typeof fetch {
+  // eslint-disable-next-line typescript-eslint/no-redundant-type-constituents -- matches fetch() signature
   return vi.fn(async (url: string | URL | Request, init?: RequestInit) => {
     const urlStr = typeof url === "string" ? url : url instanceof URL ? url.toString() : url.url;
     const data = handler(urlStr, init);

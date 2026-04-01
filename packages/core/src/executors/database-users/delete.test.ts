@@ -5,7 +5,7 @@ import { deleteDatabaseUser } from "./delete.ts";
 
 describe("deleteDatabaseUser", () => {
   it("should delete a database user", async () => {
-    const deleteMock = vi.fn(async () => undefined);
+    const deleteMock = vi.fn(async () => {});
     const ctx = createTestExecutorContext({
       client: { delete: deleteMock } as never,
       organizationSlug: "test-org",

@@ -1,7 +1,11 @@
-import type { JsonApiDocument, DatabaseUserAttributes } from "@studiometa/forge-api";
-import { unwrapDocument } from "@studiometa/forge-api";
+import type { DatabaseUserAttributes } from "@studiometa/forge-api";
+import {
+  unwrapDocument,
+  jsonApiDocumentSchema,
+  DatabaseUserAttributesSchema,
+} from "@studiometa/forge-api";
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
-import { serverPath } from "../../utils/url-builder.ts";
+import { ROUTES, request } from "../../routes.ts";
 
 import type { GetDatabaseUserOptions } from "./types.ts";
 
@@ -12,8 +16,11 @@ export async function getDatabaseUser(
   options: GetDatabaseUserOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<DatabaseUserAttributes & { id: number }>> {
-  const response = await ctx.client.get<JsonApiDocument<DatabaseUserAttributes>>(
-    `${serverPath(options.server_id, ctx)}/database/users/${options.id}`,
+  const response = await request(
+    ROUTES.databaseUsers.get,
+    ctx,
+    { server_id: options.server_id, id: options.id },
+    { schema: jsonApiDocumentSchema(DatabaseUserAttributesSchema) },
   );
 
   return {

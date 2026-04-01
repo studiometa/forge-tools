@@ -11,6 +11,7 @@ describe("getDeploymentScript", () => {
         get: async () =>
           mockDocument(1, "deployment-scripts", {
             content: "cd /home/forge/example.com\nnpm run build",
+            auto_source: "false",
           }),
       } as never,
       organizationSlug: "test-org",

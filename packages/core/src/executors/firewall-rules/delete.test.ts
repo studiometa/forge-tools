@@ -5,7 +5,7 @@ import { deleteFirewallRule } from "./delete.ts";
 
 describe("deleteFirewallRule", () => {
   it("should delete a firewall rule", async () => {
-    const deleteMock = vi.fn(async () => undefined);
+    const deleteMock = vi.fn(async () => {});
     const ctx = createTestExecutorContext({
       client: { delete: deleteMock } as never,
       organizationSlug: "test-org",

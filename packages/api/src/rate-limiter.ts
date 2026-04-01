@@ -31,7 +31,7 @@ export class RateLimiter {
 
     if (this.timestamps.length >= MAX_REQUESTS) {
       // Wait until the oldest timestamp exits the window
-      const oldestTimestamp = this.timestamps[0]!;
+      const oldestTimestamp = this.timestamps[0];
       const waitMs = WINDOW_MS - (now - oldestTimestamp) + 1;
       await this.sleep(waitMs);
     }
@@ -79,6 +79,8 @@ export class RateLimiter {
   }
 
   private sleep(ms: number): Promise<void> {
-    return new Promise((resolve) => setTimeout(resolve, ms));
+    return new Promise<void>((resolve) => {
+      setTimeout(resolve, ms);
+    });
   }
 }

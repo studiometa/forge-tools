@@ -44,7 +44,7 @@ describe("getBackupConfig", () => {
         directory: "/backups",
         schedule: "weekly",
         displayable_schedule: "Weekly at 03:00",
-        next_run_time: null,
+        next_run_time: "2024-01-07T03:00:00.000000Z",
         day_of_week: 0,
         time: "03:00",
         cron_schedule: null,

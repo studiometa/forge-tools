@@ -1,5 +1,5 @@
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
-import { sitePath } from "../../utils/url-builder.ts";
+import { ROUTES, request } from "../../routes.ts";
 
 import type { ActivateCertificateOptions } from "./types.ts";
 
@@ -10,9 +10,11 @@ export async function activateCertificate(
   options: ActivateCertificateOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<void>> {
-  await ctx.client.post(
-    `${sitePath(options.server_id, options.site_id, ctx)}/domains/${options.domain_id}/certificate/actions`,
-    { action: "activate" },
+  await request(
+    ROUTES.certificates.activate,
+    ctx,
+    { server_id: options.server_id, site_id: options.site_id, domain_id: options.domain_id },
+    { body: { action: "activate" } },
   );
 
   return {

@@ -24,13 +24,13 @@ describe("matchByName", () => {
   it("should return exact matches", () => {
     const { exact } = matchByName(items, "prod", (i) => i.name);
     expect(exact).toHaveLength(1);
-    expect(exact[0]!.id).toBe(4);
+    expect(exact[0].id).toBe(4);
   });
 
   it("should be case-insensitive", () => {
     const { exact, partial } = matchByName(items, "PROD", (i) => i.name);
     expect(exact).toHaveLength(1);
-    expect(exact[0]!.id).toBe(4);
+    expect(exact[0].id).toBe(4);
     expect(partial).toHaveLength(3);
   });
 

@@ -1,5 +1,5 @@
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
-import { serverPath } from "../../utils/url-builder.ts";
+import { ROUTES, request } from "../../routes.ts";
 
 import type { DeleteScheduledJobOptions } from "./types.ts";
 
@@ -10,7 +10,7 @@ export async function deleteScheduledJob(
   options: DeleteScheduledJobOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<void>> {
-  await ctx.client.delete(`${serverPath(options.server_id, ctx)}/scheduled-jobs/${options.id}`);
+  await request(ROUTES.scheduledJobs.delete, ctx, { server_id: options.server_id, id: options.id });
 
   return {
     data: undefined,

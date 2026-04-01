@@ -17,7 +17,18 @@ export { unwrapResource, unwrapDocument, unwrapListDocument } from "./utils/json
 
 export type { ConfigStoreFs } from "./utils/config-store.ts";
 
-// JSON:API types (v2)
+// JSON:API schemas + types (v2)
+export {
+  JsonApiResourceIdentifierSchema,
+  JsonApiRelationshipSchema,
+  JsonApiLinkSchema,
+  JsonApiPaginationLinksSchema,
+  JsonApiPaginationMetaSchema,
+  jsonApiResourceSchema,
+  jsonApiDocumentSchema,
+  jsonApiListDocumentSchema,
+} from "./schemas/jsonapi.ts";
+
 export type {
   JsonApiResource,
   JsonApiRelationship,
@@ -27,9 +38,38 @@ export type {
   JsonApiListDocument,
   JsonApiPaginationLinks,
   JsonApiPaginationMeta,
-} from "./types/jsonapi.ts";
+} from "./schemas/jsonapi.ts";
 
-// v2 resource attribute types
+// v2 resource attribute schemas + types
+export {
+  UserAttributesSchema,
+  ServerAttributesSchema,
+  SiteAttributesSchema,
+  SiteRepositorySchema,
+  DeploymentAttributesSchema,
+  DeploymentCommitSchema,
+  DeploymentStatusAttributesSchema,
+  DeploymentOutputAttributesSchema,
+  DeploymentScriptAttributesSchema,
+  DatabaseAttributesSchema,
+  DatabaseUserAttributesSchema,
+  BackgroundProcessAttributesSchema,
+  CertificateAttributesSchema,
+  FirewallRuleAttributesSchema,
+  SshKeyAttributesSchema,
+  SecurityRuleAttributesSchema,
+  RedirectRuleAttributesSchema,
+  MonitorAttributesSchema,
+  NginxTemplateAttributesSchema,
+  RecipeAttributesSchema,
+  ScheduledJobAttributesSchema,
+  CommandAttributesSchema,
+  BackupConfigAttributesSchema,
+  BackupAttributesSchema,
+  OrganizationAttributesSchema,
+  EnvironmentAttributesSchema,
+} from "./schemas/attributes.ts";
+
 export type {
   UserAttributes,
   ServerAttributes,
@@ -57,14 +97,29 @@ export type {
   BackupAttributes,
   OrganizationAttributes,
   EnvironmentAttributes,
-} from "./types/attributes.ts";
+} from "./schemas/attributes.ts";
 
-// Config and input types
+// Create data schemas + types
+export {
+  CreateServerDataSchema,
+  CreateSiteDataSchema,
+  CreateCertificateDataSchema,
+  CreateDatabaseDataSchema,
+  CreateDatabaseUserDataSchema,
+  CreateDaemonDataSchema,
+  CreateBackupConfigDataSchema,
+  CreateCommandDataSchema,
+  CreateScheduledJobDataSchema,
+  CreateFirewallRuleDataSchema,
+  CreateSshKeyDataSchema,
+  CreateSecurityRuleDataSchema,
+  CreateRedirectRuleDataSchema,
+  CreateMonitorDataSchema,
+  CreateNginxTemplateDataSchema,
+  CreateRecipeDataSchema,
+} from "./schemas/types.ts";
+
 export type {
-  ForgeConfig,
-  ForgeOptions,
-  RateLimitOptions,
-  // Create input types (used by core executors)
   CreateServerData,
   CreateSiteData,
   CreateCertificateData,
@@ -81,4 +136,7 @@ export type {
   CreateMonitorData,
   CreateNginxTemplateData,
   CreateRecipeData,
-} from "./types.ts";
+} from "./schemas/types.ts";
+
+// Config and options types
+export type { ForgeConfig, ForgeOptions, RateLimitOptions } from "./types.ts";

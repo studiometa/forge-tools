@@ -34,7 +34,7 @@ describe("createCommandRouter", () => {
   });
 
   it("should call a list handler for a matching subcommand", async () => {
-    const listHandler = vi.fn().mockResolvedValue(undefined);
+    const listHandler = vi.fn().mockResolvedValue();
     const router = createCommandRouter({
       resource: "servers",
       handlers: {
@@ -47,7 +47,7 @@ describe("createCommandRouter", () => {
   });
 
   it("should call an args handler with args and context", async () => {
-    const argsHandler = vi.fn().mockResolvedValue(undefined);
+    const argsHandler = vi.fn().mockResolvedValue();
     const router = createCommandRouter({
       resource: "servers",
       handlers: {
@@ -60,7 +60,7 @@ describe("createCommandRouter", () => {
   });
 
   it("should route alias subcommands", async () => {
-    const listHandler = vi.fn().mockResolvedValue(undefined);
+    const listHandler = vi.fn().mockResolvedValue();
     const router = createCommandRouter({
       resource: "servers",
       handlers: {
@@ -99,7 +99,7 @@ describe("createCommandRouter", () => {
     const router = createCommandRouter({
       resource: "servers",
       handlers: {
-        list: vi.fn().mockResolvedValue(undefined),
+        list: vi.fn().mockResolvedValue(),
       },
     });
 

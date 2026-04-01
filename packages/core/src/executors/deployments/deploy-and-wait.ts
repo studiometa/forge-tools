@@ -1,14 +1,15 @@
-import type {
-  JsonApiDocument,
-  JsonApiListDocument,
-  SiteAttributes,
-  DeploymentAttributes,
-  DeploymentStatusAttributes,
+import {
+  unwrapDocument,
+  unwrapListDocument,
+  jsonApiDocumentSchema,
+  jsonApiListDocumentSchema,
+  DeploymentAttributesSchema,
+  DeploymentStatusAttributesSchema,
+  DeploymentOutputAttributesSchema,
 } from "@studiometa/forge-api";
-import { unwrapDocument, unwrapListDocument } from "@studiometa/forge-api";
 
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
-import { sitePath } from "../../utils/url-builder.ts";
+import { ROUTES, request } from "../../routes.ts";
 
 import type { DeploySiteAndWaitOptions, DeployResult } from "./types.ts";
 
@@ -35,10 +36,8 @@ export async function deploySiteAndWait(
     onLog,
   } = options;
 
-  const baseUrl = sitePath(server_id, site_id, ctx);
-
   // 1. Trigger deploy
-  await ctx.client.post(`${baseUrl}/deployments`, {});
+  await request(ROUTES.deployments.create, ctx, { server_id, site_id }, { body: {} });
 
   const startTime = Date.now();
   let logOffset = 0;
@@ -56,8 +55,11 @@ export async function deploySiteAndWait(
       // Check deployment status
       let currentStatus: string | null = null;
       try {
-        const statusResponse = await ctx.client.get<JsonApiDocument<DeploymentStatusAttributes>>(
-          `${baseUrl}/deployments/status`,
+        const statusResponse = await request(
+          ROUTES.deployments.getStatus,
+          ctx,
+          { server_id, site_id },
+          { schema: jsonApiDocumentSchema(DeploymentStatusAttributesSchema) },
         );
         const status = unwrapDocument(statusResponse);
         currentStatus = status.status;
@@ -74,15 +76,24 @@ export async function deploySiteAndWait(
       if (onLog) {
         try {
           // Fetch the latest deployment to get its log
-          const deploymentsResponse = await ctx.client.get<
-            JsonApiListDocument<DeploymentAttributes>
-          >(`${baseUrl}/deployments?sort=-created_at&page[size]=1`);
+          const deploymentsResponse = await request(
+            ROUTES.deployments.list,
+            ctx,
+            { server_id, site_id },
+            {
+              query: { sort: "-created_at", "page[size]": "1" },
+              schema: jsonApiListDocumentSchema(DeploymentAttributesSchema),
+            },
+          );
           const deployments = unwrapListDocument(deploymentsResponse);
           if (deployments.length > 0) {
-            const latestId = deployments[0]!.id;
+            const latestId = deployments[0].id;
             try {
-              const logResponse = await ctx.client.get<JsonApiDocument<{ output: string }>>(
-                `${baseUrl}/deployments/${latestId}/log`,
+              const logResponse = await request(
+                ROUTES.deployments.getLog,
+                ctx,
+                { server_id, site_id, id: latestId },
+                { schema: jsonApiDocumentSchema(DeploymentOutputAttributesSchema) },
               );
               const logData = unwrapDocument(logResponse);
               if (logData.output && logData.output.length > logOffset) {
@@ -103,7 +114,9 @@ export async function deploySiteAndWait(
         return;
       }
 
-      await new Promise<void>((r) => setTimeout(r, poll_interval_ms));
+      await new Promise<void>((r) => {
+        setTimeout(r, poll_interval_ms);
+      });
       await tick();
     };
 
@@ -116,18 +129,27 @@ export async function deploySiteAndWait(
   let log = "";
   let deployStatus: "success" | "failed" = "failed";
   try {
-    const deploymentsResponse = await ctx.client.get<JsonApiListDocument<DeploymentAttributes>>(
-      `${baseUrl}/deployments?sort=-created_at&page[size]=1`,
+    const deploymentsResponse = await request(
+      ROUTES.deployments.list,
+      ctx,
+      { server_id, site_id },
+      {
+        query: { sort: "-created_at", "page[size]": "1" },
+        schema: jsonApiListDocumentSchema(DeploymentAttributesSchema),
+      },
     );
     const deployments = unwrapListDocument(deploymentsResponse);
     if (deployments.length > 0) {
-      const latest = deployments[0]!;
+      const latest = deployments[0];
       deployStatus = latest.status === "finished" ? "success" : "failed";
 
       // Fetch final log
       try {
-        const logResponse = await ctx.client.get<JsonApiDocument<{ output: string }>>(
-          `${baseUrl}/deployments/${latest.id}/log`,
+        const logResponse = await request(
+          ROUTES.deployments.getLog,
+          ctx,
+          { server_id, site_id, id: latest.id },
+          { schema: jsonApiDocumentSchema(DeploymentOutputAttributesSchema) },
         );
         const logData = unwrapDocument(logResponse);
         log = logData.output ?? "";

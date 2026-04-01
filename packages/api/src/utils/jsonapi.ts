@@ -1,4 +1,4 @@
-import type { JsonApiDocument, JsonApiListDocument, JsonApiResource } from "../types/jsonapi.ts";
+import type { JsonApiDocument, JsonApiListDocument, JsonApiResource } from "../schemas/jsonapi.ts";
 
 /**
  * Unwrap a single JSON:API resource to its attributes, adding the `id` field.

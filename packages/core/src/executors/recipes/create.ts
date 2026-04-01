@@ -1,17 +1,26 @@
-import type { JsonApiDocument, RecipeAttributes } from "@studiometa/forge-api";
-import { unwrapDocument } from "@studiometa/forge-api";
+import type { RecipeAttributes } from "@studiometa/forge-api";
+import {
+  unwrapDocument,
+  jsonApiDocumentSchema,
+  RecipeAttributesSchema,
+} from "@studiometa/forge-api";
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
-import { orgPrefix } from "../../utils/url-builder.ts";
+import { ROUTES, request } from "../../routes.ts";
 
 import type { CreateRecipeOptions } from "./types.ts";
 
+/**
+ * Create a recipe.
+ */
 export async function createRecipe(
   options: CreateRecipeOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<RecipeAttributes & { id: number }>> {
-  const response = await ctx.client.post<JsonApiDocument<RecipeAttributes>>(
-    `${orgPrefix(ctx)}/recipes`,
-    options,
+  const response = await request(
+    ROUTES.recipes.create,
+    ctx,
+    {},
+    { body: options, schema: jsonApiDocumentSchema(RecipeAttributesSchema) },
   );
 
   return {

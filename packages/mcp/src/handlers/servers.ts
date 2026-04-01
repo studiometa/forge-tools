@@ -1,3 +1,4 @@
+import * as v from "valibot";
 import {
   createServer,
   deleteServer,
@@ -18,12 +19,17 @@ import type { CommonArgs, HandlerContext, ToolResult } from "./types.ts";
 const _handleServers = createResourceHandler({
   resource: "servers",
   actions: ["list", "get", "create", "delete", "reboot", "resolve"],
-  requiredFields: {
-    get: ["id"],
-    create: ["provider", "name", "type", "region"],
-    delete: ["id"],
-    reboot: ["id"],
-    resolve: ["query"],
+  inputSchemas: {
+    get: v.object({ id: v.string() }),
+    create: v.object({
+      provider: v.string(),
+      name: v.string(),
+      type: v.string(),
+      region: v.string(),
+    }),
+    delete: v.object({ id: v.string() }),
+    reboot: v.object({ id: v.string() }),
+    resolve: v.object({ query: v.string() }),
   },
   executors: {
     list: listServers,

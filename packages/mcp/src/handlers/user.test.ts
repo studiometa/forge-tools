@@ -32,7 +32,7 @@ describe("handleUser", () => {
       createMockContext(),
     );
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("John Doe");
+    expect(result.content[0].text).toContain("John Doe");
   });
 
   it("should handle unknown action", async () => {
@@ -42,6 +42,6 @@ describe("handleUser", () => {
       createMockContext(),
     );
     expect(result.isError).toBe(true);
-    expect(result.content[0]!.text).toContain("Unknown action");
+    expect(result.content[0].text).toContain("Unknown action");
   });
 });

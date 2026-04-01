@@ -55,7 +55,7 @@ vi.mock("@studiometa/forge-api", async (importOriginal) => {
             meta: { per_page: 30, next_cursor: null, prev_cursor: null },
           };
         }
-        if (path.match(/^\/orgs\/test-org\/servers\/\d+$/)) {
+        if (/^\/orgs\/test-org\/servers\/\d+$/.test(path)) {
           return {
             data: {
               id: "1",
@@ -91,7 +91,7 @@ vi.mock("@studiometa/forge-api", async (importOriginal) => {
             },
           };
         }
-        if (path.match(/^\/orgs\/test-org\/servers\/\d+\/sites$/)) {
+        if (/^\/orgs\/test-org\/servers\/\d+\/sites$/.test(path)) {
           return {
             data: [
               {
@@ -114,12 +114,12 @@ vi.mock("@studiometa/forge-api", async (importOriginal) => {
                   url: "",
                   https: false,
                   isolated: false,
-                  user: null,
+                  user: "forge",
                   database: null,
-                  shared_paths: [],
+                  shared_paths: null,
                   uses_envoyer: false,
                   zero_downtime_deployments: false,
-                  maintenance_mode: false,
+                  maintenance_mode: null,
                   healthcheck_url: null,
                   created_at: "2024-01-01",
                   updated_at: "2024-01-01",
@@ -131,7 +131,7 @@ vi.mock("@studiometa/forge-api", async (importOriginal) => {
             meta: { per_page: 30, next_cursor: null, prev_cursor: null },
           };
         }
-        if (path.match(/^\/orgs\/test-org\/servers\/\d+\/database\/schemas$/)) {
+        if (/^\/orgs\/test-org\/servers\/\d+\/database\/schemas$/.test(path)) {
           return {
             data: [
               {
@@ -150,7 +150,7 @@ vi.mock("@studiometa/forge-api", async (importOriginal) => {
             meta: { per_page: 30, next_cursor: null, prev_cursor: null },
           };
         }
-        if (path.match(/^\/orgs\/test-org\/servers\/\d+\/sites\/\d+\/environment$/)) {
+        if (/^\/orgs\/test-org\/servers\/\d+\/sites\/\d+\/environment$/.test(path)) {
           return {
             data: {
               id: "1",
@@ -160,7 +160,7 @@ vi.mock("@studiometa/forge-api", async (importOriginal) => {
             },
           };
         }
-        if (path.match(/^\/orgs\/test-org\/servers\/\d+\/sites\/\d+\/nginx$/)) {
+        if (/^\/orgs\/test-org\/servers\/\d+\/sites\/\d+\/nginx$/.test(path)) {
           return {
             data: {
               id: "1",
@@ -211,7 +211,7 @@ vi.mock("@studiometa/forge-api", async (importOriginal) => {
         return {};
       }
       async delete() {
-        return undefined;
+        return;
       }
     },
   };
@@ -223,7 +223,7 @@ describe("E2E: executeToolWithCredentials", () => {
   it("should return error for missing resource/action", async () => {
     const result = await executeToolWithCredentials("forge", {}, creds);
     expect(result.isError).toBe(true);
-    expect(result.content[0]!.text).toContain("resource");
+    expect(result.content[0].text).toContain("resource");
   });
 
   it("should return error for unknown resource", async () => {
@@ -233,7 +233,7 @@ describe("E2E: executeToolWithCredentials", () => {
       creds,
     );
     expect(result.isError).toBe(true);
-    expect(result.content[0]!.text).toContain("Unknown resource");
+    expect(result.content[0].text).toContain("Unknown resource");
   });
 
   it("should handle help action without API call", async () => {
@@ -243,7 +243,7 @@ describe("E2E: executeToolWithCredentials", () => {
       creds,
     );
     expect(result.isError).toBeUndefined();
-    const data = JSON.parse(result.content[0]!.text);
+    const data = JSON.parse(result.content[0].text);
     expect(data.resource).toBe("servers");
   });
 
@@ -254,7 +254,7 @@ describe("E2E: executeToolWithCredentials", () => {
       creds,
     );
     expect(result.isError).toBeUndefined();
-    const data = JSON.parse(result.content[0]!.text);
+    const data = JSON.parse(result.content[0].text);
     expect(data.resource).toBe("sites");
   });
 
@@ -265,7 +265,7 @@ describe("E2E: executeToolWithCredentials", () => {
       creds,
     );
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("web-1");
+    expect(result.content[0].text).toContain("web-1");
   });
 
   it("should get a server end-to-end", async () => {
@@ -275,7 +275,7 @@ describe("E2E: executeToolWithCredentials", () => {
       creds,
     );
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("web-1");
+    expect(result.content[0].text).toContain("web-1");
   });
 
   it("should list sites with server_id end-to-end", async () => {
@@ -285,7 +285,7 @@ describe("E2E: executeToolWithCredentials", () => {
       creds,
     );
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("example.com");
+    expect(result.content[0].text).toContain("example.com");
   });
 
   it("should list databases end-to-end", async () => {
@@ -295,7 +295,7 @@ describe("E2E: executeToolWithCredentials", () => {
       creds,
     );
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("myapp");
+    expect(result.content[0].text).toContain("myapp");
   });
 
   it("should get env end-to-end", async () => {
@@ -305,7 +305,7 @@ describe("E2E: executeToolWithCredentials", () => {
       creds,
     );
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("APP_ENV=production");
+    expect(result.content[0].text).toContain("APP_ENV=production");
   });
 
   it("should reject non-matching server_id name (auto-resolve returns error)", async () => {
@@ -317,7 +317,7 @@ describe("E2E: executeToolWithCredentials", () => {
       creds,
     );
     expect(result.isError).toBe(true);
-    expect(result.content[0]!.text).toContain("No server matching");
+    expect(result.content[0].text).toContain("No server matching");
   });
 
   it("should reject path traversal in id", async () => {
@@ -327,7 +327,7 @@ describe("E2E: executeToolWithCredentials", () => {
       creds,
     );
     expect(result.isError).toBe(true);
-    expect(result.content[0]!.text).toContain("Invalid");
+    expect(result.content[0].text).toContain("Invalid");
   });
 
   it("should return missing field error for sites without server_id", async () => {
@@ -337,7 +337,7 @@ describe("E2E: executeToolWithCredentials", () => {
       creds,
     );
     expect(result.isError).toBe(true);
-    expect(result.content[0]!.text).toContain("server_id");
+    expect(result.content[0].text).toContain("server_id");
   });
 
   // Route coverage for all resources
@@ -457,8 +457,8 @@ describe("E2E: executeToolWithCredentials", () => {
       creds,
     );
     expect(result.isError).toBe(true);
-    expect(result.content[0]!.text).toContain("write operation");
-    expect(result.content[0]!.text).toContain("forge_write");
+    expect(result.content[0].text).toContain("write operation");
+    expect(result.content[0].text).toContain("forge_write");
   });
 
   it("should reject read action on forge_write tool", async () => {
@@ -468,8 +468,8 @@ describe("E2E: executeToolWithCredentials", () => {
       creds,
     );
     expect(result.isError).toBe(true);
-    expect(result.content[0]!.text).toContain("read operation");
-    expect(result.content[0]!.text).toContain('"forge" tool');
+    expect(result.content[0].text).toContain("read operation");
+    expect(result.content[0].text).toContain('"forge" tool');
   });
 
   it("should handle create via forge_write tool", async () => {
@@ -497,7 +497,7 @@ describe("E2E: executeToolWithCredentials", () => {
     );
     expect(result.isError).toBeUndefined();
     // With compact=false, should return JSON data (array), not text summary
-    const parsed = JSON.parse(result.content[0]!.text);
+    const parsed = JSON.parse(result.content[0].text);
     expect(Array.isArray(parsed)).toBe(true);
   });
 
@@ -510,7 +510,7 @@ describe("E2E: executeToolWithCredentials", () => {
     );
     expect(result.isError).toBeUndefined();
     // compact=true → result.text (plain string summary), not a JSON array
-    const text = result.content[0]!.text;
+    const text = result.content[0].text;
     expect(typeof text).toBe("string");
     expect(text).toContain("web-1");
     // plain text summary is not a JSON array
@@ -526,7 +526,7 @@ describe("E2E: executeToolWithCredentials", () => {
     );
     expect(result.isError).toBeUndefined();
     // compact=false → result.data (JSON object), not a string summary
-    const parsed = JSON.parse(result.content[0]!.text);
+    const parsed = JSON.parse(result.content[0].text);
     expect(typeof parsed).toBe("object");
     expect(parsed).not.toBeNull();
     expect(Array.isArray(parsed)).toBe(false);
@@ -540,7 +540,7 @@ describe("E2E: executeToolWithCredentials", () => {
       creds,
     );
     expect(result.isError).toBeUndefined();
-    const parsed = JSON.parse(result.content[0]!.text);
+    const parsed = JSON.parse(result.content[0].text);
     // get action with no compact → includeHints=true → _hints injected
     expect(parsed._hints).toBeDefined();
     expect(parsed._hints.related_resources).toBeDefined();
@@ -554,7 +554,7 @@ describe("E2E: executeToolWithCredentials", () => {
     );
     expect(result.isError).toBeUndefined();
     // compact=true → text summary, no JSON with _hints
-    const text = result.content[0]!.text;
+    const text = result.content[0].text;
     expect(text).toContain("Server: web-1");
     // text summary is not a JSON object with _hints
     expect(text).not.toContain("_hints");
@@ -569,7 +569,7 @@ describe("E2E: executeToolWithCredentials", () => {
     );
     expect(result.isError).toBeUndefined();
     // compact=true → plain text summary
-    const text = result.content[0]!.text;
+    const text = result.content[0].text;
     expect(typeof text).toBe("string");
     expect(text).toContain("Server: web-1");
   });
@@ -582,7 +582,7 @@ describe("E2E: executeToolWithCredentials", () => {
       creds,
     );
     expect(result.isError).toBeUndefined();
-    const parsed = JSON.parse(result.content[0]!.text);
+    const parsed = JSON.parse(result.content[0].text);
     expect(Array.isArray(parsed)).toBe(true);
   });
 
@@ -652,8 +652,8 @@ describe("E2E: executeToolWithCredentials", () => {
       creds,
     );
     expect(result.isError).toBe(true);
-    expect(result.content[0]!.text).toContain("read-only");
-    expect(result.content[0]!.text).toContain('"forge" tool');
+    expect(result.content[0].text).toContain("read-only");
+    expect(result.content[0].text).toContain('"forge" tool');
   });
 
   it("should execute batch operations end-to-end", async () => {
@@ -670,7 +670,7 @@ describe("E2E: executeToolWithCredentials", () => {
       creds,
     );
     expect(result.isError).toBeUndefined();
-    const data = JSON.parse(result.content[0]!.text);
+    const data = JSON.parse(result.content[0].text);
     expect(data._batch.total).toBe(2);
     expect(data._batch.succeeded).toBe(2);
     expect(data._batch.failed).toBe(0);
@@ -685,7 +685,7 @@ describe("E2E: executeToolWithCredentials", () => {
       creds,
     );
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("example.com");
+    expect(result.content[0].text).toContain("example.com");
   });
 
   it("should return error when non-numeric server_id resolves to multiple matches", async () => {
@@ -697,7 +697,7 @@ describe("E2E: executeToolWithCredentials", () => {
       creds,
     );
     expect(result.isError).toBe(true);
-    expect(result.content[0]!.text).toContain("No server matching");
+    expect(result.content[0].text).toContain("No server matching");
   });
 
   it("should skip auto-resolve for resolve action (passes server_id as-is)", async () => {

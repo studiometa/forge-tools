@@ -8,7 +8,7 @@
 import type { HttpClient } from "@studiometa/forge-api";
 import type { ExecutorContext } from "@studiometa/forge-core";
 
-import type { OutputFormat } from "./types.ts";
+import { type OutputFormat, isOutputFormat } from "./types.ts";
 
 import { HttpClient as ForgeHttpClient } from "@studiometa/forge-api";
 import { ConfigError } from "./errors.ts";
@@ -41,7 +41,8 @@ export interface CommandContext {
  * Creates a command context from CLI options.
  */
 export function createContext(options: CommandOptions = {}): CommandContext {
-  const format = (options.format ?? options.f ?? "human") as OutputFormat;
+  const rawFormat = options.format ?? options.f ?? "human";
+  const format: OutputFormat = isOutputFormat(rawFormat) ? rawFormat : "human";
   const noColor = options["no-color"] === true;
   const formatter = new OutputFormatter(format, noColor);
 
@@ -50,7 +51,7 @@ export function createContext(options: CommandOptions = {}): CommandContext {
     options,
 
     createExecutorContext(token: string): ExecutorContext {
-      const client = new ForgeHttpClient({ token }) as unknown as HttpClient;
+      const client: HttpClient = new ForgeHttpClient({ token });
       const orgSlug =
         (typeof options.org === "string" && options.org) ||
         getOrganizationSlug(createConfigStore()) ||
@@ -94,7 +95,8 @@ export function createTestContext(overrides: {
     format: "json",
     "no-color": true,
   };
-  const format = (opts.format ?? "json") as OutputFormat;
+  const rawFormat = opts.format ?? "json";
+  const format: OutputFormat = isOutputFormat(rawFormat) ? rawFormat : "json";
   const formatter = overrides.formatter ?? new OutputFormatter(format, true);
 
   return {

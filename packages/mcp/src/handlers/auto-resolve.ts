@@ -62,7 +62,7 @@ export async function autoResolveIds(
       };
     }
 
-    resolved.server_id = String(matches[0]!.id);
+    resolved.server_id = String(matches[0].id);
   }
 
   // Resolve site_id if non-numeric (requires resolved server_id)
@@ -101,7 +101,7 @@ export async function autoResolveIds(
       };
     }
 
-    resolved.site_id = String(matches[0]!.id);
+    resolved.site_id = String(matches[0].id);
   }
 
   return { ok: true, args: resolved };

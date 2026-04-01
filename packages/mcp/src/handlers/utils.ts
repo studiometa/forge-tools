@@ -9,7 +9,7 @@ import { UserInputError } from "../errors.ts";
  * - When `data` is an object/array, `structuredContent` is `{ result: data }` and
  *   the text representation is the JSON-serialized form.
  */
-export function jsonResult(data: string | Record<string, unknown> | unknown): ToolResult {
+export function jsonResult(data: unknown): ToolResult {
   const text = typeof data === "string" ? data : JSON.stringify(data, null, 2);
   return {
     content: [{ type: "text", text }],

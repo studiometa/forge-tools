@@ -66,9 +66,6 @@ export interface ServerListOptions {
  */
 export class ServersCollection extends BaseCollection {
   /** @internal */
-  constructor(client: HttpClient, orgSlug: string) {
-    super(client, orgSlug);
-  }
 
   private get basePath(): string {
     return `/orgs/${this.orgSlug}/servers`;
