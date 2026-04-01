@@ -3,12 +3,19 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import type { BackupConfigAttributes } from "@studiometa/forge-api";
 
 import { createTestContext } from "../../context.ts";
-import { backupsList, backupsGet, backupsCreate, backupsDelete } from "./handlers.ts";
+import {
+  backupsList,
+  backupsGet,
+  backupsCreate,
+  backupsUpdate,
+  backupsDelete,
+} from "./handlers.ts";
 
 vi.mock("@studiometa/forge-core", () => ({
   listBackupConfigs: vi.fn(),
   getBackupConfig: vi.fn(),
   createBackupConfig: vi.fn(),
+  updateBackupConfig: vi.fn(),
   deleteBackupConfig: vi.fn(),
 }));
 
@@ -222,6 +229,146 @@ describe("backupsCreate", () => {
     });
 
     await backupsCreate(ctx).catch(() => {});
+    expect(processExitSpy).toHaveBeenCalledWith(3);
+  });
+});
+
+describe("backupsUpdate", () => {
+  let processExitSpy: ReturnType<typeof vi.spyOn>;
+
+  beforeEach(() => {
+    processExitSpy = vi.spyOn(process, "exit").mockImplementation(() => undefined as never);
+    vi.spyOn(console, "log").mockImplementation(() => {});
+    vi.spyOn(console, "error").mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("should update a backup configuration", async () => {
+    const { updateBackupConfig } = await import("@studiometa/forge-core");
+    vi.mocked(updateBackupConfig).mockResolvedValue({ data: undefined });
+
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: {
+        format: "json",
+        server: "10",
+        provider: "1",
+        frequency: "weekly",
+        retention: "7",
+        databases: ["1", "2"],
+      },
+    });
+
+    await backupsUpdate(["5"], ctx);
+    expect(vi.mocked(updateBackupConfig)).toHaveBeenCalledWith(
+      expect.objectContaining({
+        server_id: "10",
+        id: "5",
+        storage_provider_id: 1,
+        frequency: "weekly",
+        retention: 7,
+        database_ids: [1, 2],
+      }),
+      expect.anything(),
+    );
+  });
+
+  it("should exit with error when no backup_id", async () => {
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "json", server: "10", provider: "1", frequency: "weekly", retention: "7" },
+    });
+
+    await backupsUpdate([], ctx).catch(() => {});
+    expect(processExitSpy).toHaveBeenCalledWith(3);
+  });
+
+  it("should exit with error when no server_id", async () => {
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "json", provider: "1", frequency: "weekly", retention: "7" },
+    });
+
+    await backupsUpdate(["5"], ctx).catch(() => {});
+    expect(processExitSpy).toHaveBeenCalledWith(3);
+  });
+
+  it("should exit with error when no provider", async () => {
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "json", server: "10", frequency: "weekly", retention: "7" },
+    });
+
+    await backupsUpdate(["5"], ctx).catch(() => {});
+    expect(processExitSpy).toHaveBeenCalledWith(3);
+  });
+
+  it("should exit with error when no frequency", async () => {
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "json", server: "10", provider: "1", retention: "7" },
+    });
+
+    await backupsUpdate(["5"], ctx).catch(() => {});
+    expect(processExitSpy).toHaveBeenCalledWith(3);
+  });
+
+  it("should update with optional fields", async () => {
+    const { updateBackupConfig } = await import("@studiometa/forge-core");
+    vi.mocked(updateBackupConfig).mockResolvedValue({ data: undefined });
+
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: {
+        format: "json",
+        server: "10",
+        provider: "1",
+        frequency: "daily",
+        retention: "14",
+        databases: "3",
+        name: "my-backup",
+        bucket: "s3-bucket",
+        directory: "/backups",
+        day: "monday",
+        time: "03:00",
+        cron: "0 3 * * *",
+        "notification-email": "admin@example.com",
+      },
+    });
+
+    await backupsUpdate(["5"], ctx);
+    expect(vi.mocked(updateBackupConfig)).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: "my-backup",
+        bucket: "s3-bucket",
+        directory: "/backups",
+        day: "monday",
+        time: "03:00",
+        cron: "0 3 * * *",
+        notification_email: "admin@example.com",
+        database_ids: [3],
+      }),
+      expect.anything(),
+    );
+  });
+
+  it("should exit with error when no retention", async () => {
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "json", server: "10", provider: "1", frequency: "weekly" },
+    });
+
+    await backupsUpdate(["5"], ctx).catch(() => {});
     expect(processExitSpy).toHaveBeenCalledWith(3);
   });
 });

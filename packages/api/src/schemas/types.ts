@@ -180,6 +180,22 @@ export const CreateBackupConfigDataSchema = v.object({
 
 export type CreateBackupConfigData = v.InferOutput<typeof CreateBackupConfigDataSchema>;
 
+export const UpdateBackupConfigDataSchema = v.object({
+  storage_provider_id: v.number(),
+  frequency: v.string(),
+  retention: v.number(),
+  database_ids: v.array(v.number()),
+  name: v.optional(v.nullable(v.string())),
+  bucket: v.optional(v.nullable(v.string())),
+  directory: v.optional(v.nullable(v.string())),
+  day: v.optional(v.string()),
+  time: v.optional(v.string()),
+  cron: v.optional(v.string()),
+  notification_email: v.optional(v.nullable(v.string())),
+});
+
+export type UpdateBackupConfigData = v.InferOutput<typeof UpdateBackupConfigDataSchema>;
+
 // ── Commands ─────────────────────────────────────────
 
 export const CreateCommandDataSchema = v.object({

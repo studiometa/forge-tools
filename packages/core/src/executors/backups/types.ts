@@ -2,7 +2,7 @@
  * Option types for backup configuration executors.
  */
 
-import type { CreateBackupConfigData } from "@studiometa/forge-api";
+import type { CreateBackupConfigData, UpdateBackupConfigData } from "@studiometa/forge-api";
 
 /**
  * Options for listing backup configurations for a server.
@@ -24,6 +24,14 @@ export interface GetBackupConfigOptions {
  */
 export interface CreateBackupConfigOptions extends CreateBackupConfigData {
   server_id: string;
+}
+
+/**
+ * Options for updating a backup configuration.
+ */
+export interface UpdateBackupConfigOptions extends UpdateBackupConfigData {
+  server_id: string;
+  id: string;
 }
 
 /**

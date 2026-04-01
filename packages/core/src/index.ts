@@ -248,12 +248,14 @@ export {
   deleteBackupConfig,
   getBackupConfig,
   listBackupConfigs,
+  updateBackupConfig,
 } from "./executors/backups/index.ts";
 export type {
   CreateBackupConfigOptions,
   DeleteBackupConfigOptions,
   GetBackupConfigOptions,
   ListBackupConfigsOptions,
+  UpdateBackupConfigOptions,
 } from "./executors/backups/index.ts";
 
 // Commands

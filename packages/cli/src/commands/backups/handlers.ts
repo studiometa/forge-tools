@@ -3,6 +3,7 @@ import {
   deleteBackupConfig,
   getBackupConfig,
   listBackupConfigs,
+  updateBackupConfig,
 } from "@studiometa/forge-core";
 
 import type { CommandContext } from "../../context.ts";
@@ -113,6 +114,87 @@ export async function backupsCreate(ctx: CommandContext): Promise<void> {
       execCtx,
     );
     ctx.formatter.success("Backup configuration created.");
+  }, ctx.formatter);
+}
+
+export async function backupsUpdate(args: string[], ctx: CommandContext): Promise<void> {
+  const [id] = args;
+  const server = String(ctx.options.server ?? "");
+  const storageProviderId = Number(ctx.options.provider ?? 0);
+  const frequency = String(ctx.options.frequency ?? "");
+  const retention = Number(ctx.options.retention ?? 0);
+  const databaseIdsRaw = ctx.options.databases;
+  const database_ids = Array.isArray(databaseIdsRaw)
+    ? databaseIdsRaw.map(Number)
+    : databaseIdsRaw
+      ? [Number(databaseIdsRaw)]
+      : [];
+
+  if (!id) {
+    exitWithValidationError(
+      "backup_id",
+      "forge backups update <backup_id> --server <server_id> --provider <provider> --frequency <frequency> --retention <retention>",
+      ctx.formatter,
+    );
+  }
+
+  if (!server) {
+    exitWithValidationError(
+      "server_id",
+      "forge backups update <backup_id> --server <server_id> --provider <provider> --frequency <frequency> --retention <retention>",
+      ctx.formatter,
+    );
+  }
+
+  if (!storageProviderId) {
+    exitWithValidationError(
+      "provider",
+      "forge backups update <backup_id> --server <server_id> --provider <provider> --frequency <frequency> --retention <retention>",
+      ctx.formatter,
+    );
+  }
+
+  if (!frequency) {
+    exitWithValidationError(
+      "frequency",
+      "forge backups update <backup_id> --server <server_id> --provider <provider> --frequency <frequency> --retention <retention>",
+      ctx.formatter,
+    );
+  }
+
+  if (!retention) {
+    exitWithValidationError(
+      "retention",
+      "forge backups update <backup_id> --server <server_id> --provider <provider> --frequency <frequency> --retention <retention>",
+      ctx.formatter,
+    );
+  }
+
+  await runCommand(async () => {
+    const token = ctx.getToken();
+    const execCtx = ctx.createExecutorContext(token);
+    const server_id = await resolveServerId(server, execCtx);
+    await updateBackupConfig(
+      {
+        server_id,
+        id,
+        storage_provider_id: storageProviderId,
+        frequency,
+        retention,
+        database_ids,
+        ...(ctx.options.name != null ? { name: String(ctx.options.name) } : {}),
+        ...(ctx.options.bucket != null ? { bucket: String(ctx.options.bucket) } : {}),
+        ...(ctx.options.directory != null ? { directory: String(ctx.options.directory) } : {}),
+        ...(ctx.options.day != null ? { day: String(ctx.options.day) } : {}),
+        ...(ctx.options.time != null ? { time: String(ctx.options.time) } : {}),
+        ...(ctx.options.cron != null ? { cron: String(ctx.options.cron) } : {}),
+        ...(ctx.options["notification-email"] != null
+          ? { notification_email: String(ctx.options["notification-email"]) }
+          : {}),
+      },
+      execCtx,
+    );
+    ctx.formatter.success(`Backup configuration ${id} updated.`);
   }, ctx.formatter);
 }
 

@@ -1,5 +1,11 @@
 import { createCommandRouter } from "../../utils/command-router.ts";
-import { backupsCreate, backupsDelete, backupsGet, backupsList } from "./handlers.ts";
+import {
+  backupsCreate,
+  backupsDelete,
+  backupsGet,
+  backupsList,
+  backupsUpdate,
+} from "./handlers.ts";
 
 export const handleBackupsCommand = createCommandRouter({
   resource: "backups",
@@ -8,7 +14,8 @@ export const handleBackupsCommand = createCommandRouter({
     ls: backupsList,
     get: [backupsGet, "args"],
     create: backupsCreate,
+    update: [backupsUpdate, "args"],
     delete: [backupsDelete, "args"],
   },
-  writeSubcommands: ["create", "delete"],
+  writeSubcommands: ["create", "update", "delete"],
 });

@@ -42,4 +42,9 @@ describe("showBackupsHelp", () => {
     showBackupsHelp("delete");
     expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining("backups delete"));
   });
+
+  it("should show update help", () => {
+    showBackupsHelp("update");
+    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining("backups update"));
+  });
 });
