@@ -18,7 +18,13 @@ ${colors.bold("OPTIONS:")}
 ${colors.bold("forge deployments deploy")} - Trigger a deployment
 
 ${colors.bold("USAGE:")}
-  forge deployments deploy --server <server_id> --site <site_id>
+  forge deployments deploy --server <server_id> --site <site_id> [options]
+
+${colors.bold("OPTIONS:")}
+  --server <id>       Server ID (required)
+  --site <id>         Site ID (required)
+  --stream            Stream deployment logs in real-time (default: show progress)
+  -f, --format <fmt>  Output format: json, human, table
 `);
   } else {
     console.log(`

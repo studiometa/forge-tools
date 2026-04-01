@@ -43,7 +43,11 @@ function createMockContext(): HandlerContext {
         },
         // POST to create deployment returns the deployment document with ID
         post: async () =>
-          mockDocument(1, "deployments", makeDeploymentAttrs({ status: "queued", started_at: null })),
+          mockDocument(
+            1,
+            "deployments",
+            makeDeploymentAttrs({ status: "queued", started_at: null }),
+          ),
         put: async () => ({}),
       } as never,
     },
