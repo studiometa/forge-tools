@@ -184,6 +184,26 @@ export const ROUTES = {
     create: { method: "POST", path: "/orgs/:org/servers/:server_id/scheduled-jobs" },
     delete: { method: "DELETE", path: "/orgs/:org/servers/:server_id/scheduled-jobs/:id" },
     getOutput: { method: "GET", path: "/orgs/:org/servers/:server_id/scheduled-jobs/:id/output" },
+    siteList: {
+      method: "GET",
+      path: "/orgs/:org/servers/:server_id/sites/:site_id/scheduled-jobs",
+    },
+    siteGet: {
+      method: "GET",
+      path: "/orgs/:org/servers/:server_id/sites/:site_id/scheduled-jobs/:id",
+    },
+    siteCreate: {
+      method: "POST",
+      path: "/orgs/:org/servers/:server_id/sites/:site_id/scheduled-jobs",
+    },
+    siteDelete: {
+      method: "DELETE",
+      path: "/orgs/:org/servers/:server_id/sites/:site_id/scheduled-jobs/:id",
+    },
+    siteGetOutput: {
+      method: "GET",
+      path: "/orgs/:org/servers/:server_id/sites/:site_id/scheduled-jobs/:id/output",
+    },
   },
   user: {
     get: { method: "GET", path: "/user" },

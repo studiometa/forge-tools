@@ -28,4 +28,30 @@ describe("getScheduledJob", () => {
 
     expect(result.data.command).toBe("php artisan schedule:run");
   });
+
+  it("should get a site-scoped scheduled job", async () => {
+    const getMock = async (url: string) => {
+      expect(url).toContain("/sites/42/scheduled-jobs/1");
+      return mockDocument(1, "scheduled-jobs", {
+        name: null,
+        command: "php artisan schedule:run",
+        user: "forge",
+        frequency: "minutely",
+        cron: "* * * * *",
+        next_run_time: "2024-01-02T00:00:00.000000Z",
+        status: "installed",
+        created_at: "2024-01-01T00:00:00.000000Z",
+        updated_at: "2024-01-01T00:00:00.000000Z",
+      });
+    };
+
+    const ctx = createTestExecutorContext({
+      client: { get: getMock } as never,
+      organizationSlug: "test-org",
+    });
+
+    const result = await getScheduledJob({ server_id: "1", id: "1", site_id: "42" }, ctx);
+
+    expect(result.data.command).toBe("php artisan schedule:run");
+  });
 });

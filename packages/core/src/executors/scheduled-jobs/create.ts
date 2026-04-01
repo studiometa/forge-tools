@@ -16,13 +16,15 @@ export async function createScheduledJob(
   options: CreateScheduledJobOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<ScheduledJobAttributes & { id: number }>> {
-  const { server_id, ...data } = options;
-  const response = await request(
-    ROUTES.scheduledJobs.create,
-    ctx,
-    { server_id },
-    { body: data, schema: jsonApiDocumentSchema(ScheduledJobAttributesSchema) },
-  );
+  const { server_id, site_id, ...data } = options;
+  const route = site_id ? ROUTES.scheduledJobs.siteCreate : ROUTES.scheduledJobs.create;
+  const params: Record<string, string> = { server_id };
+  if (site_id) params.site_id = site_id;
+
+  const response = await request(route, ctx, params, {
+    body: data,
+    schema: jsonApiDocumentSchema(ScheduledJobAttributesSchema),
+  });
 
   return {
     data: unwrapDocument(response),

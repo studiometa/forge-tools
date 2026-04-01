@@ -13,10 +13,14 @@ export const handleScheduledJobs = createResourceHandler({
   resource: "scheduled-jobs",
   actions: ["list", "get", "create", "delete"],
   inputSchemas: {
-    list: v.object({ server_id: v.string() }),
-    get: v.object({ server_id: v.string(), id: v.string() }),
-    create: v.object({ server_id: v.string(), command: v.string() }),
-    delete: v.object({ server_id: v.string(), id: v.string() }),
+    list: v.object({ server_id: v.string(), site_id: v.optional(v.string()) }),
+    get: v.object({ server_id: v.string(), id: v.string(), site_id: v.optional(v.string()) }),
+    create: v.object({
+      server_id: v.string(),
+      command: v.string(),
+      site_id: v.optional(v.string()),
+    }),
+    delete: v.object({ server_id: v.string(), id: v.string(), site_id: v.optional(v.string()) }),
   },
   executors: {
     list: listScheduledJobs,

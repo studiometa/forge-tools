@@ -9,6 +9,7 @@ import type { CreateScheduledJobData } from "@studiometa/forge-api";
  */
 export interface ListScheduledJobsOptions {
   server_id: string;
+  site_id?: string;
 }
 
 /**
@@ -17,6 +18,7 @@ export interface ListScheduledJobsOptions {
 export interface GetScheduledJobOptions {
   server_id: string;
   id: string;
+  site_id?: string;
 }
 
 /**
@@ -24,6 +26,7 @@ export interface GetScheduledJobOptions {
  */
 export interface CreateScheduledJobOptions extends CreateScheduledJobData {
   server_id: string;
+  site_id?: string;
 }
 
 /**
@@ -32,4 +35,5 @@ export interface CreateScheduledJobOptions extends CreateScheduledJobData {
 export interface DeleteScheduledJobOptions {
   server_id: string;
   id: string;
+  site_id?: string;
 }
