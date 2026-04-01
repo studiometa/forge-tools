@@ -19,6 +19,7 @@ function createMockTransport(sessionId: string) {
 function createMockServer() {
   return {
     close: vi.fn(async () => {}),
+    // eslint-disable-next-line typescript-eslint/no-deprecated -- testing low-level Server API
   } as unknown as import("@modelcontextprotocol/sdk/server/index.js").Server;
 }
 

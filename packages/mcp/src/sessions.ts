@@ -1,3 +1,4 @@
+/* eslint-disable typescript-eslint/no-deprecated -- Using low-level Server type for session management */
 /**
  * Session manager for multi-tenant Streamable HTTP transport.
  *
@@ -8,6 +9,8 @@
  * memory leaks from abandoned clients.
  */
 
+// Using low-level Server type for advanced transport handling
+// eslint-disable-next-line typescript-eslint/no-deprecated
 import type { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import type { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 
