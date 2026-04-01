@@ -11,11 +11,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **All**: Migrate from Forge v1 API (`/api/v1`) to v2 API (`/api`) — all endpoints now use org-scoped URLs, JSON:API response format, and cursor-based pagination [[#85]]
 - **All**: Remove all v1 type definitions (`ForgeServer`, `ForgeSite`, etc.) and response wrappers (`ServersResponse`, etc.) — replaced by `ServerAttributes`, `SiteAttributes`, and generic `JsonApiDocument<T>` / `JsonApiListDocument<T>` types [[#85], [0665a7e]]
+- **All**: Certificates are now per-domain — `list` removed, all operations require `domain_id` instead of certificate `id`. URL: `/sites/{site}/domains/{domain}/certificate` [[#85], [bf661cf]]
 - **API**: Change `HttpClient` default base URL from `https://forge.laravel.com/api/v1` to `https://forge.laravel.com/api` [[#85], [697bae9]]
 - **API**: Add `organizationSlug` to `ForgeConfig` — required for all API calls via `FORGE_ORG` env var or config file [[#85], [015e537]]
 - **SDK**: `Forge` constructor now takes `(token, organizationSlug, options?)` instead of `(token, options?)` [[#85], [7881230]]
 - **SDK**: Switch from page-number to cursor-based pagination — `list({ page })` becomes `list({ cursor })` [[#85], [7881230]]
 - **Core**: `ExecutorContext` now requires `organizationSlug` field [[#85], [697bae9]]
+- **Core**: Remove `url-builder.ts` (`orgPrefix`, `serverPath`, `sitePath`) — replaced by `ROUTES` registry [[#101], [4c666ce]]
+- **Core**: Remove duplicate `getDeploymentOutput` executor (use `getDeploymentLog` instead) [[#101], [ff5615b]]
 
 ### Added
 
@@ -23,9 +26,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **API**: Add v2 resource attribute types for all 25 resources (`ServerAttributes`, `SiteAttributes`, `DeploymentAttributes`, etc.) [[#85], [b34ea27]]
 - **API**: Add `unwrapDocument()`, `unwrapListDocument()` helpers to flatten JSON:API responses [[#85], [b0f0e5b]]
 - **API**: Add `getOrganizationSlug()` / `setOrganizationSlug()` config helpers [[#85], [015e537]]
-- **API**: Handle 202 responses with empty body (async create operations) [[#85], [4e32330]]
-- **Core**: Add URL builder helpers (`orgPrefix`, `serverPath`, `sitePath`) [[#85], [697bae9]]
+- **API**: Add Valibot schemas for all 26 resource attribute types and 16 create data types [[#101], [cba90d6]]
+- **API**: Add JSON:API document schema factories (`jsonApiDocumentSchema`, `jsonApiListDocumentSchema`) [[#101], [cba90d6]]
+- **API**: Add `HttpClient.patch()` method [[#101], [cba90d6]]
+- **API**: Add `SiteRepository`, `EnvironmentAttributes` types [[#85], [a9ce75e]]
+- **API**: Add `auto_source` field to `DeploymentScriptAttributes` [[#85], [a9ce75e]]
+- **API**: Add missing fields to `CreateServerData` type [[#108], [441d6ae]]
+- **API**: Add missing fields to `CreateSiteData` type [[#107], [35e0e85]]
+- **Core**: Add typed route registry (`ROUTES`) with `buildUrl()` and `request()` helpers [[#101], [cba90d6]]
+- **Core**: Add schema-inferred `request()` overload — return type derived from Valibot schema [[#101], [97dbb91]]
 - **Core**: Add `mockDocument()` / `mockListDocument()` test helpers [[#85], [5772bc4]]
+- **Core**: Add `update` executor for sites [[#104], [a68eab8]]
+- **Core**: Add `update` executor for daemons [[#105], [8e32116]]
+- **Core**: Add `update` executor for database-users [[#106], [0ef3535]]
+- **Core**: Add `update` executor for recipes [[#103], [0eb2a5c]]
+- **Core**: Add `update` executor for backups [[#111], [d4aa7dd]]
+- **Core**: Add `update` executor for security-rules [[#112], [3f387a8]]
+- **Core**: Add support for site-scoped scheduled jobs [[#110], [e161879]]
 - **CLI**: Add `forge config set organizationSlug <slug>` command [[#85], [6ca58b2]]
 - **CLI**: Add `--org` flag for per-command organization override [[#85], [6ca58b2]]
 - **MCP**: `forge_configure` tool now accepts `organizationSlug` parameter [[#85], [6ca58b2]]
@@ -35,46 +52,53 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **All**: All API URLs now prefixed with `/orgs/{slug}` [[#85], [d755287]]
 - **All**: v2 URL mapping: `/daemons` → `/background-processes`, `/databases` → `/database/schemas`, `/database-users` → `/database/users`, `/keys` → `/ssh-keys`, `/jobs` → `/scheduled-jobs`, `/backup-configs` → `/database/backups`, `/deployment-history` → `/deployments`, `/env` → `/environment` [[#85], [d755287]]
+- **All**: Reduce type casts from 73 to 49 and eliminate 1 of 3 `any` usages across the codebase [[#101], [94809b9]]
+- **All**: Enable strict oxlint with type-aware linting (suspicious + perf categories, 12 type-checked rules) [[#101], [2804c34]]
+- **API**: Handle 202 responses with empty body (async create operations) [[#85], [4e32330]]
+- **API**: Align all v2 attribute types with OpenAPI spec [[#85], [a9ce75e]]
 - **Core**: `getSite` uses org-scoped path (`/orgs/{slug}/sites/{id}`) since v2 does not support GET on server-scoped site path [[#85], [28264ae]]
 - **Core**: Deployments sorted by `-created_at` (v2 API defaults to oldest first) [[#85], [71b395d]]
 - **Core**: 5 create executors (firewall-rules, backups, commands, redirect-rules, ssh-keys) now return void since v2 returns 202 with no body [[#85], [4e32330]]
-- **All**: Certificates are now per-domain — `list` removed, all operations require `domain_id` instead of certificate `id`. URL: `/sites/{site}/domains/{domain}/certificate` [[#85], [bf661cf]]
-- **API**: Align all v2 attribute types with OpenAPI spec — fix `BackupConfigAttributes`, `BackupAttributes`, `CommandAttributes`, `CertificateAttributes`, `UserAttributes`, `BackgroundProcessAttributes`, `MonitorAttributes`, `SiteAttributes`, `SshKeyAttributes`, `ScheduledJobAttributes` [[#85], [a9ce75e]]
-- **API**: Add `SiteRepository`, `EnvironmentAttributes` types [[#85], [a9ce75e]]
-- **API**: Add `auto_source` field to `DeploymentScriptAttributes` [[#85], [a9ce75e]]
-- **Core**: Fix `getNginxConfig` to unwrap JSON:API response (was returning raw wrapper) [[#85], [fe42d56]]
-- **Core**: Deduplicate deployment list fetch in `deploySiteAndWait` [[#85], [fe42d56]]
-- **CLI**: Document `--org` flag and `FORGE_ORG` env var in help text [[#85], [a9ce75e]]
-- **CLI**: Fix `deploymentsDeploy` using `formatter.success()` for failed deployments [[#85], [a9ce75e]]
-- **MCP**: Validate `organizationSlug` early before routing to handlers [[#85], [a9ce75e]]
-- **MCP**: Fix HTTP transport reading wrong field name for `organizationSlug` [[#85], [fe42d56]]
-- **API**: Add Valibot schemas for all 26 resource attribute types and 16 create data types [[#101], [cba90d6]]
-- **API**: Add JSON:API document schema factories (`jsonApiDocumentSchema`, `jsonApiListDocumentSchema`) [[#101], [cba90d6]]
-- **API**: Add `HttpClient.patch()` method [[#101], [cba90d6]]
-- **Core**: Add typed route registry (`ROUTES`) with `buildUrl()` and `request()` helpers [[#101], [cba90d6]]
-- **Core**: Add schema-inferred `request()` overload — return type derived from Valibot schema, eliminating redundant generics from all executors [[#101], [97dbb91]]
 - **Core**: Migrate all 82 executor files from manual URL construction to route registry [[#101], [4c666ce]]
-- **Core**: Remove `url-builder.ts` (`orgPrefix`, `serverPath`, `sitePath`) — replaced by `ROUTES` [[#101], [4c666ce]]
-- **Core**: Remove duplicate `getDeploymentOutput` executor (identical to `getDeploymentLog` after v2 migration) [[#101], [ff5615b]]
 - **MCP**: Replace `requiredFields` with Valibot `inputSchemas` in handler factory — validation errors now include field-level messages [[#101], [4c666ce]]
 - **MCP**: Rewrite batch handler with typed `BatchOperation` interface and upfront validation [[#101], [94809b9]]
 - **MCP**: Replace `any[]` return type with `Tool[]` in `getAvailableTools()` [[#101], [94809b9]]
-- **All**: Reduce type casts from 73 to 49 and eliminate 1 of 3 `any` usages across the codebase [[#101], [94809b9]]
-- **All**: Enable strict oxlint with type-aware linting (suspicious + perf categories, 12 type-checked rules) [[#101], [2804c34]]
+- **MCP**: Validate `organizationSlug` early before routing to handlers [[#85], [a9ce75e]]
+
+### Fixed
+
+- **API**: Fix `SiteAttributesSchema` to allow null `aliases` field [[#113], [9f81d2e]]
+- **Core**: Fix `getNginxConfig` to unwrap JSON:API response (was returning raw wrapper) [[#85], [fe42d56]]
 - **Core**: Fix daemon restart URL — was `/restart`, now `/actions` with `{ action: "restart" }` body [[#101], [cba90d6]]
 - **Core**: Fix deployment get-log — now uses correct `/deployments/:id/log` endpoint [[#101], [cba90d6]]
+- **Core**: Fix deployment race condition and add log streaming [[#114], [d5e8f8f]]
+- **Core**: Deduplicate deployment list fetch in `deploySiteAndWait` [[#85], [fe42d56]]
+- **CLI**: Fix `deploymentsDeploy` using `formatter.success()` for failed deployments [[#85], [a9ce75e]]
+- **MCP**: Fix HTTP transport reading wrong field name for `organizationSlug` [[#85], [fe42d56]]
 - **MCP**: Fix unwaited `closeAll()` promises in session cleanup [[#101], [2804c34]]
 - **MCP**: Fix repository display in site formatter — use `.url` property instead of stringifying object [[#101], [2804c34]]
+- **All**: Fix lint warnings and deprecations [[#102], [3a07f2d]]
 
 [#85]: https://github.com/studiometa/forge-tools/pull/85
 [#101]: https://github.com/studiometa/forge-tools/pull/101
+[#102]: https://github.com/studiometa/forge-tools/pull/102
+[#103]: https://github.com/studiometa/forge-tools/pull/103
+[#104]: https://github.com/studiometa/forge-tools/pull/104
+[#105]: https://github.com/studiometa/forge-tools/pull/105
+[#106]: https://github.com/studiometa/forge-tools/pull/106
+[#107]: https://github.com/studiometa/forge-tools/pull/107
+[#108]: https://github.com/studiometa/forge-tools/pull/108
+[#110]: https://github.com/studiometa/forge-tools/pull/110
+[#111]: https://github.com/studiometa/forge-tools/pull/111
+[#112]: https://github.com/studiometa/forge-tools/pull/112
+[#113]: https://github.com/studiometa/forge-tools/pull/113
+[#114]: https://github.com/studiometa/forge-tools/pull/114
 [37f4f10]: https://github.com/studiometa/forge-tools/commit/37f4f10
 [b34ea27]: https://github.com/studiometa/forge-tools/commit/b34ea27
 [b0f0e5b]: https://github.com/studiometa/forge-tools/commit/b0f0e5b
 [015e537]: https://github.com/studiometa/forge-tools/commit/015e537
 [697bae9]: https://github.com/studiometa/forge-tools/commit/697bae9
 [d755287]: https://github.com/studiometa/forge-tools/commit/d755287
-[c4d119f]: https://github.com/studiometa/forge-tools/commit/c4d119f
 [7881230]: https://github.com/studiometa/forge-tools/commit/7881230
 [5772bc4]: https://github.com/studiometa/forge-tools/commit/5772bc4
 [6ca58b2]: https://github.com/studiometa/forge-tools/commit/6ca58b2
@@ -85,7 +109,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [bf661cf]: https://github.com/studiometa/forge-tools/commit/bf661cf
 [a9ce75e]: https://github.com/studiometa/forge-tools/commit/a9ce75e
 [fe42d56]: https://github.com/studiometa/forge-tools/commit/fe42d56
-[92bceaa]: https://github.com/studiometa/forge-tools/commit/92bceaa
+[cba90d6]: https://github.com/studiometa/forge-tools/commit/cba90d6
+[4c666ce]: https://github.com/studiometa/forge-tools/commit/4c666ce
+[97dbb91]: https://github.com/studiometa/forge-tools/commit/97dbb91
+[ff5615b]: https://github.com/studiometa/forge-tools/commit/ff5615b
+[94809b9]: https://github.com/studiometa/forge-tools/commit/94809b9
+[2804c34]: https://github.com/studiometa/forge-tools/commit/2804c34
+[3a07f2d]: https://github.com/studiometa/forge-tools/commit/3a07f2d
+[0eb2a5c]: https://github.com/studiometa/forge-tools/commit/0eb2a5c
+[8e32116]: https://github.com/studiometa/forge-tools/commit/8e32116
+[0ef3535]: https://github.com/studiometa/forge-tools/commit/0ef3535
+[35e0e85]: https://github.com/studiometa/forge-tools/commit/35e0e85
+[441d6ae]: https://github.com/studiometa/forge-tools/commit/441d6ae
+[e161879]: https://github.com/studiometa/forge-tools/commit/e161879
+[d4aa7dd]: https://github.com/studiometa/forge-tools/commit/d4aa7dd
+[3f387a8]: https://github.com/studiometa/forge-tools/commit/3f387a8
+[9f81d2e]: https://github.com/studiometa/forge-tools/commit/9f81d2e
+[d5e8f8f]: https://github.com/studiometa/forge-tools/commit/d5e8f8f
+[a68eab8]: https://github.com/studiometa/forge-tools/commit/a68eab8
 
 ## 0.3.0 - 2026.02.27
 
@@ -318,9 +359,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [#50]: https://github.com/studiometa/forge-tools/pull/50
 [131275c]: https://github.com/studiometa/forge-tools/commit/131275c
 [04468e9]: https://github.com/studiometa/forge-tools/commit/04468e9
-[cba90d6]: https://github.com/studiometa/forge-tools/commit/cba90d6
-[4c666ce]: https://github.com/studiometa/forge-tools/commit/4c666ce
-[97dbb91]: https://github.com/studiometa/forge-tools/commit/97dbb91
-[ff5615b]: https://github.com/studiometa/forge-tools/commit/ff5615b
-[94809b9]: https://github.com/studiometa/forge-tools/commit/94809b9
-[2804c34]: https://github.com/studiometa/forge-tools/commit/2804c34
