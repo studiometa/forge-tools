@@ -37,4 +37,9 @@ describe("showRecipesHelp", () => {
     showRecipesHelp("run");
     expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining("servers"));
   });
+
+  it("should show update help", () => {
+    showRecipesHelp("update");
+    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining("recipes update"));
+  });
 });

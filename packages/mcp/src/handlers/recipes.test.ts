@@ -41,6 +41,7 @@ function createMockContext(): HandlerContext {
             makeRecipeAttrs({ name: "cleanup", user: "forge", script: "rm -rf /tmp/*" }),
           );
         },
+        put: async () => mockDocument(1, "recipes", makeRecipeAttrs({ name: "updated" })),
         delete: async () => {},
       } as never,
     },
@@ -106,6 +107,16 @@ describe("handleRecipes", () => {
       createMockContext(),
     );
     expect(result.isError).toBe(true);
+  });
+
+  it("should update a recipe", async () => {
+    const result = await handleRecipes(
+      "update",
+      { resource: "recipes", action: "update", id: "1", name: "updated", script: "echo hi" },
+      createMockContext(),
+    );
+    expect(result.isError).toBeUndefined();
+    expect(result.content[0].text).toContain("updated");
   });
 
   it("should handle unknown action", async () => {

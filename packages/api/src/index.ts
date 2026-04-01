@@ -117,6 +117,7 @@ export {
   CreateMonitorDataSchema,
   CreateNginxTemplateDataSchema,
   CreateRecipeDataSchema,
+  UpdateRecipeDataSchema,
 } from "./schemas/types.ts";
 
 export type {
@@ -136,6 +137,7 @@ export type {
   CreateMonitorData,
   CreateNginxTemplateData,
   CreateRecipeData,
+  UpdateRecipeData,
 } from "./schemas/types.ts";
 
 // Config and options types

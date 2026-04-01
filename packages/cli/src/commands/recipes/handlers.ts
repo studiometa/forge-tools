@@ -1,4 +1,4 @@
-import { listRecipes, getRecipe, runRecipe } from "@studiometa/forge-core";
+import { listRecipes, getRecipe, runRecipe, updateRecipe } from "@studiometa/forge-core";
 
 import type { CommandContext } from "../../context.ts";
 
@@ -29,6 +29,29 @@ export async function recipesGet(args: string[], ctx: CommandContext): Promise<v
     const token = ctx.getToken();
     const execCtx = ctx.createExecutorContext(token);
     const result = await getRecipe({ id }, execCtx);
+    ctx.formatter.outputOne(result.data, ["id", "name", "user", "created_at", "script"]);
+  }, ctx.formatter);
+}
+
+export async function recipesUpdate(args: string[], ctx: CommandContext): Promise<void> {
+  const [id] = args;
+
+  if (!id) {
+    exitWithValidationError(
+      "id",
+      "forge recipes update <recipe_id> [--name ...] [--user ...] [--script ...]",
+      ctx.formatter,
+    );
+  }
+
+  const name = ctx.options.name as string | undefined;
+  const user = ctx.options.user as string | undefined;
+  const script = ctx.options.script as string | undefined;
+
+  await runCommand(async () => {
+    const token = ctx.getToken();
+    const execCtx = ctx.createExecutorContext(token);
+    const result = await updateRecipe({ id, name, user, script }, execCtx);
     ctx.formatter.outputOne(result.data, ["id", "name", "user", "created_at", "script"]);
   }, ctx.formatter);
 }

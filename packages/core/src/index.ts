@@ -227,6 +227,7 @@ export {
   getRecipe,
   listRecipes,
   runRecipe,
+  updateRecipe,
 } from "./executors/recipes/index.ts";
 export type {
   CreateRecipeOptions,
@@ -234,6 +235,7 @@ export type {
   GetRecipeOptions,
   ListRecipesOptions,
   RunRecipeOptions,
+  UpdateRecipeOptions,
 } from "./executors/recipes/index.ts";
 
 // Backups

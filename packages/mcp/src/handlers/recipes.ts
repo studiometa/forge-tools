@@ -5,6 +5,7 @@ import {
   getRecipe,
   listRecipes,
   runRecipe,
+  updateRecipe,
 } from "@studiometa/forge-core";
 
 import { formatRecipe, formatRecipeList } from "../formatters.ts";
@@ -13,11 +14,17 @@ import { createResourceHandler } from "./factory.ts";
 
 export const handleRecipes = createResourceHandler({
   resource: "recipes",
-  actions: ["list", "get", "create", "delete", "run"],
+  actions: ["list", "get", "create", "update", "delete", "run"],
   inputSchemas: {
     get: v.object({ id: v.string() }),
     create: v.object({ name: v.string(), script: v.string() }),
     delete: v.object({ id: v.string() }),
+    update: v.object({
+      id: v.string(),
+      name: v.optional(v.string()),
+      user: v.optional(v.string()),
+      script: v.optional(v.string()),
+    }),
     run: v.object({ id: v.string(), servers: v.unknown() }),
   },
   executors: {
@@ -25,6 +32,7 @@ export const handleRecipes = createResourceHandler({
     get: getRecipe,
     create: createRecipe,
     delete: deleteRecipe,
+    update: updateRecipe,
     run: runRecipe,
   },
   hints: (_data, id) => getRecipeHints(id),
@@ -35,6 +43,8 @@ export const handleRecipes = createResourceHandler({
       case "get":
         return formatRecipe(data);
       case "create":
+        return formatRecipe(data);
+      case "update":
         return formatRecipe(data);
       case "delete":
         return `Recipe ${args.id} deleted.`;

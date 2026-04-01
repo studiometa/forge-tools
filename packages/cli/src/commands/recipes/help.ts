@@ -15,6 +15,18 @@ ${colors.bold("forge recipes get")} - Get recipe details
 ${colors.bold("USAGE:")}
   forge recipes get <recipe_id>
 `);
+  } else if (subcommand === "update") {
+    console.log(`
+${colors.bold("forge recipes update")} - Update a recipe
+
+${colors.bold("USAGE:")}
+  forge recipes update <recipe_id> [options]
+
+${colors.bold("OPTIONS:")}
+  --name <name>       New recipe name
+  --user <user>       New recipe user
+  --script <script>   New recipe script
+`);
   } else if (subcommand === "run") {
     console.log(`
 ${colors.bold("forge recipes run")} - Run a recipe on servers
@@ -35,6 +47,7 @@ ${colors.bold("USAGE:")}
 ${colors.bold("SUBCOMMANDS:")}
   list, ls            List all recipes
   get <id>            Get recipe details
+  update <id>         Update a recipe
   run <id>            Run a recipe on servers
 
 ${colors.bold("OPTIONS:")}

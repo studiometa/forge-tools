@@ -18,6 +18,7 @@ import {
   CreateMonitorDataSchema,
   CreateNginxTemplateDataSchema,
   CreateRecipeDataSchema,
+  UpdateRecipeDataSchema,
 } from "./types.ts";
 
 function testSchema(
@@ -138,3 +139,5 @@ testSchema(
   { name: "deploy", user: "forge", script: "git pull" },
   { name: 123 },
 );
+
+testSchema("UpdateRecipeDataSchema", UpdateRecipeDataSchema, { name: "deploy" }, { name: 123 });

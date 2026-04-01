@@ -243,3 +243,11 @@ export const CreateRecipeDataSchema = v.object({
 });
 
 export type CreateRecipeData = v.InferOutput<typeof CreateRecipeDataSchema>;
+
+export const UpdateRecipeDataSchema = v.object({
+  name: v.optional(v.string()),
+  user: v.optional(v.string()),
+  script: v.optional(v.string()),
+});
+
+export type UpdateRecipeData = v.InferOutput<typeof UpdateRecipeDataSchema>;
