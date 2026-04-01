@@ -7,6 +7,7 @@ import {
   securityRulesList,
   securityRulesGet,
   securityRulesCreate,
+  securityRulesUpdate,
   securityRulesDelete,
 } from "./handlers.ts";
 
@@ -14,6 +15,7 @@ vi.mock("@studiometa/forge-core", () => ({
   listSecurityRules: vi.fn(),
   getSecurityRule: vi.fn(),
   createSecurityRule: vi.fn(),
+  updateSecurityRule: vi.fn(),
   deleteSecurityRule: vi.fn(),
 }));
 
@@ -286,6 +288,57 @@ describe("securityRulesList — human format lineFormat", () => {
     await securityRulesList(ctx);
     expect(vi.mocked(console.log)).toHaveBeenCalled();
   });
+});
+
+describe("securityRulesUpdate", () => {
+  let processExitSpy: ReturnType<typeof vi.spyOn>;
+
+  beforeEach(() => {
+    processExitSpy = vi.spyOn(process, "exit").mockImplementation(() => undefined as never);
+    vi.spyOn(console, "log").mockImplementation(() => {});
+    vi.spyOn(console, "error").mockImplementation(() => {});
+  });
+  afterEach(() => vi.restoreAllMocks());
+
+  it("should update a security rule", async () => {
+    const { updateSecurityRule } = await import("@studiometa/forge-core");
+    vi.mocked(updateSecurityRule).mockResolvedValue({ data: { ...mockRule, name: "Updated" } });
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "human", server: "10", site: "20", name: "Updated" },
+    });
+    await securityRulesUpdate(["1"], ctx);
+    expect(vi.mocked(console.log)).toHaveBeenCalled();
+  });
+
+  it("should exit when rule_id is missing", async () => {
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "human", server: "10", site: "20", name: "Updated" },
+    });
+    await securityRulesUpdate([], ctx).catch(() => {});
+    expect(processExitSpy).toHaveBeenCalledWith(3);
+  });
+
+  it("should exit when name is missing", async () => {
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "human", server: "10", site: "20" },
+    });
+    await securityRulesUpdate(["1"], ctx).catch(() => {});
+    expect(processExitSpy).toHaveBeenCalledWith(3);
+  });
+});
+
+describe("securityRulesList output formatting", () => {
+  beforeEach(() => {
+    vi.spyOn(console, "log").mockImplementation(() => {});
+    vi.spyOn(console, "error").mockImplementation(() => {});
+  });
+  afterEach(() => vi.restoreAllMocks());
 
   it("should render '—' when path is null", async () => {
     const { listSecurityRules } = await import("@studiometa/forge-core");

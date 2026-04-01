@@ -32,6 +32,7 @@ function createMockContext(): HandlerContext {
         },
         post: async () =>
           mockDocument(2, "security-rules", makeRuleAttrs({ name: "secret", path: "/secret" })),
+        put: async () => mockDocument(1, "security-rules", makeRuleAttrs({ name: "updated" })),
         delete: async () => {},
       } as never,
     },
@@ -75,6 +76,24 @@ describe("handleSecurityRules", () => {
     );
     expect(result.isError).toBeUndefined();
     expect(result.content[0].text).toContain("secret");
+  });
+
+  it("should update a security rule", async () => {
+    const result = await handleSecurityRules(
+      "update",
+      {
+        resource: "security-rules",
+        action: "update",
+        server_id: "1",
+        site_id: "10",
+        id: "1",
+        name: "updated",
+        credentials: [{ username: "user", password: "pass" }],
+      },
+      createMockContext(),
+    );
+    expect(result.isError).toBeUndefined();
+    expect(result.content[0].text).toContain("updated");
   });
 
   it("should delete a security rule", async () => {

@@ -4,6 +4,7 @@ import {
   securityRulesDelete,
   securityRulesGet,
   securityRulesList,
+  securityRulesUpdate,
 } from "./handlers.ts";
 
 export const handleSecurityRulesCommand = createCommandRouter({
@@ -13,7 +14,8 @@ export const handleSecurityRulesCommand = createCommandRouter({
     ls: securityRulesList,
     get: [securityRulesGet, "args"],
     create: securityRulesCreate,
+    update: [securityRulesUpdate, "args"],
     delete: [securityRulesDelete, "args"],
   },
-  writeSubcommands: ["create", "delete"],
+  writeSubcommands: ["create", "update", "delete"],
 });

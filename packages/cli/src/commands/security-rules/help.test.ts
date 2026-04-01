@@ -42,4 +42,9 @@ describe("showSecurityRulesHelp", () => {
     showSecurityRulesHelp("delete");
     expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining("security-rules delete"));
   });
+
+  it("should show update help", () => {
+    showSecurityRulesHelp("update");
+    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining("security-rules update"));
+  });
 });

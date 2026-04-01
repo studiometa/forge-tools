@@ -17,6 +17,7 @@ import {
   CreateFirewallRuleDataSchema,
   CreateSshKeyDataSchema,
   CreateSecurityRuleDataSchema,
+  UpdateSecurityRuleDataSchema,
   CreateRedirectRuleDataSchema,
   CreateMonitorDataSchema,
   CreateNginxTemplateDataSchema,
@@ -139,6 +140,13 @@ testSchema(
 testSchema(
   "CreateSecurityRuleDataSchema",
   CreateSecurityRuleDataSchema,
+  { name: "admin", credentials: [{ username: "admin", password: "secret" }] },
+  { name: 123 },
+);
+
+testSchema(
+  "UpdateSecurityRuleDataSchema",
+  UpdateSecurityRuleDataSchema,
   { name: "admin", credentials: [{ username: "admin", password: "secret" }] },
   { name: 123 },
 );

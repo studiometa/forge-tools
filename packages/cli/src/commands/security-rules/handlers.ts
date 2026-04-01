@@ -3,6 +3,7 @@ import {
   deleteSecurityRule,
   getSecurityRule,
   listSecurityRules,
+  updateSecurityRule,
 } from "@studiometa/forge-core";
 
 import type { CommandContext } from "../../context.ts";
@@ -81,6 +82,35 @@ export async function securityRulesCreate(ctx: CommandContext): Promise<void> {
     const server_id = await resolveServerId(server, execCtx);
     const site_id = await resolveSiteId(site, server_id, execCtx);
     const result = await createSecurityRule({ server_id, site_id, name, credentials: [] }, execCtx);
+    ctx.formatter.outputOne(result.data, ["id", "name", "path", "created_at"]);
+  }, ctx.formatter);
+}
+
+export async function securityRulesUpdate(args: string[], ctx: CommandContext): Promise<void> {
+  const [id] = args;
+  const usage =
+    "forge security-rules update <rule_id> --server <server_id> --site <site_id> --name <name>";
+
+  if (!id) {
+    exitWithValidationError("rule_id", usage, ctx.formatter);
+  }
+
+  const { server, site } = requireServerAndSiteRaw(ctx, usage);
+  const name = String(ctx.options.name ?? "");
+
+  if (!name) {
+    exitWithValidationError("name", usage, ctx.formatter);
+  }
+
+  await runCommand(async () => {
+    const token = ctx.getToken();
+    const execCtx = ctx.createExecutorContext(token);
+    const server_id = await resolveServerId(server, execCtx);
+    const site_id = await resolveSiteId(site, server_id, execCtx);
+    const result = await updateSecurityRule(
+      { server_id, site_id, id, name, credentials: [] },
+      execCtx,
+    );
     ctx.formatter.outputOne(result.data, ["id", "name", "path", "created_at"]);
   }, ctx.formatter);
 }

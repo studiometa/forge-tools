@@ -164,12 +164,14 @@ export {
   deleteSecurityRule,
   getSecurityRule,
   listSecurityRules,
+  updateSecurityRule,
 } from "./executors/security-rules/index.ts";
 export type {
   CreateSecurityRuleOptions,
   DeleteSecurityRuleOptions,
   GetSecurityRuleOptions,
   ListSecurityRulesOptions,
+  UpdateSecurityRuleOptions,
 } from "./executors/security-rules/index.ts";
 
 // Redirect Rules
