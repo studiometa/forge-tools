@@ -4,6 +4,7 @@ import {
   databaseUsersDelete,
   databaseUsersGet,
   databaseUsersList,
+  databaseUsersUpdate,
 } from "./handlers.ts";
 
 export const handleDatabaseUsersCommand = createCommandRouter({
@@ -13,7 +14,8 @@ export const handleDatabaseUsersCommand = createCommandRouter({
     ls: databaseUsersList,
     get: [databaseUsersGet, "args"],
     create: databaseUsersCreate,
+    update: [databaseUsersUpdate, "args"],
     delete: [databaseUsersDelete, "args"],
   },
-  writeSubcommands: ["create", "delete"],
+  writeSubcommands: ["create", "update", "delete"],
 });

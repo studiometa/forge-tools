@@ -7,6 +7,7 @@ import {
   CreateCertificateDataSchema,
   CreateDatabaseDataSchema,
   CreateDatabaseUserDataSchema,
+  UpdateDatabaseUserDataSchema,
   CreateDaemonDataSchema,
   CreateBackupConfigDataSchema,
   CreateCommandDataSchema,
@@ -60,6 +61,13 @@ testSchema(
   CreateDatabaseUserDataSchema,
   { name: "forge", password: "secret" },
   { name: 123 },
+);
+
+testSchema(
+  "UpdateDatabaseUserDataSchema",
+  UpdateDatabaseUserDataSchema,
+  { password: "new-secret", database_ids: [1, 2] },
+  { password: 123 },
 );
 
 testSchema(

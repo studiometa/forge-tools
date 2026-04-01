@@ -7,6 +7,7 @@ import {
   databaseUsersList,
   databaseUsersGet,
   databaseUsersCreate,
+  databaseUsersUpdate,
   databaseUsersDelete,
 } from "./handlers.ts";
 
@@ -14,6 +15,7 @@ vi.mock("@studiometa/forge-core", () => ({
   listDatabaseUsers: vi.fn(),
   getDatabaseUser: vi.fn(),
   createDatabaseUser: vi.fn(),
+  updateDatabaseUser: vi.fn(),
   deleteDatabaseUser: vi.fn(),
 }));
 
@@ -211,6 +213,73 @@ describe("databaseUsersCreate", () => {
     });
 
     await databaseUsersCreate(ctx).catch(() => {});
+    expect(processExitSpy).toHaveBeenCalledWith(3);
+  });
+});
+
+describe("databaseUsersUpdate", () => {
+  let processExitSpy: ReturnType<typeof vi.spyOn>;
+
+  beforeEach(() => {
+    processExitSpy = vi.spyOn(process, "exit").mockImplementation(() => undefined as never);
+    vi.spyOn(console, "log").mockImplementation(() => {});
+    vi.spyOn(console, "error").mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("should update a database user", async () => {
+    const { updateDatabaseUser } = await import("@studiometa/forge-core");
+    vi.mocked(updateDatabaseUser).mockResolvedValue({ data: mockUser });
+
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "json", server: "10", password: "new-secret" },
+    });
+
+    await databaseUsersUpdate(["1"], ctx);
+    expect(vi.mocked(console.log)).toHaveBeenCalledWith(expect.stringContaining('"forge"'));
+  });
+
+  it("should update with database-ids", async () => {
+    const { updateDatabaseUser } = await import("@studiometa/forge-core");
+    vi.mocked(updateDatabaseUser).mockResolvedValue({ data: mockUser });
+
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "json", server: "10", "database-ids": ["1", "2"] },
+    });
+
+    await databaseUsersUpdate(["1"], ctx);
+    expect(vi.mocked(updateDatabaseUser)).toHaveBeenCalledWith(
+      expect.objectContaining({ database_ids: [1, 2] }),
+      expect.anything(),
+    );
+  });
+
+  it("should exit with error when no user_id", async () => {
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "json", server: "10" },
+    });
+
+    await databaseUsersUpdate([], ctx).catch(() => {});
+    expect(processExitSpy).toHaveBeenCalledWith(3);
+  });
+
+  it("should exit with error when no server_id", async () => {
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "json" },
+    });
+
+    await databaseUsersUpdate(["1"], ctx).catch(() => {});
     expect(processExitSpy).toHaveBeenCalledWith(3);
   });
 });

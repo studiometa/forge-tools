@@ -3,6 +3,7 @@ import {
   deleteDatabaseUser,
   getDatabaseUser,
   listDatabaseUsers,
+  updateDatabaseUser,
 } from "@studiometa/forge-core";
 
 import type { CommandContext } from "../../context.ts";
@@ -105,6 +106,45 @@ export async function databaseUsersCreate(ctx: CommandContext): Promise<void> {
     const server_id = await resolveServerId(server, execCtx);
     const result = await createDatabaseUser(
       { server_id, name, password, ...(databases ? { databases } : {}) },
+      execCtx,
+    );
+    ctx.formatter.outputOne(result.data, ["id", "name", "status", "created_at"]);
+  }, ctx.formatter);
+}
+
+export async function databaseUsersUpdate(args: string[], ctx: CommandContext): Promise<void> {
+  const [id] = args;
+  const server = String(ctx.options.server ?? "");
+  const password = ctx.options.password != null ? String(ctx.options.password) : undefined;
+  const databaseIdsRaw = ctx.options["database-ids"] ?? ctx.options.database_ids;
+  const database_ids = Array.isArray(databaseIdsRaw)
+    ? databaseIdsRaw.map(Number)
+    : databaseIdsRaw
+      ? [Number(databaseIdsRaw)]
+      : undefined;
+
+  if (!id) {
+    exitWithValidationError(
+      "user_id",
+      "forge database-users update <user_id> --server <server_id> [--password <password>] [--database-ids <ids>]",
+      ctx.formatter,
+    );
+  }
+
+  if (!server) {
+    exitWithValidationError(
+      "server_id",
+      "forge database-users update <user_id> --server <server_id> [--password <password>] [--database-ids <ids>]",
+      ctx.formatter,
+    );
+  }
+
+  await runCommand(async () => {
+    const token = ctx.getToken();
+    const execCtx = ctx.createExecutorContext(token);
+    const server_id = await resolveServerId(server, execCtx);
+    const result = await updateDatabaseUser(
+      { server_id, id, ...(password !== undefined ? { password } : {}), ...(database_ids ? { database_ids } : {}) },
       execCtx,
     );
     ctx.formatter.outputOne(result.data, ["id", "name", "status", "created_at"]);

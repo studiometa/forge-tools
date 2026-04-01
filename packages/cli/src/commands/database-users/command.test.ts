@@ -6,6 +6,7 @@ vi.mock("./handlers.ts", () => ({
   databaseUsersList: vi.fn().mockResolvedValue(),
   databaseUsersGet: vi.fn().mockResolvedValue(),
   databaseUsersCreate: vi.fn().mockResolvedValue(),
+  databaseUsersUpdate: vi.fn().mockResolvedValue(),
   databaseUsersDelete: vi.fn().mockResolvedValue(),
 }));
 
@@ -57,6 +58,12 @@ describe("handleDatabaseUsersCommand routing", () => {
     const h = await import("./handlers.ts");
     await handleDatabaseUsersCommand("create", [], {});
     expect(h.databaseUsersCreate).toHaveBeenCalled();
+  });
+
+  it("should route update with args", async () => {
+    const h = await import("./handlers.ts");
+    await handleDatabaseUsersCommand("update", ["1"], {});
+    expect(h.databaseUsersUpdate).toHaveBeenCalledWith(["1"], expect.anything());
   });
 
   it("should route delete with args", async () => {

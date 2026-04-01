@@ -31,6 +31,8 @@ function createMockContext(): HandlerContext {
         },
         post: async () =>
           mockDocument(2, "database-users", makeUserAttrs({ name: "newuser", status: "creating" })),
+        put: async () =>
+          mockDocument(1, "database-users", makeUserAttrs({ name: "forge" })),
         delete: async () => {},
       } as never,
     },
@@ -73,6 +75,22 @@ describe("handleDatabaseUsers", () => {
     );
     expect(result.isError).toBeUndefined();
     expect(result.content[0].text).toContain("newuser");
+  });
+
+  it("should update a database user", async () => {
+    const result = await handleDatabaseUsers(
+      "update",
+      {
+        resource: "database-users",
+        action: "update",
+        server_id: "1",
+        id: "1",
+        password: "new-secret",
+      },
+      createMockContext(),
+    );
+    expect(result.isError).toBeUndefined();
+    expect(result.content[0].text).toContain("forge");
   });
 
   it("should delete a database user", async () => {
