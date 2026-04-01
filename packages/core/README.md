@@ -128,6 +128,28 @@ import { RESOURCES, ACTIONS } from "@studiometa/forge-core";
 
 ## Utilities
 
+### Route Registry (`ROUTES`)
+
+Typed route definitions for all Forge API endpoints. Executors use `request()` instead of manual URL construction:
+
+```typescript
+import { request } from "@studiometa/forge-core";
+import { ROUTES } from "@studiometa/forge-core";
+
+// request() builds the URL, makes the call, and returns typed data
+const servers = await request(ROUTES.servers.list, ctx, {});
+const site = await request(ROUTES.sites.get, ctx, { server_id: 123, site_id: 456 });
+```
+
+For lower-level URL building without making the request:
+
+```typescript
+import { buildUrl } from "@studiometa/forge-core";
+
+const url = buildUrl(ROUTES.servers.get, ctx, { server_id: 123 });
+// → "/orgs/my-org/servers/123"
+```
+
 ### `matchByName(items, query, getName)`
 
 Case-insensitive exact and partial name matching — used internally by `resolveServers` and `resolveSites`, but exported for reuse:

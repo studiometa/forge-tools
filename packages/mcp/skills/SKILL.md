@@ -297,11 +297,11 @@ Per-operation failures are isolated — a single error doesn't abort the rest.
 
 ### Stdio Mode (Claude Desktop)
 
-Set `FORGE_API_TOKEN` environment variable, or use the `forge_configure` tool:
+Set environment variables `FORGE_API_TOKEN` and `FORGE_ORG`, or use the `forge_configure` tool:
 
 ```json
-// Configure interactively
-{ tool: "forge_configure", arguments: { api_token: "your-token" } }
+// Configure API token and organization
+{ tool: "forge_configure", arguments: { apiToken: "your-token", organizationSlug: "your-org" } }
 
 // Check current config
 { tool: "forge_get_config", arguments: {} }

@@ -34,14 +34,15 @@ Add to your Claude Desktop config:
     "forge": {
       "command": "forge-mcp",
       "env": {
-        "FORGE_API_TOKEN": "your-api-token"
+        "FORGE_API_TOKEN": "your-api-token",
+        "FORGE_ORG": "your-organization-slug"
       }
     }
   }
 }
 ```
 
-Alternatively, omit the `env` block and ask Claude to configure credentials using the `forge_configure` tool.
+Alternatively, omit the `env` block and ask Claude to configure credentials using the `forge_configure` tool (accepts `apiToken` and `organizationSlug` parameters).
 
 ### Read-Only Mode
 
@@ -166,10 +167,10 @@ Use `resource: "batch"` to fan out multiple reads in a single round-trip (max 10
 
 ## Stdio-Only Tools
 
-| Tool               | Description                        |
-| ------------------ | ---------------------------------- |
-| `forge_configure`  | Save API token to local config     |
-| `forge_get_config` | Show current config (token masked) |
+| Tool               | Description                                              |
+| ------------------ | -------------------------------------------------------- |
+| `forge_configure`  | Save API token and organization slug to local config     |
+| `forge_get_config` | Show current config (token masked, org slug visible)     |
 
 ## Audit Logging
 

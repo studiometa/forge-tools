@@ -18,12 +18,13 @@ npx @studiometa/forge-cli --help
 
 Credentials can be provided in three ways (highest priority first):
 
-1. **CLI argument**: `--token <token>`
-2. **Environment variable**: `FORGE_API_TOKEN`
+1. **CLI flags**: `--token <token>`, `--org <slug>`
+2. **Environment variables**: `FORGE_API_TOKEN`, `FORGE_ORG`
 3. **Config file** (XDG-compliant):
 
 ```bash
-forge config set YOUR_FORGE_TOKEN
+forge config set apiToken YOUR_FORGE_TOKEN
+forge config set organizationSlug your-org-slug
 forge config get
 forge config delete
 ```
@@ -106,9 +107,10 @@ forge sites list --server 123 --format table
 ### `config` — Manage configuration
 
 ```bash
-forge config set <token>   # Save API token to config file
-forge config get           # Show current token (masked)
-forge config delete        # Delete stored token
+forge config set apiToken <token>              # Save API token
+forge config set organizationSlug <slug>       # Save organization slug
+forge config get                               # Show current config (masked)
+forge config delete                            # Delete all stored config
 ```
 
 ### `servers` (`s`) — Manage servers
@@ -209,15 +211,16 @@ All write operations (`deploy`, `create`, `delete`, `reboot`, `restart`, `update
 
 ## Global Options
 
-| Option            | Alias | Description                                     |
-| ----------------- | ----- | ----------------------------------------------- |
-| `--token <token>` |       | Forge API token (overrides config and env)      |
-| `--server <id>`   |       | Server ID (required for server-scoped commands) |
-| `--site <id>`     |       | Site ID (required for site-scoped commands)     |
-| `--format <fmt>`  | `-f`  | Output format: `json`, `human`, `table`         |
-| `--no-color`      |       | Disable colored output                          |
-| `--help`          | `-h`  | Show help                                       |
-| `--version`       | `-v`  | Show version                                    |
+| Option            | Alias | Description                                       |
+| ----------------- | ----- | ------------------------------------------------- |
+| `--token <token>` |       | Forge API token (overrides config and env)        |
+| `--org <slug>`    |       | Organization slug (overrides config and env)      |
+| `--server <id>`   |       | Server ID or name (auto-resolved if non-numeric)  |
+| `--site <id>`     |       | Site ID or domain (auto-resolved if non-numeric)  |
+| `--format <fmt>`  | `-f`  | Output format: `json`, `human`, `table`           |
+| `--no-color`      |       | Disable colored output                            |
+| `--help`          | `-h`  | Show help                                         |
+| `--version`       | `-v`  | Show version                                      |
 
 ## AI Agent Integration
 

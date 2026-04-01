@@ -48,7 +48,7 @@ forge-cli   → forge-core      # CLI tool (human + AI agent use)
 
 - **forge-api** (`packages/api`): `HttpClient` class (internal), TypeScript types for all Forge resources (JSON:API generic types + v2 attribute types), `ForgeApiError`, `RateLimiter` (60 req/min sliding window + exponential backoff), `ConfigStore` (XDG-compliant config storage), JSON:API unwrapping helpers (`unwrapDocument`, `unwrapListDocument`). Zero runtime dependencies. Node 18+ target.
 - **forge-sdk** (`packages/sdk`): `Forge` class with fluent chainable API (`forge.server(123).site(456).deploy()`). Constructor takes `(token, organizationSlug, options?)`. Thin wrapper over forge-api with cursor-based pagination. JSDoc on every public method.
-- **forge-core** (`packages/core`): Pure executor functions `(options, context) → ExecutorResult<T>`, `ExecutorContext` with DI (includes `organizationSlug`), URL builder helpers (`orgPrefix`, `serverPath`, `sitePath`), centralized constants (`RESOURCES`, `ACTIONS`). Includes `matchByName` helper for auto-resolving resource names to numeric IDs.
+- **forge-core** (`packages/core`): Pure executor functions `(options, context) → ExecutorResult<T>`, `ExecutorContext` with DI (includes `organizationSlug`), typed route registry (`ROUTES`) with `buildUrl()` and `request()` helpers, centralized constants (`RESOURCES`, `ACTIONS`). Includes `matchByName` helper for auto-resolving resource names to numeric IDs.
 - **forge-mcp** (`packages/mcp`): Two MCP tools — `forge` (read-only: `list`, `get`, `resolve`, `context`, `help`, `schema`) and `forge_write` (destructive: `create`, `update`, `delete`, `deploy`, `reboot`, `restart`, `activate`, `run`) with `resource` + `action` routing, `createResourceHandler()` factory, stdio and HTTP transports. Supports `batch` resource for multi-action calls. Auto-resolve middleware translates name strings to numeric IDs before dispatching. Reads `organizationSlug` from config.
 - **forge-cli** (`packages/cli`): CLI tool for managing Forge servers, sites, and more. Binary is `forge`. Human-friendly output by default, `--format json` for scripting and AI agent use.
 
@@ -114,9 +114,9 @@ npm run version:patch      # Bump patch version across all packages
 ### 2. Executors (`forge-core`)
 
 - Add to `packages/core/src/constants.ts` (RESOURCES, ACTIONS)
+- Add route definition to `packages/core/src/routes.ts` (ROUTES registry)
 - Create `packages/core/src/executors/<resource>/` with list, get, create, etc.
-- Use `orgPrefix(ctx)`, `serverPath()`, `sitePath()` for URL building
-- Use `JsonApiDocument<T>` / `JsonApiListDocument<T>` + `unwrapDocument()` / `unwrapListDocument()` for responses
+- Use `request(route, ctx, params)` for API calls — return type inferred from Valibot schema
 - Export from `packages/core/src/index.ts`
 - Add tests using `createTestExecutorContext({ organizationSlug: "test-org" })` and `mockDocument()` / `mockListDocument()` helpers
 
