@@ -1,5 +1,5 @@
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
-import { sitePath } from "../../utils/url-builder.ts";
+import { ROUTES, request } from "../../routes.ts";
 
 import type { UpdateNginxConfigOptions } from "./types.ts";
 
@@ -10,9 +10,14 @@ export async function updateNginxConfig(
   options: UpdateNginxConfigOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<void>> {
-  await ctx.client.put(`${sitePath(options.server_id, options.site_id, ctx)}/nginx`, {
-    content: options.content,
-  });
+  await request(
+    ROUTES.nginx.update,
+    ctx,
+    { server_id: options.server_id, site_id: options.site_id },
+    {
+      body: { content: options.content },
+    },
+  );
 
   return {
     data: undefined,

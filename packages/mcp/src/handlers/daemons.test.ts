@@ -24,7 +24,7 @@ function createMockContext(): HandlerContext {
       organizationSlug: "test-org",
       client: {
         get: async (url: string) => {
-          if (url.match(/\/background-processes\/\d+$/)) {
+          if (/\/background-processes\/\d+$/.test(url)) {
             return mockDocument(1, "background-processes", makeDaemonAttrs());
           }
           return mockListDocument("background-processes", [
@@ -37,7 +37,7 @@ function createMockContext(): HandlerContext {
             "background-processes",
             makeDaemonAttrs({ command: "node server.js", status: "starting" }),
           ),
-        delete: async () => undefined,
+        delete: async () => {},
       } as never,
     },
     compact: true,
@@ -52,7 +52,7 @@ describe("handleDaemons", () => {
       createMockContext(),
     );
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("queue:work");
+    expect(result.content[0].text).toContain("queue:work");
   });
 
   it("should get a daemon", async () => {
@@ -62,7 +62,7 @@ describe("handleDaemons", () => {
       createMockContext(),
     );
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("queue:work");
+    expect(result.content[0].text).toContain("queue:work");
   });
 
   it("should create a daemon", async () => {
@@ -72,7 +72,7 @@ describe("handleDaemons", () => {
       createMockContext(),
     );
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("node server.js");
+    expect(result.content[0].text).toContain("node server.js");
   });
 
   it("should delete a daemon", async () => {
@@ -82,7 +82,7 @@ describe("handleDaemons", () => {
       createMockContext(),
     );
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("deleted");
+    expect(result.content[0].text).toContain("deleted");
   });
 
   it("should restart a daemon", async () => {
@@ -92,7 +92,7 @@ describe("handleDaemons", () => {
       createMockContext(),
     );
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("restarted");
+    expect(result.content[0].text).toContain("restarted");
   });
 
   it("should require server_id for list", async () => {
@@ -111,7 +111,7 @@ describe("handleDaemons", () => {
       createMockContext(),
     );
     expect(result.isError).toBe(true);
-    expect(result.content[0]!.text).toContain("Unknown action");
+    expect(result.content[0].text).toContain("Unknown action");
   });
 
   it("should inject hints on get when includeHints=true", async () => {
@@ -125,7 +125,7 @@ describe("handleDaemons", () => {
       ctx,
     );
     expect(result.isError).toBeUndefined();
-    const parsed = JSON.parse(result.content[0]!.text);
+    const parsed = JSON.parse(result.content[0].text);
     expect(parsed._hints).toBeDefined();
     expect(parsed._hints.related_resources).toBeDefined();
   });

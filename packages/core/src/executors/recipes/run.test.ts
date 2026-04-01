@@ -5,7 +5,7 @@ import { runRecipe } from "./run.ts";
 
 describe("runRecipe", () => {
   it("should run a recipe on servers", async () => {
-    const postMock = vi.fn(async () => undefined);
+    const postMock = vi.fn(async () => {});
     const ctx = createTestExecutorContext({
       client: { post: postMock } as never,
       organizationSlug: "test-org",

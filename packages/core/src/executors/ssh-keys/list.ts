@@ -1,16 +1,26 @@
-import type { JsonApiListDocument, SshKeyAttributes } from "@studiometa/forge-api";
-import { unwrapListDocument } from "@studiometa/forge-api";
+import type { SshKeyAttributes } from "@studiometa/forge-api";
+import {
+  unwrapListDocument,
+  jsonApiListDocumentSchema,
+  SshKeyAttributesSchema,
+} from "@studiometa/forge-api";
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
-import { serverPath } from "../../utils/url-builder.ts";
+import { ROUTES, request } from "../../routes.ts";
 
 import type { ListSshKeysOptions } from "./types.ts";
 
+/**
+ * List SSH keys on a server.
+ */
 export async function listSshKeys(
   options: ListSshKeysOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<Array<SshKeyAttributes & { id: number }>>> {
-  const response = await ctx.client.get<JsonApiListDocument<SshKeyAttributes>>(
-    `${serverPath(options.server_id, ctx)}/ssh-keys`,
+  const response = await request(
+    ROUTES.sshKeys.list,
+    ctx,
+    { server_id: options.server_id },
+    { schema: jsonApiListDocumentSchema(SshKeyAttributesSchema) },
   );
 
   return {

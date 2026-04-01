@@ -87,7 +87,7 @@ export function formatSite(site: SiteAttributes & { id: number }): string {
     `Site: ${site.name} (ID: ${site.id})`,
     `Type: ${site.app_type}`,
     `Directory: ${site.root_directory}`,
-    `Repository: ${site.repository ?? "none"}`,
+    `Repository: ${site.repository?.url ?? "none"}`,
     `Status: ${site.status}`,
     `Deploy status: ${site.deployment_status ?? "none"}`,
     `Quick deploy: ${site.quick_deploy ? "enabled" : "disabled"}`,

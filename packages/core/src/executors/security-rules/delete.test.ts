@@ -5,7 +5,7 @@ import { deleteSecurityRule } from "./delete.ts";
 
 describe("deleteSecurityRule", () => {
   it("should delete a security rule", async () => {
-    const deleteMock = vi.fn(async () => undefined);
+    const deleteMock = vi.fn(async () => {});
     const ctx = createTestExecutorContext({
       client: { delete: deleteMock } as never,
       organizationSlug: "test-org",

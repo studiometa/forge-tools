@@ -1,7 +1,11 @@
-import type { JsonApiDocument, ServerAttributes } from "@studiometa/forge-api";
-import { unwrapDocument } from "@studiometa/forge-api";
+import type { ServerAttributes } from "@studiometa/forge-api";
+import {
+  unwrapDocument,
+  jsonApiDocumentSchema,
+  ServerAttributesSchema,
+} from "@studiometa/forge-api";
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
-import { serverPath } from "../../utils/url-builder.ts";
+import { ROUTES, request } from "../../routes.ts";
 
 import type { GetServerOptions } from "./types.ts";
 
@@ -12,8 +16,11 @@ export async function getServer(
   options: GetServerOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<ServerAttributes & { id: number }>> {
-  const response = await ctx.client.get<JsonApiDocument<ServerAttributes>>(
-    serverPath(options.server_id, ctx),
+  const response = await request(
+    ROUTES.servers.get,
+    ctx,
+    { server_id: options.server_id },
+    { schema: jsonApiDocumentSchema(ServerAttributesSchema) },
   );
 
   return {

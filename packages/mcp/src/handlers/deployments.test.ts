@@ -26,17 +26,17 @@ function createMockContext(): HandlerContext {
       client: {
         get: async (url: string) => {
           // Log endpoint for specific deployment (e.g. /deployments/1/log)
-          if ((url as string).match(/\/deployments\/\d+\/log$/)) {
+          if (/\/deployments\/\d+\/log$/.test(url)) {
             return mockDocument(1, "deployment-outputs", { output: "Build succeeded." });
           }
           // Deployments list (with sort/pagination params)
-          if ((url as string).includes("/deployments?")) {
+          if (url.includes("/deployments?")) {
             return mockListDocument("deployments", [
               { id: 1, attributes: makeDeploymentAttrs() as never },
             ]);
           }
           // Deployment status — return null status so deploySiteAndWait exits immediately
-          if ((url as string).includes("/deployments/status")) {
+          if (url.includes("/deployments/status")) {
             return mockDocument(1, "deploymentStatuses", { status: null, started_at: null });
           }
           return {};
@@ -57,7 +57,7 @@ describe("handleDeployments", () => {
       createMockContext(),
     );
     expect(result.isError).toBe(true);
-    expect(result.content[0]!.text).toContain("server_id");
+    expect(result.content[0].text).toContain("server_id");
   });
 
   it("should require site_id", async () => {
@@ -67,7 +67,7 @@ describe("handleDeployments", () => {
       createMockContext(),
     );
     expect(result.isError).toBe(true);
-    expect(result.content[0]!.text).toContain("site_id");
+    expect(result.content[0].text).toContain("site_id");
   });
 
   it("should reject path traversal in server_id", async () => {
@@ -77,7 +77,7 @@ describe("handleDeployments", () => {
       createMockContext(),
     );
     expect(result.isError).toBe(true);
-    expect(result.content[0]!.text).toContain("Invalid server_id");
+    expect(result.content[0].text).toContain("Invalid server_id");
   });
 
   it("should reject path traversal in site_id", async () => {
@@ -87,7 +87,7 @@ describe("handleDeployments", () => {
       createMockContext(),
     );
     expect(result.isError).toBe(true);
-    expect(result.content[0]!.text).toContain("Invalid site_id");
+    expect(result.content[0].text).toContain("Invalid site_id");
   });
 
   it("should reject path traversal in id", async () => {
@@ -103,7 +103,7 @@ describe("handleDeployments", () => {
       createMockContext(),
     );
     expect(result.isError).toBe(true);
-    expect(result.content[0]!.text).toContain("Invalid id");
+    expect(result.content[0].text).toContain("Invalid id");
   });
 
   it("should list deployments", async () => {
@@ -125,7 +125,7 @@ describe("handleDeployments", () => {
       ctx,
     );
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("deployment");
+    expect(result.content[0].text).toContain("deployment");
   });
 
   it("should deploy a site and return result with log", async () => {
@@ -135,8 +135,8 @@ describe("handleDeployments", () => {
       createMockContext(),
     );
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("Deployment");
-    expect(result.content[0]!.text).toContain("456");
+    expect(result.content[0].text).toContain("Deployment");
+    expect(result.content[0].text).toContain("456");
   });
 
   it("should show success status and log in deploy result", async () => {
@@ -146,8 +146,8 @@ describe("handleDeployments", () => {
       createMockContext(),
     );
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("succeeded");
-    expect(result.content[0]!.text).toContain("Build succeeded.");
+    expect(result.content[0].text).toContain("succeeded");
+    expect(result.content[0].text).toContain("Build succeeded.");
   });
 
   it("should handle unknown action", async () => {
@@ -157,7 +157,7 @@ describe("handleDeployments", () => {
       createMockContext(),
     );
     expect(result.isError).toBe(true);
-    expect(result.content[0]!.text).toContain("Unknown action");
+    expect(result.content[0].text).toContain("Unknown action");
   });
 
   it("should require content for update", async () => {
@@ -167,7 +167,7 @@ describe("handleDeployments", () => {
       createMockContext(),
     );
     expect(result.isError).toBe(true);
-    expect(result.content[0]!.text).toContain("content");
+    expect(result.content[0].text).toContain("content");
   });
 
   it("should get deployment output with id", async () => {
@@ -195,7 +195,10 @@ describe("handleDeployments", () => {
         organizationSlug: "test-org",
         client: {
           get: async () =>
-            mockDocument(1, "deployment-scripts", { content: "#!/bin/bash\ncd /home/forge" }),
+            mockDocument(1, "deployment-scripts", {
+              content: "#!/bin/bash\ncd /home/forge",
+              auto_source: "",
+            }),
         } as never,
       },
       compact: true,
@@ -230,7 +233,7 @@ describe("handleDeployments", () => {
       ctx,
     );
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("updated");
+    expect(result.content[0].text).toContain("updated");
   });
 
   it("should list deployments in non-compact mode", async () => {
@@ -253,7 +256,7 @@ describe("handleDeployments", () => {
     );
     expect(result.isError).toBeUndefined();
     // non-compact returns raw data
-    const parsed = JSON.parse(result.content[0]!.text);
+    const parsed = JSON.parse(result.content[0].text);
     expect(Array.isArray(parsed)).toBe(true);
   });
 });

@@ -23,8 +23,8 @@ describe("handleBatch", () => {
   it("should return error for unknown action", async () => {
     const result = await handleBatch("list", {} as CommonArgs, mockCtx, mockRouteToHandler);
     expect(result.isError).toBe(true);
-    expect(result.content[0]!.text).toContain('"list"');
-    expect(result.content[0]!.text).toContain("run");
+    expect(result.content[0].text).toContain('"list"');
+    expect(result.content[0].text).toContain("run");
   });
 
   it("should return error when operations is missing", async () => {
@@ -35,7 +35,7 @@ describe("handleBatch", () => {
       mockRouteToHandler,
     );
     expect(result.isError).toBe(true);
-    expect(result.content[0]!.text).toContain("operations");
+    expect(result.content[0].text).toContain("operations");
   });
 
   it("should return error when operations is not an array", async () => {
@@ -46,7 +46,7 @@ describe("handleBatch", () => {
       mockRouteToHandler,
     );
     expect(result.isError).toBe(true);
-    expect(result.content[0]!.text).toContain('"operations" must be an array');
+    expect(result.content[0].text).toContain('"operations" must be an array');
   });
 
   it("should return error when operations exceeds max (11 ops)", async () => {
@@ -61,9 +61,9 @@ describe("handleBatch", () => {
       mockRouteToHandler,
     );
     expect(result.isError).toBe(true);
-    expect(result.content[0]!.text).toContain("Too many operations");
-    expect(result.content[0]!.text).toContain("11");
-    expect(result.content[0]!.text).toContain("10");
+    expect(result.content[0].text).toContain("Too many operations");
+    expect(result.content[0].text).toContain("11");
+    expect(result.content[0].text).toContain("10");
   });
 
   it("should succeed with empty operations array", async () => {
@@ -74,7 +74,7 @@ describe("handleBatch", () => {
       mockRouteToHandler,
     );
     expect(result.isError).toBeUndefined();
-    const data = JSON.parse(result.content[0]!.text);
+    const data = JSON.parse(result.content[0].text);
     expect(data._batch.total).toBe(0);
     expect(data._batch.succeeded).toBe(0);
     expect(data._batch.failed).toBe(0);
@@ -93,7 +93,7 @@ describe("handleBatch", () => {
       mockRouteToHandler,
     );
     expect(result.isError).toBe(true);
-    expect(result.content[0]!.text).toContain("must be an object");
+    expect(result.content[0].text).toContain("must be an object");
   });
 
   it("should return error when operation is missing resource field", async () => {
@@ -108,8 +108,8 @@ describe("handleBatch", () => {
       mockRouteToHandler,
     );
     expect(result.isError).toBe(true);
-    expect(result.content[0]!.text).toContain('"resource"');
-    expect(result.content[0]!.text).toContain("index 0");
+    expect(result.content[0].text).toContain('"resource"');
+    expect(result.content[0].text).toContain("index 0");
   });
 
   it("should return error when operation is missing action field", async () => {
@@ -124,8 +124,8 @@ describe("handleBatch", () => {
       mockRouteToHandler,
     );
     expect(result.isError).toBe(true);
-    expect(result.content[0]!.text).toContain('"action"');
-    expect(result.content[0]!.text).toContain("index 0");
+    expect(result.content[0].text).toContain('"action"');
+    expect(result.content[0].text).toContain("index 0");
   });
 
   it("should reject write action in an operation", async () => {
@@ -140,8 +140,8 @@ describe("handleBatch", () => {
       mockRouteToHandler,
     );
     expect(result.isError).toBe(true);
-    expect(result.content[0]!.text).toContain('"create"');
-    expect(result.content[0]!.text).toContain("read actions");
+    expect(result.content[0].text).toContain('"create"');
+    expect(result.content[0].text).toContain("read actions");
   });
 
   it("should execute multiple operations successfully", async () => {
@@ -160,7 +160,7 @@ describe("handleBatch", () => {
       mockRouteToHandler,
     );
     expect(result.isError).toBeUndefined();
-    const data = JSON.parse(result.content[0]!.text);
+    const data = JSON.parse(result.content[0].text);
     expect(data._batch.total).toBe(3);
     expect(data._batch.succeeded).toBe(3);
     expect(data._batch.failed).toBe(0);
@@ -187,7 +187,7 @@ describe("handleBatch", () => {
       mockRouteToHandler,
     );
     expect(result.isError).toBeUndefined();
-    const data = JSON.parse(result.content[0]!.text);
+    const data = JSON.parse(result.content[0].text);
     expect(data._batch.total).toBe(2);
     expect(data._batch.succeeded).toBe(1);
     expect(data._batch.failed).toBe(1);
@@ -225,7 +225,7 @@ describe("handleBatch", () => {
       mockWithError,
     );
     expect(result.isError).toBeUndefined();
-    const data = JSON.parse(result.content[0]!.text);
+    const data = JSON.parse(result.content[0].text);
     expect(data._batch.total).toBe(4);
     expect(data._batch.succeeded).toBe(2);
     expect(data._batch.failed).toBe(2);
@@ -247,7 +247,7 @@ describe("handleBatch", () => {
       mockNoStructured,
     );
     expect(result.isError).toBeUndefined();
-    const data = JSON.parse(result.content[0]!.text);
+    const data = JSON.parse(result.content[0].text);
     expect(data._batch.succeeded).toBe(1);
     expect(data.results[0].data).toBe("plain text result");
   });
@@ -269,13 +269,14 @@ describe("handleBatch", () => {
       mockErrorNoStructured,
     );
     expect(result.isError).toBeUndefined();
-    const data = JSON.parse(result.content[0]!.text);
+    const data = JSON.parse(result.content[0].text);
     expect(data._batch.failed).toBe(1);
     expect(data.results[0].error).toBe("Error: something broke");
   });
 
   it("should handle non-Error rejection reason", async () => {
     const mockStringReject = async (): Promise<ToolResult> => {
+      // eslint-disable-next-line no-throw-literal -- testing non-Error rejection handling
       throw "string rejection";
     };
 
@@ -290,7 +291,7 @@ describe("handleBatch", () => {
       mockStringReject,
     );
     expect(result.isError).toBeUndefined();
-    const data = JSON.parse(result.content[0]!.text);
+    const data = JSON.parse(result.content[0].text);
     expect(data._batch.failed).toBe(1);
     expect(data.results[0].error).toBe("string rejection");
   });
@@ -307,7 +308,7 @@ describe("handleBatch", () => {
       mockRouteToHandler,
     );
     expect(result.isError).toBeUndefined();
-    const data = JSON.parse(result.content[0]!.text);
+    const data = JSON.parse(result.content[0].text);
     expect(data._batch.total).toBe(10);
     expect(data._batch.succeeded).toBe(10);
   });

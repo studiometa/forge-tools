@@ -28,7 +28,7 @@ function createTrackingClient(): {
         url: urlStr,
         body: init?.body ? JSON.parse(init.body as string) : undefined,
       });
-      const lastSegment = urlStr.split("?")[0]!.split("/").pop()!;
+      const lastSegment = urlStr.split("?")[0].split("/").pop()!;
       const isList = !/^\d+$/.test(lastSegment);
       return {
         ok: true,
@@ -56,7 +56,7 @@ describe("DatabasesCollection", () => {
     const collection = new DatabasesCollection(client, ORG, 123);
 
     await collection.list();
-    expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers/123/database/schemas`);
+    expect(calls[0].url).toContain(`/orgs/${ORG}/servers/123/database/schemas`);
   });
 
   it("should list databases with cursor option", async () => {
@@ -64,9 +64,7 @@ describe("DatabasesCollection", () => {
     const collection = new DatabasesCollection(client, ORG, 123);
 
     await collection.list({ cursor: "abc123" });
-    expect(calls[0]!.url).toContain(
-      `/orgs/${ORG}/servers/123/database/schemas?page[cursor]=abc123`,
-    );
+    expect(calls[0].url).toContain(`/orgs/${ORG}/servers/123/database/schemas?page[cursor]=abc123`);
   });
 
   it("should get a database", async () => {
@@ -74,7 +72,7 @@ describe("DatabasesCollection", () => {
     const collection = new DatabasesCollection(client, ORG, 123);
 
     await collection.get(789);
-    expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers/123/database/schemas/789`);
+    expect(calls[0].url).toContain(`/orgs/${ORG}/servers/123/database/schemas/789`);
   });
 
   it("should create a database", async () => {
@@ -82,8 +80,8 @@ describe("DatabasesCollection", () => {
     const collection = new DatabasesCollection(client, ORG, 123);
 
     await collection.create({ name: "myapp", user: "admin", password: "secret" });
-    expect(calls[0]!.method).toBe("POST");
-    expect(calls[0]!.body).toEqual({ name: "myapp", user: "admin", password: "secret" });
+    expect(calls[0].method).toBe("POST");
+    expect(calls[0].body).toEqual({ name: "myapp", user: "admin", password: "secret" });
   });
 
   it("should delete a database", async () => {
@@ -91,8 +89,8 @@ describe("DatabasesCollection", () => {
     const collection = new DatabasesCollection(client, ORG, 123);
 
     await collection.delete(789);
-    expect(calls[0]!.method).toBe("DELETE");
-    expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers/123/database/schemas/789`);
+    expect(calls[0].method).toBe("DELETE");
+    expect(calls[0].url).toContain(`/orgs/${ORG}/servers/123/database/schemas/789`);
   });
 
   it("should return an AsyncPaginatedIterator from all()", () => {

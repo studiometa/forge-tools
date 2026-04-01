@@ -1,6 +1,5 @@
 import type {
   CreateRecipeData,
-  HttpClient,
   JsonApiDocument,
   JsonApiListDocument,
   RecipeAttributes,
@@ -39,9 +38,6 @@ export interface RunRecipeOptions {
  */
 export class RecipesCollection extends BaseCollection {
   /** @internal */
-  constructor(client: HttpClient, orgSlug: string) {
-    super(client, orgSlug);
-  }
 
   private get basePath(): string {
     return `/orgs/${this.orgSlug}/recipes`;

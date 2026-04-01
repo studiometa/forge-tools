@@ -111,16 +111,16 @@ describe("resolveServers", () => {
     expect(result.data.query).toBe("prod");
     expect(result.data.total).toBe(2);
     expect(result.data.matches).toHaveLength(2);
-    expect(result.data.matches[0]!.name).toBe("prod-web-1");
-    expect(result.data.matches[1]!.name).toBe("prod-web-2");
+    expect(result.data.matches[0].name).toBe("prod-web-1");
+    expect(result.data.matches[1].name).toBe("prod-web-2");
   });
 
   it("should return exact match as single result", async () => {
     const result = await resolveServers({ query: "prod-web-1" }, createCtx());
     expect(result.data.total).toBe(1);
     expect(result.data.matches).toHaveLength(1);
-    expect(result.data.matches[0]!.id).toBe(1);
-    expect(result.data.matches[0]!.name).toBe("prod-web-1");
+    expect(result.data.matches[0].id).toBe(1);
+    expect(result.data.matches[0].name).toBe("prod-web-1");
   });
 
   it("should return empty for no matches", async () => {
@@ -132,7 +132,7 @@ describe("resolveServers", () => {
   it("should be case insensitive", async () => {
     const result = await resolveServers({ query: "PROD" }, createCtx());
     expect(result.data.total).toBe(2);
-    expect(result.data.matches[0]!.name).toBe("prod-web-1");
+    expect(result.data.matches[0].name).toBe("prod-web-1");
   });
 
   it("should return partial matches when multiple exact-like names exist", async () => {

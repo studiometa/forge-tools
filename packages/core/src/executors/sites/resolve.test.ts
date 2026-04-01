@@ -16,16 +16,16 @@ const siteAttrs = {
   deployment_url: "https://site/deploy",
   deployment_script: null,
   php_version: "php83",
-  app_type: null,
+  app_type: "php",
   url: "https://site",
   https: false,
   isolated: false,
-  user: null,
+  user: "forge",
   database: null,
-  shared_paths: [],
+  shared_paths: null,
   uses_envoyer: false,
   zero_downtime_deployments: false,
-  maintenance_mode: false,
+  maintenance_mode: null,
   healthcheck_url: null,
   created_at: "2024-01-01T00:00:00.000000Z",
   updated_at: "2024-01-01T00:00:00.000000Z",
@@ -51,16 +51,16 @@ describe("resolveSites", () => {
     expect(result.data.query).toBe("example");
     expect(result.data.total).toBe(2);
     expect(result.data.matches).toHaveLength(2);
-    expect(result.data.matches[0]!.name).toBe("example.com");
-    expect(result.data.matches[1]!.name).toBe("api.example.com");
+    expect(result.data.matches[0].name).toBe("example.com");
+    expect(result.data.matches[1].name).toBe("api.example.com");
   });
 
   it("should return exact match as single result", async () => {
     const result = await resolveSites({ server_id: "123", query: "example.com" }, createCtx());
     expect(result.data.total).toBe(1);
     expect(result.data.matches).toHaveLength(1);
-    expect(result.data.matches[0]!.id).toBe(1);
-    expect(result.data.matches[0]!.name).toBe("example.com");
+    expect(result.data.matches[0].id).toBe(1);
+    expect(result.data.matches[0].name).toBe("example.com");
   });
 
   it("should return empty for no matches", async () => {

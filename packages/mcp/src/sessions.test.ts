@@ -220,23 +220,23 @@ describe("SessionManager TTL", () => {
     expect(manager.get("s2")).toBeDefined();
   });
 
-  it("should not create sweep timer when ttl is 0", () => {
+  it("should not create sweep timer when ttl is 0", async () => {
     const manager = new SessionManager({ ttl: 0 });
     expect((manager as unknown as { sweepTimer: unknown }).sweepTimer).toBeUndefined();
-    manager.closeAll();
+    await manager.closeAll();
   });
 
-  it("should use DEFAULT_TTL and DEFAULT_SWEEP_INTERVAL when created with no options", () => {
+  it("should use DEFAULT_TTL and DEFAULT_SWEEP_INTERVAL when created with no options", async () => {
     const manager = new SessionManager();
     expect((manager as unknown as { ttl: number }).ttl).toBeGreaterThan(0);
     expect((manager as unknown as { sweepTimer: unknown }).sweepTimer).toBeDefined();
-    manager.closeAll();
+    await manager.closeAll();
   });
 
-  it("should use custom sweepInterval when provided", () => {
+  it("should use custom sweepInterval when provided", async () => {
     const manager = new SessionManager({ ttl: 30000, sweepInterval: 1000 });
     expect((manager as unknown as { sweepTimer: unknown }).sweepTimer).toBeDefined();
-    manager.closeAll();
+    await manager.closeAll();
   });
 
   it("should sweep only expired sessions in a mixed set", () => {

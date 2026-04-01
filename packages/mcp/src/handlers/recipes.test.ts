@@ -23,7 +23,7 @@ function createMockContext(): HandlerContext {
       organizationSlug: "test-org",
       client: {
         get: async (url: string) => {
-          if (url.match(/\/recipes\/\d+$/)) {
+          if (/\/recipes\/\d+$/.test(url)) {
             return mockDocument(1, "recipes", makeRecipeAttrs());
           }
           return mockListDocument("recipes", [
@@ -41,7 +41,7 @@ function createMockContext(): HandlerContext {
             makeRecipeAttrs({ name: "cleanup", user: "forge", script: "rm -rf /tmp/*" }),
           );
         },
-        delete: async () => undefined,
+        delete: async () => {},
       } as never,
     },
     compact: true,
@@ -56,7 +56,7 @@ describe("handleRecipes", () => {
       createMockContext(),
     );
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("deploy");
+    expect(result.content[0].text).toContain("deploy");
   });
 
   it("should get a recipe", async () => {
@@ -66,7 +66,7 @@ describe("handleRecipes", () => {
       createMockContext(),
     );
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("deploy");
+    expect(result.content[0].text).toContain("deploy");
   });
 
   it("should create a recipe", async () => {
@@ -76,7 +76,7 @@ describe("handleRecipes", () => {
       createMockContext(),
     );
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("cleanup");
+    expect(result.content[0].text).toContain("cleanup");
   });
 
   it("should delete a recipe", async () => {
@@ -86,7 +86,7 @@ describe("handleRecipes", () => {
       createMockContext(),
     );
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("deleted");
+    expect(result.content[0].text).toContain("deleted");
   });
 
   it("should run a recipe", async () => {
@@ -96,7 +96,7 @@ describe("handleRecipes", () => {
       createMockContext(),
     );
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("run on 3 server(s)");
+    expect(result.content[0].text).toContain("run on 3 server(s)");
   });
 
   it("should require id for get", async () => {
@@ -124,7 +124,7 @@ describe("handleRecipes", () => {
       createMockContext(),
     );
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("1 server(s)");
+    expect(result.content[0].text).toContain("1 server(s)");
   });
 
   it("should inject hints on get when includeHints=true", async () => {
@@ -134,7 +134,7 @@ describe("handleRecipes", () => {
 
     const result = await handleRecipes("get", { resource: "recipes", action: "get", id: "1" }, ctx);
     expect(result.isError).toBeUndefined();
-    const parsed = JSON.parse(result.content[0]!.text);
+    const parsed = JSON.parse(result.content[0].text);
     expect(parsed._hints).toBeDefined();
     expect(parsed._hints.related_resources).toBeDefined();
   });

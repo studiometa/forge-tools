@@ -1,7 +1,10 @@
-import type { JsonApiDocument } from "@studiometa/forge-api";
-import { unwrapDocument } from "@studiometa/forge-api";
+import {
+  unwrapDocument,
+  jsonApiDocumentSchema,
+  EnvironmentAttributesSchema,
+} from "@studiometa/forge-api";
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
-import { sitePath } from "../../utils/url-builder.ts";
+import { ROUTES, request } from "../../routes.ts";
 
 import type { GetEnvOptions } from "./types.ts";
 
@@ -12,8 +15,11 @@ export async function getEnv(
   options: GetEnvOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<string>> {
-  const response = await ctx.client.get<JsonApiDocument<{ content: string }>>(
-    `${sitePath(options.server_id, options.site_id, ctx)}/environment`,
+  const response = await request(
+    ROUTES.env.get,
+    ctx,
+    { server_id: options.server_id, site_id: options.site_id },
+    { schema: jsonApiDocumentSchema(EnvironmentAttributesSchema) },
   );
   const result = unwrapDocument(response);
 

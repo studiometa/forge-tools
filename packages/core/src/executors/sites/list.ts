@@ -1,7 +1,11 @@
-import type { JsonApiListDocument, SiteAttributes } from "@studiometa/forge-api";
-import { unwrapListDocument } from "@studiometa/forge-api";
+import type { SiteAttributes } from "@studiometa/forge-api";
+import {
+  unwrapListDocument,
+  jsonApiListDocumentSchema,
+  SiteAttributesSchema,
+} from "@studiometa/forge-api";
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
-import { serverPath } from "../../utils/url-builder.ts";
+import { ROUTES, request } from "../../routes.ts";
 
 import type { ListSitesOptions } from "./types.ts";
 
@@ -12,8 +16,11 @@ export async function listSites(
   options: ListSitesOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<Array<SiteAttributes & { id: number }>>> {
-  const response = await ctx.client.get<JsonApiListDocument<SiteAttributes>>(
-    `${serverPath(options.server_id, ctx)}/sites`,
+  const response = await request(
+    ROUTES.sites.list,
+    ctx,
+    { server_id: options.server_id },
+    { schema: jsonApiListDocumentSchema(SiteAttributesSchema) },
   );
 
   return {

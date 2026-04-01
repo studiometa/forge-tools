@@ -1,5 +1,5 @@
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
-import { serverPath } from "../../utils/url-builder.ts";
+import { ROUTES, request } from "../../routes.ts";
 
 import type { DeleteDatabaseOptions } from "./types.ts";
 
@@ -10,7 +10,7 @@ export async function deleteDatabase(
   options: DeleteDatabaseOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<void>> {
-  await ctx.client.delete(`${serverPath(options.server_id, ctx)}/database/schemas/${options.id}`);
+  await request(ROUTES.databases.delete, ctx, { server_id: options.server_id, id: options.id });
 
   return {
     data: undefined,

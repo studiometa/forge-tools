@@ -148,7 +148,7 @@ vi.mock("@studiometa/forge-api", async (importOriginal) => {
               links: { self: { href: "/user/1" } },
             },
           };
-        if (path.match(/\/sites\/\d+\/environment$/))
+        if (/\/sites\/\d+\/environment$/.test(path))
           return {
             data: {
               id: "1",
@@ -157,7 +157,7 @@ vi.mock("@studiometa/forge-api", async (importOriginal) => {
               links: { self: { href: "/env/1" } },
             },
           };
-        if (path.match(/\/sites\/\d+\/nginx$/))
+        if (/\/sites\/\d+\/nginx$/.test(path))
           return { data: { id: "1", type: "nginx-configs", attributes: { content: "" } } };
         return {};
       }
@@ -168,7 +168,7 @@ vi.mock("@studiometa/forge-api", async (importOriginal) => {
         return {};
       }
       async delete() {
-        return undefined;
+        return;
       }
     },
   };
@@ -220,12 +220,12 @@ describe("routeToHandler — resource routing coverage", () => {
       creds,
     );
     expect(result.isError).toBe(true);
-    expect(result.content[0]!.text).toContain("Unknown resource");
+    expect(result.content[0].text).toContain("Unknown resource");
   });
 
   it("should return error when resource and action are missing", async () => {
     const result = await executeToolWithCredentials("forge", {}, creds);
     expect(result.isError).toBe(true);
-    expect(result.content[0]!.text).toContain("Missing required fields");
+    expect(result.content[0].text).toContain("Missing required fields");
   });
 });

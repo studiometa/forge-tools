@@ -25,7 +25,11 @@
 
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprotocol/sdk/types.js";
+import {
+  CallToolRequestSchema,
+  ListToolsRequestSchema,
+  type CallToolResult,
+} from "@modelcontextprotocol/sdk/types.js";
 
 import { parseReadOnlyFlag } from "./flags.ts";
 import { INSTRUCTIONS } from "./instructions.ts";
@@ -70,10 +74,10 @@ export function createStdioServer(options?: StdioServerOptions): Server {
     const { name, arguments: args } = request.params;
 
     try {
-      const result = await handleToolCall(name, (args as Record<string, unknown>) ?? {}, {
+      const result = await handleToolCall(name, args ?? {}, {
         readOnly,
       });
-      return result as unknown as Record<string, unknown>;
+      return result as CallToolResult;
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       return {

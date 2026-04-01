@@ -757,7 +757,7 @@ export function handleCompletionCommand(
       `${colors.green("✓")} Installed ${shell} completion to ${colors.cyan(installPath)}`,
     );
     console.log();
-    console.log(`${colors.bold("Next steps:")}`);
+    console.log(colors.bold("Next steps:"));
 
     switch (shellLower) {
       case "bash":

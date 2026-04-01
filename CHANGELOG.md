@@ -48,8 +48,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **CLI**: Fix `deploymentsDeploy` using `formatter.success()` for failed deployments [[#85], [a9ce75e]]
 - **MCP**: Validate `organizationSlug` early before routing to handlers [[#85], [a9ce75e]]
 - **MCP**: Fix HTTP transport reading wrong field name for `organizationSlug` [[#85], [fe42d56]]
+- **API**: Add Valibot schemas for all 26 resource attribute types and 16 create data types [[#101], [cba90d6]]
+- **API**: Add JSON:API document schema factories (`jsonApiDocumentSchema`, `jsonApiListDocumentSchema`) [[#101], [cba90d6]]
+- **API**: Add `HttpClient.patch()` method [[#101], [cba90d6]]
+- **Core**: Add typed route registry (`ROUTES`) with `buildUrl()` and `request()` helpers [[#101], [cba90d6]]
+- **Core**: Add schema-inferred `request()` overload — return type derived from Valibot schema, eliminating redundant generics from all executors [[#101], [97dbb91]]
+- **Core**: Migrate all 82 executor files from manual URL construction to route registry [[#101], [4c666ce]]
+- **Core**: Remove `url-builder.ts` (`orgPrefix`, `serverPath`, `sitePath`) — replaced by `ROUTES` [[#101], [4c666ce]]
+- **Core**: Remove duplicate `getDeploymentOutput` executor (identical to `getDeploymentLog` after v2 migration) [[#101], [ff5615b]]
+- **MCP**: Replace `requiredFields` with Valibot `inputSchemas` in handler factory — validation errors now include field-level messages [[#101], [4c666ce]]
+- **MCP**: Rewrite batch handler with typed `BatchOperation` interface and upfront validation [[#101], [94809b9]]
+- **MCP**: Replace `any[]` return type with `Tool[]` in `getAvailableTools()` [[#101], [94809b9]]
+- **All**: Reduce type casts from 73 to 49 and eliminate 1 of 3 `any` usages across the codebase [[#101], [94809b9]]
+- **All**: Enable strict oxlint with type-aware linting (suspicious + perf categories, 12 type-checked rules) [[#101], [2804c34]]
+- **Core**: Fix daemon restart URL — was `/restart`, now `/actions` with `{ action: "restart" }` body [[#101], [cba90d6]]
+- **Core**: Fix deployment get-log — now uses correct `/deployments/:id/log` endpoint [[#101], [cba90d6]]
+- **MCP**: Fix unwaited `closeAll()` promises in session cleanup [[#101], [2804c34]]
+- **MCP**: Fix repository display in site formatter — use `.url` property instead of stringifying object [[#101], [2804c34]]
 
 [#85]: https://github.com/studiometa/forge-tools/pull/85
+[#101]: https://github.com/studiometa/forge-tools/pull/101
 [37f4f10]: https://github.com/studiometa/forge-tools/commit/37f4f10
 [b34ea27]: https://github.com/studiometa/forge-tools/commit/b34ea27
 [b0f0e5b]: https://github.com/studiometa/forge-tools/commit/b0f0e5b
@@ -300,3 +318,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [#50]: https://github.com/studiometa/forge-tools/pull/50
 [131275c]: https://github.com/studiometa/forge-tools/commit/131275c
 [04468e9]: https://github.com/studiometa/forge-tools/commit/04468e9
+[cba90d6]: https://github.com/studiometa/forge-tools/commit/cba90d6
+[4c666ce]: https://github.com/studiometa/forge-tools/commit/4c666ce
+[97dbb91]: https://github.com/studiometa/forge-tools/commit/97dbb91
+[ff5615b]: https://github.com/studiometa/forge-tools/commit/ff5615b
+[94809b9]: https://github.com/studiometa/forge-tools/commit/94809b9
+[2804c34]: https://github.com/studiometa/forge-tools/commit/2804c34

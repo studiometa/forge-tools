@@ -1,3 +1,4 @@
+import * as v from "valibot";
 import { createDatabase, deleteDatabase, getDatabase, listDatabases } from "@studiometa/forge-core";
 
 import { formatDatabase, formatDatabaseList } from "../formatters.ts";
@@ -7,11 +8,11 @@ import { createResourceHandler } from "./factory.ts";
 export const handleDatabases = createResourceHandler({
   resource: "databases",
   actions: ["list", "get", "create", "delete"],
-  requiredFields: {
-    list: ["server_id"],
-    get: ["server_id", "id"],
-    create: ["server_id", "name"],
-    delete: ["server_id", "id"],
+  inputSchemas: {
+    list: v.object({ server_id: v.string() }),
+    get: v.object({ server_id: v.string(), id: v.string() }),
+    create: v.object({ server_id: v.string(), name: v.string() }),
+    delete: v.object({ server_id: v.string(), id: v.string() }),
   },
   executors: {
     list: listDatabases,

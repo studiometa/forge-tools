@@ -5,6 +5,7 @@
  * shared by all MCP resource handlers.
  */
 
+import * as v from "valibot";
 import type { ExecutorContext, ExecutorResult } from "@studiometa/forge-core";
 
 import type { ContextualHints } from "../hints.ts";
@@ -22,22 +23,21 @@ export interface ResourceHandlerConfig {
   /** Valid actions for this resource */
   actions: string[];
 
-  /** Fields required per action (in addition to defaults) */
-  requiredFields?: Record<string, string[]>;
+  /**
+   * Valibot schemas for input validation per action.
+   * When provided, args are validated through the schema before calling the executor.
+   */
+  inputSchemas?: Record<string, v.GenericSchema>;
 
   /** Executor functions keyed by action name */
-  // biome-ignore lint: executor signatures vary per resource
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- contravariant: executors accept specific option subtypes
   executors: Record<
     string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (options: any, ctx: ExecutorContext) => Promise<ExecutorResult<unknown>>
   >;
 
   /**
    * Generate contextual hints for the get action response.
-   *
-   * Called with the executor result data, the resource id, and the full args.
-   * Only injected when `ctx.includeHints` is true.
    */
   hints?: (data: unknown, id: string, args: CommonArgs) => ContextualHints;
 
@@ -46,44 +46,25 @@ export interface ResourceHandlerConfig {
 
   /**
    * Format the executor result data into human-readable text for MCP output.
-   *
-   * Called with the executor result data and the tool args when compact mode
-   * is enabled. If not provided, the data is JSON-serialized.
    */
-  // biome-ignore lint: formatter signatures vary per resource
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- data type varies per resource/action
   formatResult?: (action: string, data: any, args: CommonArgs) => string;
 }
 
 /**
+ * Format Valibot validation issues into field-level error messages.
+ */
+function formatValidationIssues(issues: v.BaseIssue<unknown>[]): string {
+  return issues
+    .map((issue) => {
+      const path = issue.path?.map((p) => p.key).join(".") || "(root)";
+      return `${path}: ${issue.message}`;
+    })
+    .join(", ");
+}
+
+/**
  * Create a resource handler from configuration.
- *
- * Returns a function that routes actions to the correct executor,
- * validates required fields, and formats results.
- *
- * @example
- * ```typescript
- * export const handleDatabases = createResourceHandler({
- *   resource: 'databases',
- *   actions: ['list', 'get', 'create', 'delete'],
- *   requiredFields: {
- *     list: ['server_id'],
- *     get: ['server_id', 'id'],
- *     create: ['server_id', 'name'],
- *     delete: ['server_id', 'id'],
- *   },
- *   executors: {
- *     list: listDatabases,
- *     get: getDatabase,
- *     create: createDatabase,
- *     delete: deleteDatabase,
- *   },
- *   formatResult: (action, data) => {
- *     if (action === 'list') return formatDatabaseList(data);
- *     if (action === 'get') return formatDatabase(data);
- *     return 'Done.';
- *   },
- * });
- * ```
  */
 export function createResourceHandler(
   config: ResourceHandlerConfig,
@@ -91,7 +72,7 @@ export function createResourceHandler(
   const {
     resource,
     actions,
-    requiredFields = {},
+    inputSchemas = {},
     executors,
     hints,
     mapOptions,
@@ -106,19 +87,21 @@ export function createResourceHandler(
       );
     }
 
-    // Check required fields
-    const required = requiredFields[action] ?? [];
-    for (const field of required) {
-      if (!args[field]) {
-        return errorResult(`Missing required field: ${field}`);
+    // Validate input through Valibot schema if available
+    const schema = inputSchemas[action];
+    if (schema) {
+      const parsed = v.safeParse(schema, args);
+      if (!parsed.success) {
+        return errorResult(`Invalid input: ${formatValidationIssues(parsed.issues)}`);
       }
     }
 
     // Validate ID-like fields to prevent path traversal
     for (const field of ["id", "server_id", "site_id"]) {
       const value = args[field];
-      if (value !== undefined && !sanitizeId(String(value))) {
-        return errorResult(`Invalid ${field}: "${value}". IDs must be alphanumeric.`);
+      const idStr = typeof value === "string" || typeof value === "number" ? String(value) : "";
+      if (value !== undefined && !sanitizeId(idStr)) {
+        return errorResult(`Invalid ${field}: "${idStr}". IDs must be alphanumeric.`);
       }
     }
 
@@ -138,11 +121,10 @@ export function createResourceHandler(
     }
 
     // Execute
-    const result = await executor(options as Record<string, unknown>, ctx.executorContext);
+    const result = await executor(options, ctx.executorContext);
 
     // Format result
     if (result.data === undefined) {
-      // Void result (delete, activate, etc.) — use formatter or generic message
       const text = formatResult ? formatResult(action, undefined, args) : "Done.";
       return jsonResult(text);
     }
@@ -157,7 +139,9 @@ export function createResourceHandler(
       const id = args.id ?? args.server_id ?? "";
       /* v8 ignore stop */
       const responseData = {
-        ...(result.data as Record<string, unknown>),
+        ...(typeof result.data === "object" && result.data !== null
+          ? (result.data as Record<string, unknown>)
+          : {}),
         _hints: hints(result.data, String(id), args),
       };
       return jsonResult(responseData);

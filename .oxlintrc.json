@@ -1,0 +1,28 @@
+{
+  "$schema": "https://raw.githubusercontent.com/nicolo-ribaudo/oxc/refs/heads/oxlintrc-schema/npm/oxlint/configuration_schema.json",
+  "categories": {
+    "correctness": "error",
+    "suspicious": "warn",
+    "perf": "warn"
+  },
+  "rules": {
+    "no-throw-literal": "warn",
+    "no-promise-executor-return": "warn",
+    "unicorn/no-useless-undefined": "warn",
+    "unicorn/no-useless-switch-case": "warn",
+    "unicorn/prefer-regexp-test": "warn",
+    "unicorn/prefer-string-replace-all": "warn",
+    "typescript/no-unnecessary-type-assertion": "warn",
+    "typescript/no-redundant-type-constituents": "warn",
+    "typescript/no-unnecessary-template-expression": "warn",
+    "typescript/no-floating-promises": "warn",
+    "typescript/no-base-to-string": "warn",
+    "typescript/restrict-template-expressions": "warn",
+
+    "no-await-in-loop": "off",
+    "unicorn/consistent-function-scoping": "off",
+    "typescript/no-unsafe-type-assertion": "off",
+    "typescript/unbound-method": "off"
+  },
+  "ignorePatterns": ["dist", "coverage", "node_modules"]
+}

@@ -3,10 +3,10 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { handleBackupsCommand } from "./command.ts";
 
 vi.mock("./handlers.ts", () => ({
-  backupsList: vi.fn().mockResolvedValue(undefined),
-  backupsGet: vi.fn().mockResolvedValue(undefined),
-  backupsCreate: vi.fn().mockResolvedValue(undefined),
-  backupsDelete: vi.fn().mockResolvedValue(undefined),
+  backupsList: vi.fn().mockResolvedValue(),
+  backupsGet: vi.fn().mockResolvedValue(),
+  backupsCreate: vi.fn().mockResolvedValue(),
+  backupsDelete: vi.fn().mockResolvedValue(),
 }));
 
 vi.mock("../../context.ts", () => ({

@@ -83,8 +83,8 @@ describe("ServersCollection", () => {
 
     const result = await collection.list();
     expect(result).toHaveLength(2);
-    expect(result[0]!.name).toBe("web-1");
-    expect(result[0]!.id).toBe(1);
+    expect(result[0].name).toBe("web-1");
+    expect(result[0].id).toBe(1);
   });
 
   it("should list servers with cursor option", async () => {
@@ -92,7 +92,7 @@ describe("ServersCollection", () => {
     const collection = new ServersCollection(client, ORG);
 
     await collection.list({ cursor: "abc123" });
-    expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers?page[cursor]=abc123`);
+    expect(calls[0].url).toContain(`/orgs/${ORG}/servers?page[cursor]=abc123`);
   });
 
   it("should get a server", async () => {
@@ -133,8 +133,8 @@ describe("ServersCollection", () => {
     const collection = new ServersCollection(client, ORG);
 
     await collection.delete(1);
-    expect(calls[0]!.method).toBe("DELETE");
-    expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers/1`);
+    expect(calls[0].method).toBe("DELETE");
+    expect(calls[0].url).toContain(`/orgs/${ORG}/servers/1`);
   });
 
   it("should reboot a server", async () => {
@@ -142,8 +142,8 @@ describe("ServersCollection", () => {
     const collection = new ServersCollection(client, ORG);
 
     await collection.reboot(1);
-    expect(calls[0]!.method).toBe("POST");
-    expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers/1/reboot`);
+    expect(calls[0].method).toBe("POST");
+    expect(calls[0].url).toContain(`/orgs/${ORG}/servers/1/reboot`);
   });
 
   it("should return an AsyncPaginatedIterator from all()", () => {
@@ -193,7 +193,7 @@ describe("ServersCollection", () => {
       const { client, calls } = createTrackingClient();
       const collection = new ServersCollection(client, ORG);
       await collection.list();
-      expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers`);
+      expect(calls[0].url).toContain(`/orgs/${ORG}/servers`);
     });
   });
 
@@ -228,7 +228,7 @@ describe("ServersCollection", () => {
       const result = await collection.resolve("prod");
 
       expect(result.total).toBe(1);
-      expect(result.matches[0]!.id).toBe(1);
+      expect(result.matches[0].id).toBe(1);
     });
 
     it("should return empty for no matches", async () => {
@@ -292,7 +292,7 @@ describe("ServerResource", () => {
     const resource = new ServerResource(client, ORG, 123);
 
     await resource.reboot();
-    expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers/123/reboot`);
+    expect(calls[0].url).toContain(`/orgs/${ORG}/servers/123/reboot`);
   });
 
   it("should delete server", async () => {
@@ -300,7 +300,7 @@ describe("ServerResource", () => {
     const resource = new ServerResource(client, ORG, 123);
 
     await resource.delete();
-    expect(calls[0]!.method).toBe("DELETE");
-    expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers/123`);
+    expect(calls[0].method).toBe("DELETE");
+    expect(calls[0].url).toContain(`/orgs/${ORG}/servers/123`);
   });
 });

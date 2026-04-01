@@ -1,7 +1,11 @@
-import type { JsonApiListDocument, DatabaseAttributes } from "@studiometa/forge-api";
-import { unwrapListDocument } from "@studiometa/forge-api";
+import type { DatabaseAttributes } from "@studiometa/forge-api";
+import {
+  unwrapListDocument,
+  jsonApiListDocumentSchema,
+  DatabaseAttributesSchema,
+} from "@studiometa/forge-api";
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
-import { serverPath } from "../../utils/url-builder.ts";
+import { ROUTES, request } from "../../routes.ts";
 
 import type { ListDatabasesOptions } from "./types.ts";
 
@@ -12,8 +16,11 @@ export async function listDatabases(
   options: ListDatabasesOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<Array<DatabaseAttributes & { id: number }>>> {
-  const response = await ctx.client.get<JsonApiListDocument<DatabaseAttributes>>(
-    `${serverPath(options.server_id, ctx)}/database/schemas`,
+  const response = await request(
+    ROUTES.databases.list,
+    ctx,
+    { server_id: options.server_id },
+    { schema: jsonApiListDocumentSchema(DatabaseAttributesSchema) },
   );
 
   return {

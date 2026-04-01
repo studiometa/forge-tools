@@ -1,3 +1,4 @@
+import * as v from "valibot";
 import {
   createDaemon,
   deleteDaemon,
@@ -13,12 +14,12 @@ import { createResourceHandler } from "./factory.ts";
 export const handleDaemons = createResourceHandler({
   resource: "daemons",
   actions: ["list", "get", "create", "delete", "restart"],
-  requiredFields: {
-    list: ["server_id"],
-    get: ["server_id", "id"],
-    create: ["server_id", "command"],
-    delete: ["server_id", "id"],
-    restart: ["server_id", "id"],
+  inputSchemas: {
+    list: v.object({ server_id: v.string() }),
+    get: v.object({ server_id: v.string(), id: v.string() }),
+    create: v.object({ server_id: v.string(), command: v.string() }),
+    delete: v.object({ server_id: v.string(), id: v.string() }),
+    restart: v.object({ server_id: v.string(), id: v.string() }),
   },
   executors: {
     list: listDaemons,

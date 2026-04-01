@@ -13,6 +13,7 @@ describe("listSecurityRules", () => {
           attributes: {
             name: "Staging Auth",
             path: "/admin",
+            status: null,
             created_at: "2024-01-01T00:00:00.000000Z",
             updated_at: "2024-01-01T00:00:00.000000Z",
           },

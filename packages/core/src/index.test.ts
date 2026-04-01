@@ -32,7 +32,7 @@ describe("@studiometa/forge-core", () => {
   it("should export deployment executors", () => {
     expect(core.listDeployments).toBeTypeOf("function");
     expect(core.deploySite).toBeTypeOf("function");
-    expect(core.getDeploymentOutput).toBeTypeOf("function");
+    expect(core.getDeploymentLog).toBeTypeOf("function");
     expect(core.getDeploymentScript).toBeTypeOf("function");
     expect(core.updateDeploymentScript).toBeTypeOf("function");
   });

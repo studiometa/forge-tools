@@ -1,3 +1,4 @@
+import * as v from "valibot";
 import {
   createNginxTemplate,
   deleteNginxTemplate,
@@ -13,12 +14,12 @@ import { createResourceHandler } from "./factory.ts";
 export const handleNginxTemplates = createResourceHandler({
   resource: "nginx-templates",
   actions: ["list", "get", "create", "update", "delete"],
-  requiredFields: {
-    list: ["server_id"],
-    get: ["server_id", "id"],
-    create: ["server_id", "name", "content"],
-    update: ["server_id", "id"],
-    delete: ["server_id", "id"],
+  inputSchemas: {
+    list: v.object({ server_id: v.string() }),
+    get: v.object({ server_id: v.string(), id: v.string() }),
+    create: v.object({ server_id: v.string(), name: v.string(), content: v.string() }),
+    update: v.object({ server_id: v.string(), id: v.string() }),
+    delete: v.object({ server_id: v.string(), id: v.string() }),
   },
   executors: {
     list: listNginxTemplates,

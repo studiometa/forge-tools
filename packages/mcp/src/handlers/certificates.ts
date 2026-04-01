@@ -1,3 +1,4 @@
+import * as v from "valibot";
 import {
   activateCertificate,
   createCertificate,
@@ -12,11 +13,16 @@ import { createResourceHandler } from "./factory.ts";
 export const handleCertificates = createResourceHandler({
   resource: "certificates",
   actions: ["get", "create", "delete", "activate"],
-  requiredFields: {
-    get: ["server_id", "site_id", "domain_id"],
-    create: ["server_id", "site_id", "domain_id", "type"],
-    delete: ["server_id", "site_id", "domain_id"],
-    activate: ["server_id", "site_id", "domain_id"],
+  inputSchemas: {
+    get: v.object({ server_id: v.string(), site_id: v.string(), domain_id: v.string() }),
+    create: v.object({
+      server_id: v.string(),
+      site_id: v.string(),
+      domain_id: v.string(),
+      type: v.string(),
+    }),
+    delete: v.object({ server_id: v.string(), site_id: v.string(), domain_id: v.string() }),
+    activate: v.object({ server_id: v.string(), site_id: v.string(), domain_id: v.string() }),
   },
   executors: {
     get: getCertificate,
@@ -33,9 +39,9 @@ export const handleCertificates = createResourceHandler({
       case "create":
         return formatCertificate(data);
       case "delete":
-        return `Certificate for domain ${args.domain_id} deleted.`;
+        return `Certificate for domain ${String(args.domain_id)} deleted.`;
       case "activate":
-        return `Certificate for domain ${args.domain_id} activated.`;
+        return `Certificate for domain ${String(args.domain_id)} activated.`;
       /* v8 ignore next */
       default:
         return "Done.";

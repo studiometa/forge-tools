@@ -19,8 +19,8 @@
  * ```
  */
 
-import type { CommandContext, CommandOptions } from "../context.ts";
-import type { OutputFormat } from "../types.ts";
+import type { CommandContext } from "../context.ts";
+import { type OutputFormat, isOutputFormat } from "../types.ts";
 
 import { createContext } from "../context.ts";
 import { OutputFormatter } from "../output.ts";
@@ -65,10 +65,11 @@ export function createCommandRouter(config: CommandRouterConfig) {
     args: string[],
     options: Record<string, string | boolean | string[]>,
   ): Promise<void> {
-    const format = (options.format ?? options.f ?? "human") as OutputFormat;
+    const rawFormat = options.format ?? options.f ?? "human";
+    const format: OutputFormat = isOutputFormat(rawFormat) ? rawFormat : "human";
     const formatter = new OutputFormatter(format, options["no-color"] === true);
 
-    const ctx = createContext(options as CommandOptions);
+    const ctx = createContext(options);
 
     const handler = config.handlers[subcommand];
     if (!handler) {
@@ -81,7 +82,7 @@ export function createCommandRouter(config: CommandRouterConfig) {
 
     if (isWrite) {
       // Sanitized args for audit log (strip token)
-      const { token: _token, ...safeOptions } = options as Record<string, unknown>;
+      const { token: _token, ...safeOptions } = options;
       try {
         if (Array.isArray(handler)) {
           await handler[0](args, ctx);

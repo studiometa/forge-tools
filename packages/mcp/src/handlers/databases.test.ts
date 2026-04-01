@@ -22,14 +22,14 @@ function createMockContext(): HandlerContext {
       organizationSlug: "test-org",
       client: {
         get: async (url: string) => {
-          if (url.match(/\/database\/schemas\/\d+$/)) {
+          if (/\/database\/schemas\/\d+$/.test(url)) {
             return mockDocument(1, "databases", makeDbAttrs());
           }
           return mockListDocument("databases", [{ id: 1, attributes: makeDbAttrs() as never }]);
         },
         post: async () =>
           mockDocument(2, "databases", makeDbAttrs({ name: "newdb", status: "creating" })),
-        delete: async () => undefined,
+        delete: async () => {},
       } as never,
     },
     compact: true,
@@ -44,7 +44,7 @@ describe("handleDatabases", () => {
       createMockContext(),
     );
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("myapp");
+    expect(result.content[0].text).toContain("myapp");
   });
 
   it("should get a database", async () => {
@@ -54,7 +54,7 @@ describe("handleDatabases", () => {
       createMockContext(),
     );
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("myapp");
+    expect(result.content[0].text).toContain("myapp");
   });
 
   it("should create a database", async () => {
@@ -64,7 +64,7 @@ describe("handleDatabases", () => {
       createMockContext(),
     );
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("newdb");
+    expect(result.content[0].text).toContain("newdb");
   });
 
   it("should delete a database", async () => {
@@ -74,7 +74,7 @@ describe("handleDatabases", () => {
       createMockContext(),
     );
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("deleted");
+    expect(result.content[0].text).toContain("deleted");
   });
 
   it("should require server_id for list", async () => {
@@ -106,7 +106,7 @@ describe("handleDatabases", () => {
       ctx,
     );
     expect(result.isError).toBeUndefined();
-    const parsed = JSON.parse(result.content[0]!.text);
+    const parsed = JSON.parse(result.content[0].text);
     expect(parsed._hints).toBeDefined();
     expect(parsed._hints.related_resources).toBeDefined();
   });

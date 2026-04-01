@@ -65,7 +65,7 @@ describe("ScheduledJobsCollection", () => {
     const collection = new ScheduledJobsCollection(client, ORG, 123);
 
     await collection.list();
-    expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers/123/scheduled-jobs`);
+    expect(calls[0].url).toContain(`/orgs/${ORG}/servers/123/scheduled-jobs`);
   });
 
   it("should list scheduled jobs with cursor option", async () => {
@@ -73,7 +73,7 @@ describe("ScheduledJobsCollection", () => {
     const collection = new ScheduledJobsCollection(client, ORG, 123);
 
     await collection.list({ cursor: "abc123" });
-    expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers/123/scheduled-jobs?page[cursor]=abc123`);
+    expect(calls[0].url).toContain(`/orgs/${ORG}/servers/123/scheduled-jobs?page[cursor]=abc123`);
   });
 
   it("should get a scheduled job", async () => {
@@ -81,7 +81,7 @@ describe("ScheduledJobsCollection", () => {
     const collection = new ScheduledJobsCollection(client, ORG, 123);
 
     await collection.get(789);
-    expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers/123/scheduled-jobs/789`);
+    expect(calls[0].url).toContain(`/orgs/${ORG}/servers/123/scheduled-jobs/789`);
   });
 
   it("should create a scheduled job", async () => {
@@ -93,8 +93,8 @@ describe("ScheduledJobsCollection", () => {
       user: "forge",
       frequency: "minutely",
     });
-    expect(calls[0]!.method).toBe("POST");
-    expect(calls[0]!.body).toMatchObject({ command: "php artisan schedule:run" });
+    expect(calls[0].method).toBe("POST");
+    expect(calls[0].body).toMatchObject({ command: "php artisan schedule:run" });
   });
 
   it("should delete a scheduled job", async () => {
@@ -102,8 +102,8 @@ describe("ScheduledJobsCollection", () => {
     const collection = new ScheduledJobsCollection(client, ORG, 123);
 
     await collection.delete(789);
-    expect(calls[0]!.method).toBe("DELETE");
-    expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers/123/scheduled-jobs/789`);
+    expect(calls[0].method).toBe("DELETE");
+    expect(calls[0].url).toContain(`/orgs/${ORG}/servers/123/scheduled-jobs/789`);
   });
 
   it("should return an AsyncPaginatedIterator from all()", () => {

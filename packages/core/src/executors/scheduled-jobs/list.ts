@@ -1,19 +1,26 @@
-import type { JsonApiListDocument, ScheduledJobAttributes } from "@studiometa/forge-api";
-import { unwrapListDocument } from "@studiometa/forge-api";
+import type { ScheduledJobAttributes } from "@studiometa/forge-api";
+import {
+  unwrapListDocument,
+  jsonApiListDocumentSchema,
+  ScheduledJobAttributesSchema,
+} from "@studiometa/forge-api";
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
-import { serverPath } from "../../utils/url-builder.ts";
+import { ROUTES, request } from "../../routes.ts";
 
 import type { ListScheduledJobsOptions } from "./types.ts";
 
 /**
- * List scheduled jobs (cron) on a server.
+ * List scheduled jobs on a server.
  */
 export async function listScheduledJobs(
   options: ListScheduledJobsOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<Array<ScheduledJobAttributes & { id: number }>>> {
-  const response = await ctx.client.get<JsonApiListDocument<ScheduledJobAttributes>>(
-    `${serverPath(options.server_id, ctx)}/scheduled-jobs`,
+  const response = await request(
+    ROUTES.scheduledJobs.list,
+    ctx,
+    { server_id: options.server_id },
+    { schema: jsonApiListDocumentSchema(ScheduledJobAttributesSchema) },
   );
 
   return {

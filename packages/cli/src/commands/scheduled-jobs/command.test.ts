@@ -3,10 +3,10 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { handleScheduledJobsCommand } from "./command.ts";
 
 vi.mock("./handlers.ts", () => ({
-  scheduledJobsList: vi.fn().mockResolvedValue(undefined),
-  scheduledJobsGet: vi.fn().mockResolvedValue(undefined),
-  scheduledJobsCreate: vi.fn().mockResolvedValue(undefined),
-  scheduledJobsDelete: vi.fn().mockResolvedValue(undefined),
+  scheduledJobsList: vi.fn().mockResolvedValue(),
+  scheduledJobsGet: vi.fn().mockResolvedValue(),
+  scheduledJobsCreate: vi.fn().mockResolvedValue(),
+  scheduledJobsDelete: vi.fn().mockResolvedValue(),
 }));
 
 vi.mock("../../context.ts", () => ({

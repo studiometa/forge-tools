@@ -10,10 +10,12 @@ describe("createScheduledJob", () => {
       client: {
         post: async () =>
           mockDocument(5, "scheduled-jobs", {
+            name: null,
             command: "php artisan inspire",
             user: "forge",
             frequency: "daily",
             cron: "0 0 * * *",
+            next_run_time: "2024-01-02T00:00:00.000000Z",
             status: "creating",
             created_at: "2024-01-01T00:00:00.000000Z",
             updated_at: "2024-01-01T00:00:00.000000Z",

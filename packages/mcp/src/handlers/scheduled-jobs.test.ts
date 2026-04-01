@@ -8,10 +8,12 @@ import { handleScheduledJobs } from "./scheduled-jobs.ts";
 
 function makeJobAttrs(overrides: Record<string, unknown> = {}) {
   return {
+    name: null,
     command: "php artisan schedule:run",
     user: "forge",
     frequency: "minutely",
     cron: "* * * * *",
+    next_run_time: "2024-01-01 00:01:00",
     status: "running",
     created_at: "2024-01-01",
     updated_at: "2024-01-01",
@@ -25,7 +27,7 @@ function createMockContext(): HandlerContext {
       organizationSlug: "test-org",
       client: {
         get: async (url: string) => {
-          if (url.match(/\/scheduled-jobs\/\d+$/)) {
+          if (/\/scheduled-jobs\/\d+$/.test(url)) {
             return mockDocument(1, "scheduled-jobs", makeJobAttrs());
           }
           return mockListDocument("scheduled-jobs", [
@@ -38,7 +40,7 @@ function createMockContext(): HandlerContext {
             "scheduled-jobs",
             makeJobAttrs({ command: "php artisan inspire", frequency: "daily" }),
           ),
-        delete: async () => undefined,
+        delete: async () => {},
       } as never,
     },
     compact: true,
@@ -53,7 +55,7 @@ describe("handleScheduledJobs", () => {
       createMockContext(),
     );
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("schedule:run");
+    expect(result.content[0].text).toContain("schedule:run");
   });
 
   it("should get a scheduled job", async () => {
@@ -63,7 +65,7 @@ describe("handleScheduledJobs", () => {
       createMockContext(),
     );
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("schedule:run");
+    expect(result.content[0].text).toContain("schedule:run");
   });
 
   it("should create a scheduled job", async () => {
@@ -79,7 +81,7 @@ describe("handleScheduledJobs", () => {
       createMockContext(),
     );
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("inspire");
+    expect(result.content[0].text).toContain("inspire");
   });
 
   it("should delete a scheduled job", async () => {
@@ -98,7 +100,7 @@ describe("handleScheduledJobs", () => {
       createMockContext(),
     );
     expect(result.isError).toBe(true);
-    expect(result.content[0]!.text).toContain("server_id");
+    expect(result.content[0].text).toContain("server_id");
   });
 
   it("should handle unknown action", async () => {
@@ -108,6 +110,6 @@ describe("handleScheduledJobs", () => {
       createMockContext(),
     );
     expect(result.isError).toBe(true);
-    expect(result.content[0]!.text).toContain("Unknown action");
+    expect(result.content[0].text).toContain("Unknown action");
   });
 });

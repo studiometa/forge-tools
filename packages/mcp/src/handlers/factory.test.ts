@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 
+import * as v from "valibot";
+
 import type { ExecutorContext, ExecutorResult } from "@studiometa/forge-core";
 
 import type { ContextualHints } from "../hints.ts";
@@ -31,20 +33,20 @@ describe("createResourceHandler", () => {
 
     const result = await handler("get", { resource: "test", action: "get" }, createMockContext());
     expect(result.isError).toBe(true);
-    expect(result.content[0]!.text).toContain("Unknown action");
+    expect(result.content[0].text).toContain("Unknown action");
   });
 
   it("should validate required fields", async () => {
     const handler = createResourceHandler({
       resource: "test",
       actions: ["list"],
-      requiredFields: { list: ["server_id"] },
+      inputSchemas: { list: v.object({ server_id: v.string() }) },
       executors: { list: async () => ({ data: [] }) },
     });
 
     const result = await handler("list", { resource: "test", action: "list" }, createMockContext());
     expect(result.isError).toBe(true);
-    expect(result.content[0]!.text).toContain("server_id");
+    expect(result.content[0].text).toContain("Invalid input");
   });
 
   it("should execute and return formatted text when compact and formatResult provided", async () => {
@@ -61,7 +63,7 @@ describe("createResourceHandler", () => {
 
     const result = await handler("list", { resource: "test", action: "list" }, createMockContext());
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toBe("2 items found");
+    expect(result.content[0].text).toBe("2 items found");
   });
 
   it("should return JSON data when compact but no formatResult", async () => {
@@ -78,7 +80,7 @@ describe("createResourceHandler", () => {
     const result = await handler("list", { resource: "test", action: "list" }, createMockContext());
     expect(result.isError).toBeUndefined();
     // Without formatResult, falls through to JSON
-    const parsed = JSON.parse(result.content[0]!.text);
+    const parsed = JSON.parse(result.content[0].text);
     expect(Array.isArray(parsed)).toBe(true);
   });
 
@@ -97,7 +99,7 @@ describe("createResourceHandler", () => {
     const ctx = createMockContext();
     ctx.compact = false;
     const result = await handler("get", { resource: "test", action: "get" }, ctx);
-    expect(result.content[0]!.text).toContain('"id": 1');
+    expect(result.content[0].text).toContain('"id": 1');
   });
 
   it("should handle void result (data undefined) with formatResult", async () => {
@@ -117,7 +119,7 @@ describe("createResourceHandler", () => {
       { resource: "test", action: "delete" },
       createMockContext(),
     );
-    expect(result.content[0]!.text).toContain("Deleted successfully");
+    expect(result.content[0].text).toContain("Deleted successfully");
   });
 
   it("should handle void result (data undefined) with default message when no formatResult", async () => {
@@ -136,7 +138,7 @@ describe("createResourceHandler", () => {
       { resource: "test", action: "delete" },
       createMockContext(),
     );
-    expect(result.content[0]!.text).toBe("Done.");
+    expect(result.content[0].text).toBe("Done.");
   });
 
   it("should return not implemented for listed but missing executor", async () => {
@@ -157,7 +159,7 @@ describe("createResourceHandler", () => {
       createMockContext(),
     );
     expect(result.isError).toBe(true);
-    expect(result.content[0]!.text).toContain("not yet implemented");
+    expect(result.content[0].text).toContain("not yet implemented");
   });
 
   it("should use default args passthrough when no mapOptions", async () => {
@@ -179,7 +181,7 @@ describe("createResourceHandler", () => {
       { resource: "test", action: "list", server_id: "42" },
       createMockContext(),
     );
-    expect(result.content[0]!.text).toContain("server=42");
+    expect(result.content[0].text).toContain("server=42");
     expect(capturedOpts.server_id).toBe("42");
   });
 
@@ -198,7 +200,7 @@ describe("createResourceHandler", () => {
       { resource: "test", action: "delete", id: "99" },
       createMockContext(),
     );
-    expect(result.content[0]!.text).toBe("Resource 99 deleted.");
+    expect(result.content[0].text).toBe("Resource 99 deleted.");
   });
 
   it("should inject _hints when action=get, ctx.includeHints=true, and hints config provided", async () => {
@@ -219,7 +221,7 @@ describe("createResourceHandler", () => {
     ctx.includeHints = true;
 
     const result = await handler("get", { resource: "test", action: "get", id: "1" }, ctx);
-    const parsed = JSON.parse(result.content[0]!.text);
+    const parsed = JSON.parse(result.content[0].text);
     expect(parsed._hints).toBeDefined();
     expect(parsed._hints.related_resources[0].resource).toBe("other");
     expect(parsed._hints.common_actions[0].action).toBe("1");
@@ -241,7 +243,7 @@ describe("createResourceHandler", () => {
     ctx.includeHints = false;
 
     const result = await handler("get", { resource: "test", action: "get", id: "2" }, ctx);
-    const parsed = JSON.parse(result.content[0]!.text);
+    const parsed = JSON.parse(result.content[0].text);
     expect(parsed._hints).toBeUndefined();
     expect(parsed.id).toBe(2);
   });
@@ -260,7 +262,7 @@ describe("createResourceHandler", () => {
     ctx.includeHints = true;
 
     const result = await handler("get", { resource: "test", action: "get", id: "3" }, ctx);
-    const parsed = JSON.parse(result.content[0]!.text);
+    const parsed = JSON.parse(result.content[0].text);
     expect(parsed._hints).toBeUndefined();
     expect(parsed.id).toBe(3);
   });

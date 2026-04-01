@@ -22,7 +22,7 @@ function createMockContext(): HandlerContext {
       organizationSlug: "test-org",
       client: {
         get: async (url: string) => {
-          if (url.match(/\/database\/users\/\d+$/)) {
+          if (/\/database\/users\/\d+$/.test(url)) {
             return mockDocument(1, "database-users", makeUserAttrs());
           }
           return mockListDocument("database-users", [
@@ -31,7 +31,7 @@ function createMockContext(): HandlerContext {
         },
         post: async () =>
           mockDocument(2, "database-users", makeUserAttrs({ name: "newuser", status: "creating" })),
-        delete: async () => undefined,
+        delete: async () => {},
       } as never,
     },
     compact: true,
@@ -46,7 +46,7 @@ describe("handleDatabaseUsers", () => {
       createMockContext(),
     );
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("forge");
+    expect(result.content[0].text).toContain("forge");
   });
 
   it("should get a database user", async () => {
@@ -56,7 +56,7 @@ describe("handleDatabaseUsers", () => {
       createMockContext(),
     );
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("forge");
+    expect(result.content[0].text).toContain("forge");
   });
 
   it("should create a database user", async () => {
@@ -72,7 +72,7 @@ describe("handleDatabaseUsers", () => {
       createMockContext(),
     );
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("newuser");
+    expect(result.content[0].text).toContain("newuser");
   });
 
   it("should delete a database user", async () => {
@@ -82,7 +82,7 @@ describe("handleDatabaseUsers", () => {
       createMockContext(),
     );
     expect(result.isError).toBeUndefined();
-    expect(result.content[0]!.text).toContain("deleted");
+    expect(result.content[0].text).toContain("deleted");
   });
 
   it("should require server_id for list", async () => {
@@ -123,7 +123,7 @@ describe("handleDatabaseUsers", () => {
       ctx,
     );
     expect(result.isError).toBeUndefined();
-    const parsed = JSON.parse(result.content[0]!.text);
+    const parsed = JSON.parse(result.content[0].text);
     expect(parsed._hints).toBeDefined();
     expect(parsed._hints.related_resources).toBeDefined();
   });

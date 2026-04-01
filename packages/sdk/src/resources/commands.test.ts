@@ -64,7 +64,7 @@ describe("CommandsCollection", () => {
     const collection = new CommandsCollection(client, ORG, 123, 456);
 
     await collection.list();
-    expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers/123/sites/456/commands`);
+    expect(calls[0].url).toContain(`/orgs/${ORG}/servers/123/sites/456/commands`);
   });
 
   it("should list commands with cursor option", async () => {
@@ -72,7 +72,7 @@ describe("CommandsCollection", () => {
     const collection = new CommandsCollection(client, ORG, 123, 456);
 
     await collection.list({ cursor: "abc123" });
-    expect(calls[0]!.url).toContain(
+    expect(calls[0].url).toContain(
       `/orgs/${ORG}/servers/123/sites/456/commands?page[cursor]=abc123`,
     );
   });
@@ -82,7 +82,7 @@ describe("CommandsCollection", () => {
     const collection = new CommandsCollection(client, ORG, 123, 456);
 
     await collection.get(789);
-    expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers/123/sites/456/commands/789`);
+    expect(calls[0].url).toContain(`/orgs/${ORG}/servers/123/sites/456/commands/789`);
   });
 
   it("should run a command", async () => {
@@ -90,8 +90,8 @@ describe("CommandsCollection", () => {
     const collection = new CommandsCollection(client, ORG, 123, 456);
 
     await collection.create({ command: "php artisan migrate" });
-    expect(calls[0]!.method).toBe("POST");
-    expect(calls[0]!.body).toMatchObject({ command: "php artisan migrate" });
+    expect(calls[0].method).toBe("POST");
+    expect(calls[0].body).toMatchObject({ command: "php artisan migrate" });
   });
 
   it("should return an AsyncPaginatedIterator from all()", () => {

@@ -1,7 +1,10 @@
-import type { JsonApiListDocument, SiteAttributes } from "@studiometa/forge-api";
-import { unwrapListDocument } from "@studiometa/forge-api";
+import {
+  unwrapListDocument,
+  jsonApiListDocumentSchema,
+  SiteAttributesSchema,
+} from "@studiometa/forge-api";
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
-import { serverPath } from "../../utils/url-builder.ts";
+import { ROUTES, request } from "../../routes.ts";
 import { matchByName } from "../../utils/name-matcher.ts";
 
 export interface ResolveSitesOptions {
@@ -22,16 +25,16 @@ export interface ResolveSiteResult {
 
 /**
  * Resolve sites by domain name — partial, case-insensitive match.
- *
- * If exactly one site matches the query exactly, it is returned as a single result.
- * Otherwise all partial matches are returned.
  */
 export async function resolveSites(
   options: ResolveSitesOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<ResolveSiteResult>> {
-  const response = await ctx.client.get<JsonApiListDocument<SiteAttributes>>(
-    `${serverPath(options.server_id, ctx)}/sites`,
+  const response = await request(
+    ROUTES.sites.list,
+    ctx,
+    { server_id: options.server_id },
+    { schema: jsonApiListDocumentSchema(SiteAttributesSchema) },
   );
   const sites = unwrapListDocument(response);
 

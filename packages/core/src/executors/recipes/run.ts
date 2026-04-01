@@ -1,5 +1,5 @@
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
-import { orgPrefix } from "../../utils/url-builder.ts";
+import { ROUTES, request } from "../../routes.ts";
 
 import type { RunRecipeOptions } from "./types.ts";
 
@@ -10,9 +10,12 @@ export async function runRecipe(
   options: RunRecipeOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<void>> {
-  await ctx.client.post(`${orgPrefix(ctx)}/recipes/${options.id}/runs`, {
-    servers: options.servers,
-  });
+  await request(
+    ROUTES.recipes.run,
+    ctx,
+    { id: options.id },
+    { body: { servers: options.servers } },
+  );
 
   return {
     data: undefined,

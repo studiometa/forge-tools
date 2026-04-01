@@ -62,7 +62,7 @@ describe("NginxTemplatesCollection", () => {
     const collection = new NginxTemplatesCollection(client, ORG, 123);
 
     await collection.list();
-    expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers/123/nginx/templates`);
+    expect(calls[0].url).toContain(`/orgs/${ORG}/servers/123/nginx/templates`);
   });
 
   it("should list Nginx templates with cursor option", async () => {
@@ -70,7 +70,7 @@ describe("NginxTemplatesCollection", () => {
     const collection = new NginxTemplatesCollection(client, ORG, 123);
 
     await collection.list({ cursor: "abc123" });
-    expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers/123/nginx/templates?page[cursor]=abc123`);
+    expect(calls[0].url).toContain(`/orgs/${ORG}/servers/123/nginx/templates?page[cursor]=abc123`);
   });
 
   it("should get a Nginx template", async () => {
@@ -78,7 +78,7 @@ describe("NginxTemplatesCollection", () => {
     const collection = new NginxTemplatesCollection(client, ORG, 123);
 
     await collection.get(789);
-    expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers/123/nginx/templates/789`);
+    expect(calls[0].url).toContain(`/orgs/${ORG}/servers/123/nginx/templates/789`);
   });
 
   it("should create a Nginx template", async () => {
@@ -86,8 +86,8 @@ describe("NginxTemplatesCollection", () => {
     const collection = new NginxTemplatesCollection(client, ORG, 123);
 
     await collection.create({ name: "Laravel Template", content: "server { ... }" });
-    expect(calls[0]!.method).toBe("POST");
-    expect(calls[0]!.body).toMatchObject({ name: "Laravel Template" });
+    expect(calls[0].method).toBe("POST");
+    expect(calls[0].body).toMatchObject({ name: "Laravel Template" });
   });
 
   it("should update a Nginx template", async () => {
@@ -95,9 +95,9 @@ describe("NginxTemplatesCollection", () => {
     const collection = new NginxTemplatesCollection(client, ORG, 123);
 
     await collection.update(789, { name: "Updated Template" });
-    expect(calls[0]!.method).toBe("PUT");
-    expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers/123/nginx/templates/789`);
-    expect(calls[0]!.body).toMatchObject({ name: "Updated Template" });
+    expect(calls[0].method).toBe("PUT");
+    expect(calls[0].url).toContain(`/orgs/${ORG}/servers/123/nginx/templates/789`);
+    expect(calls[0].body).toMatchObject({ name: "Updated Template" });
   });
 
   it("should delete a Nginx template", async () => {
@@ -105,8 +105,8 @@ describe("NginxTemplatesCollection", () => {
     const collection = new NginxTemplatesCollection(client, ORG, 123);
 
     await collection.delete(789);
-    expect(calls[0]!.method).toBe("DELETE");
-    expect(calls[0]!.url).toContain(`/orgs/${ORG}/servers/123/nginx/templates/789`);
+    expect(calls[0].method).toBe("DELETE");
+    expect(calls[0].url).toContain(`/orgs/${ORG}/servers/123/nginx/templates/789`);
   });
 
   it("should return an AsyncPaginatedIterator from all()", () => {

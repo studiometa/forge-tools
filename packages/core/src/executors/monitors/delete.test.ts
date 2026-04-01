@@ -5,7 +5,7 @@ import { deleteMonitor } from "./delete.ts";
 
 describe("deleteMonitor", () => {
   it("should delete a monitor", async () => {
-    const deleteMock = vi.fn(async () => undefined);
+    const deleteMock = vi.fn(async () => {});
     const ctx = createTestExecutorContext({
       client: { delete: deleteMock } as never,
       organizationSlug: "test-org",

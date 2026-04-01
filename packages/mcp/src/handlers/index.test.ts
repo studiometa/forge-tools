@@ -66,8 +66,8 @@ describe("executeToolWithCredentials error handling", () => {
       creds,
     );
     expect(result.isError).toBe(true);
-    expect(result.content[0]!.text).toContain("**Input Error:** Test input error");
-    expect(result.content[0]!.text).toContain("- Hint A");
+    expect(result.content[0].text).toContain("**Input Error:** Test input error");
+    expect(result.content[0].text).toContain("- Hint A");
   });
 
   it("should catch ForgeApiError and return formatted error with status", async () => {
@@ -77,7 +77,7 @@ describe("executeToolWithCredentials error handling", () => {
       creds,
     );
     expect(result.isError).toBe(true);
-    expect(result.content[0]!.text).toContain("Forge API error");
+    expect(result.content[0].text).toContain("Forge API error");
   });
 
   it("should catch non-Error thrown value and stringify it", async () => {
@@ -87,6 +87,6 @@ describe("executeToolWithCredentials error handling", () => {
       creds,
     );
     expect(result.isError).toBe(true);
-    expect(result.content[0]!.text).toContain("string error");
+    expect(result.content[0].text).toContain("string error");
   });
 });

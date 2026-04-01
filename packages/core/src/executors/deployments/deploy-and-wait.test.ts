@@ -14,7 +14,7 @@ describe("deploySiteAndWait", () => {
   });
 
   it("should trigger deploy, poll until done, and return success", async () => {
-    const postMock = vi.fn(async () => undefined);
+    const postMock = vi.fn(async () => {});
 
     let pollCount = 0;
     const getMock = vi.fn(async (url: string) => {
@@ -81,7 +81,7 @@ describe("deploySiteAndWait", () => {
   });
 
   it("should return failed when latest deployment status is not finished", async () => {
-    const postMock = vi.fn(async () => undefined);
+    const postMock = vi.fn(async () => {});
 
     const getMock = vi.fn(async (url: string) => {
       if (url.includes("/deployments/status")) {
@@ -127,7 +127,7 @@ describe("deploySiteAndWait", () => {
   });
 
   it("should call onProgress callback on each poll iteration", async () => {
-    const postMock = vi.fn(async () => undefined);
+    const postMock = vi.fn(async () => {});
 
     let pollCount = 0;
     const getMock = vi.fn(async (url: string) => {
@@ -185,7 +185,7 @@ describe("deploySiteAndWait", () => {
   });
 
   it("should return failed when timeout_ms is exceeded", async () => {
-    const postMock = vi.fn(async () => undefined);
+    const postMock = vi.fn(async () => {});
 
     // Status always returns deploying (never finishes)
     const getMock = vi.fn(async (url: string) => {
@@ -235,7 +235,7 @@ describe("deploySiteAndWait", () => {
   });
 
   it("should handle log fetch errors gracefully", async () => {
-    const postMock = vi.fn(async () => undefined);
+    const postMock = vi.fn(async () => {});
 
     const getMock = vi.fn(async (url: string) => {
       if (url.includes("/deployments/status")) {
@@ -281,7 +281,7 @@ describe("deploySiteAndWait", () => {
   });
 
   it("should stream logs via onLog during polling when deployment is active", async () => {
-    const postMock = vi.fn(async () => undefined);
+    const postMock = vi.fn(async () => {});
 
     let pollCount = 0;
     const getMock = vi.fn(async (url: string) => {
@@ -340,9 +340,9 @@ describe("deploySiteAndWait", () => {
   });
 
   it("should emit remaining log content after polling via onLog", async () => {
-    const postMock = vi.fn(async () => undefined);
+    const postMock = vi.fn(async () => {});
 
-    let logCallCount = 0;
+    let _logCallCount = 0;
     const getMock = vi.fn(async (url: string) => {
       if (url.includes("/deployments/status")) {
         throw new Error("Not found"); // done immediately
@@ -364,7 +364,7 @@ describe("deploySiteAndWait", () => {
         ]);
       }
       if (url.includes("/deployments/") && url.includes("/log")) {
-        logCallCount++;
+        _logCallCount++;
         return mockDocument(1, "deployment-logs", {
           output: "Full log output here.",
         });
@@ -394,7 +394,7 @@ describe("deploySiteAndWait", () => {
   });
 
   it("should handle log fetch error during polling gracefully with onLog", async () => {
-    const postMock = vi.fn(async () => undefined);
+    const postMock = vi.fn(async () => {});
 
     let pollCount = 0;
     const getMock = vi.fn(async (url: string) => {
@@ -454,7 +454,7 @@ describe("deploySiteAndWait", () => {
   });
 
   it("should emit remaining log content via onLog when final log is longer than streamed", async () => {
-    const postMock = vi.fn(async () => undefined);
+    const postMock = vi.fn(async () => {});
 
     let logFetchCount = 0;
     const getMock = vi.fn(async (url: string) => {
@@ -512,7 +512,7 @@ describe("deploySiteAndWait", () => {
   });
 
   it("should handle empty deployments list during polling with onLog", async () => {
-    const postMock = vi.fn(async () => undefined);
+    const postMock = vi.fn(async () => {});
 
     let pollCount = 0;
     const getMock = vi.fn(async (url: string) => {
@@ -571,7 +571,7 @@ describe("deploySiteAndWait", () => {
   });
 
   it("should handle deployments fetch errors gracefully and default to failed", async () => {
-    const postMock = vi.fn(async () => undefined);
+    const postMock = vi.fn(async () => {});
 
     const getMock = vi.fn(async (url: string) => {
       if (url.includes("/deployments/status")) {

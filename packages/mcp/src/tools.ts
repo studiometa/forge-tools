@@ -29,14 +29,14 @@ export type WriteAction = (typeof WRITE_ACTIONS)[number];
  * Check if an action is a write action.
  */
 export function isWriteAction(action: string): action is WriteAction {
-  return (WRITE_ACTIONS as readonly string[]).includes(action);
+  return WRITE_ACTIONS.includes(action as WriteAction);
 }
 
 /**
  * Check if an action is a read action.
  */
 export function isReadAction(action: string): action is ReadAction {
-  return (READ_ACTIONS as readonly string[]).includes(action);
+  return READ_ACTIONS.includes(action as ReadAction);
 }
 
 /**

@@ -1,7 +1,10 @@
-import type { JsonApiListDocument, ServerAttributes } from "@studiometa/forge-api";
-import { unwrapListDocument } from "@studiometa/forge-api";
+import {
+  unwrapListDocument,
+  jsonApiListDocumentSchema,
+  ServerAttributesSchema,
+} from "@studiometa/forge-api";
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
-import { orgPrefix } from "../../utils/url-builder.ts";
+import { ROUTES, request } from "../../routes.ts";
 import { matchByName } from "../../utils/name-matcher.ts";
 
 export interface ResolveServersOptions {
@@ -29,8 +32,11 @@ export async function resolveServers(
   options: ResolveServersOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<ResolveResult>> {
-  const response = await ctx.client.get<JsonApiListDocument<ServerAttributes>>(
-    `${orgPrefix(ctx)}/servers`,
+  const response = await request(
+    ROUTES.servers.list,
+    ctx,
+    {},
+    { schema: jsonApiListDocumentSchema(ServerAttributesSchema) },
   );
   const servers = unwrapListDocument(response);
 
