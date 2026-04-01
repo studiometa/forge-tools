@@ -41,8 +41,7 @@ function createMockContext(): HandlerContext {
             makeRecipeAttrs({ name: "cleanup", user: "forge", script: "rm -rf /tmp/*" }),
           );
         },
-        put: async () =>
-          mockDocument(1, "recipes", makeRecipeAttrs({ name: "updated" })),
+        put: async () => mockDocument(1, "recipes", makeRecipeAttrs({ name: "updated" })),
         delete: async () => {},
       } as never,
     },
