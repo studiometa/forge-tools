@@ -3,10 +3,12 @@ export { deleteSite } from "./delete.ts";
 export { getSite } from "./get.ts";
 export { listSites } from "./list.ts";
 export { resolveSites } from "./resolve.ts";
+export { updateSite } from "./update.ts";
 export type {
   CreateSiteOptions,
   DeleteSiteOptions,
   GetSiteOptions,
   ListSitesOptions,
+  UpdateSiteOptions,
 } from "./types.ts";
 export type { ResolveSitesOptions, ResolveSiteMatch, ResolveSiteResult } from "./resolve.ts";

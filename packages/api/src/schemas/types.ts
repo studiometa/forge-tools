@@ -77,6 +77,17 @@ export const CreateSiteDataSchema = v.object({
 
 export type CreateSiteData = v.InferOutput<typeof CreateSiteDataSchema>;
 
+export const UpdateSiteDataSchema = v.object({
+  root_path: v.optional(v.nullable(v.string())),
+  directory: v.optional(v.nullable(v.string())),
+  type: v.optional(v.string()),
+  php_version: v.optional(v.string()),
+  push_to_deploy: v.optional(v.boolean()),
+  repository_branch: v.optional(v.nullable(v.string())),
+});
+
+export type UpdateSiteData = v.InferOutput<typeof UpdateSiteDataSchema>;
+
 // ── Certificates ─────────────────────────────────────
 
 export const CreateCertificateDataSchema = v.object({

@@ -5,6 +5,7 @@ import { handleSitesCommand } from "./command.ts";
 vi.mock("./handlers.ts", () => ({
   sitesList: vi.fn().mockResolvedValue(),
   sitesGet: vi.fn().mockResolvedValue(),
+  sitesUpdate: vi.fn().mockResolvedValue(),
 }));
 
 vi.mock("../../context.ts", () => ({
@@ -32,6 +33,7 @@ describe("handleSitesCommand routing", () => {
     const handlers = await import("./handlers.ts");
     vi.mocked(handlers.sitesList).mockClear();
     vi.mocked(handlers.sitesGet).mockClear();
+    vi.mocked(handlers.sitesUpdate).mockClear();
   });
 
   afterEach(() => {
@@ -54,6 +56,12 @@ describe("handleSitesCommand routing", () => {
     const handlers = await import("./handlers.ts");
     await handleSitesCommand("get", ["1"], {});
     expect(handlers.sitesGet).toHaveBeenCalledWith(["1"], expect.anything());
+  });
+
+  it("should route update with args", async () => {
+    const handlers = await import("./handlers.ts");
+    await handleSitesCommand("update", ["1"], { server: "123" });
+    expect(handlers.sitesUpdate).toHaveBeenCalledWith(["1"], expect.anything());
   });
 
   it("should exit for unknown subcommand", async () => {

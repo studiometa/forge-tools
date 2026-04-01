@@ -2,7 +2,7 @@
  * Option types for site executors.
  */
 
-import type { CreateSiteData } from "@studiometa/forge-api";
+import type { CreateSiteData, UpdateSiteData } from "@studiometa/forge-api";
 
 /**
  * Options for listing sites on a server.
@@ -28,6 +28,14 @@ export interface GetSiteOptions {
  */
 export interface CreateSiteOptions extends CreateSiteData {
   server_id: string;
+}
+
+/**
+ * Options for updating a site.
+ */
+export interface UpdateSiteOptions extends UpdateSiteData {
+  server_id: string;
+  site_id: string;
 }
 
 /**

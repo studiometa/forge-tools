@@ -3,11 +3,12 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import type { SiteAttributes } from "@studiometa/forge-api";
 
 import { createTestContext } from "../../context.ts";
-import { sitesList, sitesGet } from "./handlers.ts";
+import { sitesList, sitesGet, sitesUpdate } from "./handlers.ts";
 
 vi.mock("@studiometa/forge-core", () => ({
   listSites: vi.fn(),
   getSite: vi.fn(),
+  updateSite: vi.fn(),
 }));
 
 const mockSite: SiteAttributes & { id: number } = {
@@ -124,6 +125,125 @@ describe("sitesGet", () => {
     });
 
     await sitesGet(["1"], ctx).catch(() => {});
+    expect(processExitSpy).toHaveBeenCalledWith(3);
+  });
+});
+
+describe("sitesUpdate", () => {
+  let processExitSpy: ReturnType<typeof vi.spyOn>;
+
+  beforeEach(() => {
+    processExitSpy = vi.spyOn(process, "exit").mockImplementation(() => undefined as never);
+    vi.spyOn(console, "log").mockImplementation(() => {});
+    vi.spyOn(console, "error").mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("should update site with options", async () => {
+    const { updateSite } = await import("@studiometa/forge-core");
+    vi.mocked(updateSite).mockResolvedValue({ data: mockSite });
+
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: {
+        format: "json",
+        server: "10",
+        root_path: "/var/www",
+        type: "php",
+        php_version: "php83",
+        push_to_deploy: "true",
+      },
+    });
+
+    await sitesUpdate(["1"], ctx);
+    expect(vi.mocked(console.log)).toHaveBeenCalledWith(expect.stringContaining('"example.com"'));
+    expect(vi.mocked(updateSite)).toHaveBeenCalledWith(
+      expect.objectContaining({
+        server_id: "10",
+        site_id: "1",
+        root_path: "/var/www",
+        type: "php",
+        php_version: "php83",
+        push_to_deploy: true,
+      }),
+      expect.anything(),
+    );
+  });
+
+  it("should handle push_to_deploy as boolean true", async () => {
+    const { updateSite } = await import("@studiometa/forge-core");
+    vi.mocked(updateSite).mockResolvedValue({ data: mockSite });
+
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "json", server: "10", push_to_deploy: true },
+    });
+
+    await sitesUpdate(["1"], ctx);
+    expect(vi.mocked(updateSite)).toHaveBeenCalledWith(
+      expect.objectContaining({ push_to_deploy: true }),
+      expect.anything(),
+    );
+  });
+
+  it("should omit push_to_deploy when not provided", async () => {
+    const { updateSite } = await import("@studiometa/forge-core");
+    vi.mocked(updateSite).mockResolvedValue({ data: mockSite });
+
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "json", server: "10" },
+    });
+
+    await sitesUpdate(["1"], ctx);
+    expect(vi.mocked(updateSite)).toHaveBeenCalledWith(
+      expect.objectContaining({ push_to_deploy: undefined }),
+      expect.anything(),
+    );
+  });
+
+  it("should parse push_to_deploy false string", async () => {
+    const { updateSite } = await import("@studiometa/forge-core");
+    vi.mocked(updateSite).mockResolvedValue({ data: mockSite });
+
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "json", server: "10", push_to_deploy: "false" },
+    });
+
+    await sitesUpdate(["1"], ctx);
+    expect(vi.mocked(updateSite)).toHaveBeenCalledWith(
+      expect.objectContaining({ push_to_deploy: false }),
+      expect.anything(),
+    );
+  });
+
+  it("should exit with error when no site_id", async () => {
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "json", server: "10" },
+    });
+
+    await sitesUpdate([], ctx).catch(() => {});
+    expect(processExitSpy).toHaveBeenCalledWith(3);
+  });
+
+  it("should exit with error when no server_id", async () => {
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "json" },
+    });
+
+    await sitesUpdate(["1"], ctx).catch(() => {});
     expect(processExitSpy).toHaveBeenCalledWith(3);
   });
 });
