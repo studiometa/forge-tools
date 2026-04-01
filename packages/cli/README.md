@@ -211,16 +211,16 @@ All write operations (`deploy`, `create`, `delete`, `reboot`, `restart`, `update
 
 ## Global Options
 
-| Option            | Alias | Description                                       |
-| ----------------- | ----- | ------------------------------------------------- |
-| `--token <token>` |       | Forge API token (overrides config and env)        |
-| `--org <slug>`    |       | Organization slug (overrides config and env)      |
-| `--server <id>`   |       | Server ID or name (auto-resolved if non-numeric)  |
-| `--site <id>`     |       | Site ID or domain (auto-resolved if non-numeric)  |
-| `--format <fmt>`  | `-f`  | Output format: `json`, `human`, `table`           |
-| `--no-color`      |       | Disable colored output                            |
-| `--help`          | `-h`  | Show help                                         |
-| `--version`       | `-v`  | Show version                                      |
+| Option            | Alias | Description                                      |
+| ----------------- | ----- | ------------------------------------------------ |
+| `--token <token>` |       | Forge API token (overrides config and env)       |
+| `--org <slug>`    |       | Organization slug (overrides config and env)     |
+| `--server <id>`   |       | Server ID or name (auto-resolved if non-numeric) |
+| `--site <id>`     |       | Site ID or domain (auto-resolved if non-numeric) |
+| `--format <fmt>`  | `-f`  | Output format: `json`, `human`, `table`          |
+| `--no-color`      |       | Disable colored output                           |
+| `--help`          | `-h`  | Show help                                        |
+| `--version`       | `-v`  | Show version                                     |
 
 ## AI Agent Integration
 

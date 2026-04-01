@@ -7,7 +7,7 @@ on:
     branches: [main]
   schedule:
     # Run weekly security scan on Sundays at midnight
-    - cron: '0 0 * * 0'
+    - cron: "0 0 * * 0"
 
 jobs:
   dependency-audit:
@@ -19,8 +19,8 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '24'
-          cache: 'npm'
+          node-version: "24"
+          cache: "npm"
 
       - name: Install dependencies
         run: npm ci

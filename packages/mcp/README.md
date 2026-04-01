@@ -167,10 +167,10 @@ Use `resource: "batch"` to fan out multiple reads in a single round-trip (max 10
 
 ## Stdio-Only Tools
 
-| Tool               | Description                                              |
-| ------------------ | -------------------------------------------------------- |
-| `forge_configure`  | Save API token and organization slug to local config     |
-| `forge_get_config` | Show current config (token masked, org slug visible)     |
+| Tool               | Description                                          |
+| ------------------ | ---------------------------------------------------- |
+| `forge_configure`  | Save API token and organization slug to local config |
+| `forge_get_config` | Show current config (token masked, org slug visible) |
 
 ## Audit Logging
 
