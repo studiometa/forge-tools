@@ -69,7 +69,7 @@
     "@modelcontextprotocol/sdk": "^1.26.0",
     "@studiometa/forge-api": "*",
     "@studiometa/forge-core": "*",
-    "h3": "^2.0.1-rc.14"
+    "h3": "2.0.1-rc.20"
   },
   "devDependencies": {
     "@vitest/coverage-v8": "^4.1.0-beta.4",
