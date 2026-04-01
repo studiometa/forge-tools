@@ -188,6 +188,23 @@ describe("daemonsUpdate", () => {
     expect(vi.mocked(console.log)).toHaveBeenCalledWith(expect.stringContaining('"running"'));
   });
 
+  it("should update a daemon with config option", async () => {
+    const { updateDaemon } = await import("@studiometa/forge-core");
+    vi.mocked(updateDaemon).mockResolvedValue({ data: mockDaemon });
+
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "json", server: "10", name: "my-daemon", config: "numprocs=2" },
+    });
+
+    await daemonsUpdate(["1"], ctx);
+    expect(vi.mocked(updateDaemon)).toHaveBeenCalledWith(
+      expect.objectContaining({ config: "numprocs=2" }),
+      expect.anything(),
+    );
+  });
+
   it("should exit with error when no daemon_id", async () => {
     const ctx = createTestContext({
       token: "test",
