@@ -51,6 +51,18 @@ export const CreateSiteDataSchema = v.object({
   push_to_deploy: v.optional(v.boolean()),
   tags: v.optional(v.nullable(v.array(v.string()))),
   shared_paths: v.optional(v.array(v.string())),
+  frontend_build_command: v.optional(v.string()),
+  frontend_package_manager: v.optional(v.string()),
+  generate_deploy_key: v.optional(v.boolean()),
+  install_composer_dependencies: v.optional(v.boolean()),
+  nuxt_next_mode: v.optional(v.string()),
+  nuxt_next_port: v.optional(v.number()),
+  private_deploy_key: v.optional(v.string()),
+  public_deploy_key: v.optional(v.string()),
+  statamic_setup: v.optional(v.boolean()),
+  statamic_starter_kit: v.optional(v.string()),
+  statamic_super_user_email: v.optional(v.string()),
+  statamic_super_user_password: v.optional(v.string()),
 });
 
 export type CreateSiteData = v.InferOutput<typeof CreateSiteDataSchema>;
