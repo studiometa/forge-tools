@@ -92,6 +92,30 @@ describe("handleConfigureTool", () => {
     expect(result.isError).toBe(true);
     expect(result.content[0].text).toContain("required");
   });
+
+  it("should allow setting only organizationSlug", () => {
+    const result = handleConfigureTool({ organizationSlug: "my-org" });
+    expect(result.isError).toBeUndefined();
+    expect(result.structuredContent).toEqual({
+      success: true,
+      message: "Laravel Forge configuration updated successfully",
+      organizationSlug: "my-org",
+    });
+    expect(mockSetOrganizationSlug).toHaveBeenCalledWith("my-org");
+  });
+
+  it("should allow setting both apiToken and organizationSlug", () => {
+    const result = handleConfigureTool({ apiToken: "test-token-1234", organizationSlug: "my-org" });
+    expect(result.isError).toBeUndefined();
+    expect(result.structuredContent).toEqual({
+      success: true,
+      message: "Laravel Forge configuration updated successfully",
+      apiToken: "***1234",
+      organizationSlug: "my-org",
+    });
+    expect(mockSetToken).toHaveBeenCalledWith("test-token-1234");
+    expect(mockSetOrganizationSlug).toHaveBeenCalledWith("my-org");
+  });
 });
 
 describe("handleGetConfigTool", () => {
@@ -250,5 +274,34 @@ describe("handleToolCall", () => {
     );
     expect(result.isError).toBeUndefined();
     expect(result.content[0].text).toContain("***1234");
+  });
+
+  it("should use organizationSlug from args over config", async () => {
+    mockGetToken.mockReturnValue("test-token");
+    mockGetOrganizationSlug.mockReturnValue("config-org");
+
+    // Use help action which doesn't need org slug, but passes through the handler
+    const result = await handleToolCall("forge", {
+      resource: "servers",
+      action: "help",
+      organizationSlug: "args-org",
+    });
+
+    // Help action should succeed regardless of org slug
+    expect(result.isError).toBeUndefined();
+    expect(result.content[0].text).toContain("servers");
+  });
+
+  it("should fall back to config organizationSlug when not in args", async () => {
+    mockGetToken.mockReturnValue("test-token");
+    mockGetOrganizationSlug.mockReturnValue("config-org");
+
+    const result = await handleToolCall("forge", {
+      resource: "servers",
+      action: "help",
+    });
+
+    expect(result.isError).toBeUndefined();
+    expect(result.content[0].text).toContain("servers");
   });
 });

@@ -12,6 +12,7 @@
 
 export interface ForgeCredentials {
   apiToken: string;
+  organizationSlug?: string;
 }
 
 /**
@@ -39,11 +40,38 @@ function tryDecodeBase64(token: string): string | null {
 }
 
 /**
+ * Try to parse a JSON credentials object from a decoded token.
+ * Returns the credentials if valid, null otherwise.
+ */
+function tryParseCredentials(decoded: string): ForgeCredentials | null {
+  try {
+    const parsed: unknown = JSON.parse(decoded);
+    if (
+      typeof parsed === "object" &&
+      parsed !== null &&
+      "apiToken" in parsed &&
+      typeof (parsed as Record<string, unknown>).apiToken === "string"
+    ) {
+      const obj = parsed as Record<string, unknown>;
+      return {
+        apiToken: obj.apiToken as string,
+        organizationSlug:
+          typeof obj.organizationSlug === "string" ? obj.organizationSlug : undefined,
+      };
+    }
+  } catch {
+    // Not valid JSON, fall through
+  }
+  return null;
+}
+
+/**
  * Parse Bearer token containing Forge API credentials.
  *
  * Token formats:
  * - Raw Forge API token (e.g., "Bearer my-api-token")
  * - Base64-encoded token from OAuth flow (e.g., "Bearer base64(apiToken)")
+ * - Base64-encoded JSON from OAuth flow (e.g., "Bearer base64({apiToken, organizationSlug})")
  *
  * @param authHeader - Authorization header value (e.g., "Bearer <token>")
  * @returns Parsed credentials or null if invalid
@@ -67,6 +95,12 @@ export function parseAuthHeader(authHeader: string | undefined | null): ForgeCre
   // Try to decode as base64 (OAuth access token)
   const decoded = tryDecodeBase64(token);
   if (decoded) {
+    // Try to parse as JSON credentials (new format with organizationSlug)
+    const credentials = tryParseCredentials(decoded);
+    if (credentials) {
+      return credentials;
+    }
+    // Fall back to treating decoded value as raw API token (legacy format)
     return { apiToken: decoded };
   }
 

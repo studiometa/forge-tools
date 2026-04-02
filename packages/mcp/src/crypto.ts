@@ -98,6 +98,7 @@ export function decrypt(ciphertext: string, secret: string = getSecret()): strin
  */
 export interface AuthCodePayload {
   apiToken: string;
+  organizationSlug?: string;
   codeChallenge?: string;
   codeChallengeMethod?: string;
 }
@@ -134,11 +135,11 @@ export function decodeAuthCode(code: string): AuthCodePayload {
     throw new Error("Authorization code expired");
   }
 
-  const { apiToken, codeChallenge, codeChallengeMethod } = payload;
+  const { apiToken, organizationSlug, codeChallenge, codeChallengeMethod } = payload;
 
   if (!apiToken) {
     throw new Error("Invalid authorization code: missing credentials");
   }
 
-  return { apiToken, codeChallenge, codeChallengeMethod };
+  return { apiToken, organizationSlug, codeChallenge, codeChallengeMethod };
 }

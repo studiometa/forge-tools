@@ -91,6 +91,11 @@ const SHARED_INPUT_PROPERTIES = {
     type: "string" as const,
     description: "Site ID or domain name (auto-resolved via partial match, requires server_id)",
   },
+  organizationSlug: {
+    type: "string" as const,
+    description:
+      "Organization slug. Overrides the value from authentication, config file, or FORGE_ORG env var.",
+  },
   compact: {
     type: "boolean" as const,
     description: "Compact output (default: true for list, false for get)",

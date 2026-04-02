@@ -80,10 +80,19 @@ describe("OAuth endpoints", () => {
   // --- Utility function tests ---
 
   describe("createAccessToken", () => {
-    it("creates a base64-encoded token", () => {
+    it("creates a base64-encoded JSON token", () => {
       const token = createAccessToken("my-forge-token");
       const decoded = Buffer.from(token, "base64").toString("utf-8");
-      expect(decoded).toBe("my-forge-token");
+      expect(JSON.parse(decoded)).toEqual({ apiToken: "my-forge-token" });
+    });
+
+    it("includes organizationSlug when provided", () => {
+      const token = createAccessToken("my-forge-token", "my-org");
+      const decoded = Buffer.from(token, "base64").toString("utf-8");
+      expect(JSON.parse(decoded)).toEqual({
+        apiToken: "my-forge-token",
+        organizationSlug: "my-org",
+      });
     });
   });
 
@@ -409,9 +418,9 @@ describe("OAuth endpoints", () => {
         refresh_token: expect.any(String),
       });
 
-      // Verify the access token contains our API token (base64 encoded)
+      // Verify the access token contains our API token (base64-encoded JSON)
       const decoded = Buffer.from(tokenData.access_token, "base64").toString("utf-8");
-      expect(decoded).toBe("pk_test123");
+      expect(JSON.parse(decoded)).toEqual({ apiToken: "pk_test123" });
     });
 
     it("rejects invalid PKCE code_verifier", async () => {

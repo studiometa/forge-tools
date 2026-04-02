@@ -166,8 +166,17 @@ export async function handleToolCall(
       };
     }
 
-    const organizationSlug = getOrganizationSlug() ?? undefined;
-    return executeToolWithCredentials(name, args, { apiToken, organizationSlug });
+    // Organization slug can come from:
+    // 1. Tool args (per-request override, highest priority)
+    // 2. Config/env (via getOrganizationSlug)
+    const orgSlugFromArgs =
+      typeof args.organizationSlug === "string" ? args.organizationSlug : undefined;
+    const orgSlugFromConfig = getOrganizationSlug() ?? undefined;
+
+    return executeToolWithCredentials(name, args, {
+      apiToken,
+      organizationSlug: orgSlugFromArgs ?? orgSlugFromConfig,
+    });
   }
 
   return {

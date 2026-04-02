@@ -118,10 +118,21 @@ export function createMcpServer(options?: HttpServerOptions): Server {
     }
 
     try {
+      // Organization slug can come from:
+      // 1. Tool args (per-request override, highest priority)
+      // 2. Auth token (configured during OAuth flow)
+      /* v8 ignore next 2 -- defensive type guard */
+      const orgSlugFromArgs =
+        typeof args?.organizationSlug === "string" ? args.organizationSlug : undefined;
+      /* v8 ignore next 3 -- defensive type guard */
+      const orgSlugFromAuth =
+        typeof extra.authInfo?.extra?.organizationSlug === "string"
+          ? extra.authInfo.extra.organizationSlug
+          : undefined;
+
       const result = await executeToolWithCredentials(name, /* v8 ignore next */ args ?? {}, {
         apiToken: token,
-        organizationSlug:
-          typeof args?.organizationSlug === "string" ? args.organizationSlug : undefined,
+        organizationSlug: orgSlugFromArgs ?? orgSlugFromAuth,
       });
       return result as CallToolResult;
     } catch (error) {
@@ -186,11 +197,15 @@ export async function handleMcpRequest(
   }
 
   // Inject auth info for the SDK transport (MCP SDK expects auth on request)
+  // Include organizationSlug in extra for downstream handlers
   Object.assign(req, {
     auth: {
       token: credentials.apiToken,
       clientId: "forge-http-client",
       scopes: [],
+      extra: {
+        organizationSlug: credentials.organizationSlug,
+      },
     },
   });
 

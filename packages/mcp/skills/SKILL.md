@@ -115,18 +115,19 @@ Use `action: "schema"` for a compact machine-readable spec:
 
 ## Common Parameters
 
-| Parameter    | Type    | Description                                                                                             |
-| ------------ | ------- | ------------------------------------------------------------------------------------------------------- |
-| `resource`   | string  | **Required**. Resource type (see table above)                                                           |
-| `action`     | string  | **Required**. Action to perform                                                                         |
-| `id`         | string  | Resource ID (for `get`, `delete`, `activate`, `restart`)                                                |
-| `server_id`  | string  | Server ID **or name** — numeric IDs are used as-is; names are auto-resolved via partial match           |
-| `site_id`    | string  | Site ID **or domain name** — auto-resolved via partial match; requires `server_id`                      |
-| `domain_id`  | string  | Domain record ID (for certificate operations)                                                           |
-| `query`      | string  | Search query for `resolve` action (partial, case-insensitive match against resource names/domains)      |
-| `compact`    | boolean | Compact output (default: true)                                                                          |
-| `content`    | string  | Content for env/nginx `update` and deployment script `update`                                           |
-| `operations` | array   | Array of operations for `batch` `run` (max 10). Each item needs `resource`, `action`, and extra params. |
+| Parameter          | Type    | Description                                                                                             |
+| ------------------ | ------- | ------------------------------------------------------------------------------------------------------- |
+| `resource`         | string  | **Required**. Resource type (see table above)                                                           |
+| `action`           | string  | **Required**. Action to perform                                                                         |
+| `organizationSlug` | string  | Organization slug — pass per-call to override configured value (auth/env/config)                        |
+| `id`               | string  | Resource ID (for `get`, `delete`, `activate`, `restart`)                                                |
+| `server_id`        | string  | Server ID **or name** — numeric IDs are used as-is; names are auto-resolved via partial match           |
+| `site_id`          | string  | Site ID **or domain name** — auto-resolved via partial match; requires `server_id`                      |
+| `domain_id`        | string  | Domain record ID (for certificate operations)                                                           |
+| `query`            | string  | Search query for `resolve` action (partial, case-insensitive match against resource names/domains)      |
+| `compact`          | boolean | Compact output (default: true)                                                                          |
+| `content`          | string  | Content for env/nginx `update` and deployment script `update`                                           |
+| `operations`       | array   | Array of operations for `batch` `run` (max 10). Each item needs `resource`, `action`, and extra params. |
 
 ## Common Workflows
 
@@ -295,6 +296,14 @@ Per-operation failures are isolated — a single error doesn't abort the rest.
 
 ## Authentication
 
+### Organization Slug
+
+All API calls require an organization slug. You can provide it in three ways (in priority order):
+
+1. **Per-request**: Pass `organizationSlug` in each tool call (highest priority, allows switching orgs)
+2. **Environment variable**: Set `FORGE_ORG` env var
+3. **Configuration**: Use `forge_configure` tool (stdio) or enter during OAuth login (HTTP)
+
 ### Stdio Mode (Claude Desktop)
 
 Set environment variables `FORGE_API_TOKEN` and `FORGE_ORG`, or use the `forge_configure` tool:
@@ -306,6 +315,10 @@ Set environment variables `FORGE_API_TOKEN` and `FORGE_ORG`, or use the `forge_c
 // Check current config
 { tool: "forge_get_config", arguments: {} }
 ```
+
+### HTTP Mode (OAuth)
+
+During OAuth authentication, you can optionally enter your organization slug in the login form. This value is stored in your access token and used for all subsequent requests unless overridden per-call.
 
 ### Getting Your API Token
 
