@@ -130,15 +130,10 @@ export function createMcpServer(options?: HttpServerOptions): Server {
       /* v8 ignore next 2 -- defensive type guard */
       const orgSlugFromArgs =
         typeof args?.organizationSlug === "string" ? args.organizationSlug : undefined;
-      /* v8 ignore next 3 -- defensive type guard */
-      const orgSlugFromAuth =
-        typeof extra.authInfo?.extra?.organizationSlug === "string"
-          ? extra.authInfo.extra.organizationSlug
-          : undefined;
-
       const result = await executeToolWithCredentials(name, /* v8 ignore next */ args ?? {}, {
         apiToken: token,
-        organizationSlug: orgSlugFromArgs ?? orgSlugFromAuth ?? getOrganizationSlug() ?? undefined,
+        organizationSlug:
+          orgSlugFromArgs ?? organizationSlugFromAuth ?? getOrganizationSlug() ?? undefined,
       });
       return result as CallToolResult;
     } catch (error) {
