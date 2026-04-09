@@ -65,6 +65,19 @@ describe("parseAuthHeader", () => {
       expect(result).toEqual({ apiToken: rawToken });
     });
 
+    it("decodes a base64-encoded JSON payload with organization slug", () => {
+      const payload = { apiToken: "pk_test_abc123XYZ", organizationSlug: "studio-meta" };
+      const base64Token = Buffer.from(JSON.stringify(payload)).toString("base64");
+      const result = parseAuthHeader(`Bearer ${base64Token}`);
+      expect(result).toEqual(payload);
+    });
+
+    it("falls back to raw decoded token for non-credential JSON payloads", () => {
+      const invalidPayload = Buffer.from(JSON.stringify({ foo: "bar" })).toString("base64");
+      const result = parseAuthHeader(`Bearer ${invalidPayload}`);
+      expect(result).toEqual({ apiToken: JSON.stringify({ foo: "bar" }) });
+    });
+
     it("keeps raw token when base64 roundtrip does not match", () => {
       // A token that doesn't roundtrip as valid base64
       const result = parseAuthHeader("Bearer not-valid-base64-token!");

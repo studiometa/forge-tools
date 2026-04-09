@@ -82,7 +82,10 @@ export function createMcpServer(options?: HttpServerOptions): Server {
 
   server.setRequestHandler(CallToolRequestSchema, async (request, extra) => {
     const { name, arguments: args } = request.params;
-    const token = extra.authInfo?.token;
+    const authInfo = extra.authInfo as { token?: string; organizationSlug?: string } | undefined;
+    const token = authInfo?.token;
+    const organizationSlugFromAuth =
+      typeof authInfo?.organizationSlug === "string" ? authInfo.organizationSlug : undefined;
 
     /* v8 ignore start */
     if (!token) {
@@ -123,6 +126,7 @@ export function createMcpServer(options?: HttpServerOptions): Server {
       // Organization slug can come from:
       // 1. Tool args (per-request override, highest priority)
       // 2. Auth token (configured during OAuth flow)
+      // 3. FORGE_ORG / config fallback
       /* v8 ignore next 2 -- defensive type guard */
       const orgSlugFromArgs =
         typeof args?.organizationSlug === "string" ? args.organizationSlug : undefined;
@@ -203,6 +207,7 @@ export async function handleMcpRequest(
   Object.assign(req, {
     auth: {
       token: credentials.apiToken,
+      organizationSlug: credentials.organizationSlug,
       clientId: "forge-http-client",
       scopes: [],
       extra: {

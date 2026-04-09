@@ -39,10 +39,6 @@ function tryDecodeBase64(token: string): string | null {
   return null;
 }
 
-/**
- * Try to parse a JSON credentials object from a decoded token.
- * Returns the credentials if valid, null otherwise.
- */
 function tryParseCredentials(decoded: string): ForgeCredentials | null {
   try {
     const parsed: unknown = JSON.parse(decoded);
@@ -95,12 +91,11 @@ export function parseAuthHeader(authHeader: string | undefined | null): ForgeCre
   // Try to decode as base64 (OAuth access token)
   const decoded = tryDecodeBase64(token);
   if (decoded) {
-    // Try to parse as JSON credentials (new format with organizationSlug)
     const credentials = tryParseCredentials(decoded);
     if (credentials) {
       return credentials;
     }
-    // Fall back to treating decoded value as raw API token (legacy format)
+
     return { apiToken: decoded };
   }
 

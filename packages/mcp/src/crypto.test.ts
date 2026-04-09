@@ -88,6 +88,7 @@ describe("crypto", () => {
     it("creates and decodes an auth code with all fields", () => {
       const credentials = {
         apiToken: "pk_test",
+        organizationSlug: "studio-meta",
         codeChallenge: "abc123",
         codeChallengeMethod: "S256",
       };
@@ -95,6 +96,7 @@ describe("crypto", () => {
       const decoded = decodeAuthCode(code);
 
       expect(decoded.apiToken).toBe("pk_test");
+      expect(decoded.organizationSlug).toBe("studio-meta");
       expect(decoded.codeChallenge).toBe("abc123");
       expect(decoded.codeChallengeMethod).toBe("S256");
     });

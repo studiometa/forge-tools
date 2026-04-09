@@ -5,6 +5,7 @@ import { createServer, type Server } from "node:http";
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 
 import { decodeAuthCode } from "./crypto.ts";
+import { parseAuthHeader } from "./auth.ts";
 import {
   oauthMetadataHandler,
   protectedResourceHandler,
@@ -80,10 +81,10 @@ describe("OAuth endpoints", () => {
   // --- Utility function tests ---
 
   describe("createAccessToken", () => {
-    it("creates a base64-encoded JSON token", () => {
+    it("creates a base64-encoded token", () => {
       const token = createAccessToken("my-forge-token");
       const decoded = Buffer.from(token, "base64").toString("utf-8");
-      expect(JSON.parse(decoded)).toEqual({ apiToken: "my-forge-token" });
+      expect(decoded).toBe("my-forge-token");
     });
 
     it("includes organizationSlug when provided", () => {
@@ -93,6 +94,12 @@ describe("OAuth endpoints", () => {
         apiToken: "my-forge-token",
         organizationSlug: "my-org",
       });
+    });
+
+    it("creates a base64-encoded JSON payload when organization slug is provided", () => {
+      const token = createAccessToken("my-forge-token", "studio-meta");
+      const decoded = JSON.parse(Buffer.from(token, "base64").toString("utf-8"));
+      expect(decoded).toEqual({ apiToken: "my-forge-token", organizationSlug: "studio-meta" });
     });
   });
 
@@ -207,6 +214,8 @@ describe("OAuth endpoints", () => {
       const html = await response.text();
       expect(html).toContain("Connect to Laravel Forge");
       expect(html).toContain("Forge API Token");
+      expect(html).toContain("Organization Slug");
+      expect(html).toContain('name="organizationSlug"');
       expect(html).toContain("abc123"); // state in hidden field
       expect(html).toContain(codeChallenge); // code_challenge in hidden field
       expect(html).toContain("not stored on this server"); // privacy notice
@@ -286,18 +295,43 @@ describe("OAuth endpoints", () => {
       expect(decoded.codeChallenge).toBe(codeChallenge);
     });
 
+    it("preserves organization slug in the authorization code", async () => {
+      const { codeChallenge } = generatePKCE();
+      const response = await fetch(`${baseUrl}/authorize`, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+          apiToken: "pk_test123",
+          organizationSlug: "studio-meta",
+          redirectUri: "https://example.com/callback",
+          codeChallenge,
+          codeChallengeMethod: "S256",
+        }).toString(),
+      });
+
+      expect(response.status).toBe(200);
+      const html = await response.text();
+      const code = new URL(extractRedirectUrl(html)).searchParams.get("code")!;
+      const decoded = decodeAuthCode(code);
+
+      expect(decoded.organizationSlug).toBe("studio-meta");
+    });
+
     it("shows error when API token is missing", async () => {
       const response = await fetch(`${baseUrl}/authorize`, {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: new URLSearchParams({
           redirectUri: "https://example.com/callback",
+          organizationSlug: "studio-meta",
         }).toString(),
       });
 
       expect(response.ok).toBe(true);
       const html = await response.text();
       expect(html).toContain("Forge API Token is required");
+      expect(html).toContain('name="organizationSlug"');
+      expect(html).toContain('value="studio-meta"');
     });
 
     it("shows error when redirectUri is missing in POST", async () => {
@@ -418,9 +452,47 @@ describe("OAuth endpoints", () => {
         refresh_token: expect.any(String),
       });
 
-      // Verify the access token contains our API token (base64-encoded JSON)
+      // Verify the access token contains our API token (base64 encoded)
       const decoded = Buffer.from(tokenData.access_token, "base64").toString("utf-8");
-      expect(JSON.parse(decoded)).toEqual({ apiToken: "pk_test123" });
+      expect(decoded).toBe("pk_test123");
+    });
+
+    it("embeds organization slug in the access token and refresh token", async () => {
+      const { codeVerifier, codeChallenge } = generatePKCE();
+
+      const authResponse = await fetch(`${baseUrl}/authorize`, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+          apiToken: "pk_test123",
+          organizationSlug: "studio-meta",
+          redirectUri: "https://example.com/callback",
+          codeChallenge,
+          codeChallengeMethod: "S256",
+        }).toString(),
+      });
+
+      const html = await authResponse.text();
+      const code = new URL(extractRedirectUrl(html)).searchParams.get("code")!;
+
+      const tokenResponse = await fetch(`${baseUrl}/token`, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+          grant_type: "authorization_code",
+          code,
+          code_verifier: codeVerifier,
+        }).toString(),
+      });
+
+      expect(tokenResponse.ok).toBe(true);
+      const tokenData = await tokenResponse.json();
+
+      expect(parseAuthHeader(`Bearer ${tokenData.access_token}`)).toEqual({
+        apiToken: "pk_test123",
+        organizationSlug: "studio-meta",
+      });
+      expect(decodeAuthCode(tokenData.refresh_token).organizationSlug).toBe("studio-meta");
     });
 
     it("rejects invalid PKCE code_verifier", async () => {

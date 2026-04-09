@@ -576,6 +576,43 @@ describe("Streamable HTTP MCP endpoint", () => {
       );
     });
 
+    it("should prefer organization slug embedded in OAuth credentials over configured default", async () => {
+      mockGetOrganizationSlug.mockReturnValue("default-org");
+      const oauthToken = Buffer.from(
+        JSON.stringify({ apiToken: validToken, organizationSlug: "oauth-org" }),
+      ).toString("base64");
+
+      const { sessionId } = await initializeSession(baseUrl, oauthToken);
+      await sendInitializedNotification(baseUrl, oauthToken, sessionId);
+
+      const response = await fetch(`${baseUrl}/mcp`, {
+        method: "POST",
+        headers: {
+          ...MCP_HEADERS,
+          Authorization: `Bearer ${oauthToken}`,
+          "mcp-session-id": sessionId,
+        },
+        body: JSON.stringify({
+          jsonrpc: "2.0",
+          method: "tools/call",
+          params: {
+            name: "forge",
+            arguments: { resource: "servers", action: "list" },
+          },
+          id: 41,
+        }),
+      });
+
+      expect(response.ok).toBe(true);
+      await response.text();
+
+      expect(executeToolWithCredentials).toHaveBeenCalledWith(
+        "forge",
+        { resource: "servers", action: "list" },
+        { apiToken: validToken, organizationSlug: "oauth-org" },
+      );
+    });
+
     it("should prefer request organization slug over configured default", async () => {
       mockGetOrganizationSlug.mockReturnValue("default-org");
 
@@ -611,6 +648,42 @@ describe("Streamable HTTP MCP endpoint", () => {
         "forge",
         { resource: "servers", action: "list", organizationSlug: "request-org" },
         { apiToken: validToken, organizationSlug: "request-org" },
+      );
+    });
+
+    it("should use organization slug from OAuth bearer credentials", async () => {
+      const oauthToken = Buffer.from(
+        JSON.stringify({ apiToken: validToken, organizationSlug: "oauth-org" }),
+      ).toString("base64");
+
+      const { sessionId } = await initializeSession(baseUrl, oauthToken);
+      await sendInitializedNotification(baseUrl, oauthToken, sessionId);
+
+      const response = await fetch(`${baseUrl}/mcp`, {
+        method: "POST",
+        headers: {
+          ...MCP_HEADERS,
+          Authorization: `Bearer ${oauthToken}`,
+          "mcp-session-id": sessionId,
+        },
+        body: JSON.stringify({
+          jsonrpc: "2.0",
+          method: "tools/call",
+          params: {
+            name: "forge",
+            arguments: { resource: "servers", action: "list" },
+          },
+          id: 51,
+        }),
+      });
+
+      expect(response.ok).toBe(true);
+      await response.text();
+
+      expect(executeToolWithCredentials).toHaveBeenCalledWith(
+        "forge",
+        { resource: "servers", action: "list" },
+        { apiToken: validToken, organizationSlug: "oauth-org" },
       );
     });
 

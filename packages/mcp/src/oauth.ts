@@ -8,7 +8,7 @@
  *
  * Flow:
  * 1. Claude redirects user to /authorize with OAuth params (including PKCE)
- * 2. User enters their Forge API token in a login form
+ * 2. User enters their Forge API token and optional organization slug in a login form
  * 3. Server encrypts the token + PKCE challenge into an authorization code
  * 4. Redirects back to Claude with the code
  * 5. Claude exchanges code for access token via /token (with code_verifier)
@@ -22,15 +22,14 @@ import { createAuthCode, decodeAuthCode } from "./crypto.ts";
 
 /**
  * Create a base64-encoded access token from Forge credentials.
- * The access token is base64(JSON.stringify({apiToken, organizationSlug})) so that
- * parseAuthHeader can decode it on every request without any server-side lookup.
+ *
+ * Backward compatibility:
+ * - without organizationSlug: base64(apiToken)
+ * - with organizationSlug: base64(JSON.stringify({ apiToken, organizationSlug }))
  */
 export function createAccessToken(apiToken: string, organizationSlug?: string): string {
-  const payload: { apiToken: string; organizationSlug?: string } = { apiToken };
-  if (organizationSlug) {
-    payload.organizationSlug = organizationSlug;
-  }
-  return Buffer.from(JSON.stringify(payload)).toString("base64");
+  const payload = organizationSlug ? JSON.stringify({ apiToken, organizationSlug }) : apiToken;
+  return Buffer.from(payload).toString("base64");
 }
 
 /**
@@ -221,6 +220,7 @@ export const authorizePostHandler = defineEventHandler(async (event: H3Event) =>
       state,
       codeChallenge,
       codeChallengeMethod,
+      organizationSlug,
       error: "Forge API Token is required",
     });
   }
@@ -307,7 +307,7 @@ export const tokenHandler = defineEventHandler(async (event: H3Event) => {
       }
     }
 
-    // Create access token: base64(JSON.stringify({apiToken, organizationSlug})) — decodable on every request
+    // Create access token with embedded credentials when organizationSlug is present.
     const accessToken = createAccessToken(payload.apiToken, payload.organizationSlug);
 
     // Create refresh token (encrypted credentials, longer expiry)
@@ -399,9 +399,11 @@ function renderLoginForm(params: {
   state?: string;
   codeChallenge?: string;
   codeChallengeMethod?: string;
+  organizationSlug?: string;
   error?: string;
 }): string {
-  const { redirectUri, state, codeChallenge, codeChallengeMethod, error } = params;
+  const { redirectUri, state, codeChallenge, codeChallengeMethod, organizationSlug, error } =
+    params;
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -554,10 +556,8 @@ function renderLoginForm(params: {
 
       <div class="form-group">
         <label for="organizationSlug">Organization Slug</label>
-        <input type="text" id="organizationSlug" name="organizationSlug" placeholder="e.g. my-organization">
-        <p class="help-text">
-          Your organization's slug from the Forge dashboard URL. Can also be overridden per-request.
-        </p>
+        <input type="text" id="organizationSlug" name="organizationSlug" value="${escapeHtml(organizationSlug || "")}" placeholder="e.g. studio-meta" autocapitalize="off" autocorrect="off" spellcheck="false">
+        <p class="help-text">Optional, but recommended as the default org for Claude MCP requests.</p>
       </div>
 
       <button type="submit">Connect to Forge</button>
