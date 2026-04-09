@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Added
+
+- **MCP**: Add `organizationSlug` support to HTTP/OAuth transport [[#115], [6646b6e]]
+
+### Fixed
+
+- **MCP**: Fix HTTP transport organization slug fallback [[f0d5255]]
+- **MCP**: Fix HTTP lint error in organization slug resolution [[87d9203]]
+
+[#115]: https://github.com/studiometa/forge-tools/pull/115
+[6646b6e]: https://github.com/studiometa/forge-tools/commit/6646b6e
+[f0d5255]: https://github.com/studiometa/forge-tools/commit/f0d5255
+[87d9203]: https://github.com/studiometa/forge-tools/commit/87d9203
+
 ## 0.4.2 - 2026.04.01
 
 ### Fixed
