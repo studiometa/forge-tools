@@ -2,6 +2,16 @@ import { toNodeHandler } from "h3/node";
 import { createServer, type Server as HttpServer } from "node:http";
 import { describe, it, expect, vi, beforeEach, beforeAll, afterAll } from "vitest";
 
+const mockGetOrganizationSlug = vi.fn<() => string | null>(() => null);
+
+vi.mock("@studiometa/forge-api", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@studiometa/forge-api")>();
+  return {
+    ...actual,
+    getOrganizationSlug: () => mockGetOrganizationSlug(),
+  };
+});
+
 // Mock the handlers module
 vi.mock("./handlers/index.ts", () => ({
   executeToolWithCredentials: vi
@@ -255,6 +265,11 @@ describe("Streamable HTTP MCP endpoint", () => {
   let sessions: SessionManager;
 
   const validToken = "test-forge-api-token-1234";
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockGetOrganizationSlug.mockReturnValue(null);
+  });
 
   beforeAll(async () => {
     const ctx = await createTestServer();
@@ -523,7 +538,79 @@ describe("Streamable HTTP MCP endpoint", () => {
       expect(executeToolWithCredentials).toHaveBeenCalledWith(
         "forge",
         { resource: "servers", action: "list" },
-        { apiToken: validToken },
+        { apiToken: validToken, organizationSlug: undefined },
+      );
+    });
+
+    it("should fall back to configured organization slug when request args omit it", async () => {
+      mockGetOrganizationSlug.mockReturnValue("default-org");
+
+      const { sessionId } = await initializeSession(baseUrl, validToken);
+      await sendInitializedNotification(baseUrl, validToken, sessionId);
+
+      const response = await fetch(`${baseUrl}/mcp`, {
+        method: "POST",
+        headers: {
+          ...MCP_HEADERS,
+          Authorization: `Bearer ${validToken}`,
+          "mcp-session-id": sessionId,
+        },
+        body: JSON.stringify({
+          jsonrpc: "2.0",
+          method: "tools/call",
+          params: {
+            name: "forge",
+            arguments: { resource: "servers", action: "list" },
+          },
+          id: 4,
+        }),
+      });
+
+      expect(response.ok).toBe(true);
+      await response.text();
+
+      expect(executeToolWithCredentials).toHaveBeenCalledWith(
+        "forge",
+        { resource: "servers", action: "list" },
+        { apiToken: validToken, organizationSlug: "default-org" },
+      );
+    });
+
+    it("should prefer request organization slug over configured default", async () => {
+      mockGetOrganizationSlug.mockReturnValue("default-org");
+
+      const { sessionId } = await initializeSession(baseUrl, validToken);
+      await sendInitializedNotification(baseUrl, validToken, sessionId);
+
+      const response = await fetch(`${baseUrl}/mcp`, {
+        method: "POST",
+        headers: {
+          ...MCP_HEADERS,
+          Authorization: `Bearer ${validToken}`,
+          "mcp-session-id": sessionId,
+        },
+        body: JSON.stringify({
+          jsonrpc: "2.0",
+          method: "tools/call",
+          params: {
+            name: "forge",
+            arguments: {
+              resource: "servers",
+              action: "list",
+              organizationSlug: "request-org",
+            },
+          },
+          id: 5,
+        }),
+      });
+
+      expect(response.ok).toBe(true);
+      await response.text();
+
+      expect(executeToolWithCredentials).toHaveBeenCalledWith(
+        "forge",
+        { resource: "servers", action: "list", organizationSlug: "request-org" },
+        { apiToken: validToken, organizationSlug: "request-org" },
       );
     });
 
@@ -545,7 +632,7 @@ describe("Streamable HTTP MCP endpoint", () => {
             name: "failing_tool",
             arguments: {},
           },
-          id: 4,
+          id: 6,
         }),
       });
 
@@ -553,7 +640,7 @@ describe("Streamable HTTP MCP endpoint", () => {
       const text = await response.text();
       const messages = parseSSEMessages(text);
 
-      const callResponse = messages.find((m) => m.id === 4);
+      const callResponse = messages.find((m) => m.id === 6);
       expect(callResponse).toBeDefined();
 
       const result = callResponse!.result as Record<string, unknown>;
@@ -627,12 +714,12 @@ describe("Streamable HTTP MCP endpoint", () => {
       expect(executeToolWithCredentials).toHaveBeenCalledWith(
         "forge",
         { resource: "servers", action: "list" },
-        { apiToken: tokenA },
+        { apiToken: tokenA, organizationSlug: undefined },
       );
       expect(executeToolWithCredentials).toHaveBeenCalledWith(
         "forge",
         { resource: "sites", action: "list" },
-        { apiToken: tokenB },
+        { apiToken: tokenB, organizationSlug: undefined },
       );
     });
   });
@@ -718,7 +805,7 @@ describe("Full server integration", () => {
     expect(executeToolWithCredentials).toHaveBeenCalledWith(
       "forge",
       { resource: "user", action: "get" },
-      { apiToken: validToken },
+      { apiToken: validToken, organizationSlug: undefined },
     );
   });
 });

@@ -24,6 +24,7 @@ import {
   ListToolsRequestSchema,
   type CallToolResult,
 } from "@modelcontextprotocol/sdk/types.js";
+import { getOrganizationSlug } from "@studiometa/forge-api";
 import { H3, defineEventHandler } from "h3";
 
 import { parseAuthHeader } from "./auth.ts";
@@ -55,7 +56,8 @@ export interface HttpServerOptions {
  * Create a configured MCP Server instance for HTTP transport.
  *
  * Unlike stdio, HTTP mode does NOT include forge_configure/forge_get_config
- * because credentials come from the Authorization header per-request.
+ * because API tokens come from the Authorization header per-request.
+ * Organization slug still falls back to FORGE_ORG/config when omitted.
  */
 export function createMcpServer(options?: HttpServerOptions): Server {
   const readOnly = options?.readOnly ?? false;
@@ -132,7 +134,7 @@ export function createMcpServer(options?: HttpServerOptions): Server {
 
       const result = await executeToolWithCredentials(name, /* v8 ignore next */ args ?? {}, {
         apiToken: token,
-        organizationSlug: orgSlugFromArgs ?? orgSlugFromAuth,
+        organizationSlug: orgSlugFromArgs ?? orgSlugFromAuth ?? getOrganizationSlug() ?? undefined,
       });
       return result as CallToolResult;
     } catch (error) {
