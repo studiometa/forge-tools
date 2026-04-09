@@ -1,6 +1,8 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
+    "types": ["node"],
+    "lib": ["ES2024", "DOM", "DOM.Iterable"],
     "emitDeclarationOnly": true,
     "allowImportingTsExtensions": true,
     "outDir": "./dist",

@@ -63,7 +63,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:ci": "vitest run --coverage",
-    "typecheck": "tsgo --noEmit"
+    "typecheck": "tsgo -p tsconfig.typecheck.json --noEmit"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.26.0",
