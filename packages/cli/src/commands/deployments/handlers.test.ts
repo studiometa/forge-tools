@@ -227,6 +227,8 @@ describe("deploymentsDeploy", () => {
     await deploymentsDeploy(ctx);
     expect(stdoutSpy).toHaveBeenCalledWith("Step 1\n");
     expect(stdoutSpy).toHaveBeenCalledWith("Step 2\n");
+    // Separator newline so the final status message is not on the last log line.
+    expect(stdoutSpy).toHaveBeenLastCalledWith("\n");
   });
 
   it("should use onProgress when --stream flag is not set", async () => {

@@ -88,8 +88,11 @@ export async function deploymentsDeploy(ctx: CommandContext): Promise<void> {
       execCtx,
     );
 
-    // Clear the progress line (only needed in non-stream mode)
-    if (!streamLogs) {
+    // Separate the final status message from preceding output: in stream mode the
+    // last log chunk has no trailing newline, otherwise clear the progress line.
+    if (streamLogs) {
+      process.stdout.write("\n");
+    } else {
       process.stderr.write("\n");
     }
 
