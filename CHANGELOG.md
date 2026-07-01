@@ -12,7 +12,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **CLI**: Fix `deployments deploy` to exit non-zero and record audit status "error" when a deployment fails [[#119]]
 - **Core**: Externalize `pino` so the audit log writes to file instead of printing to the console [[#119]]
 
+### Security
+
+- **CI**: Pin GitHub Actions to commit SHAs and set a 7-day Renovate `minimumReleaseAge` to clear the Semgrep scan [[#120]]
+
 [#119]: https://github.com/studiometa/forge-tools/pull/119
+[#120]: https://github.com/studiometa/forge-tools/pull/120
 
 ## 0.4.3 - 2026.04.09
 
