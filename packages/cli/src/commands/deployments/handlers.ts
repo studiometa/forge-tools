@@ -3,6 +3,7 @@ import { listDeployments, deploySiteAndWait } from "@studiometa/forge-core";
 import type { CommandContext } from "../../context.ts";
 
 import { exitWithValidationError, runCommand } from "../../error-handler.ts";
+import { ApiError } from "../../errors.ts";
 import { resolveServerId, resolveSiteId } from "../../utils/resolve.ts";
 
 export async function deploymentsList(ctx: CommandContext): Promise<void> {
@@ -94,15 +95,17 @@ export async function deploymentsDeploy(ctx: CommandContext): Promise<void> {
 
     const elapsedSec = (result.data.elapsed_ms / 1000).toFixed(1);
 
+    // Output full log if we didn't stream it (needed for both success and failure).
+    if (!streamLogs && result.data.log) {
+      ctx.formatter.output(result.data.log);
+    }
+
     if (result.data.status === "success") {
       ctx.formatter.success(`Deployment succeeded for site ${site_id} (${elapsedSec}s).`);
     } else {
-      ctx.formatter.error(`Deployment failed for site ${site_id} (${elapsedSec}s).`);
-    }
-
-    // Only output full log if we didn't stream it
-    if (!streamLogs && result.data.log) {
-      ctx.formatter.output(result.data.log);
+      // Throw so the failure propagates to the exit code (non-zero) and the audit log
+      // records status "error" instead of "success".
+      throw new ApiError(`Deployment failed for site ${site_id} (${elapsedSec}s).`);
     }
   }, ctx.formatter);
 }

@@ -127,7 +127,7 @@ describe("deploymentsDeploy", () => {
     );
   });
 
-  it("should display failed status when deployment fails", async () => {
+  it("should display failed status and exit non-zero when deployment fails", async () => {
     const { deploySiteAndWait } = await import("@studiometa/forge-core");
     vi.mocked(deploySiteAndWait).mockResolvedValue({
       data: { status: "failed", log: "Error: npm install failed.", elapsed_ms: 2000 },
@@ -140,7 +140,27 @@ describe("deploymentsDeploy", () => {
     });
 
     await deploymentsDeploy(ctx);
-    expect(vi.mocked(console.log)).toHaveBeenCalledWith(expect.stringContaining("failed"));
+    expect(vi.mocked(console.error)).toHaveBeenCalledWith(expect.stringContaining("failed"));
+    expect(processExitSpy).toHaveBeenCalledWith(1);
+  });
+
+  it("should output the log before failing when deployment fails without streaming", async () => {
+    const { deploySiteAndWait } = await import("@studiometa/forge-core");
+    vi.mocked(deploySiteAndWait).mockResolvedValue({
+      data: { status: "failed", log: "Error: npm install failed.", elapsed_ms: 2000 },
+    });
+
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "human", server: "10", site: "100" },
+    });
+
+    await deploymentsDeploy(ctx);
+    expect(vi.mocked(console.log)).toHaveBeenCalledWith(
+      expect.stringContaining("Error: npm install failed."),
+    );
+    expect(processExitSpy).toHaveBeenCalledWith(1);
   });
 
   it("should call onProgress during polling", async () => {
