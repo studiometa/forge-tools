@@ -3,10 +3,12 @@
   "extends": [
     "config:recommended",
     "security:openssf-scorecard",
+    "helpers:pinGitHubActionDigests",
     ":dependencyDashboard",
     ":semanticCommits",
     ":separateMajorReleases"
   ],
+  "minimumReleaseAge": "7 days",
   "labels": ["dependencies"],
   "rangeStrategy": "bump",
   "schedule": ["before 9am on monday"],
@@ -20,13 +22,15 @@
       "description": "Group dev dependencies (minor/patch)",
       "matchDepTypes": ["devDependencies"],
       "matchUpdateTypes": ["minor", "patch"],
-      "groupName": "dev dependencies (non-major)"
+      "groupName": "dev dependencies (non-major)",
+      "minimumReleaseAge": "7 days"
     },
     {
       "description": "Group production dependencies (patch only)",
       "matchDepTypes": ["dependencies"],
       "matchUpdateTypes": ["patch"],
-      "groupName": "production dependencies (patch)"
+      "groupName": "production dependencies (patch)",
+      "minimumReleaseAge": "7 days"
     },
     {
       "description": "Group GitHub Actions updates",
@@ -37,6 +41,7 @@
       "description": "Automerge patch updates for dev dependencies",
       "matchDepTypes": ["devDependencies"],
       "matchUpdateTypes": ["patch"],
+      "minimumReleaseAge": "7 days",
       "automerge": true,
       "automergeType": "pr"
     },
@@ -45,6 +50,7 @@
       "matchCategories": ["security"],
       "labels": ["security", "priority:high"],
       "schedule": ["at any time"],
+      "minimumReleaseAge": "7 days",
       "automerge": true,
       "automergeType": "pr"
     }
