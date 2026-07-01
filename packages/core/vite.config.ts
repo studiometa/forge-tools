@@ -5,7 +5,10 @@ import { createBuildConfig, createTestConfig } from "../../vite.config.base.ts";
 export default defineConfig({
   build: createBuildConfig({
     entry: { index: "./src/index.ts" },
-    external: [/^@studiometa\/forge-api/],
+    // Keep pino external so Node resolves its real (node) build at runtime.
+    // Bundling it makes Vite pick pino's "browser" build, which logs to the
+    // console instead of the audit file.
+    external: [/^@studiometa\/forge-api/, "pino"],
   }),
   test: createTestConfig({
     name: "core",
