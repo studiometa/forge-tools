@@ -124,6 +124,7 @@ export {
   createDaemon,
   deleteDaemon,
   getDaemon,
+  getDaemonLog,
   listDaemons,
   restartDaemon,
   updateDaemon,
@@ -131,6 +132,7 @@ export {
 export type {
   CreateDaemonOptions,
   DeleteDaemonOptions,
+  GetDaemonLogOptions,
   GetDaemonOptions,
   ListDaemonsOptions,
   RestartDaemonOptions,
