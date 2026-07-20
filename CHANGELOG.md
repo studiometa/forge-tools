@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Added
+
+- **CLI**: Add `forge ssh <server>` command to open an interactive SSH session, with `--user` (default: forge), `--private`, `--port`, remote command, and `--dry-run` [[#121], [8f142cb]]
+
+[#121]: https://github.com/studiometa/forge-tools/pull/121
+[8f142cb]: https://github.com/studiometa/forge-tools/commit/8f142cb
+
 ## 0.4.4 - 2026.07.01
 
 ### Fixed
