@@ -58,6 +58,7 @@ import {
   formatSecurityRuleList,
   formatServer,
   formatServerList,
+  formatServiceList,
   formatSite,
   formatSiteList,
   formatSshKey,
@@ -1244,6 +1245,20 @@ describe("formatUser", () => {
 });
 
 // ── Generic helpers ──────────────────────────────────
+
+describe("formatServiceList", () => {
+  it("should format services with availability and detail", () => {
+    const result = formatServiceList([
+      { service: "nginx", available: true, detail: null },
+      { service: "php", available: true, detail: "php83" },
+      { service: "postgres", available: false, detail: null },
+    ]);
+    expect(result).toContain("3 service(s):");
+    expect(result).toContain("• nginx — available");
+    expect(result).toContain("• php — available (php83)");
+    expect(result).toContain("• postgres — unavailable");
+  });
+});
 
 describe("formatDeleted", () => {
   it("should format a deleted confirmation", () => {

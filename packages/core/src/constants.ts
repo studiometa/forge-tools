@@ -22,6 +22,7 @@ export const RESOURCES = [
   "backups",
   "commands",
   "scheduled-jobs",
+  "services",
   "user",
   "batch",
 ] as const;

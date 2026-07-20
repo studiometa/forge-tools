@@ -18,7 +18,7 @@ _forge_completions() {
   prev="\${COMP_WORDS[COMP_CWORD-1]}"
 
   # Main commands
-  commands="config servers s sites deployments d databases db database-users daemons env nginx certificates certs firewall-rules fw ssh ssh-keys backups commands scheduled-jobs user monitors nginx-templates security-rules redirect-rules recipes completion help"
+  commands="config servers s sites deployments d databases db database-users daemons env nginx certificates certs firewall-rules fw ssh ssh-keys backups commands scheduled-jobs services user monitors nginx-templates security-rules redirect-rules recipes completion help"
 
   # Subcommands for each command
   local config_cmds="set get delete"
@@ -36,6 +36,7 @@ _forge_completions() {
   local backups_cmds="list ls get create delete"
   local commands_cmds="list ls get create"
   local scheduled_jobs_cmds="list ls get create delete"
+  local services_cmds="list ls restart"
   local user_cmds="get"
   local monitors_cmds="list ls get create delete"
   local nginx_templates_cmds="list ls get create update delete"
@@ -45,7 +46,7 @@ _forge_completions() {
   local completion_cmds="bash zsh fish"
 
   # Global options
-  options="--token --server --site -f --format --no-color -h --help -v --version --name --command --content --from --to --provider --frequency --type --operator --threshold --minutes --key --port --ip-address --user --private --dry-run --script --servers --domain --password --credential-id --region --size --project-type --directory"
+  options="--token --server --site -f --format --no-color -h --help -v --version --service --name --command --content --from --to --provider --frequency --type --operator --threshold --minutes --key --port --ip-address --user --private --dry-run --script --servers --domain --password --credential-id --region --size --project-type --directory"
 
   # Format options
   local formats="json human table"
@@ -103,6 +104,9 @@ _forge_completions() {
           ;;
         scheduled-jobs)
           COMPREPLY=( $(compgen -W "\${scheduled_jobs_cmds}" -- "\${cur}") )
+          ;;
+        services)
+          COMPREPLY=( $(compgen -W "\${services_cmds}" -- "\${cur}") )
           ;;
         user)
           COMPREPLY=( $(compgen -W "\${user_cmds}" -- "\${cur}") )
@@ -188,6 +192,7 @@ _forge() {
         'backups:Manage backup configurations'
         'commands:Manage site commands'
         'scheduled-jobs:Manage scheduled jobs'
+        'services:List and restart server services'
         'user:Display authenticated user profile'
         'monitors:Manage server monitors'
         'nginx-templates:Manage Nginx templates'
@@ -346,6 +351,15 @@ _forge() {
           )
           _describe 'scheduled-jobs command' scheduled_jobs_cmds
           ;;
+        services)
+          local -a services_cmds
+          services_cmds=(
+            'list:List services on a server'
+            'ls:List services on a server (alias)'
+            'restart:Restart a service'
+          )
+          _describe 'services command' services_cmds
+          ;;
         user)
           local -a user_cmds
           user_cmds=(
@@ -443,6 +457,7 @@ _forge() {
         '--port[Port]:port:' \\
         '--ip-address[IP address]:ip address:' \\
         '--user[User]:user:' \\
+        '--service[Service name]:service:(nginx php mysql postgres redis supervisor)' \\
         '--script[Script]:script:' \\
         '--servers[Servers]:servers:' \\
         '--domain[Domain]:domain:' \\
@@ -483,6 +498,7 @@ complete -c forge -f -n "__fish_use_subcommand" -a "ssh-keys" -d "Manage SSH key
 complete -c forge -f -n "__fish_use_subcommand" -a "backups" -d "Manage backup configurations"
 complete -c forge -f -n "__fish_use_subcommand" -a "commands" -d "Manage site commands"
 complete -c forge -f -n "__fish_use_subcommand" -a "scheduled-jobs" -d "Manage scheduled jobs"
+complete -c forge -f -n "__fish_use_subcommand" -a "services" -d "List and restart server services"
 complete -c forge -f -n "__fish_use_subcommand" -a "user" -d "Display authenticated user profile"
 complete -c forge -f -n "__fish_use_subcommand" -a "monitors" -d "Manage server monitors"
 complete -c forge -f -n "__fish_use_subcommand" -a "nginx-templates" -d "Manage Nginx templates"
@@ -578,6 +594,11 @@ complete -c forge -f -n "__fish_seen_subcommand_from scheduled-jobs" -a "get" -d
 complete -c forge -f -n "__fish_seen_subcommand_from scheduled-jobs" -a "create" -d "Create a scheduled job"
 complete -c forge -f -n "__fish_seen_subcommand_from scheduled-jobs" -a "delete" -d "Delete a scheduled job"
 
+# services subcommands
+complete -c forge -f -n "__fish_seen_subcommand_from services" -a "list" -d "List services on a server"
+complete -c forge -f -n "__fish_seen_subcommand_from services" -a "ls" -d "List services on a server (alias)"
+complete -c forge -f -n "__fish_seen_subcommand_from services" -a "restart" -d "Restart a service"
+
 # user subcommands
 complete -c forge -f -n "__fish_seen_subcommand_from user" -a "get" -d "Get the authenticated user profile"
 
@@ -644,6 +665,7 @@ complete -c forge -l key -d "Key" -r
 complete -c forge -l port -d "Port" -r
 complete -c forge -l ip-address -d "IP address" -r
 complete -c forge -l user -d "User" -r
+complete -c forge -l service -d "Service name" -xa "nginx php mysql postgres redis supervisor"
 complete -c forge -l script -d "Script" -r
 complete -c forge -l servers -d "Servers" -r
 complete -c forge -l domain -d "Domain" -r

@@ -20,6 +20,7 @@ import { MonitorsCollection } from "./monitors.ts";
 import { FirewallRulesCollection } from "./firewall-rules.ts";
 import { SshKeysCollection } from "./ssh-keys.ts";
 import { NginxTemplatesCollection } from "./nginx-templates.ts";
+import { ServicesCollection } from "./services.ts";
 import { BaseCollection } from "./base.ts";
 
 /**
@@ -272,6 +273,9 @@ export class ServerResource extends BaseCollection {
   /** Nginx templates on this server. */
   readonly nginxTemplates: NginxTemplatesCollection;
 
+  /** Services (nginx, php, mysql, etc.) on this server. */
+  readonly services: ServicesCollection;
+
   /** @internal */
   constructor(
     client: HttpClient,
@@ -289,6 +293,7 @@ export class ServerResource extends BaseCollection {
     this.firewallRules = new FirewallRulesCollection(client, orgSlug, serverId);
     this.sshKeys = new SshKeysCollection(client, orgSlug, serverId);
     this.nginxTemplates = new NginxTemplatesCollection(client, orgSlug, serverId);
+    this.services = new ServicesCollection(client, orgSlug, serverId);
   }
 
   /**
