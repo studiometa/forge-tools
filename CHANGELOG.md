@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## 0.4.5 - 2026.07.20
 
 ### Added
 
@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - **CLI**: Remove a stray debug export (`x`) that leaked into the package's public exports [[#122], [1556be2]]
+- **Tooling**: Exclude `package-lock.json` from the lint-staged formatting step so lockfile-only commits no longer fail the pre-commit hook [[f6b4cdd]]
 
 ### Security
 
@@ -24,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [8f142cb]: https://github.com/studiometa/forge-tools/commit/8f142cb
 [a730983]: https://github.com/studiometa/forge-tools/commit/a730983
 [1556be2]: https://github.com/studiometa/forge-tools/commit/1556be2
+[f6b4cdd]: https://github.com/studiometa/forge-tools/commit/f6b4cdd
 
 ## 0.4.4 - 2026.07.01
 
