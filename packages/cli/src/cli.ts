@@ -38,6 +38,7 @@ import {
 } from "./commands/security-rules/index.ts";
 import { handleServersCommand, showServersHelp } from "./commands/servers/index.ts";
 import { handleSitesCommand, showSitesHelp } from "./commands/sites/index.ts";
+import { handleSshCommand, showSshHelp } from "./commands/ssh/index.ts";
 import { handleSshKeysCommand, showSshKeysHelp } from "./commands/ssh-keys/index.ts";
 import { handleUserCommand, showUserHelp } from "./commands/user/index.ts";
 import { colors, setColorEnabled } from "./utils/colors.ts";
@@ -103,6 +104,9 @@ ${colors.bold("COMMANDS:")}
   firewall-rules, fw  Manage firewall rules
     list, ls            List firewall rules (requires --server)
     get <id>            Get firewall rule details (requires --server)
+
+  ssh <server>        Open an SSH session to a server
+                        --user <name> (default: forge), --private, --port <n>
 
   ssh-keys            Manage SSH keys
     list, ls            List SSH keys (requires --server)
@@ -324,6 +328,14 @@ async function main(): Promise<void> {
           process.exit(0);
         }
         await handleFirewallRulesCommand(subcommand ?? "list", positional, options);
+        break;
+
+      case "ssh":
+        if (wantsHelp) {
+          showSshHelp();
+          process.exit(0);
+        }
+        await handleSshCommand(subcommand, positional, options);
         break;
 
       case "ssh-keys":

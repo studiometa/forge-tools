@@ -59,6 +59,7 @@ forge <command> [subcommand] [options]
 | `nginx-templates` |         | List, get, create, update, delete Nginx templates    |
 | `certificates`    | `certs` | List, get, activate SSL certificates for a site      |
 | `firewall-rules`  | `fw`    | List, get firewall rules on a server                 |
+| `ssh`             |         | Open an SSH session to a server                      |
 | `ssh-keys`        |         | List, get SSH keys on a server                       |
 | `security-rules`  |         | List, get, create, delete security rules for a site  |
 | `redirect-rules`  |         | List, get, create, delete redirect rules for a site  |
@@ -180,6 +181,19 @@ forge certificates activate <cert_id> --server <id> --site <id> # Activate a cer
 forge firewall-rules list --server <id>                 # List firewall rules
 forge firewall-rules get <rule_id> --server <id>        # Get rule details
 ```
+
+### `ssh` — Open an SSH session to a server
+
+```bash
+forge ssh <server>                              # Interactive session (forge@<ip>)
+forge ssh <server> --user deploy                # Connect as a custom user
+forge ssh <server> --private                    # Connect over the private IP
+forge ssh <server> --port 2222                  # Override the SSH port
+forge ssh <server> uptime                       # Run a remote command, then exit
+forge ssh <server> --dry-run                    # Print the ssh command instead
+```
+
+Requires your local SSH key to be authorized on the server; this command launches `ssh`, it does not upload keys.
 
 ### `ssh-keys` — Manage SSH keys
 
