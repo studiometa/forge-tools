@@ -87,6 +87,28 @@ describe("DaemonsCollection", () => {
     expect(calls[0].url).toContain(`/orgs/${ORG}/servers/123/background-processes/789`);
   });
 
+  it("should get a daemon log", async () => {
+    let requestedUrl = "";
+    const logClient = new HttpClient({
+      token: "test",
+      fetch: async (url: string | URL | Request) => {
+        requestedUrl = toUrlString(url);
+        return {
+          ok: true,
+          status: 200,
+          headers: new Headers({ "content-type": "application/json" }),
+          json: async () => mockDocument("789", { content: "queue worker log output" }),
+          text: async () => "{}",
+        } as Response;
+      },
+    });
+    const collection = new DaemonsCollection(logClient, ORG, 123);
+
+    const log = await collection.log(789);
+    expect(log).toBe("queue worker log output");
+    expect(requestedUrl).toContain(`/orgs/${ORG}/servers/123/background-processes/789/log`);
+  });
+
   it("should create a daemon", async () => {
     const { client, calls } = createTrackingClient();
     const collection = new DaemonsCollection(client, ORG, 123);

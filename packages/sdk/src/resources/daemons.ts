@@ -4,6 +4,7 @@ import type {
   JsonApiDocument,
   JsonApiListDocument,
   BackgroundProcessAttributes,
+  BackgroundProcessLogAttributes,
 } from "@studiometa/forge-api";
 
 import { unwrapDocument, unwrapListDocument } from "@studiometa/forge-api";
@@ -105,6 +106,21 @@ export class DaemonsCollection extends BaseCollection {
       `${this.basePath}/${daemonId}`,
     );
     return unwrapDocument(response);
+  }
+
+  /**
+   * Get the log output of a daemon.
+   *
+   * @example
+   * ```ts
+   * const log = await forge.server(123).daemons.log(789);
+   * ```
+   */
+  async log(daemonId: number): Promise<string> {
+    const response = await this.client.get<JsonApiDocument<BackgroundProcessLogAttributes>>(
+      `${this.basePath}/${daemonId}/log`,
+    );
+    return unwrapDocument(response).content;
   }
 
   /**

@@ -24,6 +24,9 @@ function createMockContext(): HandlerContext {
       organizationSlug: "test-org",
       client: {
         get: async (url: string) => {
+          if (/\/background-processes\/\d+\/log$/.test(url)) {
+            return mockDocument(1, "background-process-logs", { content: "daemon log output" });
+          }
           if (/\/background-processes\/\d+$/.test(url)) {
             return mockDocument(1, "background-processes", makeDaemonAttrs());
           }
@@ -105,6 +108,28 @@ describe("handleDaemons", () => {
     );
     expect(result.isError).toBeUndefined();
     expect(result.content[0].text).toContain("restarted");
+  });
+
+  it("should get a daemon log", async () => {
+    const result = await handleDaemons(
+      "log",
+      { resource: "daemons", action: "log", server_id: "1", id: "1" },
+      createMockContext(),
+    );
+    expect(result.isError).toBeUndefined();
+    expect(result.content[0].text).toContain("daemon log output");
+  });
+
+  it("should return the raw daemon log in non-compact mode", async () => {
+    const ctx = createMockContext();
+    ctx.compact = false;
+    const result = await handleDaemons(
+      "log",
+      { resource: "daemons", action: "log", server_id: "1", id: "1" },
+      ctx,
+    );
+    expect(result.isError).toBeUndefined();
+    expect(result.content[0].text).toContain("daemon log output");
   });
 
   it("should require server_id for list", async () => {
