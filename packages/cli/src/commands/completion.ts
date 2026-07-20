@@ -664,7 +664,6 @@ complete -c forge -l key -d "Key" -r
 complete -c forge -l port -d "Port" -r
 complete -c forge -l ip-address -d "IP address" -r
 complete -c forge -l user -d "User" -r
-complete -c forge -l service -d "Service name" -xa "nginx php mysql postgres redis supervisor"
 complete -c forge -l script -d "Script" -r
 complete -c forge -l servers -d "Servers" -r
 complete -c forge -l domain -d "Domain" -r

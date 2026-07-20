@@ -293,6 +293,16 @@ const FORGE_WRITE_TOOL: Tool = {
         description: "Server IDs to run a recipe on (e.g. [123, 456])",
         items: { type: "number" as const },
       },
+      // Service fields
+      service: {
+        type: "string" as const,
+        description:
+          "Service to restart (services: nginx, php, mysql, postgres, redis, supervisor)",
+      },
+      version: {
+        type: "string" as const,
+        description: "PHP version required when restarting the php service (e.g. php83)",
+      },
     },
     required: ["resource", "action"],
   },
