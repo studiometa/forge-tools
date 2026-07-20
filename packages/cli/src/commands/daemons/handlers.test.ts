@@ -3,11 +3,12 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import type { BackgroundProcessAttributes } from "@studiometa/forge-api";
 
 import { createTestContext } from "../../context.ts";
-import { daemonsList, daemonsGet, daemonsRestart, daemonsUpdate } from "./handlers.ts";
+import { daemonsList, daemonsGet, daemonsLogs, daemonsRestart, daemonsUpdate } from "./handlers.ts";
 
 vi.mock("@studiometa/forge-core", () => ({
   listDaemons: vi.fn(),
   getDaemon: vi.fn(),
+  getDaemonLog: vi.fn(),
   restartDaemon: vi.fn(),
   updateDaemon: vi.fn(),
 }));
@@ -107,6 +108,75 @@ describe("daemonsGet", () => {
     });
 
     await daemonsGet(["1"], ctx).catch(() => {});
+    expect(processExitSpy).toHaveBeenCalledWith(3);
+  });
+});
+
+describe("daemonsLogs", () => {
+  let processExitSpy: ReturnType<typeof vi.spyOn>;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    processExitSpy = vi.spyOn(process, "exit").mockImplementation(() => undefined as never);
+    vi.spyOn(console, "log").mockImplementation(() => {});
+    vi.spyOn(console, "error").mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("should show daemon log", async () => {
+    const { getDaemonLog } = await import("@studiometa/forge-core");
+    vi.mocked(getDaemonLog).mockResolvedValue({ data: "queue worker started" });
+
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "human", server: "10" },
+    });
+
+    await daemonsLogs(["1"], ctx);
+    expect(vi.mocked(console.log)).toHaveBeenCalledWith(
+      expect.stringContaining("queue worker started"),
+    );
+  });
+
+  it("should show info message when log output is empty", async () => {
+    const { getDaemonLog } = await import("@studiometa/forge-core");
+    vi.mocked(getDaemonLog).mockResolvedValue({ data: "" });
+
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "human", server: "10" },
+    });
+
+    await daemonsLogs(["1"], ctx);
+    expect(vi.mocked(console.log)).toHaveBeenCalledWith(
+      expect.stringContaining("No log output available."),
+    );
+  });
+
+  it("should exit with error when no daemon_id", async () => {
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "json", server: "10" },
+    });
+
+    await daemonsLogs([], ctx).catch(() => {});
+    expect(processExitSpy).toHaveBeenCalledWith(3);
+  });
+
+  it("should exit with error when no server_id", async () => {
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "json" },
+    });
+
+    await daemonsLogs(["1"], ctx).catch(() => {});
     expect(processExitSpy).toHaveBeenCalledWith(3);
   });
 });

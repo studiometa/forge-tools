@@ -13,6 +13,18 @@ ${colors.bold("OPTIONS:")}
   --site <id>         Site ID (required)
   -f, --format <fmt>  Output format: json, human, table
 `);
+  } else if (subcommand === "logs" || subcommand === "log") {
+    console.log(`
+${colors.bold("forge deployments logs")} - Show output of a deployment (latest if no id)
+
+${colors.bold("USAGE:")}
+  forge deployments logs [deployment_id] --server <server_id> --site <site_id>
+
+${colors.bold("OPTIONS:")}
+  --server <id>       Server ID (required)
+  --site <id>         Site ID (required)
+  -f, --format <fmt>  Output format: json, human, table
+`);
   } else if (subcommand === "deploy") {
     console.log(`
 ${colors.bold("forge deployments deploy")} - Trigger a deployment
@@ -39,6 +51,7 @@ ${colors.bold("ALIASES:")}
 ${colors.bold("SUBCOMMANDS:")}
   list, ls            List deployments for a site
   deploy              Trigger a deployment
+  logs                Show output of a deployment (latest if no id)
 
 ${colors.bold("OPTIONS:")}
   --server <id>       Server ID (required)

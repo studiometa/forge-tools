@@ -1,5 +1,5 @@
 import { createCommandRouter } from "../../utils/command-router.ts";
-import { daemonsList, daemonsGet, daemonsRestart, daemonsUpdate } from "./handlers.ts";
+import { daemonsList, daemonsGet, daemonsLogs, daemonsRestart, daemonsUpdate } from "./handlers.ts";
 
 export const handleDaemonsCommand = createCommandRouter({
   resource: "daemons",
@@ -7,6 +7,8 @@ export const handleDaemonsCommand = createCommandRouter({
     list: daemonsList,
     ls: daemonsList,
     get: [daemonsGet, "args"],
+    logs: [daemonsLogs, "args"],
+    log: [daemonsLogs, "args"],
     restart: [daemonsRestart, "args"],
     update: [daemonsUpdate, "args"],
   },

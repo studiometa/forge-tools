@@ -1,4 +1,4 @@
-import { listDeployments, deploySiteAndWait } from "@studiometa/forge-core";
+import { listDeployments, deploySiteAndWait, getDeploymentLog } from "@studiometa/forge-core";
 
 import type { CommandContext } from "../../context.ts";
 
@@ -39,6 +39,52 @@ export async function deploymentsList(ctx: CommandContext): Promise<void> {
       (d) =>
         `${String(d.id).padEnd(8)} ${d.status.padEnd(12)} ${(d.commit.hash ?? "—").padEnd(10)} ${d.started_at}`,
     );
+  }, ctx.formatter);
+}
+
+export async function deploymentsLogs(args: string[], ctx: CommandContext): Promise<void> {
+  const [deploymentId] = args;
+  const server = String(ctx.options.server ?? "");
+  const site = String(ctx.options.site ?? "");
+
+  if (!server) {
+    exitWithValidationError(
+      "server_id",
+      "forge deployments logs [deployment_id] --server <server_id> --site <site_id>",
+      ctx.formatter,
+    );
+  }
+
+  if (!site) {
+    exitWithValidationError(
+      "site_id",
+      "forge deployments logs [deployment_id] --server <server_id> --site <site_id>",
+      ctx.formatter,
+    );
+  }
+
+  await runCommand(async () => {
+    const token = ctx.getToken();
+    const execCtx = ctx.createExecutorContext(token);
+    const server_id = await resolveServerId(server, execCtx);
+    const site_id = await resolveSiteId(site, server_id, execCtx);
+
+    let deployment_id = deploymentId;
+    if (!deployment_id) {
+      const deployments = await listDeployments({ server_id, site_id }, execCtx);
+      if (deployments.data.length === 0) {
+        ctx.formatter.info("No deployments found.");
+        return;
+      }
+      deployment_id = String(deployments.data[0].id);
+    }
+
+    const result = await getDeploymentLog({ server_id, site_id, deployment_id }, execCtx);
+    if (result.data) {
+      ctx.formatter.output(result.data);
+    } else {
+      ctx.formatter.info("No log output available.");
+    }
   }, ctx.formatter);
 }
 
