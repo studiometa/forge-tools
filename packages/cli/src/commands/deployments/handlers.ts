@@ -81,7 +81,7 @@ export async function deploymentsLogs(args: string[], ctx: CommandContext): Prom
 
     const result = await getDeploymentLog({ server_id, site_id, deployment_id }, execCtx);
     if (result.data) {
-      ctx.formatter.output(result.data);
+      ctx.formatter.outputText(result.data);
     } else {
       ctx.formatter.info("No log output available.");
     }

@@ -95,7 +95,7 @@ export async function daemonsLogs(args: string[], ctx: CommandContext): Promise<
     const server_id = await resolveServerId(server, execCtx);
     const result = await getDaemonLog({ server_id, id }, execCtx);
     if (result.data) {
-      ctx.formatter.output(result.data);
+      ctx.formatter.outputText(result.data);
     } else {
       ctx.formatter.info("No log output available.");
     }

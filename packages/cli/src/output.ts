@@ -39,6 +39,18 @@ export class OutputFormatter {
   }
 
   /**
+   * Output raw text such as a log. Human and table formats print the text
+   * verbatim (a log is not tabular data); JSON wraps it as a JSON string.
+   */
+  outputText(text: string): void {
+    if (this.format === "json") {
+      console.log(JSON.stringify(text));
+      return;
+    }
+    console.log(text);
+  }
+
+  /**
    * Output a list with a human-readable one-liner per item and a table for table format.
    * Falls back to JSON for json format.
    *
