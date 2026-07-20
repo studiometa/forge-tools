@@ -11,8 +11,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **CLI**: Add `forge ssh <server>` command to open an interactive SSH session, with `--user` (default: forge), `--private`, `--port`, remote command, and `--dry-run` [[#121], [8f142cb]]
 
+### Fixed
+
+- **CLI**: Remove a stray debug export (`x`) that leaked into the package's public exports [[#122], [1556be2]]
+
+### Security
+
+- **Deps**: Update vulnerable transitive dependencies (`hono`, `fast-uri`, `vite`, and others) to clear the `npm audit` scan [[#122], [a730983]]
+
 [#121]: https://github.com/studiometa/forge-tools/pull/121
+[#122]: https://github.com/studiometa/forge-tools/pull/122
 [8f142cb]: https://github.com/studiometa/forge-tools/commit/8f142cb
+[a730983]: https://github.com/studiometa/forge-tools/commit/a730983
+[1556be2]: https://github.com/studiometa/forge-tools/commit/1556be2
 
 ## 0.4.4 - 2026.07.01
 
