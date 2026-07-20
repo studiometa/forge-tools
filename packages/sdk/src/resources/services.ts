@@ -121,6 +121,10 @@ export class ServicesCollection extends BaseCollection {
       );
     }
 
+    if (service === "php" && !options.version) {
+      throw new Error('The "php" service requires a version (e.g. "php83") to restart.');
+    }
+
     await this.client.post(`${this.basePath}/services/${service}/actions`, {
       action: "reboot",
       ...(options.version ? { version: options.version } : {}),

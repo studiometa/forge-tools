@@ -46,7 +46,7 @@ _forge_completions() {
   local completion_cmds="bash zsh fish"
 
   # Global options
-  options="--token --server --site -f --format --no-color -h --help -v --version --service --name --command --content --from --to --provider --frequency --type --operator --threshold --minutes --key --port --ip-address --user --private --dry-run --script --servers --domain --password --credential-id --region --size --project-type --directory"
+  options="--token --server --site -f --format --no-color -h --help -v --version --name --command --content --from --to --provider --frequency --type --operator --threshold --minutes --key --port --ip-address --user --private --dry-run --script --servers --domain --password --credential-id --region --size --project-type --directory"
 
   # Format options
   local formats="json human table"
@@ -457,7 +457,6 @@ _forge() {
         '--port[Port]:port:' \\
         '--ip-address[IP address]:ip address:' \\
         '--user[User]:user:' \\
-        '--service[Service name]:service:(nginx php mysql postgres redis supervisor)' \\
         '--script[Script]:script:' \\
         '--servers[Servers]:servers:' \\
         '--domain[Domain]:domain:' \\

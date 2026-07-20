@@ -127,4 +127,12 @@ describe("ServicesCollection", () => {
 
     await expect(collection.restart("apache")).rejects.toThrow(/Invalid service "apache"/);
   });
+
+  it("should throw when restarting php without a version", async () => {
+    const { client, calls } = createTrackingClient();
+    const collection = new ServicesCollection(client, ORG, 123);
+
+    await expect(collection.restart("php")).rejects.toThrow(/"php" service requires a version/);
+    expect(calls).toHaveLength(0);
+  });
 });
