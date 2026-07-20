@@ -10,8 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **CLI**: Add `forge deployments logs [id]` and `forge daemons logs <id>` commands to view deployment and daemon log output [[#124], [2f703f6]]
+- **Core/SDK/MCP/CLI**: Add a server-scoped `services` resource to list and restart services (nginx, php, mysql, postgres, redis, supervisor); restart maps to the API `reboot` action and php requires a version [[#125]]
 
 [#124]: https://github.com/studiometa/forge-tools/pull/124
+[#125]: https://github.com/studiometa/forge-tools/pull/125
 [2f703f6]: https://github.com/studiometa/forge-tools/commit/2f703f6
 
 ## 0.4.5 - 2026.07.20
