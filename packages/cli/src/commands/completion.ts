@@ -18,7 +18,7 @@ _forge_completions() {
   prev="\${COMP_WORDS[COMP_CWORD-1]}"
 
   # Main commands
-  commands="config servers s sites deployments d databases db database-users daemons env nginx certificates certs firewall-rules fw ssh-keys backups commands scheduled-jobs user monitors nginx-templates security-rules redirect-rules recipes completion help"
+  commands="config servers s sites deployments d databases db database-users daemons env nginx certificates certs firewall-rules fw ssh ssh-keys backups commands scheduled-jobs user monitors nginx-templates security-rules redirect-rules recipes completion help"
 
   # Subcommands for each command
   local config_cmds="set get delete"
@@ -45,7 +45,7 @@ _forge_completions() {
   local completion_cmds="bash zsh fish"
 
   # Global options
-  options="--token --server --site -f --format --no-color -h --help -v --version --name --command --content --from --to --provider --frequency --type --operator --threshold --minutes --key --port --ip-address --user --script --servers --domain --password --credential-id --region --size --project-type --directory"
+  options="--token --server --site -f --format --no-color -h --help -v --version --name --command --content --from --to --provider --frequency --type --operator --threshold --minutes --key --port --ip-address --user --private --dry-run --script --servers --domain --password --credential-id --region --size --project-type --directory"
 
   # Format options
   local formats="json human table"
@@ -183,6 +183,7 @@ _forge() {
         'certs:Manage SSL certificates (alias)'
         'firewall-rules:Manage firewall rules'
         'fw:Manage firewall rules (alias)'
+        'ssh:Open an SSH session to a server'
         'ssh-keys:Manage SSH keys'
         'backups:Manage backup configurations'
         'commands:Manage site commands'
@@ -473,6 +474,7 @@ complete -c forge -f -n "__fish_use_subcommand" -a "certificates" -d "Manage SSL
 complete -c forge -f -n "__fish_use_subcommand" -a "certs" -d "Manage SSL certificates (alias)"
 complete -c forge -f -n "__fish_use_subcommand" -a "firewall-rules" -d "Manage firewall rules"
 complete -c forge -f -n "__fish_use_subcommand" -a "fw" -d "Manage firewall rules (alias)"
+complete -c forge -f -n "__fish_use_subcommand" -a "ssh" -d "Open an SSH session to a server"
 complete -c forge -f -n "__fish_use_subcommand" -a "ssh-keys" -d "Manage SSH keys"
 complete -c forge -f -n "__fish_use_subcommand" -a "backups" -d "Manage backup configurations"
 complete -c forge -f -n "__fish_use_subcommand" -a "commands" -d "Manage site commands"
