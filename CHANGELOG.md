@@ -9,9 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **CLI**: Add `forge deployments logs [id]` and `forge daemons logs <id>` commands to view deployment and daemon log output [[#124]]
+- **CLI**: Add `forge deployments logs [id]` and `forge daemons logs <id>` commands to view deployment and daemon log output [[#124], [baf5b61]]
 
 [#124]: https://github.com/studiometa/forge-tools/pull/124
+[baf5b61]: https://github.com/studiometa/forge-tools/commit/baf5b61
 
 ## 0.4.5 - 2026.07.20
 
