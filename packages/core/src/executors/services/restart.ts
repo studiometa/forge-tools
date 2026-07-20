@@ -20,6 +20,10 @@ export async function restartService(
     );
   }
 
+  if (options.service === "php" && !options.version) {
+    throw new Error('The "php" service requires a version (e.g. "php83") to restart.');
+  }
+
   await request(
     ROUTES.services.action,
     ctx,

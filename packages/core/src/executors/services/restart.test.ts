@@ -46,4 +46,17 @@ describe("restartService", () => {
     );
     expect(postMock).not.toHaveBeenCalled();
   });
+
+  it("should throw locally when php is restarted without a version", async () => {
+    const postMock = vi.fn(async () => {});
+    const ctx = createTestExecutorContext({
+      client: { post: postMock } as never,
+      organizationSlug: "test-org",
+    });
+
+    await expect(restartService({ server_id: "1", service: "php" }, ctx)).rejects.toThrow(
+      /"php" service requires a version/,
+    );
+    expect(postMock).not.toHaveBeenCalled();
+  });
 });
