@@ -324,6 +324,7 @@ const RESOURCE_HELP: Record<string, ResourceHelp> = {
       create: "Create a new daemon",
       delete: "Delete a daemon",
       restart: "Restart a daemon",
+      log: "Get the latest daemon log output",
     },
     fields: {
       command: "Shell command to run",
@@ -349,6 +350,10 @@ const RESOURCE_HELP: Record<string, ResourceHelp> = {
       {
         description: "Restart a daemon",
         params: { resource: "daemons", action: "restart", server_id: "123", id: "456" },
+      },
+      {
+        description: "Get daemon log output",
+        params: { resource: "daemons", action: "log", server_id: "123", id: "456" },
       },
     ],
   },

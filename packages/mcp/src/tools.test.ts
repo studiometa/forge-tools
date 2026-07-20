@@ -122,8 +122,16 @@ describe("TOOLS", () => {
 });
 
 describe("READ_ACTIONS", () => {
-  it("should contain list, get, resolve, help, schema, context", () => {
-    expect([...READ_ACTIONS]).toEqual(["list", "get", "resolve", "help", "schema", "context"]);
+  it("should contain list, get, resolve, help, schema, context, log", () => {
+    expect([...READ_ACTIONS]).toEqual([
+      "list",
+      "get",
+      "resolve",
+      "help",
+      "schema",
+      "context",
+      "log",
+    ]);
   });
 });
 
@@ -167,6 +175,7 @@ describe("isReadAction", () => {
     expect(isReadAction("get")).toBe(true);
     expect(isReadAction("help")).toBe(true);
     expect(isReadAction("schema")).toBe(true);
+    expect(isReadAction("log")).toBe(true);
   });
 
   it("should return false for write actions", () => {

@@ -5,7 +5,7 @@ import { RESOURCES } from "@studiometa/forge-core";
 /**
  * Read-only actions — safe operations that don't modify server state.
  */
-export const READ_ACTIONS = ["list", "get", "resolve", "help", "schema", "context"] as const;
+export const READ_ACTIONS = ["list", "get", "resolve", "help", "schema", "context", "log"] as const;
 
 /**
  * Write actions — operations that modify server state.
