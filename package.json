@@ -58,7 +58,7 @@
       "oxlint --fix",
       "oxfmt --write"
     ],
-    "*.{json,md,yml,yaml}": [
+    "!(package-lock).{json,md,yml,yaml}": [
       "oxfmt --write"
     ]
   },
