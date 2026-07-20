@@ -3,11 +3,12 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import type { DeploymentAttributes } from "@studiometa/forge-api";
 
 import { createTestContext } from "../../context.ts";
-import { deploymentsList, deploymentsDeploy } from "./handlers.ts";
+import { deploymentsList, deploymentsDeploy, deploymentsLogs } from "./handlers.ts";
 
 vi.mock("@studiometa/forge-core", () => ({
   listDeployments: vi.fn(),
   deploySiteAndWait: vi.fn(),
+  getDeploymentLog: vi.fn(),
 }));
 
 const mockDeployment: DeploymentAttributes & { id: number } = {
@@ -72,6 +73,116 @@ describe("deploymentsList", () => {
     });
 
     await deploymentsList(ctx).catch(() => {});
+    expect(processExitSpy).toHaveBeenCalledWith(3);
+  });
+});
+
+describe("deploymentsLogs", () => {
+  let processExitSpy: ReturnType<typeof vi.spyOn>;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    processExitSpy = vi.spyOn(process, "exit").mockImplementation(() => undefined as never);
+    vi.spyOn(console, "log").mockImplementation(() => {});
+    vi.spyOn(console, "error").mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("should show log for an explicit deployment id", async () => {
+    const { getDeploymentLog, listDeployments } = await import("@studiometa/forge-core");
+    vi.mocked(getDeploymentLog).mockResolvedValue({ data: "Build succeeded." });
+
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "human", server: "10", site: "100" },
+    });
+
+    await deploymentsLogs(["42"], ctx);
+    expect(vi.mocked(listDeployments)).not.toHaveBeenCalled();
+    expect(vi.mocked(getDeploymentLog)).toHaveBeenCalledWith(
+      expect.objectContaining({ deployment_id: "42" }),
+      expect.anything(),
+    );
+    expect(vi.mocked(console.log)).toHaveBeenCalledWith(
+      expect.stringContaining("Build succeeded."),
+    );
+  });
+
+  it("should default to the latest deployment when no id is given", async () => {
+    const { getDeploymentLog, listDeployments } = await import("@studiometa/forge-core");
+    vi.mocked(listDeployments).mockResolvedValue({ data: [mockDeployment] });
+    vi.mocked(getDeploymentLog).mockResolvedValue({ data: "Latest log." });
+
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "human", server: "10", site: "100" },
+    });
+
+    await deploymentsLogs([], ctx);
+    expect(vi.mocked(getDeploymentLog)).toHaveBeenCalledWith(
+      expect.objectContaining({ deployment_id: "1" }),
+      expect.anything(),
+    );
+    expect(vi.mocked(console.log)).toHaveBeenCalledWith(expect.stringContaining("Latest log."));
+  });
+
+  it("should show a clean message when there are no deployments", async () => {
+    const { getDeploymentLog, listDeployments } = await import("@studiometa/forge-core");
+    vi.mocked(listDeployments).mockResolvedValue({ data: [] });
+
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "human", server: "10", site: "100" },
+    });
+
+    await deploymentsLogs([], ctx);
+    expect(vi.mocked(getDeploymentLog)).not.toHaveBeenCalled();
+    expect(vi.mocked(console.log)).toHaveBeenCalledWith(
+      expect.stringContaining("No deployments found."),
+    );
+  });
+
+  it("should show info message when log output is empty", async () => {
+    const { getDeploymentLog } = await import("@studiometa/forge-core");
+    vi.mocked(getDeploymentLog).mockResolvedValue({ data: "" });
+
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "human", server: "10", site: "100" },
+    });
+
+    await deploymentsLogs(["42"], ctx);
+    expect(vi.mocked(console.log)).toHaveBeenCalledWith(
+      expect.stringContaining("No log output available."),
+    );
+  });
+
+  it("should exit with error when no server_id", async () => {
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "json", site: "100" },
+    });
+
+    await deploymentsLogs([], ctx).catch(() => {});
+    expect(processExitSpy).toHaveBeenCalledWith(3);
+  });
+
+  it("should exit with error when no site_id", async () => {
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "json", server: "10" },
+    });
+
+    await deploymentsLogs([], ctx).catch(() => {});
     expect(processExitSpy).toHaveBeenCalledWith(3);
   });
 });

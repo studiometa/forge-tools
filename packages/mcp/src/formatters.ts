@@ -242,6 +242,13 @@ export function formatDaemon(daemon: BackgroundProcessAttributes & { id: number 
   return `Daemon: ${daemon.command} (ID: ${daemon.id})\nUser: ${daemon.user}\nProcesses: ${daemon.processes}\nStatus: ${daemon.status}`;
 }
 
+/**
+ * Format a daemon log.
+ */
+export function formatDaemonLog(daemonId: string, log: string): string {
+  return `Daemon ${daemonId} log:\n${log}`;
+}
+
 // ── Firewall Rules ───────────────────────────────────
 
 /**

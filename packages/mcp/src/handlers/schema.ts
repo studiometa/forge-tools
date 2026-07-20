@@ -140,7 +140,7 @@ const RESOURCE_SCHEMAS: Record<string, ResourceSchemaData> = {
   },
 
   daemons: {
-    actions: ["list", "get", "create", "delete", "restart"],
+    actions: ["list", "get", "create", "delete", "restart", "log"],
     scope: "server",
     required: {
       list: ["server_id"],
@@ -148,6 +148,7 @@ const RESOURCE_SCHEMAS: Record<string, ResourceSchemaData> = {
       create: ["server_id", "command"],
       delete: ["server_id", "id"],
       restart: ["server_id", "id"],
+      log: ["server_id", "id"],
     },
     create: {
       command: { required: true, type: "string — e.g. php artisan queue:work" },

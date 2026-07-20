@@ -49,3 +49,11 @@ export interface RestartDaemonOptions {
   server_id: string;
   id: string;
 }
+
+/**
+ * Options for getting a daemon log.
+ */
+export interface GetDaemonLogOptions {
+  server_id: string;
+  id: string;
+}

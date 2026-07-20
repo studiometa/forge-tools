@@ -5,6 +5,7 @@ import { handleDaemonsCommand } from "./command.ts";
 vi.mock("./handlers.ts", () => ({
   daemonsList: vi.fn().mockResolvedValue(),
   daemonsGet: vi.fn().mockResolvedValue(),
+  daemonsLogs: vi.fn().mockResolvedValue(),
   daemonsRestart: vi.fn().mockResolvedValue(),
   daemonsUpdate: vi.fn().mockResolvedValue(),
 }));
@@ -45,6 +46,12 @@ describe("handleDaemonsCommand routing", () => {
     const h = await import("./handlers.ts");
     await handleDaemonsCommand("restart", ["1"], {});
     expect(h.daemonsRestart).toHaveBeenCalledWith(["1"], expect.anything());
+  });
+
+  it("should route logs with args", async () => {
+    const h = await import("./handlers.ts");
+    await handleDaemonsCommand("logs", ["1"], {});
+    expect(h.daemonsLogs).toHaveBeenCalledWith(["1"], expect.anything());
   });
 
   it("should exit for unknown subcommand", async () => {

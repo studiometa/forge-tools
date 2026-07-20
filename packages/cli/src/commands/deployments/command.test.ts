@@ -5,6 +5,7 @@ import { handleDeploymentsCommand } from "./command.ts";
 vi.mock("./handlers.ts", () => ({
   deploymentsList: vi.fn().mockResolvedValue(),
   deploymentsDeploy: vi.fn().mockResolvedValue(),
+  deploymentsLogs: vi.fn().mockResolvedValue(),
 }));
 
 vi.mock("../../context.ts", () => ({
@@ -48,6 +49,12 @@ describe("handleDeploymentsCommand routing", () => {
     const handlers = await import("./handlers.ts");
     await handleDeploymentsCommand("deploy", [], {});
     expect(handlers.deploymentsDeploy).toHaveBeenCalled();
+  });
+
+  it("should route logs subcommand", async () => {
+    const handlers = await import("./handlers.ts");
+    await handleDeploymentsCommand("logs", ["1"], {});
+    expect(handlers.deploymentsLogs).toHaveBeenCalled();
   });
 
   it("should exit for unknown subcommand", async () => {

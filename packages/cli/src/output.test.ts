@@ -77,6 +77,23 @@ describe("OutputFormatter", () => {
     });
   });
 
+  describe("outputText (raw text)", () => {
+    it("prints the text verbatim in human format", () => {
+      new OutputFormatter("human").outputText("line 1\nline 2");
+      expect(consoleLogSpy).toHaveBeenCalledWith("line 1\nline 2");
+    });
+
+    it("prints the text verbatim in table format (a log is not tabular)", () => {
+      new OutputFormatter("table").outputText("deploy log output");
+      expect(consoleLogSpy).toHaveBeenCalledWith("deploy log output");
+    });
+
+    it("wraps the text as a JSON string in json format", () => {
+      new OutputFormatter("json").outputText("log\twith\nchars");
+      expect(consoleLogSpy).toHaveBeenCalledWith(JSON.stringify("log\twith\nchars"));
+    });
+  });
+
   describe("Table format", () => {
     it("should output table with headers and rows", () => {
       const formatter = new OutputFormatter("table");

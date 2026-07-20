@@ -32,4 +32,14 @@ describe("showDeploymentsHelp", () => {
     showDeploymentsHelp("deploy");
     expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining("deploy"));
   });
+
+  it("should show logs help", () => {
+    showDeploymentsHelp("logs");
+    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining("deployments logs"));
+  });
+
+  it("should show logs help for log alias", () => {
+    showDeploymentsHelp("log");
+    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining("deployments logs"));
+  });
 });

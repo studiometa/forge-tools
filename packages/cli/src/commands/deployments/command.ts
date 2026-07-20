@@ -1,5 +1,5 @@
 import { createCommandRouter } from "../../utils/command-router.ts";
-import { deploymentsList, deploymentsDeploy } from "./handlers.ts";
+import { deploymentsList, deploymentsDeploy, deploymentsLogs } from "./handlers.ts";
 
 export const handleDeploymentsCommand = createCommandRouter({
   resource: "deployments",
@@ -7,6 +7,8 @@ export const handleDeploymentsCommand = createCommandRouter({
     list: deploymentsList,
     ls: deploymentsList,
     deploy: deploymentsDeploy,
+    logs: [deploymentsLogs, "args"],
+    log: [deploymentsLogs, "args"],
   },
   writeSubcommands: ["deploy"],
 });

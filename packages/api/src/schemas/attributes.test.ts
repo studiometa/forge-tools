@@ -12,6 +12,7 @@ import {
   DatabaseAttributesSchema,
   DatabaseUserAttributesSchema,
   BackgroundProcessAttributesSchema,
+  BackgroundProcessLogAttributesSchema,
   CertificateAttributesSchema,
   FirewallRuleAttributesSchema,
   SshKeyAttributesSchema,
@@ -271,6 +272,13 @@ testSchema(
     created_at: "2024-01-01T00:00:00Z",
   },
   { command: 123 },
+);
+
+testSchema(
+  "BackgroundProcessLogAttributesSchema",
+  BackgroundProcessLogAttributesSchema,
+  { content: "queue worker started" },
+  { content: 123 },
 );
 
 testSchema(

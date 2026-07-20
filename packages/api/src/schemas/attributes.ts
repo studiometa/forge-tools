@@ -166,6 +166,14 @@ export const BackgroundProcessAttributesSchema = v.object({
 
 export type BackgroundProcessAttributes = v.InferOutput<typeof BackgroundProcessAttributesSchema>;
 
+export const BackgroundProcessLogAttributesSchema = v.object({
+  content: v.string(),
+});
+
+export type BackgroundProcessLogAttributes = v.InferOutput<
+  typeof BackgroundProcessLogAttributesSchema
+>;
+
 // ── Certificates ─────────────────────────────────────
 
 export const CertificateAttributesSchema = v.object({

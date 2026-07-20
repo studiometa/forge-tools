@@ -24,10 +24,10 @@ _forge_completions() {
   local config_cmds="set get delete"
   local servers_cmds="list ls get reboot"
   local sites_cmds="list ls get"
-  local deployments_cmds="list ls deploy"
+  local deployments_cmds="list ls deploy logs log"
   local databases_cmds="list ls get"
   local database_users_cmds="list ls get create delete"
-  local daemons_cmds="list ls get restart"
+  local daemons_cmds="list ls get restart logs log"
   local env_cmds="get update"
   local nginx_cmds="get update"
   local certificates_cmds="get activate"
@@ -235,6 +235,8 @@ _forge() {
             'list:List deployments'
             'ls:List deployments (alias)'
             'deploy:Trigger a deployment'
+            'logs:Show deployment output'
+            'log:Show deployment output (alias)'
           )
           _describe 'deployments command' deployments_cmds
           ;;
@@ -265,6 +267,8 @@ _forge() {
             'ls:List daemons (alias)'
             'get:Get daemon details'
             'restart:Restart a daemon'
+            'logs:Show daemon log output'
+            'log:Show daemon log output (alias)'
           )
           _describe 'daemons command' daemons_cmds
           ;;
@@ -508,6 +512,8 @@ complete -c forge -f -n "__fish_seen_subcommand_from sites" -a "get" -d "Get sit
 complete -c forge -f -n "__fish_seen_subcommand_from deployments d" -a "list" -d "List deployments"
 complete -c forge -f -n "__fish_seen_subcommand_from deployments d" -a "ls" -d "List deployments (alias)"
 complete -c forge -f -n "__fish_seen_subcommand_from deployments d" -a "deploy" -d "Trigger a deployment"
+complete -c forge -f -n "__fish_seen_subcommand_from deployments d" -a "logs" -d "Show deployment output"
+complete -c forge -f -n "__fish_seen_subcommand_from deployments d" -a "log" -d "Show deployment output (alias)"
 
 # databases subcommands
 complete -c forge -f -n "__fish_seen_subcommand_from databases db" -a "list" -d "List databases"
@@ -526,6 +532,8 @@ complete -c forge -f -n "__fish_seen_subcommand_from daemons" -a "list" -d "List
 complete -c forge -f -n "__fish_seen_subcommand_from daemons" -a "ls" -d "List daemons (alias)"
 complete -c forge -f -n "__fish_seen_subcommand_from daemons" -a "get" -d "Get daemon details"
 complete -c forge -f -n "__fish_seen_subcommand_from daemons" -a "restart" -d "Restart a daemon"
+complete -c forge -f -n "__fish_seen_subcommand_from daemons" -a "logs" -d "Show daemon log output"
+complete -c forge -f -n "__fish_seen_subcommand_from daemons" -a "log" -d "Show daemon log output (alias)"
 
 # env subcommands
 complete -c forge -f -n "__fish_seen_subcommand_from env" -a "get" -d "Get env variables"

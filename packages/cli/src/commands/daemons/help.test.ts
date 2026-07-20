@@ -42,4 +42,14 @@ describe("showDaemonsHelp", () => {
     showDaemonsHelp("restart");
     expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining("restart"));
   });
+
+  it("should show logs help", () => {
+    showDaemonsHelp("logs");
+    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining("daemons logs"));
+  });
+
+  it("should show logs help for log alias", () => {
+    showDaemonsHelp("log");
+    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining("daemons logs"));
+  });
 });
