@@ -37,6 +37,7 @@ import {
   showSecurityRulesHelp,
 } from "./commands/security-rules/index.ts";
 import { handleServersCommand, showServersHelp } from "./commands/servers/index.ts";
+import { handleServicesCommand, showServicesHelp } from "./commands/services/index.ts";
 import { handleSitesCommand, showSitesHelp } from "./commands/sites/index.ts";
 import { handleSshCommand, showSshHelp } from "./commands/ssh/index.ts";
 import { handleSshKeysCommand, showSshKeysHelp } from "./commands/ssh-keys/index.ts";
@@ -128,6 +129,10 @@ ${colors.bold("COMMANDS:")}
     get <id>            Get scheduled job details (requires --server)
     create              Create a scheduled job (requires --server --command)
     delete <id>         Delete a scheduled job (requires --server)
+
+  services            List and restart server services
+    list, ls            List services on a server (forge services list <server>)
+    restart <service>   Restart a service (forge services restart <server> <service>)
 
   user                Display authenticated user profile
     get                 Get the authenticated user profile
@@ -221,7 +226,10 @@ async function main(): Promise<void> {
     process.exit(0);
   }
 
-  if (options.version || options.v) {
+  // Only treat a bare `--version`/`-v` flag as the version request. A
+  // `--version <value>` (e.g. `forge services restart 123 php --version php83`)
+  // carries a string value and must fall through to the command dispatch.
+  if (options.version === true || options.v === true) {
     console.log(VERSION);
     process.exit(0);
   }
@@ -368,6 +376,14 @@ async function main(): Promise<void> {
           process.exit(0);
         }
         await handleScheduledJobsCommand(subcommand ?? "list", positional, options);
+        break;
+
+      case "services":
+        if (wantsHelp) {
+          showServicesHelp(subcommand);
+          process.exit(0);
+        }
+        await handleServicesCommand(subcommand ?? "list", positional, options);
         break;
 
       case "user":

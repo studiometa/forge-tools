@@ -34,6 +34,7 @@ import { handleScheduledJobs } from "./scheduled-jobs.ts";
 import { handleSchema, handleSchemaOverview } from "./schema.ts";
 import { handleSecurityRules } from "./security-rules.ts";
 import { handleServers } from "./servers.ts";
+import { handleServices } from "./services.ts";
 import { handleSites } from "./sites.ts";
 import { handleSshKeys } from "./ssh-keys.ts";
 import { handleUser } from "./user.ts";
@@ -104,6 +105,8 @@ function routeToHandler(
       return handleCommands(action, args, ctx);
     case "scheduled-jobs":
       return handleScheduledJobs(action, args, ctx);
+    case "services":
+      return handleServices(action, args, ctx);
     case "user":
       return handleUser(action, args, ctx);
     case "batch":

@@ -158,6 +158,15 @@ const RESOURCE_SCHEMAS: Record<string, ResourceSchemaData> = {
     },
   },
 
+  services: {
+    actions: ["list", "restart"],
+    scope: "server",
+    required: {
+      list: ["server_id"],
+      restart: ["server_id", "service"],
+    },
+  },
+
   "firewall-rules": {
     actions: ["list", "get", "create", "delete"],
     scope: "server",

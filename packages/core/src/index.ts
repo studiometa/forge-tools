@@ -286,6 +286,15 @@ export type {
   ListScheduledJobsOptions,
 } from "./executors/scheduled-jobs/index.ts";
 
+// Services
+export { listServices, restartService, RESTARTABLE_SERVICES } from "./executors/services/index.ts";
+export type {
+  ListServicesOptions,
+  RestartableService,
+  RestartServiceOptions,
+  ServiceStatus,
+} from "./executors/services/index.ts";
+
 // User
 export { getUser } from "./executors/user/index.ts";
 export type { GetUserOptions } from "./executors/user/index.ts";

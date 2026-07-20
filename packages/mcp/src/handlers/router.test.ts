@@ -127,6 +127,42 @@ vi.mock("@studiometa/forge-api", async (importOriginal) => {
             links: { next: null, prev: null },
             meta: { per_page: 30, next_cursor: null, prev_cursor: null },
           };
+        // Single server GET (used by services list to derive availability)
+        if (/\/servers\/\d+$/.test(path))
+          return {
+            data: {
+              id: "1",
+              type: "servers",
+              attributes: {
+                id: 1,
+                credential_id: 1,
+                name: "web-1",
+                type: "app",
+                ubuntu_version: "22.04",
+                ssh_port: 22,
+                provider: "ocean2",
+                identifier: null,
+                size: "01",
+                region: "ams3",
+                php_version: "php83",
+                php_cli_version: "php83",
+                opcache_status: null,
+                database_type: "mysql8",
+                db_status: null,
+                redis_status: "installed",
+                ip_address: "1.2.3.4",
+                private_ip_address: null,
+                revoked: false,
+                created_at: "2024-01-01T00:00:00Z",
+                updated_at: "2024-01-01T00:00:00Z",
+                connection_status: "connected",
+                timezone: "UTC",
+                local_public_key: null,
+                is_ready: true,
+              },
+              links: { self: { href: "/servers/1" } },
+            },
+          };
         // Servers (generic)
         if (path.includes("/servers"))
           return {
@@ -189,6 +225,7 @@ describe("routeToHandler — resource routing coverage", () => {
     { resource: "backups", extra: { server_id: "1" } },
     { resource: "commands", extra: { server_id: "1", site_id: "10" } },
     { resource: "scheduled-jobs", extra: { server_id: "1" } },
+    { resource: "services", extra: { server_id: "1" } },
     { resource: "database-users", extra: { server_id: "1" } },
     { resource: "deployments", extra: { server_id: "1", site_id: "10" } },
   ];

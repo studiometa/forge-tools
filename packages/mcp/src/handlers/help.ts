@@ -358,6 +358,43 @@ const RESOURCE_HELP: Record<string, ResourceHelp> = {
     ],
   },
 
+  services: {
+    description:
+      "List and restart server services (nginx, php, mysql, postgres, redis, supervisor)",
+    scope: "server (requires server_id)",
+    actions: {
+      list: "List services with a derived availability flag (heuristic — the API has no services GET endpoint)",
+      restart:
+        "Restart a service (maps to the API action reboot). The php service requires a version.",
+    },
+    fields: {
+      service: "One of: nginx, php, mysql, postgres, redis, supervisor",
+      available: "Heuristic derived from the server object attributes",
+      detail: "Extra info (php_version, database_type, redis_status) when relevant",
+      version: "PHP version (e.g. php83) — required when restarting php",
+    },
+    examples: [
+      {
+        description: "List services",
+        params: { resource: "services", action: "list", server_id: "123" },
+      },
+      {
+        description: "Restart nginx",
+        params: { resource: "services", action: "restart", server_id: "123", service: "nginx" },
+      },
+      {
+        description: "Restart php (version required)",
+        params: {
+          resource: "services",
+          action: "restart",
+          server_id: "123",
+          service: "php",
+          version: "php83",
+        },
+      },
+    ],
+  },
+
   "firewall-rules": {
     description: "Manage UFW firewall rules on a server",
     scope: "server (requires server_id)",

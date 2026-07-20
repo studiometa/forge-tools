@@ -205,6 +205,12 @@ export const ROUTES = {
       path: "/orgs/:org/servers/:server_id/sites/:site_id/scheduled-jobs/:id/output",
     },
   },
+  services: {
+    action: {
+      method: "POST",
+      path: "/orgs/:org/servers/:server_id/services/:service/actions",
+    },
+  },
   user: {
     get: { method: "GET", path: "/user" },
   },

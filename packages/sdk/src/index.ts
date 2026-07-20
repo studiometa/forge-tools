@@ -34,6 +34,12 @@ export { SecurityRulesCollection } from "./resources/security-rules.ts";
 export type { SecurityRuleListOptions } from "./resources/security-rules.ts";
 export { ServersCollection, ServerResource } from "./resources/servers.ts";
 export type { ServerListOptions, ResolveMatch, ResolveResult } from "./resources/servers.ts";
+export { ServicesCollection, RESTARTABLE_SERVICES } from "./resources/services.ts";
+export type {
+  RestartableService,
+  RestartServiceOptions,
+  ServiceStatus,
+} from "./resources/services.ts";
 export { SshKeysCollection } from "./resources/ssh-keys.ts";
 export type { SshKeyListOptions } from "./resources/ssh-keys.ts";
 export {

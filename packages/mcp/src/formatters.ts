@@ -515,6 +515,22 @@ export function formatUser(user: UserAttributes & { id: number }): string {
   ].join("\n");
 }
 
+// ── Services ─────────────────────────────────────────
+
+/**
+ * Format a list of services with their derived availability.
+ */
+export function formatServiceList(
+  services: { service: string; available: boolean; detail: string | null }[],
+): string {
+  const lines = services.map((s) => {
+    const status = s.available ? "available" : "unavailable";
+    const detail = s.detail ? ` (${s.detail})` : "";
+    return `• ${s.service} — ${status}${detail}`;
+  });
+  return `${services.length} service(s):\n${lines.join("\n")}`;
+}
+
 // ── Generic helpers ──────────────────────────────────
 
 /**
