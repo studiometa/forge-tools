@@ -3,12 +3,24 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import type { DeploymentAttributes } from "@studiometa/forge-api";
 
 import { createTestContext } from "../../context.ts";
-import { deploymentsList, deploymentsDeploy, deploymentsLogs } from "./handlers.ts";
+import {
+  deploymentsList,
+  deploymentsDeploy,
+  deploymentsLogs,
+  deploymentsScript,
+  deploymentsUpdateScript,
+} from "./handlers.ts";
 
 vi.mock("@studiometa/forge-core", () => ({
   listDeployments: vi.fn(),
   deploySiteAndWait: vi.fn(),
   getDeploymentLog: vi.fn(),
+  getDeploymentScript: vi.fn(),
+  updateDeploymentScript: vi.fn(),
+}));
+
+vi.mock("node:fs", () => ({
+  readFileSync: vi.fn(),
 }));
 
 const mockDeployment: DeploymentAttributes & { id: number } = {
@@ -418,5 +430,419 @@ describe("deploymentsList — human format lineFormat", () => {
     });
     await deploymentsList(ctx);
     expect(vi.mocked(console.log)).toHaveBeenCalled();
+  });
+});
+
+describe("deploymentsScript", () => {
+  let processExitSpy: ReturnType<typeof vi.spyOn>;
+  let stdoutSpy: ReturnType<typeof vi.spyOn>;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    processExitSpy = vi.spyOn(process, "exit").mockImplementation(() => undefined as never);
+    vi.spyOn(console, "log").mockImplementation(() => {});
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    stdoutSpy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("should print the raw script in human format", async () => {
+    const { getDeploymentScript } = await import("@studiometa/forge-core");
+    vi.mocked(getDeploymentScript).mockResolvedValue({ data: "cd /home/forge\nnpm ci" });
+
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "human", server: "10", site: "100" },
+    });
+
+    await deploymentsScript(ctx);
+    expect(vi.mocked(getDeploymentScript)).toHaveBeenCalledWith(
+      { server_id: "10", site_id: "100" },
+      expect.anything(),
+    );
+    expect(stdoutSpy).toHaveBeenCalledWith("cd /home/forge\nnpm ci\n");
+  });
+
+  it("should not add a newline when the script already ends with one", async () => {
+    const { getDeploymentScript } = await import("@studiometa/forge-core");
+    vi.mocked(getDeploymentScript).mockResolvedValue({ data: "npm ci\n" });
+
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "human", server: "10", site: "100" },
+    });
+
+    await deploymentsScript(ctx);
+    expect(stdoutSpy).toHaveBeenCalledTimes(1);
+    expect(stdoutSpy).toHaveBeenCalledWith("npm ci\n");
+  });
+
+  it("should print { content } in json format", async () => {
+    const { getDeploymentScript } = await import("@studiometa/forge-core");
+    vi.mocked(getDeploymentScript).mockResolvedValue({ data: "npm ci" });
+
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "json", server: "10", site: "100" },
+    });
+
+    await deploymentsScript(ctx);
+    expect(vi.mocked(console.log)).toHaveBeenCalledWith(JSON.stringify({ content: "npm ci" }));
+  });
+
+  it("should exit with error when no server_id", async () => {
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "json", site: "100" },
+    });
+
+    await deploymentsScript(ctx).catch(() => {});
+    expect(processExitSpy).toHaveBeenCalledWith(3);
+  });
+
+  it("should exit with error when no site_id", async () => {
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "json", server: "10" },
+    });
+
+    await deploymentsScript(ctx).catch(() => {});
+    expect(processExitSpy).toHaveBeenCalledWith(3);
+  });
+});
+
+describe("deploymentsUpdateScript", () => {
+  let processExitSpy: ReturnType<typeof vi.spyOn>;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    processExitSpy = vi.spyOn(process, "exit").mockImplementation(() => undefined as never);
+    vi.spyOn(console, "log").mockImplementation(() => {});
+    vi.spyOn(console, "error").mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("should update the script from --content", async () => {
+    const { updateDeploymentScript } = await import("@studiometa/forge-core");
+    vi.mocked(updateDeploymentScript).mockResolvedValue({ data: undefined });
+
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "human", server: "10", site: "100", content: "npm ci" },
+    });
+
+    await deploymentsUpdateScript(ctx);
+    expect(vi.mocked(updateDeploymentScript)).toHaveBeenCalledWith(
+      { server_id: "10", site_id: "100", content: "npm ci" },
+      expect.anything(),
+    );
+    expect(vi.mocked(console.log)).toHaveBeenCalledWith(
+      expect.stringContaining("Deployment script updated."),
+    );
+  });
+
+  it("should update the script from --file", async () => {
+    const { readFileSync } = await import("node:fs");
+    const { updateDeploymentScript } = await import("@studiometa/forge-core");
+    vi.mocked(readFileSync).mockReturnValue("npm run build\n");
+    vi.mocked(updateDeploymentScript).mockResolvedValue({ data: undefined });
+
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "json", server: "10", site: "100", file: "deploy.sh" },
+    });
+
+    await deploymentsUpdateScript(ctx);
+    expect(vi.mocked(readFileSync)).toHaveBeenCalledWith("deploy.sh", "utf8");
+    expect(vi.mocked(updateDeploymentScript)).toHaveBeenCalledWith(
+      { server_id: "10", site_id: "100", content: "npm run build\n" },
+      expect.anything(),
+    );
+    expect(vi.mocked(console.log)).toHaveBeenCalledWith(
+      JSON.stringify({ status: "success", message: "Deployment script updated." }),
+    );
+  });
+
+  it("should read the script from stdin with --file -", async () => {
+    const { readFileSync } = await import("node:fs");
+    const { updateDeploymentScript } = await import("@studiometa/forge-core");
+    vi.mocked(readFileSync).mockReturnValue("from stdin");
+    vi.mocked(updateDeploymentScript).mockResolvedValue({ data: undefined });
+
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "human", server: "10", site: "100", file: "-" },
+    });
+
+    await deploymentsUpdateScript(ctx);
+    expect(vi.mocked(readFileSync)).toHaveBeenCalledWith(0, "utf8");
+    expect(vi.mocked(updateDeploymentScript)).toHaveBeenCalledWith(
+      expect.objectContaining({ content: "from stdin" }),
+      expect.anything(),
+    );
+  });
+
+  it("should exit with error when no server_id", async () => {
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "json", site: "100", content: "npm ci" },
+    });
+
+    await deploymentsUpdateScript(ctx).catch(() => {});
+    expect(processExitSpy).toHaveBeenCalledWith(3);
+  });
+
+  it("should exit with error when no site_id", async () => {
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "json", server: "10", content: "npm ci" },
+    });
+
+    await deploymentsUpdateScript(ctx).catch(() => {});
+    expect(processExitSpy).toHaveBeenCalledWith(3);
+  });
+
+  it("should exit with error when no source is given", async () => {
+    const { updateDeploymentScript } = await import("@studiometa/forge-core");
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "human", server: "10", site: "100" },
+    });
+
+    await deploymentsUpdateScript(ctx).catch(() => {});
+    expect(processExitSpy).toHaveBeenCalledWith(3);
+    expect(vi.mocked(console.error)).toHaveBeenCalledWith(
+      expect.stringContaining("--file or --content"),
+    );
+    expect(vi.mocked(updateDeploymentScript)).not.toHaveBeenCalled();
+  });
+
+  it("should exit with error when both --file and --content are given", async () => {
+    const { updateDeploymentScript } = await import("@studiometa/forge-core");
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "human", server: "10", site: "100", file: "a.sh", content: "npm ci" },
+    });
+
+    await deploymentsUpdateScript(ctx).catch(() => {});
+    expect(processExitSpy).toHaveBeenCalledWith(3);
+    expect(vi.mocked(console.error)).toHaveBeenCalledWith(expect.stringContaining("not both"));
+    expect(vi.mocked(updateDeploymentScript)).not.toHaveBeenCalled();
+  });
+
+  it("should reject an empty --content", async () => {
+    const { updateDeploymentScript } = await import("@studiometa/forge-core");
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "human", server: "10", site: "100", content: "  \n" },
+    });
+
+    await deploymentsUpdateScript(ctx).catch(() => {});
+    expect(processExitSpy).toHaveBeenCalledWith(3);
+    expect(vi.mocked(console.error)).toHaveBeenCalledWith(expect.stringContaining("empty"));
+    expect(vi.mocked(updateDeploymentScript)).not.toHaveBeenCalled();
+  });
+
+  it("should reject --content without a value", async () => {
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "human", server: "10", site: "100", content: true },
+    });
+
+    await deploymentsUpdateScript(ctx).catch(() => {});
+    expect(processExitSpy).toHaveBeenCalledWith(3);
+    expect(vi.mocked(console.error)).toHaveBeenCalledWith(expect.stringContaining("empty"));
+  });
+
+  it("should reject an empty file", async () => {
+    const { readFileSync } = await import("node:fs");
+    vi.mocked(readFileSync).mockReturnValue("");
+
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "human", server: "10", site: "100", file: "empty.sh" },
+    });
+
+    await deploymentsUpdateScript(ctx).catch(() => {});
+    expect(processExitSpy).toHaveBeenCalledWith(3);
+    expect(vi.mocked(console.error)).toHaveBeenCalledWith(expect.stringContaining("empty"));
+  });
+
+  it("should exit with error when --file has no path", async () => {
+    const { readFileSync } = await import("node:fs");
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "human", server: "10", site: "100", file: true },
+    });
+
+    await deploymentsUpdateScript(ctx).catch(() => {});
+    expect(processExitSpy).toHaveBeenCalledWith(3);
+    expect(vi.mocked(console.error)).toHaveBeenCalledWith(
+      expect.stringContaining("--file requires a path"),
+    );
+    expect(vi.mocked(readFileSync)).not.toHaveBeenCalled();
+  });
+
+  it("should exit with error when the file cannot be read", async () => {
+    const { readFileSync } = await import("node:fs");
+    const { updateDeploymentScript } = await import("@studiometa/forge-core");
+    vi.mocked(readFileSync).mockImplementation(() => {
+      throw new Error("ENOENT: no such file or directory");
+    });
+
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "human", server: "10", site: "100", file: "missing.sh" },
+    });
+
+    await deploymentsUpdateScript(ctx).catch(() => {});
+    expect(processExitSpy).toHaveBeenCalledWith(3);
+    expect(vi.mocked(console.error)).toHaveBeenCalledWith(
+      expect.stringContaining("Cannot read deployment script from missing.sh: ENOENT"),
+    );
+    expect(vi.mocked(updateDeploymentScript)).not.toHaveBeenCalled();
+  });
+
+  it("should report a non-Error value thrown while reading the file", async () => {
+    const { readFileSync } = await import("node:fs");
+    vi.mocked(readFileSync).mockImplementation(() => {
+      // oxlint-disable-next-line no-throw-literal
+      throw "boom";
+    });
+
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "human", server: "10", site: "100", file: "missing.sh" },
+    });
+
+    await deploymentsUpdateScript(ctx).catch(() => {});
+    expect(processExitSpy).toHaveBeenCalledWith(3);
+    expect(vi.mocked(console.error)).toHaveBeenCalledWith(
+      expect.stringContaining("Cannot read deployment script from missing.sh: boom"),
+    );
+  });
+});
+
+describe("deploymentsDeploy --script-file", () => {
+  let processExitSpy: ReturnType<typeof vi.spyOn>;
+  let stderrSpy: ReturnType<typeof vi.spyOn>;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    processExitSpy = vi.spyOn(process, "exit").mockImplementation(() => undefined as never);
+    vi.spyOn(console, "log").mockImplementation(() => {});
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    stderrSpy = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
+    vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("should upload the script before triggering the deployment", async () => {
+    const { readFileSync } = await import("node:fs");
+    const { updateDeploymentScript, deploySiteAndWait } = await import("@studiometa/forge-core");
+    const calls: string[] = [];
+    vi.mocked(readFileSync).mockReturnValue("npm ci");
+    vi.mocked(updateDeploymentScript).mockImplementation(async () => {
+      calls.push("update");
+      return { data: undefined };
+    });
+    vi.mocked(deploySiteAndWait).mockImplementation(async () => {
+      calls.push("deploy");
+      return { data: { status: "success", log: "Done.", elapsed_ms: 1000 } };
+    });
+
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "human", server: "10", site: "100", "script-file": "deploy.sh" },
+    });
+
+    await deploymentsDeploy(ctx);
+    expect(vi.mocked(readFileSync)).toHaveBeenCalledWith("deploy.sh", "utf8");
+    expect(vi.mocked(updateDeploymentScript)).toHaveBeenCalledWith(
+      { server_id: "10", site_id: "100", content: "npm ci" },
+      expect.anything(),
+    );
+    expect(calls).toEqual(["update", "deploy"]);
+    expect(stderrSpy).toHaveBeenCalledWith("Deployment script updated.\n");
+    expect(processExitSpy).not.toHaveBeenCalled();
+  });
+
+  it("should not deploy and exit non-zero when the upload fails", async () => {
+    const { readFileSync } = await import("node:fs");
+    const { updateDeploymentScript, deploySiteAndWait } = await import("@studiometa/forge-core");
+    vi.mocked(readFileSync).mockReturnValue("npm ci");
+    vi.mocked(updateDeploymentScript).mockRejectedValue(new Error("Forge API error"));
+
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "human", server: "10", site: "100", "script-file": "deploy.sh" },
+    });
+
+    await deploymentsDeploy(ctx);
+    expect(vi.mocked(deploySiteAndWait)).not.toHaveBeenCalled();
+    expect(processExitSpy).toHaveBeenCalledWith(1);
+  });
+
+  it("should not deploy when the script file is empty", async () => {
+    const { readFileSync } = await import("node:fs");
+    const { updateDeploymentScript, deploySiteAndWait } = await import("@studiometa/forge-core");
+    vi.mocked(readFileSync).mockReturnValue("\n");
+
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "human", server: "10", site: "100", "script-file": "deploy.sh" },
+    });
+
+    await deploymentsDeploy(ctx).catch(() => {});
+    expect(processExitSpy).toHaveBeenCalledWith(3);
+    expect(vi.mocked(updateDeploymentScript)).not.toHaveBeenCalled();
+    expect(vi.mocked(deploySiteAndWait)).not.toHaveBeenCalled();
+  });
+
+  it("should not upload a script when --script-file is absent", async () => {
+    const { updateDeploymentScript, deploySiteAndWait } = await import("@studiometa/forge-core");
+    vi.mocked(deploySiteAndWait).mockResolvedValue({
+      data: { status: "success", log: "Done.", elapsed_ms: 1000 },
+    });
+
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "human", server: "10", site: "100" },
+    });
+
+    await deploymentsDeploy(ctx);
+    expect(vi.mocked(updateDeploymentScript)).not.toHaveBeenCalled();
+    expect(vi.mocked(deploySiteAndWait)).toHaveBeenCalled();
   });
 });

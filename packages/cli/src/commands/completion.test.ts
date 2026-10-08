@@ -351,4 +351,32 @@ describe("handleCompletionCommand", () => {
       expect(script).toContain("table");
     });
   });
+
+  describe("deployment script completion", () => {
+    it("should complete bash script subcommands and file flags", () => {
+      handleCompletionCommand("bash", { print: true });
+      const script = stdoutWriteSpy.mock.calls[0]![0] as string;
+      expect(script).toContain('deployments_cmds="list ls deploy logs log script update-script"');
+      expect(script).toContain("--file --script-file");
+      expect(script).toContain("--file|--script-file)");
+    });
+
+    it("should complete zsh script subcommands and file flags", () => {
+      handleCompletionCommand("zsh", { print: true });
+      const script = stdoutWriteSpy.mock.calls[0]![0] as string;
+      expect(script).toContain("'script:Show the deployment script'");
+      expect(script).toContain("'update-script:Update the deployment script'");
+      expect(script).toContain("'--file[File path (- for stdin)]:file:_files'");
+      expect(script).toContain("'--script-file[Deployment script file]:file:_files'");
+    });
+
+    it("should complete fish script subcommands and file flags", () => {
+      handleCompletionCommand("fish", { print: true });
+      const script = stdoutWriteSpy.mock.calls[0]![0] as string;
+      expect(script).toContain('-a "script" -d "Show the deployment script"');
+      expect(script).toContain('-a "update-script" -d "Update the deployment script"');
+      expect(script).toContain('-l file -d "File path (- for stdin)" -r -F');
+      expect(script).toContain('-l script-file -d "Deployment script file" -r -F');
+    });
+  });
 });
