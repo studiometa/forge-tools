@@ -12,7 +12,7 @@ import type { CommandContext } from "../../context.ts";
 import type { OutputFormatter } from "../../output.ts";
 import type { OptionValue } from "../../utils/args.ts";
 
-import { exitWithValidationError, handleError, runCommand } from "../../error-handler.ts";
+import { exitWithError, exitWithValidationError, runCommand } from "../../error-handler.ts";
 import { ApiError, ValidationError } from "../../errors.ts";
 import { resolveServerId, resolveSiteId } from "../../utils/resolve.ts";
 
@@ -99,15 +99,6 @@ export async function deploymentsLogs(args: string[], ctx: CommandContext): Prom
 }
 
 /**
- * Output a validation error and exit.
- */
-function exitWithError(error: ValidationError, formatter: OutputFormatter): never {
-  handleError(error, formatter);
-  // Unreachable in production
-  throw error;
-}
-
-/**
  * Read a deployment script from a file path, or from stdin when the path is "-".
  */
 function readScriptFile(
@@ -129,7 +120,7 @@ function readScriptFile(
     return readFileSync(path === "-" ? 0 : path, "utf8");
   } catch (error) {
     const reason = error instanceof Error ? error.message : String(error);
-    return exitWithError(
+    exitWithError(
       new ValidationError(`Cannot read deployment script from ${path}: ${reason}`, field),
       formatter,
     );
@@ -174,7 +165,8 @@ export async function deploymentsScript(ctx: CommandContext): Promise<void> {
     if (ctx.formatter.isJson()) {
       console.log(JSON.stringify({ content: result.data }));
     } else {
-      console.log(result.data);
+      // Keep the content as it is, so `script > deploy.sh` round-trips without drift.
+      process.stdout.write(result.data.endsWith("\n") ? result.data : `${result.data}\n`);
     }
   }, ctx.formatter);
 }

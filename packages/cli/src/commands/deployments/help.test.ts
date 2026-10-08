@@ -64,7 +64,10 @@ describe("showDeploymentsHelp", () => {
   it("should list script subcommands in general help", () => {
     showDeploymentsHelp();
     const output = consoleLogSpy.mock.calls.map((c) => c.join("")).join("");
-    expect(output).toContain("script");
-    expect(output).toContain("update-script");
+    expect(output).toMatch(/^\s+script\s+Show the deployment script$/m);
+    expect(output).toMatch(/^\s+update-script\s+Update the deployment script/m);
+    expect(output).toContain("--file <path>");
+    expect(output).toContain("--content <str>");
+    expect(output).toContain("--script-file <path>");
   });
 });

@@ -435,12 +435,14 @@ describe("deploymentsList — human format lineFormat", () => {
 
 describe("deploymentsScript", () => {
   let processExitSpy: ReturnType<typeof vi.spyOn>;
+  let stdoutSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
     vi.clearAllMocks();
     processExitSpy = vi.spyOn(process, "exit").mockImplementation(() => undefined as never);
     vi.spyOn(console, "log").mockImplementation(() => {});
     vi.spyOn(console, "error").mockImplementation(() => {});
+    stdoutSpy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
   });
 
   afterEach(() => {
@@ -462,7 +464,22 @@ describe("deploymentsScript", () => {
       { server_id: "10", site_id: "100" },
       expect.anything(),
     );
-    expect(vi.mocked(console.log)).toHaveBeenCalledWith("cd /home/forge\nnpm ci");
+    expect(stdoutSpy).toHaveBeenCalledWith("cd /home/forge\nnpm ci\n");
+  });
+
+  it("should not add a newline when the script already ends with one", async () => {
+    const { getDeploymentScript } = await import("@studiometa/forge-core");
+    vi.mocked(getDeploymentScript).mockResolvedValue({ data: "npm ci\n" });
+
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "human", server: "10", site: "100" },
+    });
+
+    await deploymentsScript(ctx);
+    expect(stdoutSpy).toHaveBeenCalledTimes(1);
+    expect(stdoutSpy).toHaveBeenCalledWith("npm ci\n");
   });
 
   it("should print { content } in json format", async () => {
@@ -707,6 +724,26 @@ describe("deploymentsUpdateScript", () => {
       expect.stringContaining("Cannot read deployment script from missing.sh: ENOENT"),
     );
     expect(vi.mocked(updateDeploymentScript)).not.toHaveBeenCalled();
+  });
+
+  it("should report a non-Error value thrown while reading the file", async () => {
+    const { readFileSync } = await import("node:fs");
+    vi.mocked(readFileSync).mockImplementation(() => {
+      // oxlint-disable-next-line no-throw-literal
+      throw "boom";
+    });
+
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "human", server: "10", site: "100", file: "missing.sh" },
+    });
+
+    await deploymentsUpdateScript(ctx).catch(() => {});
+    expect(processExitSpy).toHaveBeenCalledWith(3);
+    expect(vi.mocked(console.error)).toHaveBeenCalledWith(
+      expect.stringContaining("Cannot read deployment script from missing.sh: boom"),
+    );
   });
 });
 

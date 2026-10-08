@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **CLI**: Add `forge deployments script` and `forge deployments update-script` (`--file <path|->` or `--content`) to read and write a site's deployment script, and `--script-file <path>` on `forge deployments deploy` to upload the script before deploying [[#PR]]
 
+### Changed
+
+- **CLI**: Accept a lone dash (`-`) as an option value for all commands, so `--file -` reads stdin; before, `-` parsed as a boolean flag [[#PR]]
+
 [#PR]: https://github.com/studiometa/forge-tools/pull/PR
 
 ## 0.4.6 - 2026.07.21

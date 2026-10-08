@@ -94,9 +94,12 @@ ${colors.bold("SUBCOMMANDS:")}
   update-script       Update the deployment script from a file, stdin or a string
 
 ${colors.bold("OPTIONS:")}
-  --server <id>       Server ID (required)
-  --site <id>         Site ID (required)
-  -f, --format <fmt>  Output format: json, human, table
+  --server <id>         Server ID (required)
+  --site <id>           Site ID (required)
+  --file <path>         Script file, - for stdin (for update-script)
+  --content <str>       Script content (for update-script)
+  --script-file <path>  Upload this script before deploying (for deploy)
+  -f, --format <fmt>    Output format: json, human, table
 
 Run ${colors.cyan("forge deployments <subcommand> --help")} for details.
 `);
