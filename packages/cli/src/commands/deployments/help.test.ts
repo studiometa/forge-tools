@@ -42,4 +42,29 @@ describe("showDeploymentsHelp", () => {
     showDeploymentsHelp("log");
     expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining("deployments logs"));
   });
+
+  it("should show script help", () => {
+    showDeploymentsHelp("script");
+    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining("deployments script"));
+  });
+
+  it("should show update-script help", () => {
+    showDeploymentsHelp("update-script");
+    const output = consoleLogSpy.mock.calls.map((c) => c.join("")).join("");
+    expect(output).toContain("deployments update-script");
+    expect(output).toContain("--file <path>");
+    expect(output).toContain("--content <str>");
+  });
+
+  it("should document --script-file in deploy help", () => {
+    showDeploymentsHelp("deploy");
+    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining("--script-file <path>"));
+  });
+
+  it("should list script subcommands in general help", () => {
+    showDeploymentsHelp();
+    const output = consoleLogSpy.mock.calls.map((c) => c.join("")).join("");
+    expect(output).toContain("script");
+    expect(output).toContain("update-script");
+  });
 });
