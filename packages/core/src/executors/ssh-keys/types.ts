@@ -9,6 +9,8 @@ import type { CreateSshKeyData } from "@studiometa/forge-api";
  */
 export interface ListSshKeysOptions {
   server_id: string;
+  /** Only list the keys of this server user. */
+  user?: string;
 }
 
 /**
