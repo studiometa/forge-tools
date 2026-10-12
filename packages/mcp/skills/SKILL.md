@@ -126,7 +126,7 @@ Use `action: "schema"` for a compact machine-readable spec:
 | `site_id`          | string  | Site ID **or domain name** — auto-resolved via partial match; requires `server_id`                      |
 | `domain_id`        | string  | Domain record ID (for certificate operations)                                                           |
 | `query`            | string  | Search query for `resolve` action (partial, case-insensitive match against resource names/domains)      |
-| `compact`          | boolean | Compact output (default: true)                                                                          |
+| `compact`          | boolean | Compact output (default: false for `get` and `check`, true for other actions and for `batch`)           |
 | `content`          | string  | Content for env/nginx/deployment script/PHP config `update` and `check`                                 |
 | `operations`       | array   | Array of operations for `batch` `run` (max 10). Each item needs `resource`, `action`, and extra params. |
 

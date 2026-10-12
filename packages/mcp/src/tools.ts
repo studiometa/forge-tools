@@ -107,7 +107,8 @@ const SHARED_INPUT_PROPERTIES = {
   },
   compact: {
     type: "boolean" as const,
-    description: "Compact output (default: true for list, false for get)",
+    description:
+      "Compact output (default: false for get and check, true for other actions and for batch)",
   },
   query: {
     type: "string" as const,
@@ -157,19 +158,21 @@ const FORGE_READ_TOOL: Tool = {
       setting: {
         type: "string" as const,
         description:
-          "PHP setting to read (php get): version, config, max-upload-size, max-execution-time, opcache",
+          "PHP setting to read (php get): version, config, max-upload-size, max-execution-time, opcache. php check requires config",
       },
       version: {
         type: "string" as const,
-        description: 'PHP version ID or version (e.g. "8.3", "php83") for php get',
+        description:
+          'PHP version ID or version (e.g. "8.3", "php83") for php get and check (setting=config)',
       },
       type: {
         type: "string" as const,
-        description: "PHP configuration file for php get setting=config: cli, fpm, pool",
+        description:
+          "PHP configuration file for php get and check (setting=config): cli, fpm, pool",
       },
       user: {
         type: "string" as const,
-        description: "FPM pool user for php get setting=config type=pool (optional)",
+        description: "FPM pool user for php get and check (setting=config, type=pool, optional)",
       },
       // Check fields
       content: {

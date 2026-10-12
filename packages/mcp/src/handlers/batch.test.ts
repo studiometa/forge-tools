@@ -141,7 +141,9 @@ describe("handleBatch", () => {
     );
     expect(result.isError).toBe(true);
     expect(result.content[0].text).toContain('"create"');
-    expect(result.content[0].text).toContain("read actions");
+    expect(result.content[0].text).toContain(
+      "Only read actions are allowed in batch: list, get, resolve, help, schema, context, log, check.",
+    );
   });
 
   it("should execute multiple operations successfully", async () => {
