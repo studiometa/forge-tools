@@ -16,6 +16,22 @@ const MAX_SLUG_LENGTH = 40;
 const KEY_TYPE = /^(ssh-|ecdsa-sha2-|sk-)[a-z0-9@.-]+$/;
 const BASE64 = /^[A-Za-z0-9+/]+={0,2}$/;
 
+/**
+ * Check the base64 key data of a public key, as OpenSSH does: it must be canonical
+ * base64, and the decoded key must start with its own type as a length-prefixed string.
+ */
+export function isValidKeyBlob(type: string, blob: string): boolean {
+  if (!BASE64.test(blob) || blob.length % 4 !== 0) {
+    return false;
+  }
+  const data = Buffer.from(blob, "base64");
+  if (data.toString("base64") !== blob || data.length < 4) {
+    return false;
+  }
+  const typeLength = data.readUInt32BE(0);
+  return 4 + typeLength <= data.length && data.toString("latin1", 4, 4 + typeLength) === type;
+}
+
 /** A public key from the file, with the name it gets on Forge. */
 export interface FileKey {
   name: string;
@@ -83,7 +99,7 @@ export function parseAuthorizedKeys(content: string): FileKey[] {
     const [type, blob = "", ...rest] = text.split(/\s+/);
     const problem = !KEY_TYPE.test(type)
       ? "unknown key type"
-      : !BASE64.test(blob)
+      : !isValidKeyBlob(type, blob)
         ? "missing or invalid base64 key data"
         : undefined;
     if (problem) {

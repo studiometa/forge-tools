@@ -11,8 +11,10 @@ vi.mock("node:fs", () => ({
   readFileSync: vi.fn(),
 }));
 
-const ED25519 = "AAAAC3NzaC1lZDI1NTE5AAAAIA";
-const RSA = "AAAAB3NzaC1yc2EAAAADAQAB";
+// Real public keys (generated with ssh-keygen for these tests).
+const ED25519 = "AAAAC3NzaC1lZDI1NTE5AAAAIOZj9JBXmdLF38UFVJYooSYlEjxnx+J2ipceaMAPqoyx";
+const RSA =
+  "AAAAB3NzaC1yc2EAAAADAQABAAAAgQDDLT3wOmgU0XsevYrD19e5cTxGA4W9V4nhoyPE9IbqWkueNxMDO5kzTFS1dVRX7DaY0lRs7sQfLJKb288N3NKocTgilTMT+PkLdKNhjLBq1Bv+tL7bXd0uGsv1w/44x0P1jK/Ve5qG33lt2q/DXHFDYhyErCMiBtWJsRQqmphVnw==";
 const FILE = `# team\nssh-ed25519 ${ED25519} alice\nssh-rsa ${RSA} bob\n`;
 const [ALICE, BOB] = parseAuthorizedKeys(FILE).map((k) => k.name);
 
