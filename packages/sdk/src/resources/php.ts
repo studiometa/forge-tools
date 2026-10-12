@@ -14,9 +14,14 @@ import { unwrapDocument, unwrapListDocument } from "@studiometa/forge-api";
 import { BaseCollection } from "./base.ts";
 
 /**
+ * The PHP configuration files that Forge can read and write.
+ */
+export const PHP_CONFIG_TYPES = ["cli", "fpm", "pool"] as const;
+
+/**
  * A PHP configuration file that Forge can read and write.
  */
-export type PhpConfigType = "cli" | "fpm" | "pool";
+export type PhpConfigType = (typeof PHP_CONFIG_TYPES)[number];
 
 /**
  * Options for listing PHP versions.
@@ -32,6 +37,22 @@ export interface PhpVersionListOptions {
 export interface PhpConfigOptions {
   /** Unix user of the FPM pool (pool only). */
   user?: string;
+}
+
+/**
+ * Throw when the configuration type is not one of cli, fpm or pool,
+ * or when a user is given for a type other than pool.
+ */
+function assertConfigTarget(type: string, options: PhpConfigOptions): void {
+  if (!(PHP_CONFIG_TYPES as readonly string[]).includes(type)) {
+    throw new Error(
+      `Invalid PHP config type "${type}". Valid types: ${PHP_CONFIG_TYPES.join(", ")}.`,
+    );
+  }
+
+  if (options.user && type !== "pool") {
+    throw new Error(`The user option applies to the pool config only, not "${type}".`);
+  }
 }
 
 /**
@@ -111,6 +132,7 @@ export class PhpResource extends BaseCollection {
     type: PhpConfigType,
     options: PhpConfigOptions = {},
   ): Promise<string> {
+    assertConfigTarget(type, options);
     const query = options.user ? `?user=${encodeURIComponent(options.user)}` : "";
     const response = await this.client.get<JsonApiDocument<PhpConfigAttributes>>(
       `${this.basePath}/versions/${versionId}/configs/${type}${query}`,
@@ -132,6 +154,7 @@ export class PhpResource extends BaseCollection {
     content: string,
     options: PhpConfigOptions = {},
   ): Promise<void> {
+    assertConfigTarget(type, options);
     await this.client.put(`${this.basePath}/versions/${versionId}/configs/${type}`, {
       config: content,
       ...(options.user ? { user: options.user } : {}),

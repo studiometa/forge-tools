@@ -31,7 +31,7 @@ function setup(data: unknown = {}) {
       body: init?.body ? JSON.parse(init.body as string) : undefined,
     };
   };
-  return { php, call };
+  return { php, call, fetchMock: vi.mocked(fetch) };
 }
 
 describe("PhpResource", () => {
@@ -108,6 +108,30 @@ describe("PhpResource", () => {
     await php.updateConfig(12, "pool", "[www]", { user: "forge" });
 
     expect(call().body).toEqual({ config: "[www]", user: "forge" });
+  });
+
+  it("should reject an invalid config type before any request", async () => {
+    const { php, fetchMock } = setup();
+
+    await expect(php.config(12, "php-fpm" as never)).rejects.toThrow(
+      'Invalid PHP config type "php-fpm". Valid types: cli, fpm, pool.',
+    );
+    await expect(php.updateConfig(12, "../x" as never, "x")).rejects.toThrow(
+      'Invalid PHP config type "../x". Valid types: cli, fpm, pool.',
+    );
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("should reject a user for a config type other than pool", async () => {
+    const { php, fetchMock } = setup();
+
+    await expect(php.config(12, "fpm", { user: "forge" })).rejects.toThrow(
+      'The user option applies to the pool config only, not "fpm".',
+    );
+    await expect(php.updateConfig(12, "cli", "x", { user: "forge" })).rejects.toThrow(
+      'The user option applies to the pool config only, not "cli".',
+    );
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it("should get and set the max upload size", async () => {
