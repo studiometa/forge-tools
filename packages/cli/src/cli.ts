@@ -75,7 +75,7 @@ ${colors.bold("COMMANDS:")}
     deploy              Trigger a deployment (requires --server --site)
     logs [id]           Show deployment output (requires --server --site)
     script              Show the deployment script (requires --server --site)
-    update-script       Update the deployment script (requires --server --site --file|--content)
+    update-script       Update the deployment script (requires --server --site --file|--content) [--check]
 
   databases, db       Manage databases
     list, ls            List databases (requires --server)
@@ -94,11 +94,11 @@ ${colors.bold("COMMANDS:")}
 
   env                 Manage environment variables
     get                 Get env variables (requires --server --site)
-    update              Update env variables (requires --server --site --file|--content)
+    update              Update env variables (requires --server --site --file|--content) [--check]
 
   nginx               Manage nginx configuration
     get                 Get nginx config (requires --server --site)
-    update              Update nginx config (requires --server --site --file|--content)
+    update              Update nginx config (requires --server --site --file|--content) [--check]
 
   certificates, certs Manage SSL certificates (per-domain in v2)
     get                 Get certificate for a domain (requires --server --site --domain)

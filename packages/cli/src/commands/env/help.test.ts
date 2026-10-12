@@ -28,5 +28,7 @@ describe("showEnvHelp", () => {
     const output = String(consoleLogSpy.mock.calls[0][0]);
     expect(output).toContain("env update");
     expect(output).toContain("--file <path>");
+    expect(output).toContain("--check");
+    expect(output).toContain("never values");
   });
 });

@@ -28,5 +28,6 @@ describe("showNginxHelp", () => {
     const output = String(consoleLogSpy.mock.calls[0][0]);
     expect(output).toContain("nginx update");
     expect(output).toContain("--file <path>");
+    expect(output).toContain("--check");
   });
 });

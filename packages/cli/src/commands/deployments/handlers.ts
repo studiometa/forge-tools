@@ -11,6 +11,7 @@ import type { CommandContext } from "../../context.ts";
 import { exitWithValidationError, runCommand } from "../../error-handler.ts";
 import { ApiError } from "../../errors.ts";
 import { readContentFile, readContentOption } from "../../utils/content-source.ts";
+import { reportTextDrift } from "../../utils/drift.ts";
 import { resolveServerId, resolveSiteId } from "../../utils/resolve.ts";
 
 export async function deploymentsList(ctx: CommandContext): Promise<void> {
@@ -132,9 +133,10 @@ export async function deploymentsScript(ctx: CommandContext): Promise<void> {
 
 export async function deploymentsUpdateScript(ctx: CommandContext): Promise<void> {
   const usage =
-    "forge deployments update-script --server <server_id> --site <site_id> (--file <path|-> | --content <script>)";
+    "forge deployments update-script --server <server_id> --site <site_id> (--file <path|-> | --content <script>) [--check]";
   const server = String(ctx.options.server ?? "");
   const site = String(ctx.options.site ?? "");
+  const check = Boolean(ctx.options.check);
 
   if (!server) {
     exitWithValidationError("server_id", usage, ctx.formatter);
@@ -155,6 +157,12 @@ export async function deploymentsUpdateScript(ctx: CommandContext): Promise<void
     const execCtx = ctx.createExecutorContext(token);
     const server_id = await resolveServerId(server, execCtx);
     const site_id = await resolveSiteId(site, server_id, execCtx);
+    if (check) {
+      const remote = await getDeploymentScript({ server_id, site_id }, execCtx);
+      reportTextDrift("deployment script", remote.data, script, ctx.formatter);
+      return;
+    }
+
     await updateDeploymentScript({ server_id, site_id, content: script }, execCtx);
     ctx.formatter.success("Deployment script updated.");
   }, ctx.formatter);

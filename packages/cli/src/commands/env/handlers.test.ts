@@ -186,3 +186,92 @@ describe("envUpdate", () => {
     expect(vi.mocked(updateEnv)).not.toHaveBeenCalled();
   });
 });
+
+describe("envUpdate --check", () => {
+  let processExitSpy: ReturnType<typeof vi.spyOn>;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    processExitSpy = vi.spyOn(process, "exit").mockImplementation(() => undefined as never);
+    vi.spyOn(console, "log").mockImplementation(() => {});
+    vi.spyOn(console, "error").mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("should report in sync and not write", async () => {
+    const { getEnv, updateEnv } = await import("@studiometa/forge-core");
+    vi.mocked(getEnv).mockResolvedValue({ data: "# remote\nAPP_ENV=production\n" });
+
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: {
+        format: "human",
+        server: "10",
+        site: "100",
+        content: "APP_ENV=production",
+        check: true,
+      },
+    });
+
+    await envUpdate(ctx);
+    expect(vi.mocked(getEnv)).toHaveBeenCalledWith(
+      { server_id: "10", site_id: "100" },
+      expect.anything(),
+    );
+    expect(vi.mocked(updateEnv)).not.toHaveBeenCalled();
+    expect(vi.mocked(console.log)).toHaveBeenCalledWith(
+      expect.stringContaining("Environment file is in sync with Forge."),
+    );
+    expect(processExitSpy).not.toHaveBeenCalled();
+  });
+
+  it("should print variable names only, exit 1 and not write", async () => {
+    const { getEnv, updateEnv } = await import("@studiometa/forge-core");
+    vi.mocked(getEnv).mockResolvedValue({ data: "DB_PASSWORD=remote-secret\nOLD=old-secret" });
+
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: {
+        format: "human",
+        server: "10",
+        site: "100",
+        content: "DB_PASSWORD=local-secret\nNEW=new-secret",
+        check: true,
+      },
+    });
+
+    await envUpdate(ctx);
+    expect(vi.mocked(updateEnv)).not.toHaveBeenCalled();
+    expect(vi.mocked(console.log)).toHaveBeenCalledWith(
+      "+ NEW (added)\n- OLD (removed)\n~ DB_PASSWORD (changed)",
+    );
+    const printed = JSON.stringify([
+      vi.mocked(console.log).mock.calls,
+      vi.mocked(console.error).mock.calls,
+    ]);
+    expect(printed).not.toMatch(/secret/);
+    expect(processExitSpy).toHaveBeenCalledWith(1);
+  });
+
+  it("should print { inSync, diff } with names only in json format", async () => {
+    const { getEnv } = await import("@studiometa/forge-core");
+    vi.mocked(getEnv).mockResolvedValue({ data: "A=1" });
+
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "json", server: "10", site: "100", content: "A=2", check: true },
+    });
+
+    await envUpdate(ctx);
+    expect(vi.mocked(console.log)).toHaveBeenCalledWith(
+      JSON.stringify({ inSync: false, diff: { added: [], removed: [], changed: ["A"] } }),
+    );
+    expect(processExitSpy).toHaveBeenCalledWith(1);
+  });
+});

@@ -748,3 +748,61 @@ describe("deploymentsDeploy --script-file", () => {
     expect(vi.mocked(deploySiteAndWait)).toHaveBeenCalled();
   });
 });
+
+describe("deploymentsUpdateScript --check", () => {
+  let processExitSpy: ReturnType<typeof vi.spyOn>;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    processExitSpy = vi.spyOn(process, "exit").mockImplementation(() => undefined as never);
+    vi.spyOn(console, "log").mockImplementation(() => {});
+    vi.spyOn(console, "error").mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("should report in sync and not write", async () => {
+    const { getDeploymentScript, updateDeploymentScript } = await import("@studiometa/forge-core");
+    vi.mocked(getDeploymentScript).mockResolvedValue({ data: "npm ci\n" });
+
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "human", server: "10", site: "100", content: "npm ci", check: true },
+    });
+
+    await deploymentsUpdateScript(ctx);
+    expect(vi.mocked(getDeploymentScript)).toHaveBeenCalledWith(
+      { server_id: "10", site_id: "100" },
+      expect.anything(),
+    );
+    expect(vi.mocked(updateDeploymentScript)).not.toHaveBeenCalled();
+    expect(vi.mocked(console.log)).toHaveBeenCalledWith(
+      expect.stringContaining("Deployment script is in sync with Forge."),
+    );
+    expect(processExitSpy).not.toHaveBeenCalled();
+  });
+
+  it("should print a diff, exit 1 and not write when the content differs", async () => {
+    const { getDeploymentScript, updateDeploymentScript } = await import("@studiometa/forge-core");
+    vi.mocked(getDeploymentScript).mockResolvedValue({ data: "npm ci\n" });
+
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "json", server: "10", site: "100", content: "npm run build", check: true },
+    });
+
+    await deploymentsUpdateScript(ctx);
+    expect(vi.mocked(updateDeploymentScript)).not.toHaveBeenCalled();
+    expect(vi.mocked(console.log)).toHaveBeenCalledWith(
+      JSON.stringify({
+        inSync: false,
+        diff: "--- remote\n+++ local\n@@ -1,1 +1,1 @@\n-npm ci\n+npm run build",
+      }),
+    );
+    expect(processExitSpy).toHaveBeenCalledWith(1);
+  });
+});
