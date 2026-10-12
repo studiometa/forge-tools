@@ -101,7 +101,8 @@ Co-authored-by: Claude <claude@anthropic.com>
 All packages share one version. Maintainers release with the `Release` workflow, which bumps the version, folds the changelog fragments into `CHANGELOG.md`, tags, publishes to npm and creates the GitHub release:
 
 ```bash
-gh workflow run release.yml -f bump=patch   # or minor / major
+gh workflow run publish.yml -f bump=patch   # or minor / major
+gh workflow run publish.yml -f tag=0.4.7    # publish an existing tag again
 ```
 
 ## Changelog

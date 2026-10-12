@@ -1,28 +1,101 @@
-name: Publish
+name: Release
+
+# npm trusted publishing is configured for this file name: keep the release
+# and the publish jobs in publish.yml, and do not call them from another workflow.
 
 on:
-  workflow_call:
+  workflow_dispatch:
     inputs:
+      bump:
+        description: "Version bump (on 0.x, new features are a patch)"
+        type: choice
+        options: [patch, minor, major]
+        default: patch
       tag:
-        description: "Tag to publish, created by the Release workflow"
+        description: "Publish this existing tag instead of releasing a new version (e.g. 0.4.7)"
         type: string
-        required: true
-      body:
-        description: "GitHub Release body (the changelog section)"
-        type: string
-        required: true
-    secrets:
-      NPM_TOKEN:
-        required: true
+        default: ""
+
+concurrency: release
 
 jobs:
-  test:
-    name: Test
+  release:
+    name: Bump version and changelog
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && inputs.tag == ''
+    permissions:
+      contents: write
+      pull-requests: read
+    outputs:
+      version: ${{ steps.version.outputs.version }}
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
-          ref: ${{ inputs.tag }}
+          # The changelog action reads the commit that added each fragment.
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+        with:
+          node-version: "24"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Bump version
+        id: version
+        env:
+          BUMP: ${{ inputs.bump }}
+        run: |
+          npm run "version:$BUMP"
+          echo "version=$(node -p 'require("./package.json").version')" >> "$GITHUB_OUTPUT"
+
+      - name: Fold changelog fragments
+        id: changelog
+        uses: weareikko/changelog@c25888e03ad7c8bbaee897b84e778ebce9e9301c # 1.0.3
+        with:
+          command: release
+          version: ${{ steps.version.outputs.version }}
+
+      - name: Fail when there is nothing to release
+        if: steps.changelog.outputs.changed != 'true'
+        run: |
+          echo "::error::No fragment in .changelog/: nothing to release."
+          exit 1
+
+      - name: Commit, tag and push
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add CHANGELOG.md .changelog package.json package-lock.json packages/*/package.json
+          git commit -m "Release $VERSION"
+          git tag "$VERSION"
+          git push origin HEAD:main "$VERSION"
+
+  test:
+    name: Test
+    needs: release
+    # Runs after a new release, or alone when an existing tag is given.
+    if: ${{ !cancelled() && (needs.release.result == 'success' || (needs.release.result == 'skipped' && inputs.tag != '')) }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      tag: ${{ steps.tag.outputs.tag }}
+    steps:
+      - name: Resolve tag
+        id: tag
+        env:
+          INPUT_TAG: ${{ inputs.tag }}
+          RELEASED: ${{ needs.release.outputs.version }}
+        run: echo "tag=${INPUT_TAG:-$RELEASED}" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          ref: refs/tags/${{ steps.tag.outputs.tag }}
 
       - name: Setup Node.js
         uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
@@ -48,14 +121,17 @@ jobs:
   publish:
     name: Publish to npm
     needs: test
+    if: ${{ !cancelled() && needs.test.result == 'success' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
       id-token: write
+    env:
+      TAG: ${{ needs.test.outputs.tag }}
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
-          ref: ${{ inputs.tag }}
+          ref: refs/tags/${{ needs.test.outputs.tag }}
 
       - name: Setup Node.js
         uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
@@ -73,39 +149,40 @@ jobs:
       - name: Sync inter-package versions
         run: node scripts/sync-versions.js
 
+      # Trusted publishing (OIDC): no npm token.
       - name: Publish @studiometa/forge-api
         run: npm publish --provenance --access public
         working-directory: packages/api
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Publish @studiometa/forge-sdk
         run: npm publish --provenance --access public
         working-directory: packages/sdk
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Publish @studiometa/forge-core
         run: npm publish --provenance --access public
         working-directory: packages/core
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Publish @studiometa/forge-mcp
         run: npm publish --provenance --access public
         working-directory: packages/mcp
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Publish @studiometa/forge-cli
         run: npm publish --provenance --access public
         working-directory: packages/cli
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      # The release body is the version's section of CHANGELOG.md, without its heading.
+      - name: Extract release notes
+        run: |
+          awk -v tag="$TAG" '
+            index($0, "## " tag " ") == 1 { found = 1; next }
+            found && /^## / { exit }
+            found { print }
+          ' CHANGELOG.md | sed '/./,$!d' > "$RUNNER_TEMP/release-notes.md"
+          test -s "$RUNNER_TEMP/release-notes.md"
 
       - name: Create GitHub Release
         uses: ncipollo/release-action@339a81892b84b4eeb0f6e744e4574d79d0d9b8dd # v1
         with:
-          tag: ${{ inputs.tag }}
-          name: ${{ inputs.tag }}
-          body: ${{ inputs.body }}
+          tag: ${{ env.TAG }}
+          name: ${{ env.TAG }}
+          bodyFile: ${{ runner.temp }}/release-notes.md
