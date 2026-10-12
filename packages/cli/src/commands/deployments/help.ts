@@ -47,19 +47,23 @@ ${colors.bold("forge deployments update-script")} - Update the deployment script
 ${colors.bold("USAGE:")}
   forge deployments update-script --server <server_id> --site <site_id> --file <path>
   forge deployments update-script --server <server_id> --site <site_id> --content <script>
+  forge deployments update-script --server <server_id> --site <site_id> --file <path> --check
 
 ${colors.bold("OPTIONS:")}
   --server <id>       Server ID (required)
   --site <id>         Site ID (required)
   --file <path>       Read the script from a file (use - for stdin)
   --content <str>     Script content
-  -f, --format <fmt>  Output format: json, human
+  --check             Compare with the content on Forge and do not write.
+                      Exit 0 when in sync, 1 with a line diff (- remote, + local).
+  -f, --format <fmt>  Output format: json ({ inSync, diff? } with --check), human
 
   Give exactly one of --file or --content. An empty script is rejected.
 
 ${colors.bold("EXAMPLES:")}
   forge deployments update-script --server 123 --site 456 --file deploy.sh
   cat deploy.sh | forge deployments update-script --server 123 --site 456 --file -
+  forge deployments update-script --server 123 --site 456 --file deploy.sh --check
 `);
   } else if (subcommand === "deploy") {
     console.log(`
@@ -98,6 +102,7 @@ ${colors.bold("OPTIONS:")}
   --site <id>           Site ID (required)
   --file <path>         Script file, - for stdin (for update-script)
   --content <str>       Script content (for update-script)
+  --check               Compare with Forge, do not write (for update-script)
   --script-file <path>  Upload this script before deploying (for deploy)
   -f, --format <fmt>    Output format: json, human, table
 

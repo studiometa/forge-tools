@@ -52,6 +52,7 @@ describe("showDeploymentsHelp", () => {
     showDeploymentsHelp("update-script");
     const output = consoleLogSpy.mock.calls.map((c) => c.join("")).join("");
     expect(output).toContain("deployments update-script");
+    expect(output).toContain("--check");
     expect(output).toContain("--file <path>");
     expect(output).toContain("--content <str>");
   });

@@ -46,7 +46,7 @@ _forge_completions() {
   local completion_cmds="bash zsh fish"
 
   # Global options
-  options="--token --server --site -f --format --no-color -h --help -v --version --name --command --content --from --to --provider --frequency --type --operator --threshold --minutes --key --port --ip-address --user --private --dry-run --script --servers --domain --password --credential-id --region --size --project-type --directory --file --script-file"
+  options="--token --server --site -f --format --no-color -h --help -v --version --name --command --content --from --to --provider --frequency --type --operator --threshold --minutes --key --port --ip-address --user --private --dry-run --script --servers --domain --password --credential-id --region --size --project-type --directory --file --script-file --check"
 
   # Format options
   local formats="json human table"
@@ -473,7 +473,8 @@ _forge() {
         '--project-type[Project type]:project type:' \\
         '--directory[Directory]:directory:' \\
         '--file[File path (- for stdin)]:file:_files' \\
-        '--script-file[Deployment script file]:file:_files'
+        '--script-file[Deployment script file]:file:_files' \\
+        '--check[Compare with Forge, do not write]'
       ;;
   esac
 }
@@ -685,6 +686,7 @@ complete -c forge -l project-type -d "Project type" -r
 complete -c forge -l directory -d "Directory" -r
 complete -c forge -l file -d "File path (- for stdin)" -r -F
 complete -c forge -l script-file -d "Deployment script file" -r -F
+complete -c forge -l check -d "Compare with Forge, do not write"
 `;
 
 /**
