@@ -24,7 +24,7 @@ _forge_completions() {
   local config_cmds="set get delete"
   local servers_cmds="list ls get reboot"
   local sites_cmds="list ls get"
-  local deployments_cmds="list ls deploy logs log"
+  local deployments_cmds="list ls deploy logs log script update-script"
   local databases_cmds="list ls get"
   local database_users_cmds="list ls get create delete"
   local daemons_cmds="list ls get restart logs log"
@@ -46,7 +46,7 @@ _forge_completions() {
   local completion_cmds="bash zsh fish"
 
   # Global options
-  options="--token --server --site -f --format --no-color -h --help -v --version --name --command --content --from --to --provider --frequency --type --operator --threshold --minutes --key --port --ip-address --user --private --dry-run --script --servers --domain --password --credential-id --region --size --project-type --directory"
+  options="--token --server --site -f --format --no-color -h --help -v --version --name --command --content --from --to --provider --frequency --type --operator --threshold --minutes --key --port --ip-address --user --private --dry-run --script --servers --domain --password --credential-id --region --size --project-type --directory --file --script-file"
 
   # Format options
   local formats="json human table"
@@ -139,6 +139,10 @@ _forge_completions() {
       case "\${prev}" in
         --format|-f)
           COMPREPLY=( $(compgen -W "\${formats}" -- "\${cur}") )
+          ;;
+        --file|--script-file)
+          # Complete file paths
+          COMPREPLY=( $(compgen -f -- "\${cur}") )
           ;;
         --token|--server|--site|--name|--command|--content|--from|--to|--provider|--frequency|--type|--operator|--threshold|--minutes|--key|--port|--ip-address|--user|--script|--servers|--domain|--password|--credential-id|--region|--size|--project-type|--directory)
           # No completion for values requiring arguments
@@ -242,6 +246,8 @@ _forge() {
             'deploy:Trigger a deployment'
             'logs:Show deployment output'
             'log:Show deployment output (alias)'
+            'script:Show the deployment script'
+            'update-script:Update the deployment script'
           )
           _describe 'deployments command' deployments_cmds
           ;;
@@ -465,7 +471,9 @@ _forge() {
         '--region[Region]:region:' \\
         '--size[Size]:size:' \\
         '--project-type[Project type]:project type:' \\
-        '--directory[Directory]:directory:'
+        '--directory[Directory]:directory:' \\
+        '--file[File path (- for stdin)]:file:_files' \\
+        '--script-file[Deployment script file]:file:_files'
       ;;
   esac
 }
@@ -529,6 +537,8 @@ complete -c forge -f -n "__fish_seen_subcommand_from deployments d" -a "ls" -d "
 complete -c forge -f -n "__fish_seen_subcommand_from deployments d" -a "deploy" -d "Trigger a deployment"
 complete -c forge -f -n "__fish_seen_subcommand_from deployments d" -a "logs" -d "Show deployment output"
 complete -c forge -f -n "__fish_seen_subcommand_from deployments d" -a "log" -d "Show deployment output (alias)"
+complete -c forge -f -n "__fish_seen_subcommand_from deployments d" -a "script" -d "Show the deployment script"
+complete -c forge -f -n "__fish_seen_subcommand_from deployments d" -a "update-script" -d "Update the deployment script"
 
 # databases subcommands
 complete -c forge -f -n "__fish_seen_subcommand_from databases db" -a "list" -d "List databases"
@@ -673,6 +683,8 @@ complete -c forge -l region -d "Region" -r
 complete -c forge -l size -d "Size" -r
 complete -c forge -l project-type -d "Project type" -r
 complete -c forge -l directory -d "Directory" -r
+complete -c forge -l file -d "File path (- for stdin)" -r -F
+complete -c forge -l script-file -d "Deployment script file" -r -F
 `;
 
 /**

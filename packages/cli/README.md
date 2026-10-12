@@ -46,7 +46,7 @@ forge <command> [subcommand] [options]
 | `config`          |         | Manage CLI configuration (`set`, `get`, `delete`)    |
 | `servers`         | `s`     | List, get, reboot servers                            |
 | `sites`           |         | List, get sites on a server                          |
-| `deployments`     | `d`     | List deployments, trigger deploys                    |
+| `deployments`     | `d`     | List deployments, trigger deploys, deploy script     |
 | `databases`       | `db`    | List, get databases on a server                      |
 | `database-users`  |         | List, get, create, delete database users on a server |
 | `daemons`         |         | List, get, restart daemons on a server               |
@@ -132,11 +132,19 @@ forge sites get <site_id> --server <id>     # Get site details
 ### `deployments` (`d`) — Manage deployments
 
 ```bash
-forge deployments list --server <id> --site <id>    # List deployments
-forge deployments deploy --server <id> --site <id>  # Trigger a deployment
+forge deployments list --server <id> --site <id>                          # List deployments
+forge deployments deploy --server <id> --site <id>                        # Trigger a deployment
+forge deployments deploy --server <id> --site <id> --script-file deploy.sh  # Upload the script, then deploy
+forge deployments logs [id] --server <id> --site <id>                     # Show deployment output (latest if no id)
+forge deployments script --server <id> --site <id>                        # Print the deployment script
+forge deployments update-script --server <id> --site <id> --file deploy.sh  # Update the script from a file
+forge deployments update-script --server <id> --site <id> --file -        # Update the script from stdin
+forge deployments update-script --server <id> --site <id> --content "..." # Update the script from a string
 ```
 
 The `deploy` command waits for deployment to complete, showing live progress. On completion it prints the deployment log and elapsed time.
+
+Keep the deployment script in your repository: `update-script` takes exactly one of `--file` or `--content` and rejects an empty script. With `deploy --script-file`, the script is uploaded first; if the upload fails, the deployment does not start and the command exits non-zero.
 
 ### `databases` (`db`) — Manage databases
 

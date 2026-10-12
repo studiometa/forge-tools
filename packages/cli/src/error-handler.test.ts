@@ -8,6 +8,7 @@ import {
   handleError,
   runCommand,
   exitWithConfigError,
+  exitWithError,
   exitWithValidationError,
 } from "./error-handler.ts";
 
@@ -139,6 +140,27 @@ describe("exitWithValidationError", () => {
       // process.exit is mocked so exitWithValidationError throws
     }
     expect(processExitSpy).toHaveBeenCalledWith(ExitCode.VALIDATION_ERROR);
+  });
+});
+
+describe("exitWithError", () => {
+  let processExitSpy: ReturnType<typeof vi.spyOn>;
+
+  beforeEach(() => {
+    processExitSpy = vi.spyOn(process, "exit").mockImplementation(() => undefined as never);
+    vi.spyOn(console, "error").mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("should output the error, exit with its code and throw it", () => {
+    const formatter = new OutputFormatter("human", true);
+    const error = new ValidationError("Bad input", "file");
+    expect(() => exitWithError(error, formatter)).toThrow(error);
+    expect(processExitSpy).toHaveBeenCalledWith(ExitCode.VALIDATION_ERROR);
+    expect(vi.mocked(console.error)).toHaveBeenCalledWith(expect.stringContaining("Bad input"));
   });
 });
 

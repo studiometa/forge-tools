@@ -34,6 +34,12 @@ describe("parseArgs", () => {
     expect(result.options.h).toBe(true);
   });
 
+  it("should accept a lone dash as an option value", () => {
+    const result = parseArgs(["--file", "-", "-f", "-"]);
+    expect(result.options.file).toBe("-");
+    expect(result.options.f).toBe("-");
+  });
+
   it("should parse multiple short flags", () => {
     const result = parseArgs(["-vh"]);
     expect(result.options.v).toBe(true);

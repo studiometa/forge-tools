@@ -86,6 +86,15 @@ export async function runCommand<T>(
 }
 
 /**
+ * Outputs an error and exits.
+ */
+export function exitWithError(error: CliError, formatter: OutputFormatter): never {
+  handleError(error, formatter);
+  // Unreachable in production
+  throw error;
+}
+
+/**
  * Exits with a validation error for a missing required argument.
  */
 export function exitWithValidationError(
@@ -93,10 +102,7 @@ export function exitWithValidationError(
   usage: string,
   formatter: OutputFormatter,
 ): never {
-  const error = ValidationError.required(field, [`Usage: ${usage}`]);
-  handleError(error, formatter);
-  // Unreachable in production
-  throw error;
+  exitWithError(ValidationError.required(field, [`Usage: ${usage}`]), formatter);
 }
 
 /**

@@ -12,6 +12,14 @@ export interface ParsedArgs {
   positional: string[];
 }
 
+/**
+ * Whether an argument can be the value of the option before it.
+ * A lone "-" is a value (it means stdin), other "-" prefixed arguments are options.
+ */
+function isOptionValue(arg: string): boolean {
+  return arg === "-" || !arg.startsWith("-");
+}
+
 export function parseArgs(argv: string[] = process.argv.slice(2)): ParsedArgs {
   const options: Record<string, string | boolean | string[]> = {};
   const positional: string[] = [];
@@ -31,7 +39,7 @@ export function parseArgs(argv: string[] = process.argv.slice(2)): ParsedArgs {
         const key = arg.slice(2);
         const nextArg = argv[i + 1];
 
-        if (nextArg !== undefined && !nextArg.startsWith("-")) {
+        if (nextArg !== undefined && isOptionValue(nextArg)) {
           options[key] = nextArg;
           i++;
         } else {
@@ -44,7 +52,7 @@ export function parseArgs(argv: string[] = process.argv.slice(2)): ParsedArgs {
         const key = arg[1];
         const nextArg = argv[i + 1];
 
-        if (nextArg !== undefined && !nextArg.startsWith("-")) {
+        if (nextArg !== undefined && isOptionValue(nextArg)) {
           options[key] = nextArg;
           i++;
         } else {

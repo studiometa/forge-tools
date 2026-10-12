@@ -6,6 +6,12 @@ vi.mock("./handlers.ts", () => ({
   deploymentsList: vi.fn().mockResolvedValue(),
   deploymentsDeploy: vi.fn().mockResolvedValue(),
   deploymentsLogs: vi.fn().mockResolvedValue(),
+  deploymentsScript: vi.fn().mockResolvedValue(),
+  deploymentsUpdateScript: vi.fn().mockResolvedValue(),
+}));
+
+vi.mock("../../audit.ts", () => ({
+  getCliAuditLogger: vi.fn().mockReturnValue({ log: vi.fn() }),
 }));
 
 vi.mock("../../context.ts", () => ({
@@ -55,6 +61,18 @@ describe("handleDeploymentsCommand routing", () => {
     const handlers = await import("./handlers.ts");
     await handleDeploymentsCommand("logs", ["1"], {});
     expect(handlers.deploymentsLogs).toHaveBeenCalled();
+  });
+
+  it("should route script subcommand", async () => {
+    const handlers = await import("./handlers.ts");
+    await handleDeploymentsCommand("script", [], {});
+    expect(handlers.deploymentsScript).toHaveBeenCalled();
+  });
+
+  it("should route update-script subcommand", async () => {
+    const handlers = await import("./handlers.ts");
+    await handleDeploymentsCommand("update-script", [], {});
+    expect(handlers.deploymentsUpdateScript).toHaveBeenCalled();
   });
 
   it("should exit for unknown subcommand", async () => {

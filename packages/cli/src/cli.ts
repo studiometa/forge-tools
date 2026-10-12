@@ -73,6 +73,9 @@ ${colors.bold("COMMANDS:")}
   deployments, d      Manage deployments
     list, ls            List deployments (requires --server --site)
     deploy              Trigger a deployment (requires --server --site)
+    logs [id]           Show deployment output (requires --server --site)
+    script              Show the deployment script (requires --server --site)
+    update-script       Update the deployment script (requires --server --site --file|--content)
 
   databases, db       Manage databases
     list, ls            List databases (requires --server)
