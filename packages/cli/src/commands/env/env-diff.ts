@@ -13,18 +13,57 @@ export interface EnvDiff {
   changed: string[];
 }
 
+const NAME = /^[A-Za-z_][A-Za-z0-9_.]*$/;
+
 /**
- * Parse KEY=VALUE lines. Blank lines, comments and lines without a key are ignored.
+ * Find the closing quote of a quoted value. `\` escapes a character in double quotes only.
+ * Returns -1 when the value is not closed.
+ */
+function closingQuote(value: string, quote: string): number {
+  for (let index = 1; index < value.length; index++) {
+    if (quote === '"' && value[index] === "\\") {
+      index++;
+    } else if (value[index] === quote) {
+      return index;
+    }
+  }
+  return -1;
+}
+
+/**
+ * Parse a .env file into a map of name to value, with the dotenv rules used by Laravel:
+ * an optional `export ` prefix, quoted values that can span lines, and ` #` inline comments
+ * after unquoted values. Blank lines, comments and lines without a valid name are ignored,
+ * so a part of a value can never show as a name.
  */
 export function parseEnv(content: string): Map<string, string> {
   const variables = new Map<string, string>();
-  for (const rawLine of content.split(/\r?\n/)) {
-    const line = rawLine.trim();
+  const lines = content.split(/\r?\n/);
+  for (let index = 0; index < lines.length; index++) {
+    const line = lines[index].trim();
     const separator = line.indexOf("=");
-    if (line.startsWith("#") || separator < 1) {
+    const name = line
+      .slice(0, Math.max(separator, 0))
+      .trim()
+      .replace(/^export\s+/, "");
+    if (!NAME.test(name)) {
       continue;
     }
-    variables.set(line.slice(0, separator).trim(), line.slice(separator + 1).trim());
+
+    let value = line.slice(separator + 1).trim();
+    const quote = value[0];
+    if (quote === '"' || quote === "'") {
+      let end = closingQuote(value, quote);
+      while (end === -1 && index + 1 < lines.length) {
+        index++;
+        value += `\n${lines[index]}`;
+        end = closingQuote(value, quote);
+      }
+      value = value.slice(1, end === -1 ? undefined : end);
+    } else {
+      value = value.replace(/\s+#.*$/, "");
+    }
+    variables.set(name, value);
   }
   return variables;
 }
