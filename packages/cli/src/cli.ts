@@ -44,7 +44,7 @@ import { handleSshCommand, showSshHelp } from "./commands/ssh/index.ts";
 import { handleSshKeysCommand, showSshKeysHelp } from "./commands/ssh-keys/index.ts";
 import { handleUserCommand, showUserHelp } from "./commands/user/index.ts";
 import { colors, setColorEnabled } from "./utils/colors.ts";
-import { parseArgs } from "./utils/args.ts";
+import { isVersionRequest, parseArgs } from "./utils/args.ts";
 
 declare const __VERSION__: string;
 const VERSION = __VERSION__;
@@ -234,7 +234,8 @@ ${colors.bold("ENVIRONMENT VARIABLES:")}
 }
 
 async function main(): Promise<void> {
-  const { command, options, positional } = parseArgs();
+  const args = parseArgs();
+  const { command, options, positional } = args;
 
   const [mainCommand, subcommand] = command;
   const wantsHelp = options.help !== undefined || options.h !== undefined;
@@ -244,10 +245,10 @@ async function main(): Promise<void> {
     process.exit(0);
   }
 
-  // Only treat a bare `--version`/`-v` flag as the version request. A
-  // `--version <value>` (e.g. `forge services restart 123 php --version php83`)
-  // carries a string value and must fall through to the command dispatch.
-  if (options.version === true || options.v === true) {
+  // Only a bare `--version`/`-v` with no command is the version request. After a
+  // command, `--version` is a command option (e.g. `forge php config --version 8.3`),
+  // and a missing value must reach the command to fail its validation.
+  if (isVersionRequest(args)) {
     console.log(VERSION);
     process.exit(0);
   }

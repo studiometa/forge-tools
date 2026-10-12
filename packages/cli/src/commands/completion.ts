@@ -148,7 +148,7 @@ _forge_completions() {
           # Complete file paths
           COMPREPLY=( $(compgen -f -- "\${cur}") )
           ;;
-        --token|--server|--site|--name|--command|--content|--from|--to|--provider|--frequency|--type|--operator|--threshold|--minutes|--key|--port|--ip-address|--user|--script|--servers|--domain|--password|--credential-id|--region|--size|--project-type|--directory)
+        --token|--server|--site|--version|--name|--command|--content|--from|--to|--provider|--frequency|--type|--operator|--threshold|--minutes|--key|--port|--ip-address|--user|--script|--servers|--domain|--password|--credential-id|--region|--size|--project-type|--directory)
           # No completion for values requiring arguments
           COMPREPLY=()
           ;;
@@ -469,7 +469,8 @@ _forge() {
         '(-f --format)'{-f,--format}'[Output format]:format:(json human table)' \\
         '--no-color[Disable colored output]' \\
         '(-h --help)'{-h,--help}'[Show help]' \\
-        '(-v --version)'{-v,--version}'[Show version]' \\
+        '-v[Show version]' \\
+        '--version[PHP version (php, services)]:version:' \\
         '--name[Name]:name:' \\
         '--command[Command]:command:' \\
         '--content[Content]:content:' \\
