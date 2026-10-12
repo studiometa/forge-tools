@@ -101,9 +101,14 @@ Co-authored-by: Claude <claude@anthropic.com>
 All packages share one version. Maintainers release with the `Release` workflow, which bumps the version, folds the changelog fragments into `CHANGELOG.md`, tags, publishes to npm and creates the GitHub release:
 
 ```bash
-gh workflow run publish.yml -f bump=patch   # or minor / major
-gh workflow run publish.yml -f tag=0.4.7    # publish an existing tag again
+gh workflow run publish.yml -f bump=patch                      # or minor / major
+gh workflow run publish.yml -f bump=prerelease -f preid=beta   # or prepatch / preminor / premajor, preid alpha / beta / rc
+gh workflow run publish.yml -f tag=0.4.7                       # publish an existing tag again
 ```
+
+A prerelease version (with a `-`, e.g. `0.5.0-beta.0`) goes to the `next` dist-tag on npm and is marked as a prerelease on GitHub. Any other version goes to `latest`. To promote a prerelease, run a `patch` bump (from `0.5.0-rc.1`, `patch` gives `0.5.0`): this release can have no fragment, and its GitHub release body is `Stable release of 0.5.0-rc.1.`
+
+Publishing uses npm trusted publishing (OIDC), so the workflow has no npm token. Each package has its own publish step, which skips a version that npm already has. When a publish fails, use "Re-run failed jobs" on the run: the packages already published are skipped and the others are published.
 
 ## Changelog
 

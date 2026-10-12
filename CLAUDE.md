@@ -24,9 +24,10 @@ Instructions for AI agents contributing to this codebase.
 
 ## Versioning
 
-- Release with the `Release` workflow in `publish.yml`: `gh workflow run publish.yml -f bump=patch` (or `minor` / `major`). It bumps all packages, folds `.changelog/` into `CHANGELOG.md`, commits `Release <version>`, tags (no `v` prefix), then publishes to npm and creates the GitHub release. To publish an existing tag again (e.g. after a failed publish), run `gh workflow run publish.yml -f tag=<version>`
+- Release with the `Release` workflow in `publish.yml`: `gh workflow run publish.yml -f bump=patch` (or `minor` / `major`). It bumps all packages with `npm version --workspaces --include-workspace-root`, folds `.changelog/` into `CHANGELOG.md`, commits `Release <version>`, tags (no `v` prefix), then publishes to npm and creates the GitHub release
+- Prereleases: `gh workflow run publish.yml -f bump=prerelease -f preid=beta` (or `prepatch` / `preminor` / `premajor`, `preid` is `alpha`, `beta` or `rc`). A version with a `-` goes to the `next` dist-tag on npm and is a GitHub prerelease; any other version goes to `latest`. To promote a prerelease, use `bump=patch` (from `0.5.0-rc.1` it gives `0.5.0`): this release can have no fragment: its GitHub release body is `Stable release of <prerelease>.`
+- Publishing can run again: each package has its own `JS-DevTools/npm-publish` step, which skips a version that npm already has. After a failed publish, use "Re-run failed jobs", or `gh workflow run publish.yml -f tag=<version>` to publish an existing tag
 - npm trusted publishing (OIDC, no npm token) is configured for `publish.yml`: keep the release and publish jobs in that file, never call them from another workflow
-- The root npm scripts `version:patch|minor|major` bump all packages; the workflow uses them
 - All 5 packages share the same version
 - Version is injected at build time from package.json via `versionDefine()`
 
