@@ -72,7 +72,7 @@ forge_write(resource, action, [parameters...])
 - **global**: No parent ID needed (e.g. `servers`, `recipes`)
 - **server**: Requires `server_id` (e.g. `sites`, `databases`, `daemons`)
 - **site**: Requires `server_id` + `site_id` (e.g. `deployments`, `env`)
-- **domain**: Requires `server_id` + `site_id` + `domain_id` (e.g. `certificates`)
+- **domain**: Requires `server_id` + `site_id` + `domain_id` (e.g. `certificates`). `nginx` is site scope, or domain scope when you add `domain_id`
 
 ### Auto-Resolve: Names Instead of IDs
 
@@ -124,7 +124,7 @@ Use `action: "schema"` for a compact machine-readable spec:
 | `id`               | string  | Resource ID (for `get`, `delete`, `activate`, `restart`)                                                |
 | `server_id`        | string  | Server ID **or name** — numeric IDs are used as-is; names are auto-resolved via partial match           |
 | `site_id`          | string  | Site ID **or domain name** — auto-resolved via partial match; requires `server_id`                      |
-| `domain_id`        | string  | Domain record ID (for certificate operations)                                                           |
+| `domain_id`        | string  | Domain record ID (certificates); domain record ID **or domain name** (nginx)                            |
 | `query`            | string  | Search query for `resolve` action (partial, case-insensitive match against resource names/domains)      |
 | `compact`          | boolean | Compact output (default: true)                                                                          |
 | `content`          | string  | Content for env/nginx `update` and deployment script `update`                                           |
@@ -183,6 +183,18 @@ Use `action: "schema"` for a compact machine-readable spec:
 
 // Update env (forge_write)
 { "resource": "env", "action": "update", "server_id": "123", "site_id": "456", "content": "APP_ENV=production\nAPP_DEBUG=false" }
+```
+
+### Edit the Nginx Configuration of One Domain
+
+Add `domain_id` to `nginx` to target one domain of the site instead of the site. It takes a domain record ID or a domain name, resolved among the site domains.
+
+```json
+// Read the Nginx config of www.example.com (forge)
+{ "resource": "nginx", "action": "get", "server_id": "123", "site_id": "456", "domain_id": "www.example.com" }
+
+// Replace it (forge_write)
+{ "resource": "nginx", "action": "update", "server_id": "123", "site_id": "456", "domain_id": "www.example.com", "content": "server { ... }" }
 ```
 
 ### Tune PHP

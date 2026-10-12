@@ -190,16 +190,44 @@ const RESOURCE_HELP: Record<string, ResourceHelp> = {
   },
 
   nginx: {
-    description: "Manage Nginx configuration for a site",
-    scope: "site (requires server_id + site_id)",
+    description:
+      "Manage Nginx configuration for a site, or for one domain of a site (add domain_id)",
+    scope: "site (requires server_id + site_id; domain_id is optional)",
     actions: {
-      get: "Get the current Nginx config",
-      update: "Replace the Nginx config (provide 'content' field)",
+      get: "Get the current Nginx config of the site, or of the domain given by domain_id",
+      update:
+        "Replace the Nginx config of the site, or of the domain given by domain_id (provide 'content' field)",
+    },
+    fields: {
+      domain_id:
+        'Optional. Domain record ID or domain name (e.g. "www.example.com"), resolved among the site domains. Without it, the site config is used',
+      content: "Full Nginx configuration (update)",
     },
     examples: [
       {
         description: "Get nginx config",
         params: { resource: "nginx", action: "get", server_id: "123", site_id: "456" },
+      },
+      {
+        description: "Get the nginx config of one domain",
+        params: {
+          resource: "nginx",
+          action: "get",
+          server_id: "123",
+          site_id: "456",
+          domain_id: "www.example.com",
+        },
+      },
+      {
+        description: "Replace the nginx config of one domain",
+        params: {
+          resource: "nginx",
+          action: "update",
+          server_id: "123",
+          site_id: "456",
+          domain_id: "www.example.com",
+          content: "server { ... }",
+        },
       },
     ],
   },
