@@ -1,5 +1,3 @@
-import { readFileSync } from "node:fs";
-
 import {
   listDeployments,
   deploySiteAndWait,
@@ -10,10 +8,10 @@ import {
 
 import type { CommandContext } from "../../context.ts";
 import type { OutputFormatter } from "../../output.ts";
-import type { OptionValue } from "../../utils/args.ts";
 
 import { exitWithError, exitWithValidationError, runCommand } from "../../error-handler.ts";
 import { ApiError, ValidationError } from "../../errors.ts";
+import { readInputFile } from "../../utils/read-file.ts";
 import { resolveServerId, resolveSiteId } from "../../utils/resolve.ts";
 
 export async function deploymentsList(ctx: CommandContext): Promise<void> {
@@ -99,35 +97,6 @@ export async function deploymentsLogs(args: string[], ctx: CommandContext): Prom
 }
 
 /**
- * Read a deployment script from a file path, or from stdin when the path is "-".
- */
-function readScriptFile(
-  path: OptionValue,
-  field: string,
-  usage: string,
-  formatter: OutputFormatter,
-): string {
-  if (typeof path !== "string" || !path) {
-    exitWithError(
-      new ValidationError(`--${field} requires a path (use - for stdin)`, field, [
-        `Usage: ${usage}`,
-      ]),
-      formatter,
-    );
-  }
-
-  try {
-    return readFileSync(path === "-" ? 0 : path, "utf8");
-  } catch (error) {
-    const reason = error instanceof Error ? error.message : String(error);
-    exitWithError(
-      new ValidationError(`Cannot read deployment script from ${path}: ${reason}`, field),
-      formatter,
-    );
-  }
-}
-
-/**
  * Exit when a deployment script is empty, so Forge never gets a blank script.
  */
 function assertScriptNotEmpty(script: string, field: string, formatter: OutputFormatter): void {
@@ -205,7 +174,10 @@ export async function deploymentsUpdateScript(ctx: CommandContext): Promise<void
   // `--content` without a value parses as `true`: treat it as an empty script.
   const inline = typeof content === "string" ? content : "";
   const field = file !== undefined ? "file" : "content";
-  const script = file !== undefined ? readScriptFile(file, field, usage, ctx.formatter) : inline;
+  const script =
+    file !== undefined
+      ? readInputFile(file, { field, usage, label: "deployment script" }, ctx.formatter)
+      : inline;
   assertScriptNotEmpty(script, field, ctx.formatter);
 
   await runCommand(async () => {
@@ -236,7 +208,11 @@ export async function deploymentsDeploy(ctx: CommandContext): Promise<void> {
 
   let script: string | undefined;
   if (scriptFile !== undefined) {
-    script = readScriptFile(scriptFile, "script-file", usage, ctx.formatter);
+    script = readInputFile(
+      scriptFile,
+      { field: "script-file", usage, label: "deployment script" },
+      ctx.formatter,
+    );
     assertScriptNotEmpty(script, "script-file", ctx.formatter);
   }
 
