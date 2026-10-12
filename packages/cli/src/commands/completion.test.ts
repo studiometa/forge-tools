@@ -453,7 +453,7 @@ describe("handleCompletionCommand", () => {
       handleCompletionCommand("zsh", { print: true });
       const script = stdoutWriteSpy.mock.calls[0]![0] as string;
       expect(script).toContain("'update:Update nginx config of a site or domain'");
-      expect(script).toContain("'--domain[Domain ID or name]:domain:'");
+      expect(script).toContain("'--domain[Domain record ID (or name for nginx)]:domain:'");
     });
 
     it("should describe the nginx domain target in fish", () => {
@@ -462,7 +462,7 @@ describe("handleCompletionCommand", () => {
       expect(script).toContain(
         '-n "__fish_seen_subcommand_from nginx" -a "get" -d "Get nginx config of a site or domain"',
       );
-      expect(script).toContain('-l domain -d "Domain ID or name" -r');
+      expect(script).toContain('-l domain -d "Domain record ID (or name for nginx)" -r');
     });
   });
 });

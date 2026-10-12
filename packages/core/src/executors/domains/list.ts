@@ -1,5 +1,5 @@
 import type { DomainAttributes } from "@studiometa/forge-api";
-import { DomainAttributesSchema } from "@studiometa/forge-api";
+import { DomainAttributesSchema, isForgeApiError } from "@studiometa/forge-api";
 
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
 import { ROUTES } from "../../routes.ts";
@@ -41,6 +41,7 @@ function describeDomains(domains: Domain[]): string {
  * Any other value is a domain name: a single exact match (case-insensitive) wins,
  * else a single partial match is used.
  * Throws when no domain or more than one domain matches.
+ * Reading the domains needs the `site:meta` token scope: a 403 is reported with a hint.
  */
 export async function resolveDomainId(
   server_id: string,
@@ -52,7 +53,19 @@ export async function resolveDomainId(
     return domain;
   }
 
-  const { data: domains } = await listDomains({ server_id, site_id }, ctx);
+  let domains: Domain[];
+  try {
+    ({ data: domains } = await listDomains({ server_id, site_id }, ctx));
+  } catch (error) {
+    if (isForgeApiError(error) && error.status === 403) {
+      throw new Error(
+        `Cannot list the domains of site ${site_id} to resolve "${domain}": the API token needs the site:meta scope. Use the domain record ID instead.`,
+        { cause: error },
+      );
+    }
+    throw error;
+  }
+
   const { exact, partial } = matchByName(domains, domain.trim(), (item) => item.name);
   const matches = exact.length === 1 ? exact : partial;
 

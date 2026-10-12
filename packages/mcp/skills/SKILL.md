@@ -187,7 +187,7 @@ Use `action: "schema"` for a compact machine-readable spec:
 
 ### Edit the Nginx Configuration of One Domain
 
-Add `domain_id` to `nginx` to target one domain of the site instead of the site. It takes a domain record ID or a domain name, resolved among the site domains.
+Add `domain_id` to `nginx` to target one domain of the site instead of the site. It takes a domain record ID or a domain name, resolved among the site domains. A domain name needs the `site:meta` token scope to list the site domains; a domain record ID does not.
 
 ```json
 // Read the Nginx config of www.example.com (forge)

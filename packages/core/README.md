@@ -73,7 +73,7 @@ import { RESOURCES, ACTIONS } from "@studiometa/forge-core";
 ### Domains
 
 - `listDomains({ server_id, site_id }, ctx)` — List the domains (primary and aliases) of a site
-- `resolveDomainId(server_id, site_id, domain, ctx)` — Resolve a domain name (e.g. `www.example.com`) to its domain record ID; a numeric value is returned as is
+- `resolveDomainId(server_id, site_id, domain, ctx)` — Resolve a domain name (e.g. `www.example.com`) to its domain record ID; a numeric value is returned as is. A name needs the `site:meta` token scope; a 403 throws an error that tells to use the domain record ID
 
 ### Nginx Config
 

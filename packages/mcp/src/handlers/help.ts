@@ -200,7 +200,7 @@ const RESOURCE_HELP: Record<string, ResourceHelp> = {
     },
     fields: {
       domain_id:
-        'Optional. Domain record ID or domain name (e.g. "www.example.com"), resolved among the site domains. Without it, the site config is used',
+        'Optional. Domain record ID or domain name (e.g. "www.example.com"), resolved among the site domains. A domain name needs the site:meta token scope; a domain record ID does not. Without it, the site config is used',
       content: "Full Nginx configuration (update)",
     },
     examples: [

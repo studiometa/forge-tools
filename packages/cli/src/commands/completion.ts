@@ -489,7 +489,7 @@ _forge() {
         '--user[User]:user:' \\
         '--script[Script]:script:' \\
         '--servers[Servers]:servers:' \\
-        '--domain[Domain ID or name]:domain:' \\
+        '--domain[Domain record ID (or name for nginx)]:domain:' \\
         '--password[Password]:password:' \\
         '--credential-id[Credential ID]:credential id:' \\
         '--region[Region]:region:' \\
@@ -719,7 +719,7 @@ complete -c forge -l ip-address -d "IP address" -r
 complete -c forge -l user -d "User" -r
 complete -c forge -l script -d "Script" -r
 complete -c forge -l servers -d "Servers" -r
-complete -c forge -l domain -d "Domain ID or name" -r
+complete -c forge -l domain -d "Domain record ID (or name for nginx)" -r
 complete -c forge -l password -d "Password" -r
 complete -c forge -l credential-id -d "Credential ID" -r
 complete -c forge -l region -d "Region" -r

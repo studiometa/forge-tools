@@ -208,7 +208,7 @@ forge nginx update --server <id> --site <id> --domain www.example.com --file www
 
 `update` takes exactly one of `--file` or `--content` and rejects empty content.
 
-`--domain` takes a domain record ID or a domain name. A name is matched against the domains of the site: an exact match wins, else a single partial match is used. When no domain or more than one domain matches, the command fails and lists the domains. Without `--domain`, the commands read and write the site configuration.
+`--domain` takes a domain record ID or a domain name. A name is matched against the domains of the site: an exact match wins, else a single partial match is used. When no domain or more than one domain matches, the command fails and lists the domains. A domain name needs the `site:meta` token scope to list the domains of the site; a domain record ID does not. Without `--domain`, the commands read and write the site configuration.
 
 ### `php` — Manage PHP
 

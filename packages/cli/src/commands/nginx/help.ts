@@ -14,6 +14,7 @@ ${colors.bold("OPTIONS:")}
   --site <id>         Site ID or name (required)
   --domain <domain>   Domain record ID or name (e.g. www.example.com).
                       Get the configuration of this domain instead of the site.
+                      A name needs the site:meta token scope; an ID does not.
 
 ${colors.bold("EXAMPLES:")}
   forge nginx get --server 123 --site 456
@@ -34,6 +35,7 @@ ${colors.bold("OPTIONS:")}
   --site <id>         Site ID or name (required)
   --domain <domain>   Domain record ID or name (e.g. www.example.com).
                       Update the configuration of this domain instead of the site.
+                      A name needs the site:meta token scope; an ID does not.
   --file <path>       Read the content from a file (use - for stdin)
   --content <str>     New nginx config
   --check             Compare with the content on Forge and do not write.
@@ -63,6 +65,7 @@ ${colors.bold("OPTIONS:")}
   --server <id>       Server ID or name (required)
   --site <id>         Site ID or name (required)
   --domain <domain>   Domain record ID or name: target this domain instead of the site
+                      (a name needs the site:meta token scope; an ID does not)
   --file <path>       Content file, - for stdin (for update)
   --content <str>     New nginx config (for update)
   --check             Compare with Forge, do not write (for update)

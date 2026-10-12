@@ -1,3 +1,4 @@
+import { ForgeApiError } from "@studiometa/forge-api";
 import { describe, expect, it, vi } from "vitest";
 
 import { createTestExecutorContext } from "../../context.ts";
@@ -92,5 +93,38 @@ describe("resolveDomainId", () => {
     await expect(resolveDomainId("1", "2", "example", ctx)).rejects.toThrow(
       'Ambiguous domain "example" on site 2: example.com (5), www.example.com (6), shop.example.com (7). Use the full name or the domain ID.',
     );
+  });
+
+  it("should tell to use the domain ID when the token cannot list domains", async () => {
+    const forbidden = new ForgeApiError({ status: 403, message: "Forbidden", url: "/domains" });
+    const ctx = createTestExecutorContext({
+      client: {
+        get: async () => {
+          throw forbidden;
+        },
+      } as never,
+      organizationSlug: "test-org",
+    });
+
+    const error = await resolveDomainId("1", "2", "www.example.com", ctx).catch((e) => e);
+    expect(error).toBeInstanceOf(Error);
+    expect(error.message).toBe(
+      'Cannot list the domains of site 2 to resolve "www.example.com": the API token needs the site:meta scope. Use the domain record ID instead.',
+    );
+    expect(error.cause).toBe(forbidden);
+  });
+
+  it("should rethrow other errors when listing domains fails", async () => {
+    const notFound = new ForgeApiError({ status: 404, message: "Not found", url: "/domains" });
+    const ctx = createTestExecutorContext({
+      client: {
+        get: async () => {
+          throw notFound;
+        },
+      } as never,
+      organizationSlug: "test-org",
+    });
+
+    await expect(resolveDomainId("1", "2", "www.example.com", ctx)).rejects.toBe(notFound);
   });
 });
