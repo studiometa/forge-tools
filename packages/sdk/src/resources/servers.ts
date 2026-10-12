@@ -21,6 +21,7 @@ import { FirewallRulesCollection } from "./firewall-rules.ts";
 import { SshKeysCollection } from "./ssh-keys.ts";
 import { NginxTemplatesCollection } from "./nginx-templates.ts";
 import { ServicesCollection } from "./services.ts";
+import { PhpResource } from "./php.ts";
 import { BaseCollection } from "./base.ts";
 
 /**
@@ -276,6 +277,9 @@ export class ServerResource extends BaseCollection {
   /** Services (nginx, php, mysql, etc.) on this server. */
   readonly services: ServicesCollection;
 
+  /** PHP versions, configuration files, limits and OPcache on this server. */
+  readonly php: PhpResource;
+
   /** @internal */
   constructor(
     client: HttpClient,
@@ -294,6 +298,7 @@ export class ServerResource extends BaseCollection {
     this.sshKeys = new SshKeysCollection(client, orgSlug, serverId);
     this.nginxTemplates = new NginxTemplatesCollection(client, orgSlug, serverId);
     this.services = new ServicesCollection(client, orgSlug, serverId);
+    this.php = new PhpResource(client, orgSlug, serverId);
   }
 
   /**

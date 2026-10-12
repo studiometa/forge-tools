@@ -24,6 +24,8 @@ export { MonitorsCollection } from "./resources/monitors.ts";
 export type { MonitorListOptions } from "./resources/monitors.ts";
 export { NginxTemplatesCollection } from "./resources/nginx-templates.ts";
 export type { NginxTemplateListOptions } from "./resources/nginx-templates.ts";
+export { PhpResource } from "./resources/php.ts";
+export type { PhpConfigOptions, PhpConfigType, PhpVersionListOptions } from "./resources/php.ts";
 export { RecipesCollection } from "./resources/recipes.ts";
 export type { RecipeListOptions, RunRecipeOptions } from "./resources/recipes.ts";
 export { RedirectRulesCollection } from "./resources/redirect-rules.ts";
