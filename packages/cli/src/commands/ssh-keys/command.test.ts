@@ -7,6 +7,14 @@ vi.mock("./handlers.ts", () => ({
   sshKeysGet: vi.fn().mockResolvedValue(),
 }));
 
+vi.mock("./sync.ts", () => ({
+  sshKeysSync: vi.fn().mockResolvedValue(),
+}));
+
+vi.mock("../../audit.ts", () => ({
+  getCliAuditLogger: vi.fn().mockReturnValue({ log: vi.fn() }),
+}));
+
 vi.mock("../../context.ts", () => ({
   createContext: vi.fn().mockReturnValue({
     options: {},
@@ -43,6 +51,16 @@ describe("handleSshKeysCommand routing", () => {
     const h = await import("./handlers.ts");
     await handleSshKeysCommand("get", ["1"], {});
     expect(h.sshKeysGet).toHaveBeenCalledWith(["1"], expect.anything());
+  });
+
+  it("should route sync and record it in the audit log", async () => {
+    const { sshKeysSync } = await import("./sync.ts");
+    const { getCliAuditLogger } = await import("../../audit.ts");
+    await handleSshKeysCommand("sync", [], { file: "keys", token: "secret" });
+    expect(sshKeysSync).toHaveBeenCalled();
+    expect(vi.mocked(getCliAuditLogger)().log).toHaveBeenCalledWith(
+      expect.objectContaining({ resource: "ssh-keys", action: "sync", args: { file: "keys" } }),
+    );
   });
 
   it("should exit for unknown subcommand", async () => {
