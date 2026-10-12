@@ -1,24 +1,9 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
+All notable changes to this project will be documented in this file. Each pull request adds a fragment in `.changelog/`; the Release workflow folds them in here.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-
-## Unreleased
-
-### Added
-
-- **CLI**: Add `forge deployments script` and `forge deployments update-script` (`--file <path|->` or `--content`) to read and write a site's deployment script, and `--script-file <path>` on `forge deployments deploy` to upload the script before deploying [[#127]]
-- **CLI**: Add `--file <path|->` to `forge env update` and `forge nginx update` as an alternative to `--content`, with the same rules as `update-script` (exactly one source, no empty content) [[#128]]
-- **CLI**: Add `--check` to `forge deployments update-script`, `forge env update` and `forge nginx update` to compare the local content with Forge without writing: exit 0 when in sync, exit 1 with a line diff (env: variable names only, never values) [[#128]]
-
-### Changed
-
-- **CLI**: Accept a lone dash (`-`) as an option value for all commands, so `--file -` reads stdin; before, `-` parsed as a boolean flag [[#127]]
-
-[#127]: https://github.com/studiometa/forge-tools/pull/127
-[#128]: https://github.com/studiometa/forge-tools/pull/128
 
 ## 0.4.6 - 2026.07.21
 
