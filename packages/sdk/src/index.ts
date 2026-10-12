@@ -18,6 +18,8 @@ export { DatabaseUsersCollection } from "./resources/database-users.ts";
 export type { DatabaseUserListOptions } from "./resources/database-users.ts";
 export { DeploymentsCollection } from "./resources/deployments.ts";
 export type { DeploymentListOptions } from "./resources/deployments.ts";
+export { DomainNginxResource, DomainResource, DomainsCollection } from "./resources/domains.ts";
+export type { DomainListOptions } from "./resources/domains.ts";
 export { FirewallRulesCollection } from "./resources/firewall-rules.ts";
 export type { FirewallRuleListOptions } from "./resources/firewall-rules.ts";
 export { MonitorsCollection } from "./resources/monitors.ts";
@@ -75,6 +77,7 @@ export type {
   DatabaseUserAttributes,
   BackgroundProcessAttributes,
   CertificateAttributes,
+  DomainAttributes,
   FirewallRuleAttributes,
   SshKeyAttributes,
   SecurityRuleAttributes,
