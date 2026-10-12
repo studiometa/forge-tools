@@ -147,6 +147,22 @@ describe("@studiometa/forge-core", () => {
     expect(core.deleteScheduledJob).toBeTypeOf("function");
   });
 
+  it("should export php executors", () => {
+    expect(core.listPhpVersions).toBeTypeOf("function");
+    expect(core.getPhpVersion).toBeTypeOf("function");
+    expect(core.resolvePhpVersionId).toBeTypeOf("function");
+    expect(core.getPhpConfig).toBeTypeOf("function");
+    expect(core.updatePhpConfig).toBeTypeOf("function");
+    expect(core.getPhpMaxUploadSize).toBeTypeOf("function");
+    expect(core.updatePhpMaxUploadSize).toBeTypeOf("function");
+    expect(core.getPhpMaxExecutionTime).toBeTypeOf("function");
+    expect(core.updatePhpMaxExecutionTime).toBeTypeOf("function");
+    expect(core.getPhpOpcache).toBeTypeOf("function");
+    expect(core.enablePhpOpcache).toBeTypeOf("function");
+    expect(core.disablePhpOpcache).toBeTypeOf("function");
+    expect(core.PHP_CONFIG_TYPES).toEqual(["cli", "fpm", "pool"]);
+  });
+
   it("should export user executor", () => {
     expect(core.getUser).toBeTypeOf("function");
   });

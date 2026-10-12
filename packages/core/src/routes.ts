@@ -211,6 +211,34 @@ export const ROUTES = {
       path: "/orgs/:org/servers/:server_id/services/:service/actions",
     },
   },
+  php: {
+    listVersions: { method: "GET", path: "/orgs/:org/servers/:server_id/php/versions" },
+    getVersion: { method: "GET", path: "/orgs/:org/servers/:server_id/php/versions/:version_id" },
+    getConfig: {
+      method: "GET",
+      path: "/orgs/:org/servers/:server_id/php/versions/:version_id/configs/:type",
+    },
+    updateConfig: {
+      method: "PUT",
+      path: "/orgs/:org/servers/:server_id/php/versions/:version_id/configs/:type",
+    },
+    getMaxUploadSize: { method: "GET", path: "/orgs/:org/servers/:server_id/php/max-upload-size" },
+    updateMaxUploadSize: {
+      method: "PUT",
+      path: "/orgs/:org/servers/:server_id/php/max-upload-size",
+    },
+    getMaxExecutionTime: {
+      method: "GET",
+      path: "/orgs/:org/servers/:server_id/php/max-execution-time",
+    },
+    updateMaxExecutionTime: {
+      method: "PUT",
+      path: "/orgs/:org/servers/:server_id/php/max-execution-time",
+    },
+    getOpcache: { method: "GET", path: "/orgs/:org/servers/:server_id/php/opcache" },
+    enableOpcache: { method: "POST", path: "/orgs/:org/servers/:server_id/php/opcache" },
+    disableOpcache: { method: "DELETE", path: "/orgs/:org/servers/:server_id/php/opcache" },
+  },
   user: {
     get: { method: "GET", path: "/user" },
   },

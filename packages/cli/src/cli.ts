@@ -23,6 +23,7 @@ import {
   handleNginxTemplatesCommand,
   showNginxTemplatesHelp,
 } from "./commands/nginx-templates/index.ts";
+import { handlePhpCommand, showPhpHelp } from "./commands/php/index.ts";
 import { handleRecipesCommand, showRecipesHelp } from "./commands/recipes/index.ts";
 import {
   handleRedirectRulesCommand,
@@ -43,7 +44,7 @@ import { handleSshCommand, showSshHelp } from "./commands/ssh/index.ts";
 import { handleSshKeysCommand, showSshKeysHelp } from "./commands/ssh-keys/index.ts";
 import { handleUserCommand, showUserHelp } from "./commands/user/index.ts";
 import { colors, setColorEnabled } from "./utils/colors.ts";
-import { parseArgs } from "./utils/args.ts";
+import { isVersionRequest, parseArgs } from "./utils/args.ts";
 
 declare const __VERSION__: string;
 const VERSION = __VERSION__;
@@ -138,6 +139,20 @@ ${colors.bold("COMMANDS:")}
     list, ls            List services on a server (forge services list <server>)
     restart <service>   Restart a service (forge services restart <server> <service>)
 
+  php                 Manage PHP versions, configuration, limits and OPcache
+    list, ls            List installed PHP versions (requires --server)
+    config              Show a configuration file (requires --server --version --type)
+    update-config       Replace a configuration file (requires --server --version --type --file|--content) [--check]
+    max-upload-size     Show the max upload size (requires --server)
+    set-max-upload-size <mb>
+                        Set the max upload size (requires --server)
+    max-execution-time  Show the max execution time (requires --server)
+    set-max-execution-time <seconds>
+                        Set the max execution time (requires --server)
+    opcache             Show the OPcache status (requires --server)
+    enable-opcache      Enable OPcache (requires --server)
+    disable-opcache     Disable OPcache (requires --server)
+
   user                Display authenticated user profile
     get                 Get the authenticated user profile
 
@@ -220,7 +235,8 @@ ${colors.bold("ENVIRONMENT VARIABLES:")}
 }
 
 async function main(): Promise<void> {
-  const { command, options, positional } = parseArgs();
+  const args = parseArgs();
+  const { command, options, positional } = args;
 
   const [mainCommand, subcommand] = command;
   const wantsHelp = options.help !== undefined || options.h !== undefined;
@@ -230,10 +246,10 @@ async function main(): Promise<void> {
     process.exit(0);
   }
 
-  // Only treat a bare `--version`/`-v` flag as the version request. A
-  // `--version <value>` (e.g. `forge services restart 123 php --version php83`)
-  // carries a string value and must fall through to the command dispatch.
-  if (options.version === true || options.v === true) {
+  // Only a bare `--version`/`-v` with no command is the version request. After a
+  // command, `--version` is a command option (e.g. `forge php config --version 8.3`),
+  // and a missing value must reach the command to fail its validation.
+  if (isVersionRequest(args)) {
     console.log(VERSION);
     process.exit(0);
   }
@@ -388,6 +404,14 @@ async function main(): Promise<void> {
           process.exit(0);
         }
         await handleServicesCommand(subcommand ?? "list", positional, options);
+        break;
+
+      case "php":
+        if (wantsHelp) {
+          showPhpHelp(subcommand);
+          process.exit(0);
+        }
+        await handlePhpCommand(subcommand ?? "list", positional, options);
         break;
 
       case "user":

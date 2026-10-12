@@ -23,6 +23,7 @@ export const RESOURCES = [
   "commands",
   "scheduled-jobs",
   "services",
+  "php",
   "user",
   "batch",
 ] as const;

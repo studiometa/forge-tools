@@ -150,6 +150,24 @@ describe("servicesRestart", () => {
     );
   });
 
+  it("should default php version from the server for a bare --version", async () => {
+    const { restartService, getServer } = await import("@studiometa/forge-core");
+    vi.mocked(restartService).mockResolvedValue({ data: undefined as never });
+    vi.mocked(getServer).mockResolvedValue({ data: { php_version: "php82" } as never });
+
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "human", version: true },
+    });
+
+    await servicesRestart(["10", "php"], ctx);
+    expect(vi.mocked(restartService)).toHaveBeenCalledWith(
+      { server_id: "10", service: "php", version: "php82" },
+      expect.anything(),
+    );
+  });
+
   it("should exit when php has no version and none can be defaulted", async () => {
     const { getServer, restartService } = await import("@studiometa/forge-core");
     vi.mocked(getServer).mockResolvedValue({ data: { php_version: null } as never });

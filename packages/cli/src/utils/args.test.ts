@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 
-import { parseArgs, getOption, hasFlag } from "./args.ts";
+import { parseArgs, getOption, hasFlag, isVersionRequest } from "./args.ts";
 
 describe("parseArgs", () => {
   it("should parse command and subcommand", () => {
@@ -169,5 +169,29 @@ describe("hasFlag", () => {
     const options = { help: "yes" };
     const result = hasFlag(options, ["help"]);
     expect(result).toBe(false);
+  });
+});
+
+describe("isVersionRequest", () => {
+  it("should be true for a bare --version or -v with no command", () => {
+    expect(isVersionRequest(parseArgs(["--version"]))).toBe(true);
+    expect(isVersionRequest(parseArgs(["-v"]))).toBe(true);
+  });
+
+  it("should be false without --version or -v", () => {
+    expect(isVersionRequest(parseArgs([]))).toBe(false);
+  });
+
+  it("should be false for --version with a value", () => {
+    expect(isVersionRequest(parseArgs(["--version", "8.3"]))).toBe(false);
+  });
+
+  it("should be false for a bare --version after a command", () => {
+    expect(isVersionRequest(parseArgs(["php", "config", "--version", "--type", "fpm"]))).toBe(
+      false,
+    );
+    expect(isVersionRequest(parseArgs(["php", "config", "--type", "fpm", "--version"]))).toBe(
+      false,
+    );
   });
 });

@@ -143,6 +143,24 @@ const FORGE_READ_TOOL: Tool = {
         enum: [...READ_ACTIONS],
         description: 'Read action to perform. Use "help" for resource documentation.',
       },
+      // PHP fields
+      setting: {
+        type: "string" as const,
+        description:
+          "PHP setting to read (php get): version, config, max-upload-size, max-execution-time, opcache",
+      },
+      version: {
+        type: "string" as const,
+        description: 'PHP version ID or version (e.g. "8.3", "php83") for php get',
+      },
+      type: {
+        type: "string" as const,
+        description: "PHP configuration file for php get setting=config: cli, fpm, pool",
+      },
+      user: {
+        type: "string" as const,
+        description: "FPM pool user for php get setting=config type=pool (optional)",
+      },
       operations: {
         type: "array" as const,
         description:
@@ -213,7 +231,7 @@ const FORGE_WRITE_TOOL: Tool = {
       type: {
         type: "string" as const,
         description:
-          "Resource type (e.g. app, web, worker for servers; mysql, postgres for databases; disk_usage, used_memory for monitors)",
+          "Resource type (e.g. app, web, worker for servers; mysql, postgres for databases; disk_usage, used_memory for monitors; cli, fpm, pool for php configs)",
       },
       // Site fields
       domain: {
@@ -227,7 +245,8 @@ const FORGE_WRITE_TOOL: Tool = {
       // Content fields (env, nginx, deployment script)
       content: {
         type: "string" as const,
-        description: "Content body for env variables, nginx config, or deployment script updates",
+        description:
+          "Content body for env variables, nginx config, deployment script or PHP config updates",
       },
       // Daemon fields
       command: {
@@ -237,7 +256,8 @@ const FORGE_WRITE_TOOL: Tool = {
       },
       user: {
         type: "string" as const,
-        description: "Unix user to run as (daemons, scheduled jobs; e.g. forge, root)",
+        description:
+          "Unix user to run as (daemons, scheduled jobs; e.g. forge, root), or the FPM pool user (php config type=pool)",
       },
       // Firewall fields
       port: {
@@ -301,7 +321,23 @@ const FORGE_WRITE_TOOL: Tool = {
       },
       version: {
         type: "string" as const,
-        description: "PHP version required when restarting the php service (e.g. php83)",
+        description:
+          'PHP version: required when restarting the php service (e.g. php83); version ID or version (e.g. "8.3") for php update setting=config',
+      },
+      // PHP fields
+      setting: {
+        type: "string" as const,
+        description:
+          "PHP setting to write (php update): config, max-upload-size, max-execution-time, opcache",
+      },
+      value: {
+        type: "number" as const,
+        description:
+          "Integer for php update: megabytes for max-upload-size, seconds for max-execution-time",
+      },
+      enabled: {
+        type: "boolean" as const,
+        description: "For php update setting=opcache: true enables OPcache, false disables it",
       },
     },
     required: ["resource", "action"],

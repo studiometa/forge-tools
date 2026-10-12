@@ -185,6 +185,25 @@ forge.server(id).daemons.restart(daemonId);
 forge.server(id).daemons.delete(daemonId);
 ```
 
+### PHP
+
+Version methods take the PHP version ID from `php.list()`.
+
+```typescript
+forge.server(id).php.list(); // Installed PHP versions
+forge.server(id).php.get(versionId);
+forge.server(id).php.config(versionId, "fpm"); // "cli", "fpm" or "pool"
+forge.server(id).php.config(versionId, "pool", { user: "forge" });
+forge.server(id).php.updateConfig(versionId, "fpm", "memory_limit = 512M\n...");
+forge.server(id).php.maxUploadSize(); // Megabytes
+forge.server(id).php.setMaxUploadSize(128);
+forge.server(id).php.maxExecutionTime(); // Seconds
+forge.server(id).php.setMaxExecutionTime(120);
+forge.server(id).php.opcache(); // true or false
+forge.server(id).php.enableOpcache();
+forge.server(id).php.disableOpcache();
+```
+
 ### User
 
 ```typescript

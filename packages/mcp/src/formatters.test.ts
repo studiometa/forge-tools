@@ -58,6 +58,8 @@ import {
   formatSecurityRuleList,
   formatServer,
   formatServerList,
+  formatPhpVersion,
+  formatPhpVersionList,
   formatServiceList,
   formatSite,
   formatSiteList,
@@ -1257,6 +1259,29 @@ describe("formatServiceList", () => {
     expect(result).toContain("• nginx — available");
     expect(result).toContain("• php — available (php83)");
     expect(result).toContain("• postgres — unavailable");
+  });
+});
+
+describe("formatPhpVersionList", () => {
+  const php83 = {
+    id: 12,
+    version: "8.3",
+    binary_name: "php8.3",
+    status: "installed",
+    created_at: "2024-01-01T00:00:00Z",
+    updated_at: "2024-01-01T00:00:00Z",
+  };
+
+  it("should format PHP versions with their IDs", () => {
+    expect(formatPhpVersionList([php83])).toBe("1 PHP version(s):\n• PHP 8.3 (ID: 12) — installed");
+  });
+
+  it("should handle an empty list", () => {
+    expect(formatPhpVersionList([])).toBe("No PHP versions found.");
+  });
+
+  it("should format a single PHP version", () => {
+    expect(formatPhpVersion(php83)).toBe("PHP 8.3 (ID: 12)\nBinary: php8.3\nStatus: installed");
   });
 });
 

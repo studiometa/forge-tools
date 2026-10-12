@@ -32,16 +32,24 @@ describe("Route conformance with OpenAPI spec", () => {
   // user.get is `/user` — exists in spec but not org-scoped
   const routesToCheck = allRoutes;
 
-  // The services action route is parameterized by `:service`, but the OpenAPI
-  // spec enumerates one literal path per restartable service. It is conformant
-  // when every concrete service path exists in the spec.
-  const RESTARTABLE_SERVICES = ["nginx", "php", "mysql", "postgres", "redis", "supervisor"];
+  // Some routes are parameterized where the OpenAPI spec enumerates one literal
+  // path per value (e.g. one path per restartable service). Such a route is
+  // conformant when every concrete path exists in the spec.
+  const LITERAL_PARAMS: Record<string, { param: string; values: string[] }> = {
+    "services.action": {
+      param: ":service",
+      values: ["nginx", "php", "mysql", "postgres", "redis", "supervisor"],
+    },
+    "php.getConfig": { param: ":type", values: ["cli", "fpm", "pool"] },
+    "php.updateConfig": { param: ":type", values: ["cli", "fpm", "pool"] },
+  };
 
   for (const { key, route } of routesToCheck) {
     it(`${key} → ${route.method} ${route.path}`, () => {
-      if (key === "services.action") {
-        for (const service of RESTARTABLE_SERVICES) {
-          const concrete = route.path.replace(":service", service);
+      const literal = LITERAL_PARAMS[key];
+      if (literal) {
+        for (const value of literal.values) {
+          const concrete = route.path.replace(literal.param, value);
           const match = findMatchingSpecPath(concrete);
           expect(match, `No spec path matches: ${concrete}`).toBeDefined();
           const methods = Object.keys(spec.paths[match!]).map((m: string) => m.toUpperCase());
