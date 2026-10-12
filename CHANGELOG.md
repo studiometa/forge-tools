@@ -10,19 +10,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **CLI**: Add `forge deployments script` and `forge deployments update-script` (`--file <path|->` or `--content`) to read and write a site's deployment script, and `--script-file <path>` on `forge deployments deploy` to upload the script before deploying [[#127]]
-- **CLI**: Add `forge ssh-keys sync --file <path|->` to make the SSH keys of a server user match an `authorized_keys` file on `--server` targets or `--all-servers`, with `--user`, `--prune` and `--dry-run` [[#PR]]
+- **CLI**: Add `forge ssh-keys sync --file <path|->` to make the SSH keys of a server user match an `authorized_keys` file on `--server` targets or `--all-servers`, with `--user`, `--prune` and `--dry-run` [[#130]]
 
 ### Changed
 
 - **CLI**: Accept a lone dash (`-`) as an option value for all commands, so `--file -` reads stdin; before, `-` parsed as a boolean flag [[#127]]
-- **CLI**: Collect a repeated `--server` option into an array (`--server 1 --server 2`); other options keep the last value [[#PR]]
+- **CLI**: Collect a repeated `--server` option into an array (`--server 1 --server 2`); other options keep the last value [[#130]]
 
 ### Fixed
 
-- **Core**: Read every page in `listServers` and `listSshKeys`, so lists with more than 30 items are complete, and add a `user` filter to `listSshKeys` [[#PR]]
+- **Core**: Read every page in `listServers` and `listSshKeys`, so lists with more than 30 items are complete, and add a `user` filter to `listSshKeys` [[#130]]
 
 [#127]: https://github.com/studiometa/forge-tools/pull/127
-[#PR]: https://github.com/studiometa/forge-tools/pull/PR
+[#130]: https://github.com/studiometa/forge-tools/pull/130
 
 ## 0.4.6 - 2026.07.21
 
