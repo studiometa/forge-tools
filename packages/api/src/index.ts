@@ -69,6 +69,11 @@ export {
   BackupAttributesSchema,
   OrganizationAttributesSchema,
   EnvironmentAttributesSchema,
+  PhpVersionAttributesSchema,
+  PhpConfigAttributesSchema,
+  PhpMaxUploadSizeAttributesSchema,
+  PhpMaxExecutionTimeAttributesSchema,
+  PhpOpcacheAttributesSchema,
 } from "./schemas/attributes.ts";
 
 export type {
@@ -99,6 +104,11 @@ export type {
   BackupAttributes,
   OrganizationAttributes,
   EnvironmentAttributes,
+  PhpVersionAttributes,
+  PhpConfigAttributes,
+  PhpMaxUploadSizeAttributes,
+  PhpMaxExecutionTimeAttributes,
+  PhpOpcacheAttributes,
 } from "./schemas/attributes.ts";
 
 // Create data schemas + types

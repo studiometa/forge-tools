@@ -395,6 +395,82 @@ const RESOURCE_HELP: Record<string, ResourceHelp> = {
     ],
   },
 
+  php: {
+    description:
+      "Manage PHP on a server: installed versions, cli/fpm/pool configuration files, max upload size, max execution time and OPcache",
+    scope: "server (requires server_id)",
+    actions: {
+      list: "List installed PHP versions (with their IDs)",
+      get: "Read one setting: version, config, max-upload-size, max-execution-time or opcache",
+      update:
+        "Write one setting: config (replaces the whole file), max-upload-size, max-execution-time or opcache",
+    },
+    fields: {
+      setting:
+        "What to read or write: version, config, max-upload-size, max-execution-time, opcache",
+      version:
+        'PHP version ID, or a version such as "8.3", "php83" or "php8.3" (for setting=version and setting=config)',
+      type: "Configuration file for setting=config: cli, fpm or pool",
+      user: "Unix user of the FPM pool (optional, type=pool only)",
+      content: "Full configuration file content (update setting=config)",
+      value: "Integer for update: megabytes for max-upload-size, seconds for max-execution-time",
+      enabled: "Boolean for update setting=opcache: true enables, false disables",
+    },
+    examples: [
+      {
+        description: "List installed PHP versions",
+        params: { resource: "php", action: "list", server_id: "123" },
+      },
+      {
+        description: "Read the FPM php.ini of PHP 8.3",
+        params: {
+          resource: "php",
+          action: "get",
+          server_id: "123",
+          setting: "config",
+          version: "8.3",
+          type: "fpm",
+        },
+      },
+      {
+        description: "Replace the CLI php.ini of PHP 8.3",
+        params: {
+          resource: "php",
+          action: "update",
+          server_id: "123",
+          setting: "config",
+          version: "8.3",
+          type: "cli",
+          content: "memory_limit = 512M\n...",
+        },
+      },
+      {
+        description: "Set the max upload size to 128 MB",
+        params: {
+          resource: "php",
+          action: "update",
+          server_id: "123",
+          setting: "max-upload-size",
+          value: 128,
+        },
+      },
+      {
+        description: "Read the OPcache status",
+        params: { resource: "php", action: "get", server_id: "123", setting: "opcache" },
+      },
+      {
+        description: "Enable OPcache",
+        params: {
+          resource: "php",
+          action: "update",
+          server_id: "123",
+          setting: "opcache",
+          enabled: true,
+        },
+      },
+    ],
+  },
+
   "firewall-rules": {
     description: "Manage UFW firewall rules on a server",
     scope: "server (requires server_id)",

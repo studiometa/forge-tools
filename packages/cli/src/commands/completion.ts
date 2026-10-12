@@ -18,7 +18,7 @@ _forge_completions() {
   prev="\${COMP_WORDS[COMP_CWORD-1]}"
 
   # Main commands
-  commands="config servers s sites deployments d databases db database-users daemons env nginx certificates certs firewall-rules fw ssh ssh-keys backups commands scheduled-jobs services user monitors nginx-templates security-rules redirect-rules recipes completion help"
+  commands="config servers s sites deployments d databases db database-users daemons env nginx certificates certs firewall-rules fw ssh ssh-keys backups commands scheduled-jobs services php user monitors nginx-templates security-rules redirect-rules recipes completion help"
 
   # Subcommands for each command
   local config_cmds="set get delete"
@@ -37,6 +37,7 @@ _forge_completions() {
   local commands_cmds="list ls get create"
   local scheduled_jobs_cmds="list ls get create delete"
   local services_cmds="list ls restart"
+  local php_cmds="list ls config update-config max-upload-size set-max-upload-size max-execution-time set-max-execution-time opcache enable-opcache disable-opcache"
   local user_cmds="get"
   local monitors_cmds="list ls get create delete"
   local nginx_templates_cmds="list ls get create update delete"
@@ -108,6 +109,9 @@ _forge_completions() {
         services)
           COMPREPLY=( $(compgen -W "\${services_cmds}" -- "\${cur}") )
           ;;
+        php)
+          COMPREPLY=( $(compgen -W "\${php_cmds}" -- "\${cur}") )
+          ;;
         user)
           COMPREPLY=( $(compgen -W "\${user_cmds}" -- "\${cur}") )
           ;;
@@ -144,7 +148,7 @@ _forge_completions() {
           # Complete file paths
           COMPREPLY=( $(compgen -f -- "\${cur}") )
           ;;
-        --token|--server|--site|--name|--command|--content|--from|--to|--provider|--frequency|--type|--operator|--threshold|--minutes|--key|--port|--ip-address|--user|--script|--servers|--domain|--password|--credential-id|--region|--size|--project-type|--directory)
+        --token|--server|--site|--version|--name|--command|--content|--from|--to|--provider|--frequency|--type|--operator|--threshold|--minutes|--key|--port|--ip-address|--user|--script|--servers|--domain|--password|--credential-id|--region|--size|--project-type|--directory)
           # No completion for values requiring arguments
           COMPREPLY=()
           ;;
@@ -197,6 +201,7 @@ _forge() {
         'commands:Manage site commands'
         'scheduled-jobs:Manage scheduled jobs'
         'services:List and restart server services'
+        'php:Manage PHP versions, configuration, limits and OPcache'
         'user:Display authenticated user profile'
         'monitors:Manage server monitors'
         'nginx-templates:Manage Nginx templates'
@@ -366,6 +371,23 @@ _forge() {
           )
           _describe 'services command' services_cmds
           ;;
+        php)
+          local -a php_cmds
+          php_cmds=(
+            'list:List installed PHP versions'
+            'ls:List installed PHP versions (alias)'
+            'config:Show a PHP configuration file'
+            'update-config:Replace a PHP configuration file'
+            'max-upload-size:Show the max upload size'
+            'set-max-upload-size:Set the max upload size'
+            'max-execution-time:Show the max execution time'
+            'set-max-execution-time:Set the max execution time'
+            'opcache:Show the OPcache status'
+            'enable-opcache:Enable OPcache'
+            'disable-opcache:Disable OPcache'
+          )
+          _describe 'php command' php_cmds
+          ;;
         user)
           local -a user_cmds
           user_cmds=(
@@ -447,7 +469,8 @@ _forge() {
         '(-f --format)'{-f,--format}'[Output format]:format:(json human table)' \\
         '--no-color[Disable colored output]' \\
         '(-h --help)'{-h,--help}'[Show help]' \\
-        '(-v --version)'{-v,--version}'[Show version]' \\
+        '-v[Show version]' \\
+        '--version[PHP version (php, services)]:version:' \\
         '--name[Name]:name:' \\
         '--command[Command]:command:' \\
         '--content[Content]:content:' \\
@@ -507,6 +530,7 @@ complete -c forge -f -n "__fish_use_subcommand" -a "backups" -d "Manage backup c
 complete -c forge -f -n "__fish_use_subcommand" -a "commands" -d "Manage site commands"
 complete -c forge -f -n "__fish_use_subcommand" -a "scheduled-jobs" -d "Manage scheduled jobs"
 complete -c forge -f -n "__fish_use_subcommand" -a "services" -d "List and restart server services"
+complete -c forge -f -n "__fish_use_subcommand" -a "php" -d "Manage PHP versions, configuration, limits and OPcache"
 complete -c forge -f -n "__fish_use_subcommand" -a "user" -d "Display authenticated user profile"
 complete -c forge -f -n "__fish_use_subcommand" -a "monitors" -d "Manage server monitors"
 complete -c forge -f -n "__fish_use_subcommand" -a "nginx-templates" -d "Manage Nginx templates"
@@ -608,6 +632,19 @@ complete -c forge -f -n "__fish_seen_subcommand_from scheduled-jobs" -a "delete"
 complete -c forge -f -n "__fish_seen_subcommand_from services" -a "list" -d "List services on a server"
 complete -c forge -f -n "__fish_seen_subcommand_from services" -a "ls" -d "List services on a server (alias)"
 complete -c forge -f -n "__fish_seen_subcommand_from services" -a "restart" -d "Restart a service"
+
+# php subcommands
+complete -c forge -f -n "__fish_seen_subcommand_from php" -a "list" -d "List installed PHP versions"
+complete -c forge -f -n "__fish_seen_subcommand_from php" -a "ls" -d "List installed PHP versions (alias)"
+complete -c forge -f -n "__fish_seen_subcommand_from php" -a "config" -d "Show a PHP configuration file"
+complete -c forge -f -n "__fish_seen_subcommand_from php" -a "update-config" -d "Replace a PHP configuration file"
+complete -c forge -f -n "__fish_seen_subcommand_from php" -a "max-upload-size" -d "Show the max upload size"
+complete -c forge -f -n "__fish_seen_subcommand_from php" -a "set-max-upload-size" -d "Set the max upload size"
+complete -c forge -f -n "__fish_seen_subcommand_from php" -a "max-execution-time" -d "Show the max execution time"
+complete -c forge -f -n "__fish_seen_subcommand_from php" -a "set-max-execution-time" -d "Set the max execution time"
+complete -c forge -f -n "__fish_seen_subcommand_from php" -a "opcache" -d "Show the OPcache status"
+complete -c forge -f -n "__fish_seen_subcommand_from php" -a "enable-opcache" -d "Enable OPcache"
+complete -c forge -f -n "__fish_seen_subcommand_from php" -a "disable-opcache" -d "Disable OPcache"
 
 # user subcommands
 complete -c forge -f -n "__fish_seen_subcommand_from user" -a "get" -d "Get the authenticated user profile"

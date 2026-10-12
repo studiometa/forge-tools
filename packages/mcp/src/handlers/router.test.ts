@@ -226,6 +226,7 @@ describe("routeToHandler — resource routing coverage", () => {
     { resource: "commands", extra: { server_id: "1", site_id: "10" } },
     { resource: "scheduled-jobs", extra: { server_id: "1" } },
     { resource: "services", extra: { server_id: "1" } },
+    { resource: "php", extra: { server_id: "1" } },
     { resource: "database-users", extra: { server_id: "1" } },
     { resource: "deployments", extra: { server_id: "1", site_id: "10" } },
   ];

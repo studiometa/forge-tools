@@ -63,6 +63,7 @@ forge_write(resource, action, [parameters...])
 | `scheduled-jobs`  | `list`, `get`                       | `create`, `delete`             | server |
 | `backups`         | `list`, `get`                       | `create`, `delete`             | server |
 | `commands`        | `list`, `get`                       | `create`                       | site   |
+| `php`             | `list`, `get`                       | `update`                       | server |
 | `user`            | `get`                               | —                              | global |
 | `batch`           | `run`                               | —                              | global |
 
@@ -182,6 +183,25 @@ Use `action: "schema"` for a compact machine-readable spec:
 
 // Update env (forge_write)
 { "resource": "env", "action": "update", "server_id": "123", "site_id": "456", "content": "APP_ENV=production\nAPP_DEBUG=false" }
+```
+
+### Tune PHP
+
+`setting` picks what to read or write: `version`, `config`, `max-upload-size`, `max-execution-time` or `opcache`. `version` takes a version ID from `list` or a version such as `"8.3"`.
+
+```json
+// List installed versions (forge)
+{ "resource": "php", "action": "list", "server_id": "123" }
+
+// Read the FPM php.ini (forge)
+{ "resource": "php", "action": "get", "server_id": "123", "setting": "config", "version": "8.3", "type": "fpm" }
+
+// Replace the FPM php.ini (forge_write)
+{ "resource": "php", "action": "update", "server_id": "123", "setting": "config", "version": "8.3", "type": "fpm", "content": "..." }
+
+// Set the max upload size in MB, enable OPcache (forge_write)
+{ "resource": "php", "action": "update", "server_id": "123", "setting": "max-upload-size", "value": 128 }
+{ "resource": "php", "action": "update", "server_id": "123", "setting": "opcache", "enabled": true }
 ```
 
 ### Create a Queue Worker

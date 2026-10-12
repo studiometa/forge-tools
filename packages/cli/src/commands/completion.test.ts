@@ -381,4 +381,36 @@ describe("handleCompletionCommand", () => {
       expect(script).toContain('-l check -d "Compare with Forge, do not write"');
     });
   });
+
+  describe("php completion", () => {
+    it("should complete the php command and its subcommands in bash", () => {
+      handleCompletionCommand("bash", { print: true });
+      const script = stdoutWriteSpy.mock.calls[0]![0] as string;
+      expect(script).toContain("services php user");
+      expect(script).toContain(
+        'php_cmds="list ls config update-config max-upload-size set-max-upload-size max-execution-time set-max-execution-time opcache enable-opcache disable-opcache"',
+      );
+      expect(script).toContain("--token|--server|--site|--version|--name|");
+    });
+
+    it("should complete the php command and its subcommands in zsh", () => {
+      handleCompletionCommand("zsh", { print: true });
+      const script = stdoutWriteSpy.mock.calls[0]![0] as string;
+      expect(script).toContain("'php:Manage PHP versions, configuration, limits and OPcache'");
+      expect(script).toContain("'--version[PHP version (php, services)]:version:'");
+      expect(script).toContain("'update-config:Replace a PHP configuration file'");
+      expect(script).toContain("'enable-opcache:Enable OPcache'");
+    });
+
+    it("should complete the php command and its subcommands in fish", () => {
+      handleCompletionCommand("fish", { print: true });
+      const script = stdoutWriteSpy.mock.calls[0]![0] as string;
+      expect(script).toContain(
+        '-a "php" -d "Manage PHP versions, configuration, limits and OPcache"',
+      );
+      expect(script).toContain(
+        '-n "__fish_seen_subcommand_from php" -a "set-max-upload-size" -d "Set the max upload size"',
+      );
+    });
+  });
 });

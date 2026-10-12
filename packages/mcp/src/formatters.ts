@@ -19,6 +19,7 @@ import type {
   FirewallRuleAttributes,
   MonitorAttributes,
   NginxTemplateAttributes,
+  PhpVersionAttributes,
   RecipeAttributes,
   RedirectRuleAttributes,
   ScheduledJobAttributes,
@@ -529,6 +530,26 @@ export function formatServiceList(
     return `• ${s.service} — ${status}${detail}`;
   });
   return `${services.length} service(s):\n${lines.join("\n")}`;
+}
+
+// ── PHP ──────────────────────────────────────────────
+
+/**
+ * Format a list of installed PHP versions.
+ */
+export function formatPhpVersionList(versions: (PhpVersionAttributes & { id: number })[]): string {
+  if (versions.length === 0) {
+    return "No PHP versions found.";
+  }
+  const lines = versions.map((v) => `• PHP ${v.version} (ID: ${v.id}) — ${v.status}`);
+  return `${versions.length} PHP version(s):\n${lines.join("\n")}`;
+}
+
+/**
+ * Format a single PHP version.
+ */
+export function formatPhpVersion(version: PhpVersionAttributes & { id: number }): string {
+  return `PHP ${version.version} (ID: ${version.id})\nBinary: ${version.binary_name}\nStatus: ${version.status}`;
 }
 
 // ── Generic helpers ──────────────────────────────────

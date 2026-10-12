@@ -57,6 +57,7 @@ forge <command> [subcommand] [options]
 | `env`             |         | Get, update environment variables for a site         |
 | `nginx`           |         | Get, update Nginx configuration for a site           |
 | `nginx-templates` |         | List, get, create, update, delete Nginx templates    |
+| `php`             |         | PHP versions, config files, limits and OPcache       |
 | `certificates`    | `certs` | List, get, activate SSL certificates for a site      |
 | `firewall-rules`  | `fw`    | List, get firewall rules on a server                 |
 | `ssh`             |         | Open an SSH session to a server                      |
@@ -149,7 +150,7 @@ Keep the deployment script in your repository: `update-script` takes exactly one
 
 #### Detect drift in CI with `--check`
 
-`--check` on `deployments update-script`, `env update` and `nginx update` compares your local file with the content on Forge and does not write anything. Line endings (CRLF and LF) and a single trailing newline are ignored.
+`--check` on `deployments update-script`, `env update`, `nginx update` and `php update-config` compares your local file with the content on Forge and does not write anything. Line endings (CRLF and LF) and a single trailing newline are ignored.
 
 - In sync: prints "in sync" and exits `0`.
 - Different: prints a unified line diff (`-` remote, `+` local) and exits `1`.
@@ -201,6 +202,26 @@ forge nginx update --server <id> --site <id> --file nginx.conf --check  # Compar
 ```
 
 `update` takes exactly one of `--file` or `--content` and rejects empty content.
+
+### `php` — Manage PHP
+
+```bash
+forge php list --server <id>                                                        # List installed PHP versions
+forge php config --server <id> --version 8.3 --type fpm                             # Print the FPM php.ini
+forge php config --server <id> --version 8.3 --type pool --user forge               # Print the FPM pool config
+forge php update-config --server <id> --version 8.3 --type cli --file php.ini       # Replace the CLI php.ini from a file
+forge php update-config --server <id> --version 8.3 --type fpm --file -             # Replace the FPM php.ini from stdin
+forge php update-config --server <id> --version 8.3 --type fpm --file php.ini --check  # Compare only, do not write
+forge php max-upload-size --server <id>                                             # Print the max upload size (MB)
+forge php set-max-upload-size 128 --server <id>                                     # Set the max upload size (MB)
+forge php max-execution-time --server <id>                                          # Print the max execution time (seconds)
+forge php set-max-execution-time 120 --server <id>                                  # Set the max execution time (seconds)
+forge php opcache --server <id>                                                     # Print the OPcache status
+forge php enable-opcache --server <id>                                              # Enable OPcache
+forge php disable-opcache --server <id>                                             # Disable OPcache
+```
+
+`--version` takes a PHP version ID from `forge php list`, or a version such as `8.3`, `php83` or `php8.3`. `--type` is `cli` (CLI php.ini), `fpm` (FPM php.ini) or `pool` (FPM pool); `--user` applies to `pool` only. `update-config` replaces the whole file, takes exactly one of `--file` or `--content`, rejects empty content and supports `--check` (see [Detect drift in CI with `--check`](#detect-drift-in-ci-with---check)).
 
 ### `certificates` (`certs`) — Manage SSL certificates
 

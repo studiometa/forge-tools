@@ -32,7 +32,7 @@ import { RESOURCES, ACTIONS } from "@studiometa/forge-core";
 // RESOURCES: ['servers', 'sites', 'deployments', 'certificates', 'databases',
 //   'database-users', 'daemons', 'env', 'nginx', 'firewall-rules', 'ssh-keys',
 //   'security-rules', 'redirect-rules', 'nginx-templates', 'monitors', 'recipes',
-//   'backups', 'commands', 'scheduled-jobs', 'user', 'batch']
+//   'backups', 'commands', 'scheduled-jobs', 'services', 'php', 'user', 'batch']
 // ACTIONS: ['list', 'get', 'create', 'update', 'delete', 'deploy', 'reboot', 'restart',
 //   'activate', 'run', 'resolve', 'help', 'schema', 'context']
 ```
@@ -121,6 +121,13 @@ import { RESOURCES, ACTIONS } from "@studiometa/forge-core";
 ### Scheduled Jobs
 
 - `listScheduledJobs`, `getScheduledJob`, `createScheduledJob`, `deleteScheduledJob`
+
+### PHP
+
+- `listPhpVersions`, `getPhpVersion`, `resolvePhpVersionId`
+- `getPhpConfig`, `updatePhpConfig` — cli, fpm or pool file; `version` is an ID or a version such as `8.3`, `php83`
+- `getPhpMaxUploadSize`, `updatePhpMaxUploadSize`, `getPhpMaxExecutionTime`, `updatePhpMaxExecutionTime`
+- `getPhpOpcache`, `enablePhpOpcache`, `disablePhpOpcache`
 
 ### User
 

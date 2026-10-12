@@ -28,6 +28,7 @@ import { handleHelp, handleHelpOverview } from "./help.ts";
 import { handleMonitors } from "./monitors.ts";
 import { handleNginxConfig } from "./nginx-config.ts";
 import { handleNginxTemplates } from "./nginx-templates.ts";
+import { handlePhp } from "./php.ts";
 import { handleRecipes } from "./recipes.ts";
 import { handleRedirectRules } from "./redirect-rules.ts";
 import { handleScheduledJobs } from "./scheduled-jobs.ts";
@@ -107,6 +108,8 @@ function routeToHandler(
       return handleScheduledJobs(action, args, ctx);
     case "services":
       return handleServices(action, args, ctx);
+    case "php":
+      return handlePhp(action, args, ctx);
     case "user":
       return handleUser(action, args, ctx);
     case "batch":

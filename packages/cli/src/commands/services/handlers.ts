@@ -53,7 +53,10 @@ export async function servicesRestart(args: string[], ctx: CommandContext): Prom
     exitWithValidationError("service", "forge services restart <server> <service>", ctx.formatter);
   }
 
-  const version = ctx.options.version ? String(ctx.options.version) : undefined;
+  const version =
+    typeof ctx.options.version === "string" && ctx.options.version
+      ? ctx.options.version
+      : undefined;
 
   await runCommand(async () => {
     if (!(RESTARTABLE_SERVICES as readonly string[]).includes(service)) {

@@ -95,3 +95,12 @@ export function getOption(
 export function hasFlag(options: Record<string, OptionValue>, names: string[]): boolean {
   return names.some((name) => options[name] === true);
 }
+
+/**
+ * Whether the arguments ask for the CLI version: a bare `--version` or `-v`
+ * with no command. Commands such as `php config` and `services restart` take
+ * `--version <value>`, so a bare `--version` after a command is not a version request.
+ */
+export function isVersionRequest({ command, options }: ParsedArgs): boolean {
+  return command.length === 0 && (options.version === true || options.v === true);
+}

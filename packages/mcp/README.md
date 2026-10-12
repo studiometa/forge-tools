@@ -120,6 +120,7 @@ Mutating operations. Annotated `destructiveHint: true` so MCP clients always pro
 | scheduled-jobs  | list, get                   | create, delete           | server_id                  |
 | backups         | list, get                   | create, delete           | server_id                  |
 | commands        | list, get                   | create                   | server_id, site_id         |
+| php             | list, get                   | update                   | server_id (+ setting)      |
 | recipes         | list, get                   | create, delete, run      | id (for get/delete/run)    |
 | user            | get                         | —                        | —                          |
 | batch           | run                         | —                        | operations array           |
