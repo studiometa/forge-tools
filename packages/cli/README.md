@@ -60,7 +60,7 @@ forge <command> [subcommand] [options]
 | `certificates`    | `certs` | List, get, activate SSL certificates for a site      |
 | `firewall-rules`  | `fw`    | List, get firewall rules on a server                 |
 | `ssh`             |         | Open an SSH session to a server                      |
-| `ssh-keys`        |         | List, get SSH keys on a server                       |
+| `ssh-keys`        |         | List, get, sync SSH keys on servers                  |
 | `security-rules`  |         | List, get, create, delete security rules for a site  |
 | `redirect-rules`  |         | List, get, create, delete redirect rules for a site  |
 | `recipes`         |         | List, get, run recipes                               |
@@ -208,7 +208,13 @@ Requires your local SSH key to be authorized on the server; this command launche
 ```bash
 forge ssh-keys list --server <id>               # List SSH keys
 forge ssh-keys get <key_id> --server <id>       # Get SSH key details
+forge ssh-keys sync --file keys --server <id> --dry-run     # Show what sync would change
+forge ssh-keys sync --file keys --server 1,2 --server web-3 # Add the missing keys
+forge ssh-keys sync --file keys --all-servers --prune       # Also remove keys not in the file
+forge ssh-keys sync --file - --server <id> --user deploy    # Read the keys from stdin, for user deploy
 ```
+
+`sync` makes the SSH keys of a server user (`--user`, default `forge`) match a file in `authorized_keys` format: one `<type> <base64> [comment]` per line, blank lines and `#` comments ignored. A malformed line stops the command with its line number. Each key gets the name `<comment slug>-<first 8 hex chars of the SHA-256 of the key>`. The Forge API does not return public keys, so keys are matched by name, and a changed key gets a new name. The command prints the plan per server (`+` add, `-` remove, `=` unchanged), applies it, then prints the result. It only adds keys, unless you give `--prune`; `--dry-run` changes nothing. Servers run one after the other. When an operation fails, the other operations still run and the command exits non-zero. `--format json` prints `{ servers: [{ id, name, added, removed, unchanged, errors }] }`.
 
 ### `recipes` — Manage recipes
 

@@ -32,7 +32,7 @@ _forge_completions() {
   local nginx_cmds="get update"
   local certificates_cmds="get activate"
   local firewall_rules_cmds="list ls get"
-  local ssh_keys_cmds="list ls get"
+  local ssh_keys_cmds="list ls get sync"
   local backups_cmds="list ls get create delete"
   local commands_cmds="list ls get create"
   local scheduled_jobs_cmds="list ls get create delete"
@@ -46,7 +46,7 @@ _forge_completions() {
   local completion_cmds="bash zsh fish"
 
   # Global options
-  options="--token --server --site -f --format --no-color -h --help -v --version --name --command --content --from --to --provider --frequency --type --operator --threshold --minutes --key --port --ip-address --user --private --dry-run --script --servers --domain --password --credential-id --region --size --project-type --directory --file --script-file"
+  options="--token --server --site -f --format --no-color -h --help -v --version --name --command --content --from --to --provider --frequency --type --operator --threshold --minutes --key --port --ip-address --user --private --dry-run --script --servers --domain --password --credential-id --region --size --project-type --directory --file --script-file --all-servers --prune"
 
   # Format options
   local formats="json human table"
@@ -322,6 +322,7 @@ _forge() {
             'list:List SSH keys'
             'ls:List SSH keys (alias)'
             'get:Get SSH key details'
+            'sync:Make server SSH keys match a file'
           )
           _describe 'ssh-keys command' ssh_keys_cmds
           ;;
@@ -473,7 +474,10 @@ _forge() {
         '--project-type[Project type]:project type:' \\
         '--directory[Directory]:directory:' \\
         '--file[File path (- for stdin)]:file:_files' \\
-        '--script-file[Deployment script file]:file:_files'
+        '--script-file[Deployment script file]:file:_files' \\
+        '--all-servers[Target every server]' \\
+        '--prune[Remove SSH keys that are not in the file]' \\
+        '--dry-run[Print the plan and change nothing]'
       ;;
   esac
 }
@@ -582,6 +586,7 @@ complete -c forge -f -n "__fish_seen_subcommand_from firewall-rules fw" -a "get"
 complete -c forge -f -n "__fish_seen_subcommand_from ssh-keys" -a "list" -d "List SSH keys"
 complete -c forge -f -n "__fish_seen_subcommand_from ssh-keys" -a "ls" -d "List SSH keys (alias)"
 complete -c forge -f -n "__fish_seen_subcommand_from ssh-keys" -a "get" -d "Get SSH key details"
+complete -c forge -f -n "__fish_seen_subcommand_from ssh-keys" -a "sync" -d "Make server SSH keys match a file"
 
 # backups subcommands
 complete -c forge -f -n "__fish_seen_subcommand_from backups" -a "list" -d "List backup configurations"
@@ -685,6 +690,9 @@ complete -c forge -l project-type -d "Project type" -r
 complete -c forge -l directory -d "Directory" -r
 complete -c forge -l file -d "File path (- for stdin)" -r -F
 complete -c forge -l script-file -d "Deployment script file" -r -F
+complete -c forge -l all-servers -d "Target every server"
+complete -c forge -l prune -d "Remove SSH keys that are not in the file"
+complete -c forge -l dry-run -d "Print the plan and change nothing"
 `;
 
 /**

@@ -10,12 +10,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **CLI**: Add `forge deployments script` and `forge deployments update-script` (`--file <path|->` or `--content`) to read and write a site's deployment script, and `--script-file <path>` on `forge deployments deploy` to upload the script before deploying [[#127]]
+- **CLI**: Add `forge ssh-keys sync --file <path|->` to make the SSH keys of a server user match an `authorized_keys` file on `--server` targets or `--all-servers`, with `--user`, `--prune` and `--dry-run` [[#PR]]
 
 ### Changed
 
 - **CLI**: Accept a lone dash (`-`) as an option value for all commands, so `--file -` reads stdin; before, `-` parsed as a boolean flag [[#127]]
+- **CLI**: Collect a string option given more than once into an array (`--server 1 --server 2`); before, the last value won [[#PR]]
 
 [#127]: https://github.com/studiometa/forge-tools/pull/127
+[#PR]: https://github.com/studiometa/forge-tools/pull/PR
 
 ## 0.4.6 - 2026.07.21
 
