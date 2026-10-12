@@ -167,6 +167,16 @@ const RESOURCE_SCHEMAS: Record<string, ResourceSchemaData> = {
     },
   },
 
+  php: {
+    actions: ["list", "get", "update"],
+    scope: "server",
+    required: {
+      list: ["server_id"],
+      get: ["server_id", "setting"],
+      update: ["server_id", "setting"],
+    },
+  },
+
   "firewall-rules": {
     actions: ["list", "get", "create", "delete"],
     scope: "server",
