@@ -308,6 +308,62 @@ describe("E2E: executeToolWithCredentials", () => {
     expect(result.content[0].text).toContain("APP_ENV=production");
   });
 
+  it("should check env end-to-end with names only and structured output by default", async () => {
+    const result = await executeToolWithCredentials(
+      "forge",
+      {
+        resource: "env",
+        action: "check",
+        server_id: "1",
+        site_id: "10",
+        content: "APP_ENV=staging-secret\nNEW_KEY=new-secret",
+      },
+      creds,
+    );
+    expect(result.isError).toBeUndefined();
+    expect(result.structuredContent).toEqual({
+      success: true,
+      result: { inSync: false, diff: { added: ["NEW_KEY"], removed: [], changed: ["APP_ENV"] } },
+    });
+    expect(JSON.stringify(result)).not.toMatch(/secret|production/);
+  });
+
+  it("should check env in a batch with names only", async () => {
+    const result = await executeToolWithCredentials(
+      "forge",
+      {
+        resource: "batch",
+        action: "run",
+        operations: [
+          {
+            resource: "env",
+            action: "check",
+            server_id: "1",
+            site_id: "10",
+            content: "APP_ENV=staging-secret",
+          },
+        ],
+      },
+      creds,
+    );
+    expect(result.isError).toBeUndefined();
+    const data = JSON.parse(result.content[0].text);
+    expect(data._batch.succeeded).toBe(1);
+    expect(data.results[0].data).toBe("Environment file differs from Forge:\n~ APP_ENV (changed)");
+    expect(JSON.stringify(result)).not.toMatch(/secret|production/);
+  });
+
+  it("should reject check on the forge_write tool", async () => {
+    const result = await executeToolWithCredentials(
+      "forge_write",
+      { resource: "env", action: "check", server_id: "1", site_id: "10", content: "A=secret" },
+      creds,
+    );
+    expect(result.isError).toBe(true);
+    expect(result.content[0].text).toContain('"forge" tool');
+    expect(JSON.stringify(result)).not.toContain("secret");
+  });
+
   it("should reject non-matching server_id name (auto-resolve returns error)", async () => {
     // "../etc" is non-numeric so auto-resolve attempts to match it as a name.
     // The mock returns only "web-1" which doesn't match, so we get a resolve error.

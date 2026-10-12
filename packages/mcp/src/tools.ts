@@ -5,7 +5,16 @@ import { RESOURCES } from "@studiometa/forge-core";
 /**
  * Read-only actions — safe operations that don't modify server state.
  */
-export const READ_ACTIONS = ["list", "get", "resolve", "help", "schema", "context", "log"] as const;
+export const READ_ACTIONS = [
+  "list",
+  "get",
+  "resolve",
+  "help",
+  "schema",
+  "context",
+  "log",
+  "check",
+] as const;
 
 /**
  * Write actions — operations that modify server state.
@@ -126,6 +135,7 @@ const FORGE_READ_TOOL: Tool = {
     "Deployment operations require server_id and site_id.",
     "Batch: use resource=batch action=run with an operations array to execute multiple reads in one call.",
     "resolve: find resources by name (partial, case-insensitive) — provide query field.",
+    "check: compare local content with Forge without writing (env, nginx, deployments, php setting=config) — returns { inSync, diff }; env returns variable names only, never values.",
   ].join("\n"),
   annotations: {
     title: "Laravel Forge",
@@ -160,6 +170,12 @@ const FORGE_READ_TOOL: Tool = {
       user: {
         type: "string" as const,
         description: "FPM pool user for php get setting=config type=pool (optional)",
+      },
+      // Check fields
+      content: {
+        type: "string" as const,
+        description:
+          "Local content to compare with Forge for action=check (env file, nginx config, deployment script or PHP config)",
       },
       operations: {
         type: "array" as const,

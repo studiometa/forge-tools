@@ -1,6 +1,7 @@
 import * as v from "valibot";
-import type { ExecutorContext, ExecutorResult } from "@studiometa/forge-core";
+import type { DriftResult, ExecutorContext, ExecutorResult } from "@studiometa/forge-core";
 import {
+  compareText,
   disablePhpOpcache,
   enablePhpOpcache,
   getPhpConfig,
@@ -15,8 +16,9 @@ import {
   updatePhpMaxUploadSize,
 } from "@studiometa/forge-core";
 
-import { formatPhpVersion, formatPhpVersionList } from "../formatters.ts";
+import { formatDrift, formatPhpVersion, formatPhpVersionList } from "../formatters.ts";
 import { createResourceHandler } from "./factory.ts";
+import { contentSchema } from "./utils.ts";
 
 /**
  * Options after input validation: `setting` picks what `get` reads and `update` writes.
@@ -99,6 +101,25 @@ function updatePhpSetting(
 }
 
 /**
+ * Compare a local PHP configuration file with the one on Forge, as a unified line diff.
+ */
+async function checkPhpConfig(
+  options: PhpOptions,
+  ctx: ExecutorContext,
+): Promise<ExecutorResult<DriftResult<string>>> {
+  const remote = await getPhpConfig(
+    {
+      server_id: options.server_id,
+      version: options.version!,
+      type: options.type!,
+      user: options.user,
+    },
+    ctx,
+  );
+  return { data: compareText(remote.data, options.content!) };
+}
+
+/**
  * Format the result of a `get` for compact output.
  */
 function formatGet(data: unknown, args: Record<string, unknown>): string {
@@ -134,7 +155,7 @@ function formatUpdate(args: Record<string, unknown>): string {
 
 export const handlePhp = createResourceHandler({
   resource: "php",
-  actions: ["list", "get", "update"],
+  actions: ["list", "get", "update", "check"],
   inputSchemas: {
     list: v.object({ server_id: v.string() }),
     get: v.variant("setting", [
@@ -154,11 +175,13 @@ export const handlePhp = createResourceHandler({
       }),
       v.object({ server_id: v.string(), setting: v.literal("opcache"), enabled: v.boolean() }),
     ]),
+    check: v.object({ ...configFields, content: contentSchema }),
   },
   executors: {
     list: listPhpVersions,
     get: getPhpSetting,
     update: updatePhpSetting,
+    check: checkPhpConfig,
   },
   formatResult: (action, data, args) => {
     switch (action) {
@@ -166,6 +189,8 @@ export const handlePhp = createResourceHandler({
         return formatPhpVersionList(data);
       case "get":
         return formatGet(data, args);
+      case "check":
+        return formatDrift(`PHP ${String(args.type)} configuration`, data);
       default:
         return formatUpdate(args);
     }

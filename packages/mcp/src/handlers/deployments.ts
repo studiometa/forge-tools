@@ -1,4 +1,5 @@
 import {
+  compareText,
   deploySiteAndWait,
   getDeploymentLog,
   getDeploymentScript,
@@ -8,6 +9,7 @@ import {
 
 import {
   formatDeploymentList,
+  formatDrift,
   formatDeploymentOutput,
   formatDeploymentScript,
   formatDeploymentScriptUpdated,
@@ -22,6 +24,7 @@ import { errorResult, jsonResult, sanitizeId } from "./utils.ts";
  *
  * Not using the factory because the `get` action has special logic
  * (with id → output, without id → script).
+ * `check` compares `content` with the deployment script on Forge, as a unified line diff.
  */
 export async function handleDeployments(
   action: string,
@@ -79,9 +82,16 @@ export async function handleDeployments(
       return jsonResult(formatDeploymentScriptUpdated(args.site_id, args.server_id));
     }
 
+    case "check": {
+      if (typeof args.content !== "string") return errorResult("Missing required field: content");
+      const remote = await getDeploymentScript(opts, ctx.executorContext);
+      const result = compareText(remote.data, args.content);
+      return jsonResult(ctx.compact ? formatDrift("deployment script", result) : result);
+    }
+
     default:
       return errorResult(
-        `Unknown action "${action}" for deployments. Valid actions: list, deploy, get, update.`,
+        `Unknown action "${action}" for deployments. Valid actions: list, deploy, get, update, check.`,
       );
   }
 }

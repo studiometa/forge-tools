@@ -20,6 +20,12 @@ describe("handleSchema", () => {
     expect(data.create).toBeDefined();
   });
 
+  it.each(["env", "nginx", "deployments", "php"])("should list check for %s", (resource) => {
+    const data = JSON.parse(handleSchema(resource).content[0].text);
+    expect(data.actions).toContain("check");
+    expect(data.required.check).toContain("content");
+  });
+
   it("should return error for unknown resource", () => {
     const result = handleSchema("unknown");
     const data = JSON.parse(result.content[0].text);
