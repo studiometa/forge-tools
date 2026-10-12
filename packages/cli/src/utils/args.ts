@@ -20,8 +20,25 @@ function isOptionValue(arg: string): boolean {
   return arg === "-" || !arg.startsWith("-");
 }
 
+/**
+ * Set an option value. A string option given more than once collects its values
+ * into an array (`--server 1 --server 2` → `["1", "2"]`); flags keep the last value.
+ */
+function setOption(
+  options: Record<string, OptionValue>,
+  key: string,
+  value: string | boolean,
+): void {
+  const previous = options[key];
+  if (typeof value === "string" && previous !== undefined && typeof previous !== "boolean") {
+    options[key] = [previous, value].flat();
+  } else {
+    options[key] = value;
+  }
+}
+
 export function parseArgs(argv: string[] = process.argv.slice(2)): ParsedArgs {
-  const options: Record<string, string | boolean | string[]> = {};
+  const options: Record<string, OptionValue> = {};
   const positional: string[] = [];
   const command: string[] = [];
 
@@ -34,16 +51,16 @@ export function parseArgs(argv: string[] = process.argv.slice(2)): ParsedArgs {
       if (equalIndex > -1) {
         const key = arg.slice(2, equalIndex);
         const value = arg.slice(equalIndex + 1);
-        options[key] = value;
+        setOption(options, key, value);
       } else {
         const key = arg.slice(2);
         const nextArg = argv[i + 1];
 
         if (nextArg !== undefined && isOptionValue(nextArg)) {
-          options[key] = nextArg;
+          setOption(options, key, nextArg);
           i++;
         } else {
-          options[key] = true;
+          setOption(options, key, true);
         }
       }
     } else if (arg.startsWith("-") && arg.length > 1) {
@@ -53,10 +70,10 @@ export function parseArgs(argv: string[] = process.argv.slice(2)): ParsedArgs {
         const nextArg = argv[i + 1];
 
         if (nextArg !== undefined && isOptionValue(nextArg)) {
-          options[key] = nextArg;
+          setOption(options, key, nextArg);
           i++;
         } else {
-          options[key] = true;
+          setOption(options, key, true);
         }
       } else {
         // Multiple short flags: -abc -> -a -b -c

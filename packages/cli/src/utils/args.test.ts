@@ -40,6 +40,28 @@ describe("parseArgs", () => {
     expect(result.options.f).toBe("-");
   });
 
+  it("should collect a repeated option into an array", () => {
+    const result = parseArgs([
+      "--server",
+      "1",
+      "--server=2",
+      "--server",
+      "3",
+      "-s",
+      "a",
+      "-s",
+      "b",
+    ]);
+    expect(result.options.server).toEqual(["1", "2", "3"]);
+    expect(result.options.s).toEqual(["a", "b"]);
+  });
+
+  it("should keep the last value when a flag is involved in a repeated option", () => {
+    const result = parseArgs(["--prune", "--prune", "--file", "--file", "keys"]);
+    expect(result.options.prune).toBe(true);
+    expect(result.options.file).toBe("keys");
+  });
+
   it("should parse multiple short flags", () => {
     const result = parseArgs(["-vh"]);
     expect(result.options.v).toBe(true);
