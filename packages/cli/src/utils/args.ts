@@ -21,8 +21,13 @@ function isOptionValue(arg: string): boolean {
 }
 
 /**
- * Set an option value. A string option given more than once collects its values
- * into an array (`--server 1 --server 2` → `["1", "2"]`); flags keep the last value.
+ * Options that accept several values. Every other option keeps the last value.
+ */
+const REPEATABLE = new Set(["server"]);
+
+/**
+ * Set an option value. A repeatable option given more than once collects its string
+ * values into an array (`--server 1 --server 2` → `["1", "2"]`).
  */
 function setOption(
   options: Record<string, OptionValue>,
@@ -30,7 +35,12 @@ function setOption(
   value: string | boolean,
 ): void {
   const previous = options[key];
-  if (typeof value === "string" && previous !== undefined && typeof previous !== "boolean") {
+  if (
+    REPEATABLE.has(key) &&
+    typeof value === "string" &&
+    previous !== undefined &&
+    typeof previous !== "boolean"
+  ) {
     options[key] = [previous, value].flat();
   } else {
     options[key] = value;
