@@ -98,32 +98,34 @@ Co-authored-by: Claude <claude@anthropic.com>
 
 ## Versioning
 
-Version is managed at the root level and synced across all packages:
+All packages share one version. Maintainers release with the `Release` workflow, which bumps the version, folds the changelog fragments into `CHANGELOG.md`, tags, publishes to npm and creates the GitHub release:
 
 ```bash
-npm run version:patch    # 0.1.0 → 0.1.1
-npm run version:minor    # 0.1.0 → 0.2.0
-npm run version:major    # 0.1.0 → 1.0.0
+gh workflow run release.yml -f bump=patch   # or minor / major
 ```
 
 ## Changelog
 
-A single `CHANGELOG.md` at the root covers all packages. Prefix entries with the package name when relevant:
+Do not edit `CHANGELOG.md`. Add a fragment in `.changelog/<slug>.md`, where the slug is your branch name without its prefix. Use `###` Keep a Changelog sections and prefix entries with the package name when relevant:
 
 ```markdown
-## 0.2.0
+### Added
 
 - **SDK**: Add support for databases
+
+### Fixed
+
 - **MCP**: Fix OAuth token refresh
-- **Core**: Add report executors
 ```
+
+Do not write the pull request number: the release adds it. A pull request that changes `packages/` needs a fragment, unless it has the `no-changelog` label. See [`weareikko/changelog`](https://github.com/weareikko/changelog) for the format.
 
 ## Pull Request Process
 
 1. Create a feature branch
 2. Make changes and add tests
 3. Run checks: `npm run typecheck && npm run lint && npm test && npm run build`
-4. Update `CHANGELOG.md`
+4. Add a fragment in `.changelog/`
 5. Open a pull request with a clear description
 
 ## License
