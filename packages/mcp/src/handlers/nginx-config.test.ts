@@ -75,7 +75,7 @@ describe("handleNginxConfig", () => {
     expect(result.isError).toBeUndefined();
     expect(result.content[0].text).toContain("Nginx configuration updated.");
     expect(put).toHaveBeenCalledWith("/orgs/test-org/servers/1/sites/2/nginx", {
-      content: "server { listen 443; }",
+      config: "server { listen 443; }",
     });
   });
 

@@ -17,7 +17,7 @@ describe("updateNginxConfig", () => {
     );
 
     expect(putMock).toHaveBeenCalledWith("/orgs/test-org/servers/1/sites/2/nginx", {
-      content: "server { listen 80; }",
+      config: "server { listen 80; }",
     });
     expect(result.data).toBeUndefined();
   });
