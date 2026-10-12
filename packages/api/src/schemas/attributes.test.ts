@@ -27,6 +27,11 @@ import {
   BackupAttributesSchema,
   OrganizationAttributesSchema,
   EnvironmentAttributesSchema,
+  PhpVersionAttributesSchema,
+  PhpConfigAttributesSchema,
+  PhpMaxUploadSizeAttributesSchema,
+  PhpMaxExecutionTimeAttributesSchema,
+  PhpOpcacheAttributesSchema,
   SiteRepositorySchema,
   DeploymentCommitSchema,
 } from "./attributes.ts";
@@ -463,4 +468,45 @@ testSchema(
   EnvironmentAttributesSchema,
   { content: "APP_ENV=production" },
   { content: 123 },
+);
+
+testSchema(
+  "PhpVersionAttributesSchema",
+  PhpVersionAttributesSchema,
+  {
+    version: "8.3",
+    binary_name: "php8.3",
+    status: "installed",
+    created_at: "2024-01-01T00:00:00Z",
+    updated_at: "2024-01-01T00:00:00Z",
+  },
+  { version: 83 },
+);
+
+testSchema(
+  "PhpConfigAttributesSchema",
+  PhpConfigAttributesSchema,
+  { configuration: "memory_limit = 512M" },
+  { configuration: null },
+);
+
+testSchema(
+  "PhpMaxUploadSizeAttributesSchema",
+  PhpMaxUploadSizeAttributesSchema,
+  { max_upload_size: "64" },
+  { max_upload_size: null },
+);
+
+testSchema(
+  "PhpMaxExecutionTimeAttributesSchema",
+  PhpMaxExecutionTimeAttributesSchema,
+  { max_execution_time: 60 },
+  { max_execution_time: true },
+);
+
+testSchema(
+  "PhpOpcacheAttributesSchema",
+  PhpOpcacheAttributesSchema,
+  { opcache_enabled: true },
+  { opcache_enabled: "yes" },
 );

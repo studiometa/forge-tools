@@ -358,3 +358,42 @@ export const EnvironmentAttributesSchema = v.object({
 });
 
 export type EnvironmentAttributes = v.InferOutput<typeof EnvironmentAttributesSchema>;
+
+// ── PHP ──────────────────────────────────────────────
+
+export const PhpVersionAttributesSchema = v.object({
+  version: v.string(),
+  binary_name: v.string(),
+  status: v.string(),
+  created_at: v.string(),
+  updated_at: v.string(),
+});
+
+export type PhpVersionAttributes = v.InferOutput<typeof PhpVersionAttributesSchema>;
+
+export const PhpConfigAttributesSchema = v.object({
+  configuration: v.string(),
+});
+
+export type PhpConfigAttributes = v.InferOutput<typeof PhpConfigAttributesSchema>;
+
+// The spec types both limits as strings: accept numbers too, so a numeric value does not fail validation.
+export const PhpMaxUploadSizeAttributesSchema = v.object({
+  max_upload_size: v.union([v.string(), v.number()]),
+});
+
+export type PhpMaxUploadSizeAttributes = v.InferOutput<typeof PhpMaxUploadSizeAttributesSchema>;
+
+export const PhpMaxExecutionTimeAttributesSchema = v.object({
+  max_execution_time: v.union([v.string(), v.number()]),
+});
+
+export type PhpMaxExecutionTimeAttributes = v.InferOutput<
+  typeof PhpMaxExecutionTimeAttributesSchema
+>;
+
+export const PhpOpcacheAttributesSchema = v.object({
+  opcache_enabled: v.boolean(),
+});
+
+export type PhpOpcacheAttributes = v.InferOutput<typeof PhpOpcacheAttributesSchema>;

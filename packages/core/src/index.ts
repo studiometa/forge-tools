@@ -295,6 +295,32 @@ export type {
   ServiceStatus,
 } from "./executors/services/index.ts";
 
+// PHP
+export {
+  disablePhpOpcache,
+  enablePhpOpcache,
+  getPhpConfig,
+  getPhpMaxExecutionTime,
+  getPhpMaxUploadSize,
+  getPhpOpcache,
+  getPhpVersion,
+  listPhpVersions,
+  PHP_CONFIG_TYPES,
+  resolvePhpVersionId,
+  updatePhpConfig,
+  updatePhpMaxExecutionTime,
+  updatePhpMaxUploadSize,
+} from "./executors/php/index.ts";
+export type {
+  GetPhpConfigOptions,
+  GetPhpVersionOptions,
+  PhpConfigType,
+  PhpServerOptions,
+  UpdatePhpConfigOptions,
+  UpdatePhpMaxExecutionTimeOptions,
+  UpdatePhpMaxUploadSizeOptions,
+} from "./executors/php/index.ts";
+
 // User
 export { getUser } from "./executors/user/index.ts";
 export type { GetUserOptions } from "./executors/user/index.ts";
