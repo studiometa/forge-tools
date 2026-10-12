@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { mockListDocument } from "../../test-helpers.ts";
 import { createTestExecutorContext } from "../../context.ts";
@@ -42,5 +42,17 @@ describe("listSshKeys", () => {
     const result = await listSshKeys({ server_id: "123" }, ctx);
 
     expect(result.data).toHaveLength(0);
+  });
+
+  it("should filter by user", async () => {
+    const get = vi.fn(async () => mockListDocument("ssh-keys", []));
+    const ctx = createTestExecutorContext({
+      client: { get } as never,
+      organizationSlug: "test-org",
+    });
+
+    await listSshKeys({ server_id: "123", user: "deploy" }, ctx);
+
+    expect(get).toHaveBeenCalledWith("/orgs/test-org/servers/123/ssh-keys?filter%5Buser%5D=deploy");
   });
 });

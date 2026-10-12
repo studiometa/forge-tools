@@ -382,6 +382,33 @@ describe("handleCompletionCommand", () => {
     });
   });
 
+  describe("ssh-keys sync completion", () => {
+    it("should complete bash sync subcommand and flags", () => {
+      handleCompletionCommand("bash", { print: true });
+      const script = stdoutWriteSpy.mock.calls[0]![0] as string;
+      expect(script).toContain('ssh_keys_cmds="list ls get sync"');
+      expect(script).toContain("--all-servers --prune");
+    });
+
+    it("should complete zsh sync subcommand and flags", () => {
+      handleCompletionCommand("zsh", { print: true });
+      const script = stdoutWriteSpy.mock.calls[0]![0] as string;
+      expect(script).toContain("'sync:Make server SSH keys match a file'");
+      expect(script).toContain("'--all-servers[Target every server]'");
+      expect(script).toContain("'--prune[Remove SSH keys that are not in the file]'");
+      expect(script).toContain("'--dry-run[Print the plan and change nothing]'");
+    });
+
+    it("should complete fish sync subcommand and flags", () => {
+      handleCompletionCommand("fish", { print: true });
+      const script = stdoutWriteSpy.mock.calls[0]![0] as string;
+      expect(script).toContain('-a "sync" -d "Make server SSH keys match a file"');
+      expect(script).toContain('-l all-servers -d "Target every server"');
+      expect(script).toContain('-l prune -d "Remove SSH keys that are not in the file"');
+      expect(script).toContain('-l dry-run -d "Print the plan and change nothing"');
+    });
+  });
+
   describe("php completion", () => {
     it("should complete the php command and its subcommands in bash", () => {
       handleCompletionCommand("bash", { print: true });

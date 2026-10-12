@@ -116,6 +116,7 @@ ${colors.bold("COMMANDS:")}
   ssh-keys            Manage SSH keys
     list, ls            List SSH keys (requires --server)
     get <id>            Get SSH key details (requires --server)
+    sync                Make server SSH keys match a file (requires --file, --server|--all-servers)
 
   backups             Manage backup configurations
     list, ls            List backup configurations (requires --server)
