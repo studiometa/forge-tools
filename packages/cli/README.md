@@ -140,11 +140,28 @@ forge deployments script --server <id> --site <id>                        # Prin
 forge deployments update-script --server <id> --site <id> --file deploy.sh  # Update the script from a file
 forge deployments update-script --server <id> --site <id> --file -        # Update the script from stdin
 forge deployments update-script --server <id> --site <id> --content "..." # Update the script from a string
+forge deployments update-script --server <id> --site <id> --file deploy.sh --check  # Compare only, do not write
 ```
 
 The `deploy` command waits for deployment to complete, showing live progress. On completion it prints the deployment log and elapsed time.
 
 Keep the deployment script in your repository: `update-script` takes exactly one of `--file` or `--content` and rejects an empty script. With `deploy --script-file`, the script is uploaded first; if the upload fails, the deployment does not start and the command exits non-zero.
+
+#### Detect drift in CI with `--check`
+
+`--check` on `deployments update-script`, `env update` and `nginx update` compares your local file with the content on Forge and does not write anything. Line endings (CRLF and LF) and a single trailing newline are ignored.
+
+- In sync: prints "in sync" and exits `0`.
+- Different: prints a unified line diff (`-` remote, `+` local) and exits `1`.
+- With `--format json`: prints `{ "inSync": true }` or `{ "inSync": false, "diff": "..." }`.
+
+Run it in a pipeline to fail the job when someone changed the deployment script in the Forge UI:
+
+```bash
+forge deployments update-script --server 123 --site 456 --file deploy.sh --check
+```
+
+For `env update --check`, the comparison uses variables, not text: comments, blank lines and order are ignored. The output gives only variable names (added, removed, changed) and never values, in human and json formats (`{ "inSync": false, "diff": { "added": [], "removed": [], "changed": [] } }`), because CI logs are often visible to the whole team.
 
 ### `databases` (`db`) — Manage databases
 
@@ -165,15 +182,25 @@ forge daemons restart <daemon_id> --server <id>     # Restart a daemon
 
 ```bash
 forge env get --server <id> --site <id>                             # Get .env content
-forge env update --server <id> --site <id> --content "KEY=value"    # Update .env
+forge env update --server <id> --site <id> --file .env              # Update .env from a file
+forge env update --server <id> --site <id> --file -                 # Update .env from stdin
+forge env update --server <id> --site <id> --content "KEY=value"    # Update .env from a string
+forge env update --server <id> --site <id> --file .env --check      # Compare variable names only, do not write
 ```
+
+`update` takes exactly one of `--file` or `--content` and rejects empty content. Prefer `--file`: a value given with `--content` stays in your shell history.
 
 ### `nginx` — Manage Nginx configuration
 
 ```bash
 forge nginx get --server <id> --site <id>                               # Get Nginx config
-forge nginx update --server <id> --site <id> --content "server { ... }" # Update Nginx config
+forge nginx update --server <id> --site <id> --file nginx.conf          # Update Nginx config from a file
+forge nginx update --server <id> --site <id> --file -                   # Update Nginx config from stdin
+forge nginx update --server <id> --site <id> --content "server { ... }" # Update Nginx config from a string
+forge nginx update --server <id> --site <id> --file nginx.conf --check  # Compare only, do not write
 ```
+
+`update` takes exactly one of `--file` or `--content` and rejects empty content.
 
 ### `certificates` (`certs`) — Manage SSL certificates
 

@@ -7,11 +7,11 @@ import {
 } from "@studiometa/forge-core";
 
 import type { CommandContext } from "../../context.ts";
-import type { OutputFormatter } from "../../output.ts";
 
-import { exitWithError, exitWithValidationError, runCommand } from "../../error-handler.ts";
-import { ApiError, ValidationError } from "../../errors.ts";
-import { readInputFile } from "../../utils/read-file.ts";
+import { exitWithValidationError, runCommand } from "../../error-handler.ts";
+import { ApiError } from "../../errors.ts";
+import { readContentFile, readContentOption } from "../../utils/content-source.ts";
+import { reportTextDrift } from "../../utils/drift.ts";
 import { resolveServerId, resolveSiteId } from "../../utils/resolve.ts";
 
 export async function deploymentsList(ctx: CommandContext): Promise<void> {
@@ -96,15 +96,6 @@ export async function deploymentsLogs(args: string[], ctx: CommandContext): Prom
   }, ctx.formatter);
 }
 
-/**
- * Exit when a deployment script is empty, so Forge never gets a blank script.
- */
-function assertScriptNotEmpty(script: string, field: string, formatter: OutputFormatter): void {
-  if (!script.trim()) {
-    exitWithError(new ValidationError("Deployment script is empty", field), formatter);
-  }
-}
-
 export async function deploymentsScript(ctx: CommandContext): Promise<void> {
   const server = String(ctx.options.server ?? "");
   const site = String(ctx.options.site ?? "");
@@ -142,10 +133,10 @@ export async function deploymentsScript(ctx: CommandContext): Promise<void> {
 
 export async function deploymentsUpdateScript(ctx: CommandContext): Promise<void> {
   const usage =
-    "forge deployments update-script --server <server_id> --site <site_id> (--file <path|-> | --content <script>)";
+    "forge deployments update-script --server <server_id> --site <site_id> (--file <path|-> | --content <script>) [--check]";
   const server = String(ctx.options.server ?? "");
   const site = String(ctx.options.site ?? "");
-  const { file, content } = ctx.options;
+  const check = Boolean(ctx.options.check);
 
   if (!server) {
     exitWithValidationError("server_id", usage, ctx.formatter);
@@ -155,36 +146,23 @@ export async function deploymentsUpdateScript(ctx: CommandContext): Promise<void
     exitWithValidationError("site_id", usage, ctx.formatter);
   }
 
-  if (file !== undefined && content !== undefined) {
-    exitWithError(
-      new ValidationError("Use either --file or --content, not both", "file", [`Usage: ${usage}`]),
-      ctx.formatter,
-    );
-  }
-
-  if (file === undefined && content === undefined) {
-    exitWithError(
-      new ValidationError("A deployment script source is required: --file or --content", "file", [
-        `Usage: ${usage}`,
-      ]),
-      ctx.formatter,
-    );
-  }
-
-  // `--content` without a value parses as `true`: treat it as an empty script.
-  const inline = typeof content === "string" ? content : "";
-  const field = file !== undefined ? "file" : "content";
-  const script =
-    file !== undefined
-      ? readInputFile(file, { field, usage, label: "deployment script" }, ctx.formatter)
-      : inline;
-  assertScriptNotEmpty(script, field, ctx.formatter);
+  const script = readContentOption(ctx.options, {
+    label: "deployment script",
+    usage,
+    formatter: ctx.formatter,
+  });
 
   await runCommand(async () => {
     const token = ctx.getToken();
     const execCtx = ctx.createExecutorContext(token);
     const server_id = await resolveServerId(server, execCtx);
     const site_id = await resolveSiteId(site, server_id, execCtx);
+    if (check) {
+      const remote = await getDeploymentScript({ server_id, site_id }, execCtx);
+      reportTextDrift("deployment script", remote.data, script, ctx.formatter);
+      return;
+    }
+
     await updateDeploymentScript({ server_id, site_id, content: script }, execCtx);
     ctx.formatter.success("Deployment script updated.");
   }, ctx.formatter);
@@ -206,15 +184,14 @@ export async function deploymentsDeploy(ctx: CommandContext): Promise<void> {
     exitWithValidationError("site_id", usage, ctx.formatter);
   }
 
-  let script: string | undefined;
-  if (scriptFile !== undefined) {
-    script = readInputFile(
-      scriptFile,
-      { field: "script-file", usage, label: "deployment script" },
-      ctx.formatter,
-    );
-    assertScriptNotEmpty(script, "script-file", ctx.formatter);
-  }
+  const script =
+    scriptFile === undefined
+      ? undefined
+      : readContentFile(scriptFile, "script-file", {
+          label: "deployment script",
+          usage,
+          formatter: ctx.formatter,
+        });
 
   await runCommand(async () => {
     const token = ctx.getToken();

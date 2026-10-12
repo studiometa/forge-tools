@@ -12,7 +12,7 @@ import {
 } from "../../error-handler.ts";
 import { ValidationError } from "../../errors.ts";
 import { colors } from "../../utils/colors.ts";
-import { readInputFile } from "../../utils/read-file.ts";
+import { readContentFile } from "../../utils/content-source.ts";
 import { matchServerId } from "../../utils/resolve.ts";
 import { parseAuthorizedKeys, planSync } from "./sync-plan.ts";
 
@@ -51,11 +51,11 @@ function serverValues(value: unknown): string[] {
  */
 function readFileKeys(ctx: CommandContext): FileKey[] {
   const { file } = ctx.options;
-  const content = readInputFile(
-    file,
-    { field: "file", usage: USAGE, label: "SSH keys" },
-    ctx.formatter,
-  );
+  const content = readContentFile(file, "file", {
+    label: "SSH keys file",
+    usage: USAGE,
+    formatter: ctx.formatter,
+  });
 
   let keys: FileKey[];
   try {

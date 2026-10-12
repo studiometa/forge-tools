@@ -13,7 +13,25 @@ ${colors.bold("USAGE:")}
 ${colors.bold("forge nginx update")} - Update nginx configuration
 
 ${colors.bold("USAGE:")}
+  forge nginx update --server <server_id> --site <site_id> --file <path>
+  forge nginx update --server <server_id> --site <site_id> --file <path> --check
   forge nginx update --server <server_id> --site <site_id> --content <nginx_config>
+
+${colors.bold("OPTIONS:")}
+  --server <id>       Server ID (required)
+  --site <id>         Site ID (required)
+  --file <path>       Read the content from a file (use - for stdin)
+  --content <str>     New nginx config
+  --check             Compare with the content on Forge and do not write.
+                      Exit 0 when in sync, 1 with a line diff (- remote, + local).
+  -f, --format <fmt>  Output format: json ({ inSync, diff? } with --check), human
+
+  Give exactly one of --file or --content. Empty content is rejected.
+
+${colors.bold("EXAMPLES:")}
+  forge nginx update --server 123 --site 456 --file nginx.conf
+  cat nginx.conf | forge nginx update --server 123 --site 456 --file -
+  forge nginx update --server 123 --site 456 --file nginx.conf --check
 `);
   } else {
     console.log(`
@@ -29,7 +47,9 @@ ${colors.bold("SUBCOMMANDS:")}
 ${colors.bold("OPTIONS:")}
   --server <id>       Server ID (required)
   --site <id>         Site ID (required)
+  --file <path>       Content file, - for stdin (for update)
   --content <str>     New nginx config (for update)
+  --check             Compare with Forge, do not write (for update)
 
 Run ${colors.cyan("forge nginx <subcommand> --help")} for details.
 `);

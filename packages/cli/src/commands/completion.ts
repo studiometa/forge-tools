@@ -46,7 +46,7 @@ _forge_completions() {
   local completion_cmds="bash zsh fish"
 
   # Global options
-  options="--token --server --site -f --format --no-color -h --help -v --version --name --command --content --from --to --provider --frequency --type --operator --threshold --minutes --key --port --ip-address --user --private --dry-run --script --servers --domain --password --credential-id --region --size --project-type --directory --file --script-file --all-servers --prune"
+  options="--token --server --site -f --format --no-color -h --help -v --version --name --command --content --from --to --provider --frequency --type --operator --threshold --minutes --key --port --ip-address --user --private --dry-run --script --servers --domain --password --credential-id --region --size --project-type --directory --file --script-file --check --all-servers --prune"
 
   # Format options
   local formats="json human table"
@@ -477,7 +477,8 @@ _forge() {
         '--script-file[Deployment script file]:file:_files' \\
         '--all-servers[Target every server]' \\
         '--prune[Remove SSH keys that are not in the file]' \\
-        '--dry-run[Print the plan and change nothing]'
+        '--dry-run[Print the plan and change nothing]' \\
+        '--check[Compare with Forge, do not write]'
       ;;
   esac
 }
@@ -693,6 +694,7 @@ complete -c forge -l script-file -d "Deployment script file" -r -F
 complete -c forge -l all-servers -d "Target every server"
 complete -c forge -l prune -d "Remove SSH keys that are not in the file"
 complete -c forge -l dry-run -d "Print the plan and change nothing"
+complete -c forge -l check -d "Compare with Forge, do not write"
 `;
 
 /**
