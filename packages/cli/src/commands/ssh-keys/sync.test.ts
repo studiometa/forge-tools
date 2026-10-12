@@ -16,11 +16,15 @@ const RSA = "AAAAB3NzaC1yc2EAAAADAQAB";
 const FILE = `# team\nssh-ed25519 ${ED25519} alice\nssh-rsa ${RSA} bob\n`;
 const [ALICE, BOB] = parseAuthorizedKeys(FILE).map((k) => k.name);
 
-function listDocument<T>(type: string, items: Array<{ id: number } & T>) {
+function listDocument<T>(
+  type: string,
+  items: Array<{ id: number } & T>,
+  nextCursor: string | null = null,
+) {
   return {
     data: items.map((attributes) => ({ id: String(attributes.id), type, attributes })),
     links: { next: null, prev: null },
-    meta: { per_page: 30, next_cursor: null, prev_cursor: null },
+    meta: { per_page: 30, next_cursor: nextCursor, prev_cursor: null },
   };
 }
 
@@ -68,16 +72,23 @@ function key(id: number, name: string, user = "forge"): { id: number } & SshKeyA
 
 /**
  * A fake HTTP client: servers 1 and 2 exist, keys come from `keys` (an Error value fails the list).
+ * Lists are split in pages of `pageSize` items; the cursor is the index of the first item.
  */
-function createClient(keys: Record<number, Array<ReturnType<typeof key>> | Error>) {
+function createClient(keys: Record<number, Array<ReturnType<typeof key>> | Error>, pageSize = 30) {
   const servers = [server(1, "web-1"), server(2, "web-2")];
   return {
     get: vi.fn(async (url: string) => {
-      const match = /\/servers\/(\d+)\/ssh-keys$/.exec(url);
-      if (!match) return listDocument("servers", servers);
-      const result = keys[Number(match[1])] ?? [];
-      if (result instanceof Error) throw result;
-      return listDocument("ssh-keys", result);
+      const { pathname, searchParams } = new URL(url, "https://forge.test");
+      const match = /\/servers\/(\d+)\/ssh-keys$/.exec(pathname);
+      const items = match ? (keys[Number(match[1])] ?? []) : servers;
+      if (items instanceof Error) throw items;
+      const start = Number(searchParams.get("page[cursor]") ?? 0);
+      const next = start + pageSize < items.length ? String(start + pageSize) : null;
+      return listDocument(
+        match ? "ssh-keys" : "servers",
+        items.slice(start, start + pageSize),
+        next,
+      );
     }),
     post: vi.fn(async () => {}),
     delete: vi.fn(async () => {}),
@@ -146,12 +157,19 @@ describe("sshKeysSync", () => {
       expect(console.log).toHaveBeenCalledWith(expect.stringContaining("not both"));
     });
 
+    it.each([true, ""])("rejects --user without a name (%j)", async (user) => {
+      const client = await run({ file: "keys", server: "1", user, prune: true });
+      expect(processExitSpy).toHaveBeenCalledWith(3);
+      expect(console.log).toHaveBeenCalledWith(expect.stringContaining("--user requires a name"));
+      expect(client.get).not.toHaveBeenCalled();
+    });
+
     it("rejects a malformed file with the line number", async () => {
       const { readFileSync } = await import("node:fs");
       vi.mocked(readFileSync).mockReturnValue("# keys\nnot a key\n");
       const client = await run({ file: "keys", server: "1" });
       expect(processExitSpy).toHaveBeenCalledWith(3);
-      expect(console.log).toHaveBeenCalledWith(expect.stringContaining("Line 2: expected"));
+      expect(console.log).toHaveBeenCalledWith(expect.stringContaining("Line 2: unknown key type"));
       expect(client.get).not.toHaveBeenCalled();
     });
 
@@ -190,6 +208,7 @@ describe("sshKeysSync", () => {
       expect(client.post).not.toHaveBeenCalled();
       expect(client.delete).not.toHaveBeenCalled();
       expect(jsonOutput()).toEqual({
+        dry_run: true,
         servers: [
           { id: 1, name: "web-1", added: [BOB], removed: ["old"], unchanged: [ALICE], errors: [] },
         ],
@@ -201,6 +220,7 @@ describe("sshKeysSync", () => {
       await run({ file: "keys", server: "1", "dry-run": true }, client);
 
       expect(jsonOutput()).toEqual({
+        dry_run: true,
         servers: [
           { id: 1, name: "web-1", added: [ALICE, BOB], removed: [], unchanged: [], errors: [] },
         ],
@@ -247,6 +267,7 @@ describe("sshKeysSync", () => {
       expect(client.delete).not.toHaveBeenCalled();
       expect(processExitSpy).not.toHaveBeenCalled();
       expect(jsonOutput()).toEqual({
+        dry_run: false,
         servers: [
           { id: 1, name: "web-1", added: [BOB], removed: [], unchanged: [ALICE], errors: [] },
         ],
@@ -268,6 +289,9 @@ describe("sshKeysSync", () => {
       const client = createClient({ 1: [key(10, ALICE, "deploy"), key(11, ALICE, "forge")] });
       await run({ file: "keys", server: "1", user: "deploy" }, client);
 
+      expect(client.get).toHaveBeenCalledWith(
+        "/orgs/test-org/servers/1/ssh-keys?filter%5Buser%5D=deploy",
+      );
       expect(client.post).toHaveBeenCalledWith("/orgs/test-org/servers/1/ssh-keys", {
         name: BOB,
         key: `ssh-rsa ${RSA} bob`,
@@ -277,11 +301,49 @@ describe("sshKeysSync", () => {
 
     it("syncs repeated and comma separated servers once each, in order", async () => {
       const client = createClient({});
-      await run({ file: "keys", server: ["2,1", "web-2"] }, client);
+      await run({ file: "keys", server: ["2,1", "web-2", "web-1"] }, client);
 
       const ids = (jsonOutput() as { servers: Array<{ id: number }> }).servers.map((s) => s.id);
       expect(ids).toEqual([2, 1]);
       expect(client.post).toHaveBeenCalledTimes(4);
+      // Names are resolved against one list of servers.
+      const serverLists = client.get.mock.calls.filter(([url]) => url.endsWith("/servers"));
+      expect(serverLists).toHaveLength(1);
+    });
+
+    it("rejects an unknown server name", async () => {
+      const client = createClient({});
+      await run({ file: "keys", server: "db-1" }, client);
+
+      expect(processExitSpy).toHaveBeenCalledWith(3);
+      expect(console.log).toHaveBeenCalledWith(expect.stringContaining("No server found matching"));
+      expect(client.post).not.toHaveBeenCalled();
+    });
+
+    it("reads every page of servers and keys", async () => {
+      const client = createClient(
+        {
+          1: [key(10, "old-1"), key(11, ALICE), key(12, "old-2")],
+          2: [key(20, BOB), key(21, ALICE)],
+        },
+        1,
+      );
+      await run({ file: "keys", "all-servers": true, prune: true, "dry-run": true }, client);
+
+      expect(jsonOutput()).toEqual({
+        dry_run: true,
+        servers: [
+          {
+            id: 1,
+            name: "web-1",
+            added: [BOB],
+            removed: ["old-1", "old-2"],
+            unchanged: [ALICE],
+            errors: [],
+          },
+          { id: 2, name: "web-2", added: [], removed: [], unchanged: [ALICE, BOB], errors: [] },
+        ],
+      });
     });
 
     it("uses the server id as name when the server is not listed", async () => {
@@ -323,6 +385,7 @@ describe("sshKeysSync", () => {
       await run({ file: "keys", server: "1,2", prune: true }, client);
 
       expect(jsonOutput()).toEqual({
+        dry_run: false,
         servers: [
           {
             id: 1,
@@ -338,14 +401,32 @@ describe("sshKeysSync", () => {
             added: [BOB],
             removed: [],
             unchanged: [],
-            errors: [`add ${ALICE}: Name taken`, "remove old: boom"],
+            errors: [`add ${ALICE}: Name taken`, "remove old: skipped because an add failed"],
           },
         ],
       });
+      expect(client.delete).not.toHaveBeenCalled();
       expect(processExitSpy).toHaveBeenCalledWith(1);
-      expect(console.log).toHaveBeenCalledWith(
-        expect.stringContaining("3 SSH key operation(s) failed"),
-      );
+      // stdout holds exactly one JSON document.
+      expect(console.log).toHaveBeenCalledTimes(1);
+    });
+
+    it("records a failed removal and continues", async () => {
+      const client = createClient({
+        1: [key(10, ALICE), key(11, BOB), key(12, "a"), key(13, "b")],
+      });
+      client.delete.mockImplementationOnce(async () => {
+        // oxlint-disable-next-line no-throw-literal
+        throw "boom";
+      });
+
+      await run({ file: "keys", server: "1", prune: true }, client);
+
+      expect(jsonOutput()).toMatchObject({
+        servers: [{ removed: ["b"], errors: ["remove a: boom"] }],
+      });
+      expect(client.delete).toHaveBeenCalledTimes(2);
+      expect(processExitSpy).toHaveBeenCalledWith(1);
     });
 
     it("prints failures in human format", async () => {
@@ -358,6 +439,9 @@ describe("sshKeysSync", () => {
       expect(text).toContain("  ✗ list keys: Server unreachable");
       expect(text).toContain("✗ web-2 (2): 0 added, 0 removed, 0 unchanged, 2 failed");
       expect(text).toContain(`  add ${ALICE}: Name taken`);
+      expect(console.error).toHaveBeenCalledWith(
+        expect.stringContaining("3 SSH key operation(s) failed"),
+      );
       expect(processExitSpy).toHaveBeenCalledWith(1);
     });
 

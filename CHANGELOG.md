@@ -15,7 +15,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - **CLI**: Accept a lone dash (`-`) as an option value for all commands, so `--file -` reads stdin; before, `-` parsed as a boolean flag [[#127]]
-- **CLI**: Collect a string option given more than once into an array (`--server 1 --server 2`); before, the last value won [[#PR]]
+- **CLI**: Collect a repeated `--server` option into an array (`--server 1 --server 2`); other options keep the last value [[#PR]]
+
+### Fixed
+
+- **Core**: Read every page in `listServers` and `listSshKeys`, so lists with more than 30 items are complete, and add a `user` filter to `listSshKeys` [[#PR]]
 
 [#127]: https://github.com/studiometa/forge-tools/pull/127
 [#PR]: https://github.com/studiometa/forge-tools/pull/PR

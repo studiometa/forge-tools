@@ -79,10 +79,16 @@ export function parseAuthorizedKeys(content: string): FileKey[] {
       continue;
     }
 
+    // The error never repeats the line: a wrong --file (a .env, a secret) must not leak to logs.
     const [type, blob = "", ...rest] = text.split(/\s+/);
-    if (!KEY_TYPE.test(type) || !BASE64.test(blob)) {
+    const problem = !KEY_TYPE.test(type)
+      ? "unknown key type"
+      : !BASE64.test(blob)
+        ? "missing or invalid base64 key data"
+        : undefined;
+    if (problem) {
       throw new ValidationError(
-        `Line ${line}: expected "<type> <base64> [comment]", got "${text}"`,
+        `Line ${line}: ${problem}, expected "<type> <base64> [comment]"`,
         "file",
         ["Use one public key per line, as in ~/.ssh/authorized_keys (no options prefix)"],
       );

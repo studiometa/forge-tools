@@ -40,6 +40,7 @@ describe("showSshKeysHelp", () => {
     expect(text).toContain("--all-servers");
     expect(text).toContain("--prune");
     expect(text).toContain("--dry-run");
+    expect(text).toContain('"dry_run"');
   });
 
   it("should list sync in general help", () => {

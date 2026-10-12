@@ -22,7 +22,17 @@ export async function resolveServerId(value: string, execCtx: ExecutorContext): 
   }
 
   const result = await listServers({}, execCtx);
-  const servers = result.data;
+  return matchServerId(value, result.data);
+}
+
+/**
+ * Resolve a --server value to a numeric server ID string, against a list of servers
+ * that is already loaded. Same rules as {@link resolveServerId}, with no API call.
+ */
+export function matchServerId(value: string, servers: Array<{ id: number; name: string }>): string {
+  if (/^\d+$/.test(value)) {
+    return value;
+  }
 
   const { exact, partial } = matchByName(servers, value, (s) => s.name);
 

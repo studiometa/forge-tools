@@ -59,12 +59,20 @@ describe("parseAuthorizedKeys", () => {
   });
 
   it.each([
-    ["an unknown key type", `rsa ${RSA}`],
-    ["a missing blob", "ssh-ed25519"],
-    ["an invalid blob", "ssh-ed25519 not*base64"],
-    ["an options prefix", `no-pty ssh-ed25519 ${ED25519}`],
-  ])("rejects %s with the line number", (_label, line) => {
-    expect(() => parseAuthorizedKeys(`# header\n${line}`)).toThrow(/^Line 2: expected/);
+    ["an unknown key type", `rsa ${RSA}`, "unknown key type"],
+    ["a missing blob", "ssh-ed25519", "missing or invalid base64 key data"],
+    ["an invalid blob", "ssh-ed25519 not*base64", "missing or invalid base64 key data"],
+    ["an options prefix", `no-pty ssh-ed25519 ${ED25519}`, "unknown key type"],
+  ])("rejects %s with the line number", (_label, line, problem) => {
+    expect(() => parseAuthorizedKeys(`# header\n${line}`)).toThrow(
+      `Line 2: ${problem}, expected "<type> <base64> [comment]"`,
+    );
+  });
+
+  it("does not repeat the content of a malformed line", () => {
+    expect(() => parseAuthorizedKeys("DB_PASSWORD=secret-value")).toThrow(
+      expect.objectContaining({ message: expect.not.stringContaining("secret") }),
+    );
   });
 
   it("throws a ValidationError on the file field", () => {

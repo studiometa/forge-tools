@@ -39,7 +39,12 @@ ${colors.bold("HOW IT WORKS:")}
   key gets a new name. The command lists the plan per server (+ add, - remove,
   = unchanged), applies it, then prints the result. Without --prune, keys are only
   added. Servers run one after the other; when an operation fails, the others still
-  run and the command exits non-zero.
+  run and the command exits non-zero. When an add fails on a server, the removals on
+  that server are skipped, so nobody loses access.
+
+${colors.bold("JSON OUTPUT:")}
+  { "dry_run": bool, "servers": [{ id, name, added, removed, unchanged, errors }] }
+  With --dry-run, "added" and "removed" hold the planned changes, not applied ones.
 
 ${colors.bold("EXAMPLES:")}
   forge ssh-keys sync --file .forge/authorized_keys --server 123 --dry-run
@@ -59,7 +64,7 @@ ${colors.bold("SUBCOMMANDS:")}
   sync                Make the SSH keys of servers match a file
 
 ${colors.bold("OPTIONS:")}
-  --server <id>       Server ID (required)
+  --server <id>       Server ID or name (required, except for sync --all-servers)
   --file <path>       authorized_keys file, - for stdin (for sync)
   -f, --format <fmt>  Output format: json, human, table
 

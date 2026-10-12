@@ -4,11 +4,16 @@ import { createSshKey, deleteSshKey, listServers, listSshKeys } from "@studiomet
 import type { CommandContext } from "../../context.ts";
 import type { FileKey, SyncPlan } from "./sync-plan.ts";
 
-import { exitWithError, exitWithValidationError, runCommand } from "../../error-handler.ts";
-import { ApiError, ValidationError } from "../../errors.ts";
+import {
+  ExitCode,
+  exitWithError,
+  exitWithValidationError,
+  runCommand,
+} from "../../error-handler.ts";
+import { ValidationError } from "../../errors.ts";
 import { colors } from "../../utils/colors.ts";
 import { readInputFile } from "../../utils/read-file.ts";
-import { resolveServerId } from "../../utils/resolve.ts";
+import { matchServerId } from "../../utils/resolve.ts";
 import { parseAuthorizedKeys, planSync } from "./sync-plan.ts";
 
 const USAGE =
@@ -72,6 +77,7 @@ function readFileKeys(ctx: CommandContext): FileKey[] {
 
 /**
  * Resolve the target servers to ids and names, without duplicates.
+ * Names are matched against one list of servers: one API call for all targets.
  */
 async function resolveTargets(
   values: string[],
@@ -85,7 +91,7 @@ async function resolveTargets(
 
   const targets = new Map<number, string>();
   for (const value of values) {
-    const id = Number(await resolveServerId(value, execCtx));
+    const id = Number(matchServerId(value, servers));
     targets.set(id, servers.find((s) => s.id === id)?.name ?? String(id));
   }
   return [...targets].map(([id, name]) => ({ id, name }));
@@ -131,6 +137,7 @@ function printResult(syncs: ServerSync[]): void {
 
 /**
  * Apply a plan to one server. Each failed operation is recorded and the next one runs.
+ * When an add fails, the removals are skipped: the user must not lose access to the server.
  */
 async function applyPlan(
   sync: ServerSync,
@@ -141,11 +148,13 @@ async function applyPlan(
 ): Promise<void> {
   const server_id = String(sync.id);
 
+  let addFailed = false;
   for (const key of plan.add) {
     try {
       await createSshKey({ server_id, name: key.name, key: key.key, user }, execCtx);
       sync.added.push(key.name);
     } catch (error) {
+      addFailed = true;
       sync.errors.push(`add ${key.name}: ${errorMessage(error)}`);
     }
   }
@@ -153,6 +162,10 @@ async function applyPlan(
   if (!prune) return;
 
   for (const key of plan.remove) {
+    if (addFailed) {
+      sync.errors.push(`remove ${key.name}: skipped because an add failed`);
+      continue;
+    }
     try {
       await deleteSshKey({ server_id, id: String(key.id) }, execCtx);
       sync.removed.push(key.name);
@@ -169,13 +182,21 @@ export async function sshKeysSync(ctx: CommandContext): Promise<void> {
   const { options, formatter } = ctx;
   const servers = serverValues(options.server);
   const allServers = options["all-servers"] === true;
-  const user = typeof options.user === "string" && options.user ? options.user : "forge";
+  const userOption = options.user;
   const prune = options.prune === true;
   const dryRun = options["dry-run"] === true;
 
   if (options.file === undefined) {
     exitWithValidationError("file", USAGE, formatter);
   }
+
+  if (userOption !== undefined && (typeof userOption !== "string" || userOption === "")) {
+    exitWithError(
+      new ValidationError("--user requires a name", "user", [`Usage: ${USAGE}`]),
+      formatter,
+    );
+  }
+  const user = typeof userOption === "string" ? userOption : "forge";
 
   if (allServers && options.server !== undefined) {
     exitWithError(
@@ -197,7 +218,7 @@ export async function sshKeysSync(ctx: CommandContext): Promise<void> {
 
   const fileKeys = readFileKeys(ctx);
 
-  await runCommand(async () => {
+  const failed = await runCommand(async () => {
     const execCtx = ctx.createExecutorContext(ctx.getToken());
     const targets = await resolveTargets(servers, allServers, execCtx);
 
@@ -206,7 +227,7 @@ export async function sshKeysSync(ctx: CommandContext): Promise<void> {
     for (const { id, name } of targets) {
       const sync: ServerSync = { id, name, added: [], removed: [], unchanged: [], errors: [] };
       try {
-        const keys = await listSshKeys({ server_id: String(id) }, execCtx);
+        const keys = await listSshKeys({ server_id: String(id), user }, execCtx);
         sync.plan = planSync(fileKeys, keys.data, user);
         sync.unchanged = sync.plan.unchanged.map((k) => k.name);
       } catch (error) {
@@ -243,6 +264,7 @@ export async function sshKeysSync(ctx: CommandContext): Promise<void> {
       console.log(
         JSON.stringify(
           {
+            dry_run: dryRun,
             servers: syncs.map(({ id, name, added, removed, unchanged, errors }) => ({
               id,
               name,
@@ -258,9 +280,14 @@ export async function sshKeysSync(ctx: CommandContext): Promise<void> {
       );
     }
 
-    const failed = syncs.reduce((count, sync) => count + sync.errors.length, 0);
-    if (failed > 0) {
-      throw new ApiError(`${failed} SSH key operation(s) failed`);
-    }
+    return syncs.reduce((count, sync) => count + sync.errors.length, 0);
   }, formatter);
+
+  // The errors are already in the output: exit without a second (JSON) error document.
+  if (failed) {
+    if (!formatter.isJson()) {
+      formatter.error(`${failed} SSH key operation(s) failed`);
+    }
+    process.exit(ExitCode.GENERAL_ERROR);
+  }
 }
