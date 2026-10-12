@@ -1,28 +1,9 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
+All notable changes to this project will be documented in this file. Each pull request adds a fragment in `.changelog/`; the Release workflow folds them in here.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-
-## Unreleased
-
-### Added
-
-- **CLI**: Add `forge deployments script` and `forge deployments update-script` (`--file <path|->` or `--content`) to read and write a site's deployment script, and `--script-file <path>` on `forge deployments deploy` to upload the script before deploying [[#127]]
-- **CLI**: Add `--file <path|->` to `forge env update` and `forge nginx update` as an alternative to `--content`, with the same rules as `update-script` (exactly one source, no empty content) [[#128]]
-- **CLI**: Add `--check` to `forge deployments update-script`, `forge env update` and `forge nginx update` to compare the local content with Forge without writing: exit 0 when in sync, exit 1 with a line diff (env: variable names only, never values) [[#128]]
-- **Core/SDK/MCP/CLI**: Add a server-scoped `php` resource to list installed PHP versions, read and replace the cli, fpm and pool configuration files, get and set the max upload size and max execution time, and get, enable or disable OPcache; Core, MCP and CLI resolve versions from an ID or a version such as `8.3` or `php83`, the SDK takes the version ID [[#131]]
-- **CLI**: Add `forge php` commands (`list`, `config`, `update-config`, `max-upload-size`, `set-max-upload-size`, `max-execution-time`, `set-max-execution-time`, `opcache`, `enable-opcache`, `disable-opcache`); `update-config` takes `--file <path|->` or `--content` and supports `--check` [[#131]]
-
-### Changed
-
-- **CLI**: Accept a lone dash (`-`) as an option value for all commands, so `--file -` reads stdin; before, `-` parsed as a boolean flag [[#127]]
-- **CLI**: Print the CLI version only for `forge --version` or `forge -v` with no command; after a command, `--version` is the command option, so a missing value fails validation instead of printing the version [[#131]]
-
-[#127]: https://github.com/studiometa/forge-tools/pull/127
-[#128]: https://github.com/studiometa/forge-tools/pull/128
-[#131]: https://github.com/studiometa/forge-tools/pull/131
 
 ## 0.4.6 - 2026.07.21
 

@@ -7,26 +7,25 @@ Instructions for AI agents contributing to this codebase.
 - Commit messages: **English**, imperative mood (Add, Fix, Update...)
 - No conventional commit prefixes (feat:, fix:, etc.)
 - Always add `Co-authored-by: Claude <claude@anthropic.com>` trailer
-- **Tags**: Do NOT use `v` prefix (use `0.1.0` not `v0.1.0`)
-- **Releases**: Do NOT create GitHub releases manually — they are created automatically by GitHub Actions when a tag is pushed
+- **Releases**: Do NOT tag or create GitHub releases manually — run the `Release` workflow (see Versioning)
 - **Never use `git add .`** — always stage specific files
 
 ## Changelog
 
-- **Single changelog** at root (`CHANGELOG.md`) for the entire monorepo
-- Prefix entries with package name when relevant: `**SDK**: ...`, `**API**: ...`, `**Core**: ...`, `**MCP**: ...`
-- Use `[hash]` format for commit references (not bare hashes)
-- Use `[#N]` format for PR references (GitHub style)
-- Add link definitions at the end of each release section
-- Keep entries concise, single line with references at the end
+- **Never edit `CHANGELOG.md` directly.** Each PR adds a fragment `.changelog/<slug>.md` (slug = branch name without its prefix, e.g. `feature/ssh-sync` → `ssh-sync.md`)
+- A fragment only contains `### Added|Changed|Deprecated|Removed|Fixed|Security|Dependencies` headings, each followed by its entries — no `#`/`##` heading
+- **Do not write the PR number**: the `Release` workflow appends `[[#N]]` and the link definition from the merged PR that added the fragment
+- Prefix entries with package name when relevant: `**SDK**: ...`, `**API**: ...`, `**Core**: ...`, `**MCP**: ...`, `**CLI**: ...`
+- Commit references are optional: `[hash]` in the entry plus its `[hash]: https://github.com/studiometa/forge-tools/commit/hash` link definition in the fragment
+- Keep entries concise, single line
 - Use English imperative: Add, Fix, Update, Remove
+- The `Changelog` check fails when a PR changes `packages/**` without a fragment; set the `no-changelog` label for changes users do not see (tests, refactors, tooling)
+- Format and tooling: [`weareikko/changelog`](https://github.com/weareikko/changelog)
 
 ## Versioning
 
-- Use root npm scripts to bump version across all packages:
-  - `npm run version:patch` — bump patch
-  - `npm run version:minor` — bump minor
-  - `npm run version:major` — bump major
+- Release with the `Release` workflow: `gh workflow run release.yml -f bump=patch` (or `minor` / `major`). It bumps all packages, folds `.changelog/` into `CHANGELOG.md`, commits `Release <version>`, tags (no `v` prefix), then publishes to npm and creates the GitHub release
+- The root npm scripts `version:patch|minor|major` bump all packages; the workflow uses them
 - All 5 packages share the same version
 - Version is injected at build time from package.json via `versionDefine()`
 
@@ -100,7 +99,6 @@ npm run format             # oxfmt --write
 npm run format:check       # oxfmt --check
 npm run typecheck          # TypeScript check (all workspaces)
 npm run semgrep            # Security/quality scan
-npm run version:patch      # Bump patch version across all packages
 ```
 
 ## Adding a New Resource (step-by-step)
