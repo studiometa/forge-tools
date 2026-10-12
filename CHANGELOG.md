@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **CLI**: Add `forge deployments script` and `forge deployments update-script` (`--file <path|->` or `--content`) to read and write a site's deployment script, and `--script-file <path>` on `forge deployments deploy` to upload the script before deploying [[#127]]
 - **CLI**: Add `--file <path|->` to `forge env update` and `forge nginx update` as an alternative to `--content`, with the same rules as `update-script` (exactly one source, no empty content) [[#128]]
 - **CLI**: Add `--check` to `forge deployments update-script`, `forge env update` and `forge nginx update` to compare the local content with Forge without writing: exit 0 when in sync, exit 1 with a line diff (env: variable names only, never values) [[#128]]
+- **Core/SDK/MCP/CLI**: Add a server-scoped `php` resource to list installed PHP versions, read and replace the cli, fpm and pool configuration files, get and set the max upload size and max execution time, and get, enable or disable OPcache; versions resolve from an ID or a version such as `8.3` or `php83` [[#PR]]
+- **CLI**: Add `forge php` commands (`list`, `config`, `update-config`, `max-upload-size`, `set-max-upload-size`, `max-execution-time`, `set-max-execution-time`, `opcache`, `enable-opcache`, `disable-opcache`); `update-config` takes `--file <path|->` or `--content` and supports `--check` [[#PR]]
 
 ### Changed
 
@@ -19,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 [#127]: https://github.com/studiometa/forge-tools/pull/127
 [#128]: https://github.com/studiometa/forge-tools/pull/128
+[#PR]: https://github.com/studiometa/forge-tools/pull/PR
 
 ## 0.4.6 - 2026.07.21
 
