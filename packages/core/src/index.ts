@@ -7,6 +7,15 @@ export type { Action, Resource } from "./constants.ts";
 // Utilities
 export { matchByName } from "./utils/name-matcher.ts";
 export type { NameMatch } from "./utils/name-matcher.ts";
+export {
+  compareEnv,
+  compareText,
+  diffEnv,
+  formatEnvDiff,
+  normalizeContent,
+  unifiedDiff,
+} from "./utils/drift.ts";
+export type { DriftResult, EnvDiff } from "./utils/drift.ts";
 
 // Audit logging
 export { createAuditLogger, sanitizeArgs, getAuditLogPath } from "./logger.ts";

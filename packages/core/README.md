@@ -34,7 +34,7 @@ import { RESOURCES, ACTIONS } from "@studiometa/forge-core";
 //   'security-rules', 'redirect-rules', 'nginx-templates', 'monitors', 'recipes',
 //   'backups', 'commands', 'scheduled-jobs', 'services', 'php', 'user', 'batch']
 // ACTIONS: ['list', 'get', 'create', 'update', 'delete', 'deploy', 'reboot', 'restart',
-//   'activate', 'run', 'resolve', 'help', 'schema', 'context']
+//   'activate', 'run', 'resolve', 'help', 'schema', 'context', 'check']
 ```
 
 ## Executors
@@ -179,6 +179,24 @@ interface NameMatch<T> {
   partial: T[];
 }
 ```
+
+### Drift detection
+
+Pure functions that compare local content with the content on Forge. The CLI `--check` option and the MCP `check` action use them:
+
+```typescript
+import { compareEnv, compareText } from "@studiometa/forge-core";
+
+compareText(remote, local);
+// → { inSync: true } or { inSync: false, diff: "--- remote\n+++ local\n@@ ... @@\n..." }
+
+compareEnv(remoteEnv, localEnv);
+// → { inSync: true } or { inSync: false, diff: { added: [...], removed: [...], changed: [...] } }
+```
+
+- `compareText` ignores CRLF line endings and a single trailing newline, and returns a unified line diff (`util.diff`).
+- `compareEnv` compares `.env` files by variable name with the dotenv rules used by Laravel. It returns names only, never values.
+- `unifiedDiff`, `normalizeContent`, `diffEnv` and `formatEnvDiff` are the lower-level parts.
 
 ## Audit Logging
 
