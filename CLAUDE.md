@@ -24,7 +24,8 @@ Instructions for AI agents contributing to this codebase.
 
 ## Versioning
 
-- Release with the `Release` workflow: `gh workflow run release.yml -f bump=patch` (or `minor` / `major`). It bumps all packages, folds `.changelog/` into `CHANGELOG.md`, commits `Release <version>`, tags (no `v` prefix), then publishes to npm and creates the GitHub release
+- Release with the `Release` workflow in `publish.yml`: `gh workflow run publish.yml -f bump=patch` (or `minor` / `major`). It bumps all packages, folds `.changelog/` into `CHANGELOG.md`, commits `Release <version>`, tags (no `v` prefix), then publishes to npm and creates the GitHub release. To publish an existing tag again (e.g. after a failed publish), run `gh workflow run publish.yml -f tag=<version>`
+- npm trusted publishing (OIDC, no npm token) is configured for `publish.yml`: keep the release and publish jobs in that file, never call them from another workflow
 - The root npm scripts `version:patch|minor|major` bump all packages; the workflow uses them
 - All 5 packages share the same version
 - Version is injected at build time from package.json via `versionDefine()`
