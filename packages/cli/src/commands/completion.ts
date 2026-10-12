@@ -299,8 +299,8 @@ _forge() {
         nginx)
           local -a nginx_cmds
           nginx_cmds=(
-            'get:Get nginx config'
-            'update:Update nginx config'
+            'get:Get nginx config of a site or domain'
+            'update:Update nginx config of a site or domain'
           )
           _describe 'nginx command' nginx_cmds
           ;;
@@ -489,7 +489,7 @@ _forge() {
         '--user[User]:user:' \\
         '--script[Script]:script:' \\
         '--servers[Servers]:servers:' \\
-        '--domain[Domain]:domain:' \\
+        '--domain[Domain ID or name]:domain:' \\
         '--password[Password]:password:' \\
         '--credential-id[Credential ID]:credential id:' \\
         '--region[Region]:region:' \\
@@ -594,8 +594,8 @@ complete -c forge -f -n "__fish_seen_subcommand_from env" -a "get" -d "Get env v
 complete -c forge -f -n "__fish_seen_subcommand_from env" -a "update" -d "Update env variables"
 
 # nginx subcommands
-complete -c forge -f -n "__fish_seen_subcommand_from nginx" -a "get" -d "Get nginx config"
-complete -c forge -f -n "__fish_seen_subcommand_from nginx" -a "update" -d "Update nginx config"
+complete -c forge -f -n "__fish_seen_subcommand_from nginx" -a "get" -d "Get nginx config of a site or domain"
+complete -c forge -f -n "__fish_seen_subcommand_from nginx" -a "update" -d "Update nginx config of a site or domain"
 
 # certificates subcommands
 complete -c forge -f -n "__fish_seen_subcommand_from certificates certs" -a "get" -d "Get certificate for a domain"
@@ -719,7 +719,7 @@ complete -c forge -l ip-address -d "IP address" -r
 complete -c forge -l user -d "User" -r
 complete -c forge -l script -d "Script" -r
 complete -c forge -l servers -d "Servers" -r
-complete -c forge -l domain -d "Domain" -r
+complete -c forge -l domain -d "Domain ID or name" -r
 complete -c forge -l password -d "Password" -r
 complete -c forge -l credential-id -d "Credential ID" -r
 complete -c forge -l region -d "Region" -r
