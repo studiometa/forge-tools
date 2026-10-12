@@ -25,6 +25,8 @@ describe("showNginxHelp", () => {
 
   it("should show update help", () => {
     showNginxHelp("update");
-    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining("nginx update"));
+    const output = String(consoleLogSpy.mock.calls[0][0]);
+    expect(output).toContain("nginx update");
+    expect(output).toContain("--file <path>");
   });
 });

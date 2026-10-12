@@ -3,6 +3,10 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { createTestContext } from "../../context.ts";
 import { nginxGet, nginxUpdate } from "./handlers.ts";
 
+vi.mock("node:fs", () => ({
+  readFileSync: vi.fn(),
+}));
+
 vi.mock("@studiometa/forge-core", () => ({
   getNginxConfig: vi.fn(),
   updateNginxConfig: vi.fn(),
@@ -130,5 +134,55 @@ describe("nginxUpdate", () => {
 
     await nginxUpdate(ctx).catch(() => {});
     expect(processExitSpy).toHaveBeenCalledWith(3);
+  });
+
+  it("should update from --file", async () => {
+    const { readFileSync } = await import("node:fs");
+    const { updateNginxConfig } = await import("@studiometa/forge-core");
+    vi.mocked(readFileSync).mockReturnValue("server { listen 80; }\n");
+    vi.mocked(updateNginxConfig).mockResolvedValue({ data: undefined as never });
+
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "human", server: "10", site: "100", file: "nginx.conf" },
+    });
+
+    await nginxUpdate(ctx);
+    expect(vi.mocked(readFileSync)).toHaveBeenCalledWith("nginx.conf", "utf8");
+    expect(vi.mocked(updateNginxConfig)).toHaveBeenCalledWith(
+      { server_id: "10", site_id: "100", content: "server { listen 80; }\n" },
+      expect.anything(),
+    );
+  });
+
+  it("should update from stdin with --file -", async () => {
+    const { readFileSync } = await import("node:fs");
+    const { updateNginxConfig } = await import("@studiometa/forge-core");
+    vi.mocked(readFileSync).mockReturnValue("server { listen 80; }\n");
+    vi.mocked(updateNginxConfig).mockResolvedValue({ data: undefined as never });
+
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "human", server: "10", site: "100", file: "-" },
+    });
+
+    await nginxUpdate(ctx);
+    expect(vi.mocked(readFileSync)).toHaveBeenCalledWith(0, "utf8");
+  });
+
+  it("should exit with error when both --file and --content are given", async () => {
+    const { updateNginxConfig } = await import("@studiometa/forge-core");
+    vi.mocked(updateNginxConfig).mockClear();
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "human", server: "10", site: "100", file: "nginx.conf", content: "x" },
+    });
+
+    await nginxUpdate(ctx).catch(() => {});
+    expect(processExitSpy).toHaveBeenCalledWith(3);
+    expect(vi.mocked(updateNginxConfig)).not.toHaveBeenCalled();
   });
 });

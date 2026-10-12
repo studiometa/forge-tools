@@ -3,6 +3,7 @@ import { getNginxConfig, updateNginxConfig } from "@studiometa/forge-core";
 import type { CommandContext } from "../../context.ts";
 
 import { exitWithValidationError, runCommand } from "../../error-handler.ts";
+import { readContentOption } from "../../utils/content-source.ts";
 import { resolveServerId, resolveSiteId } from "../../utils/resolve.ts";
 
 export async function nginxGet(ctx: CommandContext): Promise<void> {
@@ -40,33 +41,24 @@ export async function nginxGet(ctx: CommandContext): Promise<void> {
 }
 
 export async function nginxUpdate(ctx: CommandContext): Promise<void> {
+  const usage =
+    "forge nginx update --server <server_id> --site <site_id> (--file <path|-> | --content <content>)";
   const server = String(ctx.options.server ?? "");
   const site = String(ctx.options.site ?? "");
-  const content = String(ctx.options.content ?? "");
 
   if (!server) {
-    exitWithValidationError(
-      "server_id",
-      "forge nginx update --server <server_id> --site <site_id> --content <content>",
-      ctx.formatter,
-    );
+    exitWithValidationError("server_id", usage, ctx.formatter);
   }
 
   if (!site) {
-    exitWithValidationError(
-      "site_id",
-      "forge nginx update --server <server_id> --site <site_id> --content <content>",
-      ctx.formatter,
-    );
+    exitWithValidationError("site_id", usage, ctx.formatter);
   }
 
-  if (!content) {
-    exitWithValidationError(
-      "content",
-      "forge nginx update --server <server_id> --site <site_id> --content <content>",
-      ctx.formatter,
-    );
-  }
+  const content = readContentOption(ctx.options, {
+    label: "nginx configuration",
+    usage,
+    formatter: ctx.formatter,
+  });
 
   await runCommand(async () => {
     const token = ctx.getToken();

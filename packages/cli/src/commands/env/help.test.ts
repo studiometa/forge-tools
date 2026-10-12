@@ -25,6 +25,8 @@ describe("showEnvHelp", () => {
 
   it("should show update help", () => {
     showEnvHelp("update");
-    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining("env update"));
+    const output = String(consoleLogSpy.mock.calls[0][0]);
+    expect(output).toContain("env update");
+    expect(output).toContain("--file <path>");
   });
 });

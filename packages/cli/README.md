@@ -165,15 +165,23 @@ forge daemons restart <daemon_id> --server <id>     # Restart a daemon
 
 ```bash
 forge env get --server <id> --site <id>                             # Get .env content
-forge env update --server <id> --site <id> --content "KEY=value"    # Update .env
+forge env update --server <id> --site <id> --file .env              # Update .env from a file
+forge env update --server <id> --site <id> --file -                 # Update .env from stdin
+forge env update --server <id> --site <id> --content "KEY=value"    # Update .env from a string
 ```
+
+`update` takes exactly one of `--file` or `--content` and rejects empty content. Prefer `--file`: a value given with `--content` stays in your shell history.
 
 ### `nginx` — Manage Nginx configuration
 
 ```bash
 forge nginx get --server <id> --site <id>                               # Get Nginx config
-forge nginx update --server <id> --site <id> --content "server { ... }" # Update Nginx config
+forge nginx update --server <id> --site <id> --file nginx.conf          # Update Nginx config from a file
+forge nginx update --server <id> --site <id> --file -                   # Update Nginx config from stdin
+forge nginx update --server <id> --site <id> --content "server { ... }" # Update Nginx config from a string
 ```
+
+`update` takes exactly one of `--file` or `--content` and rejects empty content.
 
 ### `certificates` (`certs`) — Manage SSL certificates
 

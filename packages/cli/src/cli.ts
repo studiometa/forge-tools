@@ -94,11 +94,11 @@ ${colors.bold("COMMANDS:")}
 
   env                 Manage environment variables
     get                 Get env variables (requires --server --site)
-    update              Update env variables (requires --server --site --content)
+    update              Update env variables (requires --server --site --file|--content)
 
   nginx               Manage nginx configuration
     get                 Get nginx config (requires --server --site)
-    update              Update nginx config (requires --server --site --content)
+    update              Update nginx config (requires --server --site --file|--content)
 
   certificates, certs Manage SSL certificates (per-domain in v2)
     get                 Get certificate for a domain (requires --server --site --domain)

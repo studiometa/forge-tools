@@ -3,6 +3,10 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { createTestContext } from "../../context.ts";
 import { envGet, envUpdate } from "./handlers.ts";
 
+vi.mock("node:fs", () => ({
+  readFileSync: vi.fn(),
+}));
+
 vi.mock("@studiometa/forge-core", () => ({
   getEnv: vi.fn(),
   updateEnv: vi.fn(),
@@ -130,5 +134,55 @@ describe("envUpdate", () => {
 
     await envUpdate(ctx).catch(() => {});
     expect(processExitSpy).toHaveBeenCalledWith(3);
+  });
+
+  it("should update from --file", async () => {
+    const { readFileSync } = await import("node:fs");
+    const { updateEnv } = await import("@studiometa/forge-core");
+    vi.mocked(readFileSync).mockReturnValue("APP_ENV=prod\n");
+    vi.mocked(updateEnv).mockResolvedValue({ data: undefined as never });
+
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "human", server: "10", site: "100", file: ".env" },
+    });
+
+    await envUpdate(ctx);
+    expect(vi.mocked(readFileSync)).toHaveBeenCalledWith(".env", "utf8");
+    expect(vi.mocked(updateEnv)).toHaveBeenCalledWith(
+      { server_id: "10", site_id: "100", content: "APP_ENV=prod\n" },
+      expect.anything(),
+    );
+  });
+
+  it("should update from stdin with --file -", async () => {
+    const { readFileSync } = await import("node:fs");
+    const { updateEnv } = await import("@studiometa/forge-core");
+    vi.mocked(readFileSync).mockReturnValue("APP_ENV=prod\n");
+    vi.mocked(updateEnv).mockResolvedValue({ data: undefined as never });
+
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "human", server: "10", site: "100", file: "-" },
+    });
+
+    await envUpdate(ctx);
+    expect(vi.mocked(readFileSync)).toHaveBeenCalledWith(0, "utf8");
+  });
+
+  it("should exit with error when both --file and --content are given", async () => {
+    const { updateEnv } = await import("@studiometa/forge-core");
+    vi.mocked(updateEnv).mockClear();
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "human", server: "10", site: "100", file: ".env", content: "x" },
+    });
+
+    await envUpdate(ctx).catch(() => {});
+    expect(processExitSpy).toHaveBeenCalledWith(3);
+    expect(vi.mocked(updateEnv)).not.toHaveBeenCalled();
   });
 });
