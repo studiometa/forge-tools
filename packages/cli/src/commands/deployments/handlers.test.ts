@@ -761,6 +761,7 @@ describe("deploymentsUpdateScript --check", () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+    process.exitCode = undefined;
   });
 
   it("should report in sync and not write", async () => {
@@ -783,6 +784,7 @@ describe("deploymentsUpdateScript --check", () => {
       expect.stringContaining("Deployment script is in sync with Forge."),
     );
     expect(processExitSpy).not.toHaveBeenCalled();
+    expect(process.exitCode).toBeUndefined();
   });
 
   it("should print a diff, exit 1 and not write when the content differs", async () => {
@@ -798,11 +800,16 @@ describe("deploymentsUpdateScript --check", () => {
     await deploymentsUpdateScript(ctx);
     expect(vi.mocked(updateDeploymentScript)).not.toHaveBeenCalled();
     expect(vi.mocked(console.log)).toHaveBeenCalledWith(
-      JSON.stringify({
-        inSync: false,
-        diff: "--- remote\n+++ local\n@@ -1,1 +1,1 @@\n-npm ci\n+npm run build",
-      }),
+      JSON.stringify(
+        {
+          inSync: false,
+          diff: "--- remote\n+++ local\n@@ -1,1 +1,1 @@\n-npm ci\n+npm run build",
+        },
+        null,
+        2,
+      ),
     );
-    expect(processExitSpy).toHaveBeenCalledWith(1);
+    expect(process.exitCode).toBe(1);
+    expect(processExitSpy).not.toHaveBeenCalled();
   });
 });

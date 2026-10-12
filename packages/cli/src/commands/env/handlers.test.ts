@@ -199,6 +199,7 @@ describe("envUpdate --check", () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+    process.exitCode = undefined;
   });
 
   it("should report in sync and not write", async () => {
@@ -227,6 +228,7 @@ describe("envUpdate --check", () => {
       expect.stringContaining("Environment file is in sync with Forge."),
     );
     expect(processExitSpy).not.toHaveBeenCalled();
+    expect(process.exitCode).toBeUndefined();
   });
 
   it("should print variable names only, exit 1 and not write", async () => {
@@ -255,7 +257,8 @@ describe("envUpdate --check", () => {
       vi.mocked(console.error).mock.calls,
     ]);
     expect(printed).not.toMatch(/secret/);
-    expect(processExitSpy).toHaveBeenCalledWith(1);
+    expect(process.exitCode).toBe(1);
+    expect(processExitSpy).not.toHaveBeenCalled();
   });
 
   it("should print { inSync, diff } with names only in json format", async () => {
@@ -270,8 +273,9 @@ describe("envUpdate --check", () => {
 
     await envUpdate(ctx);
     expect(vi.mocked(console.log)).toHaveBeenCalledWith(
-      JSON.stringify({ inSync: false, diff: { added: [], removed: [], changed: ["A"] } }),
+      JSON.stringify({ inSync: false, diff: { added: [], removed: [], changed: ["A"] } }, null, 2),
     );
-    expect(processExitSpy).toHaveBeenCalledWith(1);
+    expect(process.exitCode).toBe(1);
+    expect(processExitSpy).not.toHaveBeenCalled();
   });
 });

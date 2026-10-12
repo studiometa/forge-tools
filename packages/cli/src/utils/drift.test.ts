@@ -104,6 +104,7 @@ describe("reportDrift", () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+    process.exitCode = undefined;
   });
 
   it("should print in sync and not exit in human format", () => {
@@ -112,6 +113,7 @@ describe("reportDrift", () => {
       expect.stringContaining("Deployment script is in sync with Forge."),
     );
     expect(processExitSpy).not.toHaveBeenCalled();
+    expect(process.exitCode).toBeUndefined();
   });
 
   it("should print the diff and exit 1 in human format", () => {
@@ -124,13 +126,15 @@ describe("reportDrift", () => {
     expect(console.error).toHaveBeenCalledWith(
       expect.stringContaining("Deployment script differs from Forge."),
     );
-    expect(processExitSpy).toHaveBeenCalledWith(1);
+    expect(process.exitCode).toBe(1);
+    expect(processExitSpy).not.toHaveBeenCalled();
   });
 
   it("should print { inSync: true } in json format", () => {
     reportDrift("deployment script", null, new OutputFormatter("json", true));
-    expect(console.log).toHaveBeenCalledWith(JSON.stringify({ inSync: true }));
+    expect(console.log).toHaveBeenCalledWith(JSON.stringify({ inSync: true }, null, 2));
     expect(processExitSpy).not.toHaveBeenCalled();
+    expect(process.exitCode).toBeUndefined();
   });
 
   it("should print { inSync: false, diff } and exit 1 in json format", () => {
@@ -140,10 +144,11 @@ describe("reportDrift", () => {
       new OutputFormatter("json", true),
     );
     expect(console.log).toHaveBeenCalledWith(
-      JSON.stringify({ inSync: false, diff: { added: ["A"] } }),
+      JSON.stringify({ inSync: false, diff: { added: ["A"] } }, null, 2),
     );
     expect(console.error).not.toHaveBeenCalled();
-    expect(processExitSpy).toHaveBeenCalledWith(1);
+    expect(process.exitCode).toBe(1);
+    expect(processExitSpy).not.toHaveBeenCalled();
   });
 });
 
@@ -158,19 +163,26 @@ describe("reportTextDrift", () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+    process.exitCode = undefined;
   });
 
   it("should report in sync for equal content", () => {
     reportTextDrift("nginx configuration", "a\r\n", "a", new OutputFormatter("json", true));
-    expect(console.log).toHaveBeenCalledWith(JSON.stringify({ inSync: true }));
+    expect(console.log).toHaveBeenCalledWith(JSON.stringify({ inSync: true }, null, 2));
     expect(processExitSpy).not.toHaveBeenCalled();
+    expect(process.exitCode).toBeUndefined();
   });
 
   it("should report the unified diff as a string", () => {
     reportTextDrift("nginx configuration", "a", "b", new OutputFormatter("json", true));
     expect(console.log).toHaveBeenCalledWith(
-      JSON.stringify({ inSync: false, diff: "--- remote\n+++ local\n@@ -1,1 +1,1 @@\n-a\n+b" }),
+      JSON.stringify(
+        { inSync: false, diff: "--- remote\n+++ local\n@@ -1,1 +1,1 @@\n-a\n+b" },
+        null,
+        2,
+      ),
     );
-    expect(processExitSpy).toHaveBeenCalledWith(1);
+    expect(process.exitCode).toBe(1);
+    expect(processExitSpy).not.toHaveBeenCalled();
   });
 });

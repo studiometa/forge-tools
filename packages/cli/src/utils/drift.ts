@@ -100,14 +100,15 @@ export interface Drift {
 }
 
 /**
- * Print the result of a `--check` and exit 1 when the local content differs from Forge.
- * JSON output is `{ inSync: true }` or `{ inSync: false, diff }`.
+ * Print the result of a `--check` and set exit code 1 when the local content differs from Forge.
+ * It sets `process.exitCode` and does not call `process.exit`, so a long diff
+ * written to a pipe is not cut. JSON output is `{ inSync: true }` or `{ inSync: false, diff }`.
  */
 export function reportDrift(label: string, drift: Drift | null, formatter: OutputFormatter): void {
   const name = label.charAt(0).toUpperCase() + label.slice(1);
 
   if (formatter.isJson()) {
-    console.log(JSON.stringify(drift ? { inSync: false, diff: drift.json } : { inSync: true }));
+    formatter.output(drift ? { inSync: false, diff: drift.json } : { inSync: true });
   } else if (drift) {
     console.log(drift.text);
     formatter.error(`${name} differs from Forge.`);
@@ -116,7 +117,7 @@ export function reportDrift(label: string, drift: Drift | null, formatter: Outpu
   }
 
   if (drift) {
-    process.exit(ExitCode.GENERAL_ERROR);
+    process.exitCode = ExitCode.GENERAL_ERROR;
   }
 }
 

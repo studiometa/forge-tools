@@ -199,6 +199,7 @@ describe("nginxUpdate --check", () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+    process.exitCode = undefined;
   });
 
   it("should report in sync and not write", async () => {
@@ -227,6 +228,7 @@ describe("nginxUpdate --check", () => {
       expect.stringContaining("Nginx configuration is in sync with Forge."),
     );
     expect(processExitSpy).not.toHaveBeenCalled();
+    expect(process.exitCode).toBeUndefined();
   });
 
   it("should print a diff, exit 1 and not write when the content differs", async () => {
@@ -248,11 +250,16 @@ describe("nginxUpdate --check", () => {
     await nginxUpdate(ctx);
     expect(vi.mocked(updateNginxConfig)).not.toHaveBeenCalled();
     expect(vi.mocked(console.log)).toHaveBeenCalledWith(
-      JSON.stringify({
-        inSync: false,
-        diff: "--- remote\n+++ local\n@@ -1,1 +1,1 @@\n-server { listen 80; }\n+server { listen 443; }",
-      }),
+      JSON.stringify(
+        {
+          inSync: false,
+          diff: "--- remote\n+++ local\n@@ -1,1 +1,1 @@\n-server { listen 80; }\n+server { listen 443; }",
+        },
+        null,
+        2,
+      ),
     );
-    expect(processExitSpy).toHaveBeenCalledWith(1);
+    expect(process.exitCode).toBe(1);
+    expect(processExitSpy).not.toHaveBeenCalled();
   });
 });
