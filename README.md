@@ -110,7 +110,7 @@ For a read-only setup (no writes possible), use `"args": ["--read-only"]` or `FO
 ## Requirements
 
 - **Node.js 18+** (SDK and API packages)
-- **Node.js 24+** (for development)
+- **Node.js 24+** (Core, MCP and CLI packages, and development)
 - **Laravel Forge account** with API access
 
 ## Architecture

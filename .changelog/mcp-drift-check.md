@@ -5,4 +5,6 @@
 
 ### Changed
 
+- **MCP**: Require Node.js 24 or later, the same as Core and the CLI
+- **MCP**: List all read actions in the batch error message, and document the `compact` default and the PHP fields for `check` in the tool schema
 - **CLI**: Use the drift functions from Core for `--check`; the output does not change
