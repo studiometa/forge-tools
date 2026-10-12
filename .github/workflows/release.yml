@@ -39,8 +39,10 @@ jobs:
 
       - name: Bump version
         id: version
+        env:
+          BUMP: ${{ inputs.bump }}
         run: |
-          npm run version:${{ inputs.bump }}
+          npm run "version:$BUMP"
           echo "version=$(node -p 'require("./package.json").version')" >> "$GITHUB_OUTPUT"
 
       - name: Fold changelog fragments
@@ -79,4 +81,5 @@ jobs:
     with:
       tag: ${{ needs.release.outputs.version }}
       body: ${{ needs.release.outputs.body }}
-    secrets: inherit
+    secrets:
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

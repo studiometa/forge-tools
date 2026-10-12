@@ -11,6 +11,9 @@ on:
         description: "GitHub Release body (the changelog section)"
         type: string
         required: true
+    secrets:
+      NPM_TOKEN:
+        required: true
 
 jobs:
   test:
