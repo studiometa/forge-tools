@@ -43,6 +43,16 @@ describe("getPhpConfig", () => {
     );
     expect(getMock).not.toHaveBeenCalled();
   });
+
+  it("should reject a user for a type other than pool before any request", async () => {
+    const getMock = vi.fn();
+    const ctx = createTestExecutorContext({ client: { get: getMock } as never });
+
+    await expect(
+      getPhpConfig({ server_id: "1", version: "12", type: "fpm", user: "forge" }, ctx),
+    ).rejects.toThrow('The user option applies to the pool config only, not "fpm".');
+    expect(getMock).not.toHaveBeenCalled();
+  });
 });
 
 describe("updatePhpConfig", () => {
@@ -89,6 +99,19 @@ describe("updatePhpConfig", () => {
     await expect(
       updatePhpConfig({ server_id: "1", version: "12", type: "ini", content: "x" }, ctx),
     ).rejects.toThrow(/Invalid PHP config type/);
+    expect(putMock).not.toHaveBeenCalled();
+  });
+
+  it("should reject a user for a type other than pool before any request", async () => {
+    const putMock = vi.fn();
+    const ctx = createTestExecutorContext({ client: { put: putMock } as never });
+
+    await expect(
+      updatePhpConfig(
+        { server_id: "1", version: "12", type: "cli", content: "x", user: "forge" },
+        ctx,
+      ),
+    ).rejects.toThrow('The user option applies to the pool config only, not "cli".');
     expect(putMock).not.toHaveBeenCalled();
   });
 });

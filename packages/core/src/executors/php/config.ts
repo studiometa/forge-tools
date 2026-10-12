@@ -12,13 +12,18 @@ import type { GetPhpConfigOptions, UpdatePhpConfigOptions } from "./types.ts";
 import { resolvePhpVersionId } from "./versions.ts";
 
 /**
- * Throw when the configuration type is not one of cli, fpm or pool.
+ * Throw when the configuration type is not one of cli, fpm or pool,
+ * or when a user is given for a type other than pool.
  */
-function assertConfigType(type: string): void {
+function assertConfigTarget(type: string, user: string | undefined): void {
   if (!(PHP_CONFIG_TYPES as readonly string[]).includes(type)) {
     throw new Error(
       `Invalid PHP config type "${type}". Valid types: ${PHP_CONFIG_TYPES.join(", ")}.`,
     );
+  }
+
+  if (user && type !== "pool") {
+    throw new Error(`The user option applies to the pool config only, not "${type}".`);
   }
 }
 
@@ -29,7 +34,7 @@ export async function getPhpConfig(
   options: GetPhpConfigOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<string>> {
-  assertConfigType(options.type);
+  assertConfigTarget(options.type, options.user);
   const version_id = await resolvePhpVersionId(options.server_id, options.version, ctx);
   const response = await request(
     ROUTES.php.getConfig,
@@ -53,7 +58,7 @@ export async function updatePhpConfig(
   options: UpdatePhpConfigOptions,
   ctx: ExecutorContext,
 ): Promise<ExecutorResult<void>> {
-  assertConfigType(options.type);
+  assertConfigTarget(options.type, options.user);
   const version_id = await resolvePhpVersionId(options.server_id, options.version, ctx);
   await request(
     ROUTES.php.updateConfig,

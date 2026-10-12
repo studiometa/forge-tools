@@ -133,6 +133,31 @@ describe("phpConfig", () => {
     expect(client.get).not.toHaveBeenCalled();
   });
 
+  it("should exit with a validation error for a bare --version", async () => {
+    const { ctx, client } = setup({ format: "json", server: "10", version: true, type: "fpm" });
+
+    await phpConfig(ctx).catch(() => {});
+
+    expect(exitSpy).toHaveBeenCalledWith(3);
+    expect(client.get).not.toHaveBeenCalled();
+  });
+
+  it("should exit with a validation error for --user with a type other than pool", async () => {
+    const { ctx, client } = setup({
+      format: "json",
+      server: "10",
+      version: "8.3",
+      type: "fpm",
+      user: "forge",
+    });
+
+    await phpConfig(ctx).catch(() => {});
+
+    expect(exitSpy).toHaveBeenCalledWith(3);
+    expect(printed()).toContain('--user applies to --type pool only, not \\"fpm\\"');
+    expect(client.get).not.toHaveBeenCalled();
+  });
+
   it("should exit with a validation error without --type", async () => {
     const { ctx } = setup({ format: "json", server: "10", version: "8.3" });
 

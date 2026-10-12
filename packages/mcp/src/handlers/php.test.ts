@@ -169,6 +169,27 @@ describe("handlePhp", () => {
     expect(result.content[0].text).toContain("type");
   });
 
+  it("should reject a user for a config type other than pool", async () => {
+    const { ctx, client } = createMockContext();
+
+    await expect(
+      handlePhp(
+        "get",
+        {
+          resource: "php",
+          action: "get",
+          server_id: "1",
+          setting: "config",
+          version: "12",
+          type: "fpm",
+          user: "forge",
+        },
+        ctx,
+      ),
+    ).rejects.toThrow('The user option applies to the pool config only, not "fpm".');
+    expect(client.get).not.toHaveBeenCalled();
+  });
+
   it("should update a configuration file", async () => {
     const { ctx, client } = createMockContext();
     const result = await handlePhp(

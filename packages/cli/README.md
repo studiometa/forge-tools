@@ -221,7 +221,7 @@ forge php enable-opcache --server <id>                                          
 forge php disable-opcache --server <id>                                             # Disable OPcache
 ```
 
-`--version` takes a PHP version ID from `forge php list`, or a version such as `8.3`, `php83` or `php8.3`. `--type` is `cli` (CLI php.ini), `fpm` (FPM php.ini) or `pool` (FPM pool). `update-config` replaces the whole file, takes exactly one of `--file` or `--content`, rejects empty content and supports `--check` (see [Detect drift in CI with `--check`](#detect-drift-in-ci-with---check)).
+`--version` takes a PHP version ID from `forge php list`, or a version such as `8.3`, `php83` or `php8.3`. `--type` is `cli` (CLI php.ini), `fpm` (FPM php.ini) or `pool` (FPM pool); `--user` applies to `pool` only. `update-config` replaces the whole file, takes exactly one of `--file` or `--content`, rejects empty content and supports `--check` (see [Detect drift in CI with `--check`](#detect-drift-in-ci-with---check)).
 
 ### `certificates` (`certs`) — Manage SSL certificates
 

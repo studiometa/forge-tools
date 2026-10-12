@@ -60,7 +60,8 @@ interface ConfigTarget {
 
 /**
  * Read --version, --type and --user for the config commands.
- * Exits with a validation error when --version is missing or --type is not cli, fpm or pool.
+ * Exits with a validation error when --version is missing, --type is not cli, fpm or pool,
+ * or --user is given for a type other than pool.
  */
 function requireConfigTarget(ctx: CommandContext, usage: string): ConfigTarget {
   const { version, type, user } = ctx.options;
@@ -74,6 +75,15 @@ function requireConfigTarget(ctx: CommandContext, usage: string): ConfigTarget {
     exitWithError(
       new ValidationError(message, "type", [
         `Valid types: ${PHP_CONFIG_TYPES.join(", ")}`,
+        `Usage: ${usage}`,
+      ]),
+      ctx.formatter,
+    );
+  }
+
+  if (typeof user === "string" && user && type !== "pool") {
+    exitWithError(
+      new ValidationError(`--user applies to --type pool only, not "${type}"`, "user", [
         `Usage: ${usage}`,
       ]),
       ctx.formatter,
