@@ -283,7 +283,7 @@ forge completion bash --print   # Print script without installing
 
 ## Audit Logging
 
-All write operations (`deploy`, `create`, `delete`, `reboot`, `restart`, `update`, `run`, `activate`) are automatically logged to `~/.config/forge-tools/audit.log`. Override the path with the `FORGE_AUDIT_LOG` environment variable. Sensitive fields (tokens, passwords) are redacted.
+All write operations (`deploy`, `create`, `delete`, `reboot`, `restart`, `update`, `run`, `activate`) are automatically logged to `~/.config/forge-tools/audit.log`. Override the path with the `FORGE_AUDIT_LOG` environment variable. Sensitive fields (tokens, passwords, keys, credentials, and the `--content` and `--script` values such as env files) are redacted.
 
 ## Global Options
 
