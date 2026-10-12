@@ -14,6 +14,7 @@ import {
   BackgroundProcessAttributesSchema,
   BackgroundProcessLogAttributesSchema,
   CertificateAttributesSchema,
+  DomainAttributesSchema,
   FirewallRuleAttributesSchema,
   SshKeyAttributesSchema,
   SecurityRuleAttributesSchema,
@@ -509,4 +510,19 @@ testSchema(
   PhpOpcacheAttributesSchema,
   { opcache_enabled: true },
   { opcache_enabled: "yes" },
+);
+
+testSchema(
+  "DomainAttributesSchema",
+  DomainAttributesSchema,
+  {
+    name: "www.example.com",
+    type: "alias",
+    status: "enabled",
+    www_redirect_type: "from-www",
+    allow_wildcard_subdomains: false,
+    created_at: "2024-01-01T00:00:00Z",
+    updated_at: "2024-01-01T00:00:00Z",
+  },
+  { name: 123 },
 );

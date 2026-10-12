@@ -125,6 +125,13 @@ describe("@studiometa/forge-core", () => {
   it("should export nginx config executors", () => {
     expect(core.getNginxConfig).toBeTypeOf("function");
     expect(core.updateNginxConfig).toBeTypeOf("function");
+    expect(core.getDomainNginxConfig).toBeTypeOf("function");
+    expect(core.updateDomainNginxConfig).toBeTypeOf("function");
+  });
+
+  it("should export domain executors", () => {
+    expect(core.listDomains).toBeTypeOf("function");
+    expect(core.resolveDomainId).toBeTypeOf("function");
   });
 
   it("should export backup executors", () => {
