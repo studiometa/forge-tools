@@ -98,15 +98,15 @@ Co-authored-by: Claude <claude@anthropic.com>
 
 ## Versioning
 
-All packages share one version. Maintainers release with the `Release` workflow, which bumps the version, folds the changelog fragments into `CHANGELOG.md`, tags, publishes to npm and creates the GitHub release:
+All packages share one version. Each merge into `main` releases with the `Release` workflow (`publish.yml`): after the tests, it folds the changelog fragments into `CHANGELOG.md`, bumps the version, tags, creates the GitHub release and publishes to npm. Without a fragment, nothing is released.
+
+The version follows the fragments: on 0.x, a breaking entry gives a minor version and any other entry a patch version. Maintainers can force a bump with a manual run:
 
 ```bash
-gh workflow run publish.yml -f bump=patch                      # or minor / major
-gh workflow run publish.yml -f bump=prerelease -f preid=beta   # or prepatch / preminor / premajor, preid alpha / beta / rc
-gh workflow run publish.yml -f tag=0.4.7                       # publish an existing tag again
+gh workflow run publish.yml -f version=minor   # or patch / major
 ```
 
-A prerelease version (with a `-`, e.g. `0.5.0-beta.0`) goes to the `next` dist-tag on npm and is marked as a prerelease on GitHub. Any other version goes to `latest`. To promote a prerelease, run a `patch` bump (from `0.5.0-rc.1`, `patch` gives `0.5.0`): this release can have no fragment, and its GitHub release body is `Stable release of 0.5.0-rc.1.`
+To release prereleases, add a `.changelog/prerelease` file with one identifier (`alpha`, `beta` or `rc`): the next merges release prereleases such as `0.4.8-beta.0`, then `0.4.8-beta.1`. Remove the file to release the stable version. A prerelease goes to the `next` dist-tag on npm and is marked as a prerelease on GitHub. Any other version goes to `latest`. See [prereleases](https://github.com/weareikko/changelog#prereleases).
 
 Publishing uses npm trusted publishing (OIDC), so the workflow has no npm token. Each package has its own publish step, which skips a version that npm already has. When a publish fails, use "Re-run failed jobs" on the run: the packages already published are skipped and the others are published.
 

@@ -7,14 +7,14 @@ Instructions for AI agents contributing to this codebase.
 - Commit messages: **English**, imperative mood (Add, Fix, Update...)
 - No conventional commit prefixes (feat:, fix:, etc.)
 - Always add `Co-authored-by: Claude <claude@anthropic.com>` trailer
-- **Releases**: Do NOT tag or create GitHub releases manually — run the `Release` workflow (see Versioning)
+- **Releases**: Do NOT tag or create GitHub releases manually — each merge into `main` releases with the `Release` workflow (see Versioning)
 - **Never use `git add .`** — always stage specific files
 
 ## Changelog
 
 - **Never edit `CHANGELOG.md` directly.** Each PR adds a fragment `.changelog/<slug>.md` (slug = branch name without its prefix, e.g. `feature/ssh-sync` → `ssh-sync.md`)
 - A fragment only contains `### Added|Changed|Deprecated|Removed|Fixed|Security|Dependencies` headings, each followed by its entries — no `#`/`##` heading
-- **Do not write the PR number**: the `Release` workflow appends `[[#N]]` and the link definition from the merged PR that added the fragment
+- **Do not write the PR number**: the `Release` workflow appends ` ([#N])` and the link definition from the merged PR that added the fragment
 - Prefix entries with package name when relevant: `**SDK**: ...`, `**API**: ...`, `**Core**: ...`, `**MCP**: ...`, `**CLI**: ...`
 - Commit references are optional: `[hash]` in the entry plus its `[hash]: https://github.com/studiometa/forge-tools/commit/hash` link definition in the fragment
 - Keep entries concise, single line
@@ -24,9 +24,11 @@ Instructions for AI agents contributing to this codebase.
 
 ## Versioning
 
-- Release with the `Release` workflow in `publish.yml`: `gh workflow run publish.yml -f bump=patch` (or `minor` / `major`). It bumps all packages with `npm version --workspaces --include-workspace-root`, folds `.changelog/` into `CHANGELOG.md`, commits `Release <version>`, tags (no `v` prefix), then publishes to npm and creates the GitHub release
-- Prereleases: `gh workflow run publish.yml -f bump=prerelease -f preid=beta` (or `prepatch` / `preminor` / `premajor`, `preid` is `alpha`, `beta` or `rc`). A version with a `-` goes to the `next` dist-tag on npm and is a GitHub prerelease; any other version goes to `latest`. To promote a prerelease, use `bump=patch` (from `0.5.0-rc.1` it gives `0.5.0`): this release can have no fragment: its GitHub release body is `Stable release of <prerelease>.`
-- Publishing can run again: each package has its own `JS-DevTools/npm-publish` step, which skips a version that npm already has. After a failed publish, use "Re-run failed jobs", or `gh workflow run publish.yml -f tag=<version>` to publish an existing tag
+- Each merge into `main` releases with the `Release` workflow in `publish.yml` ([`weareikko/changelog`](https://github.com/weareikko/changelog#release-1) action): after the tests, it folds `.changelog/` into `CHANGELOG.md`, bumps all packages with `npm version --workspaces --include-workspace-root` (and `package-lock.json`), commits `Release <version>`, tags (no `v` prefix), pushes, creates the GitHub release (body: a link to `CHANGELOG.md`), then publishes to npm. Without a fragment, nothing is released
+- The version follows the fragments: on 0.x, a breaking entry (`Breaking: ...`) gives a minor, any other entry a patch (from 1.0.0: breaking → major, `Added` → minor, other → patch)
+- Force a bump with a manual run: `gh workflow run publish.yml -f version=minor` (or `patch` / `major`, e.g. `major` for 1.0.0)
+- Prereleases: add `.changelog/prerelease` with one identifier (`alpha`, `beta` or `rc`); the next merges release `<version>-<id>.N`. Remove the file to release the stable version (it can have no fragment). A prerelease goes to the `next` dist-tag on npm and is a GitHub prerelease; any other version goes to `latest`
+- Publishing can run again: each package has its own `JS-DevTools/npm-publish` step, which skips a version that npm already has. After a failed publish, use "Re-run failed jobs" on the run
 - npm trusted publishing (OIDC, no npm token) is configured for `publish.yml`: keep the release and publish jobs in that file, never call them from another workflow
 - All 5 packages share the same version
 - Version is injected at build time from package.json via `versionDefine()`
