@@ -14,6 +14,7 @@ import type { ResolveResult } from "./servers.ts";
 import { DeploymentsCollection } from "./deployments.ts";
 import { CertificatesCollection } from "./certificates.ts";
 import { CommandsCollection } from "./commands.ts";
+import { DomainResource, DomainsCollection } from "./domains.ts";
 import { SecurityRulesCollection } from "./security-rules.ts";
 import { RedirectRulesCollection } from "./redirect-rules.ts";
 import { BaseCollection } from "./base.ts";
@@ -207,6 +208,9 @@ export class SiteResource extends BaseCollection {
   /** SSL certificates for this site. */
   readonly certificates: CertificatesCollection;
 
+  /** Domains (primary and aliases) of this site. */
+  readonly domains: DomainsCollection;
+
   /** Environment variables for this site. */
   readonly env: SiteEnvResource;
 
@@ -232,6 +236,7 @@ export class SiteResource extends BaseCollection {
     super(client, orgSlug);
     this.deployments = new DeploymentsCollection(client, orgSlug, serverId, siteId);
     this.certificates = new CertificatesCollection(client, orgSlug, serverId, siteId);
+    this.domains = new DomainsCollection(client, orgSlug, serverId, siteId);
     this.env = new SiteEnvResource(client, orgSlug, serverId, siteId);
     this.nginx = new SiteNginxResource(client, orgSlug, serverId, siteId);
     this.commands = new CommandsCollection(client, orgSlug, serverId, siteId);
@@ -241,6 +246,18 @@ export class SiteResource extends BaseCollection {
 
   private get basePath(): string {
     return `/orgs/${this.orgSlug}/servers/${this.serverId}/sites/${this.siteId}`;
+  }
+
+  /**
+   * Access a specific domain of this site.
+   *
+   * @example
+   * ```ts
+   * const config = await forge.server(123).site(456).domain(789).nginx.get();
+   * ```
+   */
+  domain(domainId: number): DomainResource {
+    return new DomainResource(this.client, this.orgSlug, this.serverId, this.siteId, domainId);
   }
 
   /**
@@ -322,7 +339,7 @@ export class SiteEnvResource extends BaseCollection {
    * @param content The full .env file content.
    */
   async update(content: string): Promise<void> {
-    await this.client.put(this.basePath, { content });
+    await this.client.put(this.basePath, { environment: content });
   }
 }
 
@@ -365,6 +382,6 @@ export class SiteNginxResource extends BaseCollection {
    * @param content The full Nginx config content.
    */
   async update(content: string): Promise<void> {
-    await this.client.put(this.basePath, { content });
+    await this.client.put(this.basePath, { config: content });
   }
 }

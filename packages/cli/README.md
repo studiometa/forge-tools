@@ -55,7 +55,7 @@ forge <command> [subcommand] [options]
 | `scheduled-jobs`  |         | List, get, create, delete scheduled jobs on a server |
 | `monitors`        |         | List, get, create, delete monitors on a server       |
 | `env`             |         | Get, update environment variables for a site         |
-| `nginx`           |         | Get, update Nginx configuration for a site           |
+| `nginx`           |         | Get, update Nginx configuration for a site or domain |
 | `nginx-templates` |         | List, get, create, update, delete Nginx templates    |
 | `php`             |         | PHP versions, config files, limits and OPcache       |
 | `certificates`    | `certs` | List, get, activate SSL certificates for a site      |
@@ -199,9 +199,16 @@ forge nginx update --server <id> --site <id> --file nginx.conf          # Update
 forge nginx update --server <id> --site <id> --file -                   # Update Nginx config from stdin
 forge nginx update --server <id> --site <id> --content "server { ... }" # Update Nginx config from a string
 forge nginx update --server <id> --site <id> --file nginx.conf --check  # Compare only, do not write
+
+# Nginx configuration of one domain of the site (primary domain or alias)
+forge nginx get --server <id> --site <id> --domain www.example.com                     # Get the domain Nginx config
+forge nginx update --server <id> --site <id> --domain www.example.com --file www.conf   # Update it from a file
+forge nginx update --server <id> --site <id> --domain www.example.com --file www.conf --check  # Compare only
 ```
 
 `update` takes exactly one of `--file` or `--content` and rejects empty content.
+
+`--domain` takes a domain record ID or a domain name. A name is matched against the domains of the site: an exact match wins, else a single partial match is used. When no domain or more than one domain matches, the command fails and lists the domains. A domain name needs the `site:meta` token scope to list the domains of the site; a domain record ID does not. Without `--domain`, the commands read and write the site configuration.
 
 ### `php` — Manage PHP
 

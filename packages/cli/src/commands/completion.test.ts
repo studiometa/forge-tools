@@ -440,4 +440,29 @@ describe("handleCompletionCommand", () => {
       );
     });
   });
+
+  describe("nginx --domain completion", () => {
+    it("should complete --domain in bash", () => {
+      handleCompletionCommand("bash", { print: true });
+      const script = stdoutWriteSpy.mock.calls[0]![0] as string;
+      expect(script).toContain('local nginx_cmds="get update"');
+      expect(script).toContain("|--servers|--domain|");
+    });
+
+    it("should describe the nginx domain target in zsh", () => {
+      handleCompletionCommand("zsh", { print: true });
+      const script = stdoutWriteSpy.mock.calls[0]![0] as string;
+      expect(script).toContain("'update:Update nginx config of a site or domain'");
+      expect(script).toContain("'--domain[Domain record ID (or name for nginx)]:domain:'");
+    });
+
+    it("should describe the nginx domain target in fish", () => {
+      handleCompletionCommand("fish", { print: true });
+      const script = stdoutWriteSpy.mock.calls[0]![0] as string;
+      expect(script).toContain(
+        '-n "__fish_seen_subcommand_from nginx" -a "get" -d "Get nginx config of a site or domain"',
+      );
+      expect(script).toContain('-l domain -d "Domain record ID (or name for nginx)" -r');
+    });
+  });
 });

@@ -131,6 +131,7 @@ The `server_id` and `site_id` fields accept **names** in addition to numeric IDs
 
 - `server_id: "prod"` → resolves to the server whose name contains "prod" (must be unique)
 - `site_id: "example"` → resolves to the site whose domain contains "example" (requires `server_id`)
+- `domain_id: "www.example.com"` on `nginx` → resolves to that domain of the site (requires `server_id` and `site_id`); without `domain_id`, `nginx` reads and writes the site configuration
 
 Use `action: "resolve"` explicitly when you want to search before committing to an ID:
 

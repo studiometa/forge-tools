@@ -226,9 +226,23 @@ export type {
 export { getEnv, updateEnv } from "./executors/env/index.ts";
 export type { GetEnvOptions, UpdateEnvOptions } from "./executors/env/index.ts";
 
+// Domains
+export { listDomains, resolveDomainId } from "./executors/domains/index.ts";
+export type { ListDomainsOptions } from "./executors/domains/index.ts";
+
 // Nginx Config
-export { getNginxConfig, updateNginxConfig } from "./executors/nginx/index.ts";
-export type { GetNginxConfigOptions, UpdateNginxConfigOptions } from "./executors/nginx/index.ts";
+export {
+  getDomainNginxConfig,
+  getNginxConfig,
+  updateDomainNginxConfig,
+  updateNginxConfig,
+} from "./executors/nginx/index.ts";
+export type {
+  GetDomainNginxConfigOptions,
+  GetNginxConfigOptions,
+  UpdateDomainNginxConfigOptions,
+  UpdateNginxConfigOptions,
+} from "./executors/nginx/index.ts";
 
 // Recipes
 export {

@@ -21,6 +21,7 @@ describe("showNginxHelp", () => {
   it("should show get help", () => {
     showNginxHelp("get");
     expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining("nginx get"));
+    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining("--domain <domain>"));
   });
 
   it("should show update help", () => {
@@ -29,5 +30,6 @@ describe("showNginxHelp", () => {
     expect(output).toContain("nginx update");
     expect(output).toContain("--file <path>");
     expect(output).toContain("--check");
+    expect(output).toContain("--domain www.example.com");
   });
 });

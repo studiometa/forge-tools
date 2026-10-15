@@ -97,9 +97,9 @@ ${colors.bold("COMMANDS:")}
     get                 Get env variables (requires --server --site)
     update              Update env variables (requires --server --site --file|--content) [--check]
 
-  nginx               Manage nginx configuration
-    get                 Get nginx config (requires --server --site)
-    update              Update nginx config (requires --server --site --file|--content) [--check]
+  nginx               Manage nginx configuration of a site or of one domain (--domain)
+    get                 Get nginx config (requires --server --site) [--domain]
+    update              Update nginx config (requires --server --site --file|--content) [--domain] [--check]
 
   certificates, certs Manage SSL certificates (per-domain in v2)
     get                 Get certificate for a domain (requires --server --site --domain)
@@ -196,7 +196,7 @@ ${colors.bold("OPTIONS:")}
   --org <slug>        Organization slug (overrides config and FORGE_ORG)
   --server <id>       Server ID (required for server-scoped commands)
   --site <id>         Site ID (required for site-scoped commands)
-  --domain <id>       Domain record ID (for certificate commands)
+  --domain <id>       Domain record ID (certificates), or domain record ID or name (nginx)
   -f, --format <fmt>  Output format: json, human, table (default: human)
   --no-color          Disable colored output
   -h, --help          Show help

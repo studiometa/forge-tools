@@ -98,6 +98,12 @@ forge.server(id).site(siteId).env.get()     // Get .env content
 forge.server(id).site(siteId).env.update('...')  // Update .env
 forge.server(id).site(siteId).nginx.get()   // Get Nginx config
 forge.server(id).site(siteId).nginx.update('...')  // Update Nginx
+
+// Domains and per-domain Nginx configuration
+forge.server(id).site(siteId).domains.list()                    // List domains
+forge.server(id).site(siteId).domains.resolve('www.example.com') // Find domains by name (needs the site:meta scope)
+forge.server(id).site(siteId).domain(domainId).nginx.get()      // Get the domain Nginx config
+forge.server(id).site(siteId).domain(domainId).nginx.update('...')  // Update the domain Nginx config
 ```
 
 #### `sites.resolve(query)`

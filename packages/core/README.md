@@ -70,6 +70,16 @@ import { RESOURCES, ACTIONS } from "@studiometa/forge-core";
 
 - `getCertificate`, `createCertificate`, `deleteCertificate`, `activateCertificate` (per-domain in v2 — requires `domain_id`)
 
+### Domains
+
+- `listDomains({ server_id, site_id }, ctx)` — List the domains (primary and aliases) of a site
+- `resolveDomainId(server_id, site_id, domain, ctx)` — Resolve a domain name (e.g. `www.example.com`) to its domain record ID; a numeric value is returned as is. A name needs the `site:meta` token scope; a 403 throws an error that tells to use the domain record ID
+
+### Nginx Config
+
+- `getNginxConfig({ server_id, site_id }, ctx)`, `updateNginxConfig({ server_id, site_id, content }, ctx)` — Site Nginx configuration
+- `getDomainNginxConfig({ server_id, site_id, domain }, ctx)`, `updateDomainNginxConfig({ server_id, site_id, domain, content }, ctx)` — Nginx configuration of one domain; `domain` is a domain record ID or a domain name
+
 ### Databases
 
 - `listDatabases`, `getDatabase`, `createDatabase`, `deleteDatabase`

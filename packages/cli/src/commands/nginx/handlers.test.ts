@@ -8,7 +8,9 @@ vi.mock("node:fs", () => ({
 }));
 
 vi.mock("@studiometa/forge-core", () => ({
+  getDomainNginxConfig: vi.fn(),
   getNginxConfig: vi.fn(),
+  updateDomainNginxConfig: vi.fn(),
   updateNginxConfig: vi.fn(),
 }));
 
@@ -261,5 +263,111 @@ describe("nginxUpdate --check", () => {
     );
     expect(process.exitCode).toBe(1);
     expect(processExitSpy).not.toHaveBeenCalled();
+  });
+});
+
+describe("nginx --domain", () => {
+  let processExitSpy: ReturnType<typeof vi.spyOn>;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    processExitSpy = vi.spyOn(process, "exit").mockImplementation(() => undefined as never);
+    vi.spyOn(console, "log").mockImplementation(() => {});
+    vi.spyOn(console, "error").mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    process.exitCode = undefined;
+  });
+
+  it("should get the nginx config of a domain", async () => {
+    const { getDomainNginxConfig, getNginxConfig } = await import("@studiometa/forge-core");
+    vi.mocked(getDomainNginxConfig).mockResolvedValue({ data: "server { listen 443; }" });
+
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "human", server: "10", site: "100", domain: "www.example.com" },
+    });
+
+    await nginxGet(ctx);
+    expect(vi.mocked(getDomainNginxConfig)).toHaveBeenCalledWith(
+      { server_id: "10", site_id: "100", domain: "www.example.com" },
+      expect.anything(),
+    );
+    expect(vi.mocked(getNginxConfig)).not.toHaveBeenCalled();
+    expect(vi.mocked(console.log)).toHaveBeenCalledWith("server { listen 443; }");
+  });
+
+  it("should update the nginx config of a domain", async () => {
+    const { updateDomainNginxConfig, updateNginxConfig } = await import("@studiometa/forge-core");
+    vi.mocked(updateDomainNginxConfig).mockResolvedValue({ data: undefined as never });
+
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: {
+        format: "human",
+        server: "10",
+        site: "100",
+        domain: "www.example.com",
+        content: "server { }",
+      },
+    });
+
+    await nginxUpdate(ctx);
+    expect(vi.mocked(updateDomainNginxConfig)).toHaveBeenCalledWith(
+      { server_id: "10", site_id: "100", domain: "www.example.com", content: "server { }" },
+      expect.anything(),
+    );
+    expect(vi.mocked(updateNginxConfig)).not.toHaveBeenCalled();
+    expect(vi.mocked(console.log)).toHaveBeenCalledWith(
+      expect.stringContaining("Nginx configuration for domain www.example.com updated."),
+    );
+  });
+
+  it("should compare the domain config with --check and not write", async () => {
+    const { getDomainNginxConfig, updateDomainNginxConfig } =
+      await import("@studiometa/forge-core");
+    vi.mocked(getDomainNginxConfig).mockResolvedValue({ data: "server { listen 80; }\n" });
+
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: {
+        format: "human",
+        server: "10",
+        site: "100",
+        domain: "6",
+        content: "server { listen 80; }",
+        check: true,
+      },
+    });
+
+    await nginxUpdate(ctx);
+    expect(vi.mocked(getDomainNginxConfig)).toHaveBeenCalledWith(
+      { server_id: "10", site_id: "100", domain: "6" },
+      expect.anything(),
+    );
+    expect(vi.mocked(updateDomainNginxConfig)).not.toHaveBeenCalled();
+    expect(vi.mocked(console.log)).toHaveBeenCalledWith(
+      expect.stringContaining("Nginx configuration is in sync with Forge."),
+    );
+    expect(process.exitCode).toBeUndefined();
+  });
+
+  it("should exit with error when --domain has no value", async () => {
+    const { getDomainNginxConfig, getNginxConfig } = await import("@studiometa/forge-core");
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "json", server: "10", site: "100", domain: true },
+    });
+
+    await nginxGet(ctx).catch(() => {});
+    expect(processExitSpy).toHaveBeenCalledWith(3);
+    expect(vi.mocked(getDomainNginxConfig)).not.toHaveBeenCalled();
+    expect(vi.mocked(getNginxConfig)).not.toHaveBeenCalled();
   });
 });

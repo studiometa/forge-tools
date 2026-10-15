@@ -80,6 +80,9 @@ export const ROUTES = {
       path: "/orgs/:org/servers/:server_id/sites/:site_id/deployments/status",
     },
   },
+  domains: {
+    list: { method: "GET", path: "/orgs/:org/servers/:server_id/sites/:site_id/domains" },
+  },
   certificates: {
     get: {
       method: "GET",
@@ -105,6 +108,14 @@ export const ROUTES = {
   nginx: {
     get: { method: "GET", path: "/orgs/:org/servers/:server_id/sites/:site_id/nginx" },
     update: { method: "PUT", path: "/orgs/:org/servers/:server_id/sites/:site_id/nginx" },
+    domainGet: {
+      method: "GET",
+      path: "/orgs/:org/servers/:server_id/sites/:site_id/domains/:domain_id/nginx",
+    },
+    domainUpdate: {
+      method: "PUT",
+      path: "/orgs/:org/servers/:server_id/sites/:site_id/domains/:domain_id/nginx",
+    },
   },
   nginxTemplates: {
     list: { method: "GET", path: "/orgs/:org/servers/:server_id/nginx/templates" },

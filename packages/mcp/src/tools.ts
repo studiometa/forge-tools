@@ -91,6 +91,11 @@ const SHARED_INPUT_PROPERTIES = {
     type: "string" as const,
     description: "Site ID or domain name (auto-resolved via partial match, requires server_id)",
   },
+  domain_id: {
+    type: "string" as const,
+    description:
+      'Domain record ID (certificates), or domain record ID or domain name such as "www.example.com" (nginx: targets that domain instead of the site; requires server_id and site_id)',
+  },
   organizationSlug: {
     type: "string" as const,
     description:

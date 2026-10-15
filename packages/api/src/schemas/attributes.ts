@@ -174,6 +174,20 @@ export type BackgroundProcessLogAttributes = v.InferOutput<
   typeof BackgroundProcessLogAttributesSchema
 >;
 
+// ── Domains ──────────────────────────────────────────
+
+export const DomainAttributesSchema = v.object({
+  name: v.string(),
+  type: v.string(),
+  status: v.string(),
+  www_redirect_type: v.nullable(v.string()),
+  allow_wildcard_subdomains: v.boolean(),
+  created_at: v.string(),
+  updated_at: v.string(),
+});
+
+export type DomainAttributes = v.InferOutput<typeof DomainAttributesSchema>;
+
 // ── Certificates ─────────────────────────────────────
 
 export const CertificateAttributesSchema = v.object({

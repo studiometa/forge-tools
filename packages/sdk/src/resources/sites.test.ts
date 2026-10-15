@@ -265,7 +265,7 @@ describe("SiteEnvResource", () => {
 
     await env.update("APP_ENV=production");
     expect(calls[0].method).toBe("PUT");
-    expect(calls[0].body).toEqual({ content: "APP_ENV=production" });
+    expect(calls[0].body).toEqual({ environment: "APP_ENV=production" });
   });
 });
 
@@ -284,7 +284,7 @@ describe("SiteNginxResource", () => {
 
     await nginx.update("server { }");
     expect(calls[0].method).toBe("PUT");
-    expect(calls[0].body).toEqual({ content: "server { }" });
+    expect(calls[0].body).toEqual({ config: "server { }" });
   });
 
   it("should iterate all items across pages via all()", async () => {
