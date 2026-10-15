@@ -59,6 +59,23 @@ describe("TOOLS", () => {
       expect(schema.properties).toHaveProperty("site_id");
     });
 
+    it("should accept content for the check action", () => {
+      const schema = forgeTool.inputSchema as { properties: Record<string, unknown> };
+      expect(schema.properties).toHaveProperty("content");
+      expect(forgeTool.description).toContain("check:");
+    });
+
+    it("should document the PHP fields and the compact default for check", () => {
+      const schema = forgeTool.inputSchema as {
+        properties: Record<string, { description: string }>;
+      };
+      for (const field of ["version", "type", "user"]) {
+        expect(schema.properties[field].description).toContain("php get and check");
+      }
+      expect(schema.properties.setting.description).toContain("php check requires config");
+      expect(schema.properties.compact.description).toContain("false for get and check");
+    });
+
     it("should include description with resources", () => {
       expect(forgeTool.description).toContain("servers");
       expect(forgeTool.description).toContain("sites");
@@ -122,7 +139,7 @@ describe("TOOLS", () => {
 });
 
 describe("READ_ACTIONS", () => {
-  it("should contain list, get, resolve, help, schema, context, log", () => {
+  it("should contain list, get, resolve, help, schema, context, log, check", () => {
     expect([...READ_ACTIONS]).toEqual([
       "list",
       "get",
@@ -131,6 +148,7 @@ describe("READ_ACTIONS", () => {
       "schema",
       "context",
       "log",
+      "check",
     ]);
   });
 });
@@ -176,6 +194,7 @@ describe("isReadAction", () => {
     expect(isReadAction("help")).toBe(true);
     expect(isReadAction("schema")).toBe(true);
     expect(isReadAction("log")).toBe(true);
+    expect(isReadAction("check")).toBe(true);
   });
 
   it("should return false for write actions", () => {

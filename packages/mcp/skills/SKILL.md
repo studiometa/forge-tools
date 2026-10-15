@@ -22,9 +22,9 @@ Before your first interaction with any resource, call `action="help"` with that 
 
 ### `forge` — Read Operations
 
-Safe, read-only queries. Use for listing, getting details, resolving names, fetching context snapshots, help, and schema.
+Safe, read-only queries. Use for listing, getting details, resolving names, fetching context snapshots, checking drift, help, and schema.
 
-**Actions**: `list`, `get`, `resolve`, `context`, `help`, `schema`
+**Actions**: `list`, `get`, `resolve`, `context`, `check`, `help`, `schema`
 
 ```
 forge(resource, action, [parameters...])
@@ -46,9 +46,9 @@ forge_write(resource, action, [parameters...])
 | ----------------- | ----------------------------------- | ------------------------------ | ------ |
 | `servers`         | `list`, `get`, `resolve`, `context` | `create`, `delete`, `reboot`   | global |
 | `sites`           | `list`, `get`, `resolve`, `context` | `create`, `delete`             | server |
-| `deployments`     | `list`                              | `deploy`, `update`             | site   |
-| `env`             | `get`                               | `update`                       | site   |
-| `nginx`           | `get`                               | `update`                       | site   |
+| `deployments`     | `list`, `check`                     | `deploy`, `update`             | site   |
+| `env`             | `get`, `check`                      | `update`                       | site   |
+| `nginx`           | `get`, `check`                      | `update`                       | site   |
 | `certificates`    | `get`                               | `create`, `delete`, `activate` | domain |
 | `databases`       | `list`, `get`                       | `create`, `delete`             | server |
 | `database-users`  | `list`, `get`                       | `create`, `delete`             | server |
@@ -63,7 +63,7 @@ forge_write(resource, action, [parameters...])
 | `scheduled-jobs`  | `list`, `get`                       | `create`, `delete`             | server |
 | `backups`         | `list`, `get`                       | `create`, `delete`             | server |
 | `commands`        | `list`, `get`                       | `create`                       | site   |
-| `php`             | `list`, `get`                       | `update`                       | server |
+| `php`             | `list`, `get`, `check`              | `update`                       | server |
 | `user`            | `get`                               | —                              | global |
 | `batch`           | `run`                               | —                              | global |
 
@@ -126,8 +126,8 @@ Use `action: "schema"` for a compact machine-readable spec:
 | `site_id`          | string  | Site ID **or domain name** — auto-resolved via partial match; requires `server_id`                      |
 | `domain_id`        | string  | Domain record ID (for certificate operations)                                                           |
 | `query`            | string  | Search query for `resolve` action (partial, case-insensitive match against resource names/domains)      |
-| `compact`          | boolean | Compact output (default: true)                                                                          |
-| `content`          | string  | Content for env/nginx `update` and deployment script `update`                                           |
+| `compact`          | boolean | Compact output (default: false for `get` and `check`, true for other actions and for `batch`)           |
+| `content`          | string  | Content for env/nginx/deployment script/PHP config `update` and `check`                                 |
 | `operations`       | array   | Array of operations for `batch` `run` (max 10). Each item needs `resource`, `action`, and extra params. |
 
 ## Common Workflows
@@ -183,6 +183,21 @@ Use `action: "schema"` for a compact machine-readable spec:
 
 // Update env (forge_write)
 { "resource": "env", "action": "update", "server_id": "123", "site_id": "456", "content": "APP_ENV=production\nAPP_DEBUG=false" }
+```
+
+### Check Drift Before Writing
+
+`check` compares local `content` with Forge without writing. It works for `env`, `nginx`, `deployments` (the deployment script) and `php` (`setting: "config"`). It returns `{ "inSync": true }` or `{ "inSync": false, "diff": ... }`. Line endings and a single trailing newline are ignored.
+
+- `nginx`, `deployments`, `php`: `diff` is a unified line diff from Forge (`---`) to the local content (`+++`).
+- `env`: `diff` is `{ "added": [...], "removed": [...], "changed": [...] }` with variable names only. Values are never returned.
+
+```json
+// Compare a local .env with Forge (forge)
+{ "resource": "env", "action": "check", "server_id": "123", "site_id": "456", "content": "APP_ENV=production\nAPP_DEBUG=false" }
+
+// Compare a local deployment script with Forge (forge)
+{ "resource": "deployments", "action": "check", "server_id": "123", "site_id": "456", "content": "git pull\ncomposer install" }
 ```
 
 ### Tune PHP
@@ -312,7 +327,7 @@ Result shape:
 
 Per-operation failures are isolated — a single error doesn't abort the rest.
 
-> **Note**: Batch only supports read actions (`list`, `get`, `resolve`, `context`, `help`, `schema`). Write operations must use `forge_write` individually.
+> **Note**: Batch only supports read actions (`list`, `get`, `resolve`, `context`, `check`, `help`, `schema`). Write operations must use `forge_write` individually.
 
 ## Authentication
 

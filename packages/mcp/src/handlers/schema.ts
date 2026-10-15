@@ -63,31 +63,34 @@ const RESOURCE_SCHEMAS: Record<string, ResourceSchemaData> = {
   },
 
   deployments: {
-    actions: ["list", "deploy", "get", "update"],
+    actions: ["list", "deploy", "get", "update", "check"],
     scope: "site",
     required: {
       list: ["server_id", "site_id"],
       deploy: ["server_id", "site_id"],
       get: ["server_id", "site_id", "id"],
       update: ["server_id", "site_id", "content"],
+      check: ["server_id", "site_id", "content"],
     },
   },
 
   env: {
-    actions: ["get", "update"],
+    actions: ["get", "update", "check"],
     scope: "site",
     required: {
       get: ["server_id", "site_id"],
       update: ["server_id", "site_id", "content"],
+      check: ["server_id", "site_id", "content"],
     },
   },
 
   nginx: {
-    actions: ["get", "update"],
+    actions: ["get", "update", "check"],
     scope: "site",
     required: {
       get: ["server_id", "site_id"],
       update: ["server_id", "site_id", "content"],
+      check: ["server_id", "site_id", "content"],
     },
   },
 
@@ -168,12 +171,13 @@ const RESOURCE_SCHEMAS: Record<string, ResourceSchemaData> = {
   },
 
   php: {
-    actions: ["list", "get", "update"],
+    actions: ["list", "get", "update", "check"],
     scope: "server",
     required: {
       list: ["server_id"],
       get: ["server_id", "setting"],
       update: ["server_id", "setting"],
+      check: ["server_id", "setting", "version", "type", "content"],
     },
   },
 

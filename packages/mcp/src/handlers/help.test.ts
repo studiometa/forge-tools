@@ -26,6 +26,21 @@ describe("handleHelp", () => {
     expect(data.actions).toHaveProperty("deploy");
   });
 
+  it.each(["env", "nginx", "deployments", "php"])("should document check for %s", (resource) => {
+    const data = JSON.parse(handleHelp(resource).content[0].text);
+    expect(data.actions).toHaveProperty("check");
+    expect(
+      data.examples.some(
+        (example: { params: { action: string } }) => example.params.action === "check",
+      ),
+    ).toBe(true);
+  });
+
+  it("should say that env check returns names only", () => {
+    const data = JSON.parse(handleHelp("env").content[0].text);
+    expect(data.actions.check).toContain("never values");
+  });
+
   it("should return overview for unknown resource", () => {
     const result = handleHelp("unknown");
     const data = JSON.parse(result.content[0].text);

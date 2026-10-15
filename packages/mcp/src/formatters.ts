@@ -29,6 +29,9 @@ import type {
   SshKeyAttributes,
   UserAttributes,
 } from "@studiometa/forge-api";
+import type { DriftResult, EnvDiff } from "@studiometa/forge-core";
+
+import { formatEnvDiff } from "@studiometa/forge-core";
 
 // ── Servers ──────────────────────────────────────────
 
@@ -501,6 +504,20 @@ export function formatCommand(command: CommandAttributes & { id: number }): stri
  */
 export function formatEnv(content: string): string {
   return `Environment variables:\n${content}`;
+}
+
+// ── Drift ────────────────────────────────────────────
+
+/**
+ * Format the result of a `check` action. An env diff holds variable names only, never values.
+ */
+export function formatDrift(label: string, result: DriftResult<string | EnvDiff>): string {
+  const name = label.charAt(0).toUpperCase() + label.slice(1);
+  if (result.inSync) {
+    return `${name} is in sync with Forge.`;
+  }
+  const diff = typeof result.diff === "string" ? result.diff : formatEnvDiff(result.diff);
+  return `${name} differs from Forge:\n${diff}`;
 }
 
 // ── User ─────────────────────────────────────────────

@@ -11,13 +11,17 @@ import {
   deploymentsUpdateScript,
 } from "./handlers.ts";
 
-vi.mock("@studiometa/forge-core", () => ({
-  listDeployments: vi.fn(),
-  deploySiteAndWait: vi.fn(),
-  getDeploymentLog: vi.fn(),
-  getDeploymentScript: vi.fn(),
-  updateDeploymentScript: vi.fn(),
-}));
+vi.mock("@studiometa/forge-core", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@studiometa/forge-core")>();
+  return {
+    listDeployments: vi.fn(),
+    deploySiteAndWait: vi.fn(),
+    getDeploymentLog: vi.fn(),
+    getDeploymentScript: vi.fn(),
+    updateDeploymentScript: vi.fn(),
+    compareText: actual.compareText,
+  };
+});
 
 vi.mock("node:fs", () => ({
   readFileSync: vi.fn(),

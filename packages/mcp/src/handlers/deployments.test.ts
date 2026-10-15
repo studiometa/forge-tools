@@ -266,3 +266,72 @@ describe("handleDeployments", () => {
     expect(Array.isArray(parsed)).toBe(true);
   });
 });
+
+describe("handleDeployments check", () => {
+  function scriptContext(compact: boolean): HandlerContext {
+    return {
+      executorContext: {
+        organizationSlug: "test-org",
+        client: {
+          get: async () =>
+            mockDocument(1, "deployment-scripts", {
+              content: "git pull\nnpm ci\n",
+              auto_source: "",
+            }),
+        } as never,
+      },
+      compact,
+    };
+  }
+
+  const args = { resource: "deployments", action: "check", server_id: "123", site_id: "456" };
+
+  it("should report in sync for equal content", async () => {
+    const result = await handleDeployments(
+      "check",
+      { ...args, content: "git pull\r\nnpm ci" },
+      scriptContext(false),
+    );
+    expect(result.structuredContent).toEqual({ success: true, result: { inSync: true } });
+  });
+
+  it("should return a unified diff when the script differs", async () => {
+    const result = await handleDeployments(
+      "check",
+      { ...args, content: "git pull\nnpm run build" },
+      scriptContext(false),
+    );
+    expect(result.structuredContent).toEqual({
+      success: true,
+      result: {
+        inSync: false,
+        diff: "--- remote\n+++ local\n@@ -1,2 +1,2 @@\n git pull\n-npm ci\n+npm run build",
+      },
+    });
+  });
+
+  it("should format the result in compact output", async () => {
+    const result = await handleDeployments(
+      "check",
+      { ...args, content: "git pull\nnpm ci" },
+      scriptContext(true),
+    );
+    expect(result.content[0].text).toBe("Deployment script is in sync with Forge.");
+  });
+
+  it("should accept empty content", async () => {
+    const result = await handleDeployments("check", { ...args, content: "" }, scriptContext(false));
+    expect(result.isError).toBeUndefined();
+    expect(result.structuredContent?.result).toMatchObject({ inSync: false });
+  });
+
+  it("should require content as a string and not repeat it", async () => {
+    const result = await handleDeployments(
+      "check",
+      { ...args, content: 123456789 },
+      scriptContext(true),
+    );
+    expect(result.isError).toBe(true);
+    expect(result.content[0].text).toBe("Error: Missing required field: content");
+  });
+});

@@ -10,6 +10,15 @@ describe("@studiometa/forge-core", () => {
     expect(core.ACTIONS.length).toBeGreaterThan(5);
   });
 
+  it("should export drift utilities", () => {
+    expect(core.compareText).toBeTypeOf("function");
+    expect(core.compareEnv).toBeTypeOf("function");
+    expect(core.diffEnv).toBeTypeOf("function");
+    expect(core.formatEnvDiff).toBeTypeOf("function");
+    expect(core.normalizeContent).toBeTypeOf("function");
+    expect(core.unifiedDiff).toBeTypeOf("function");
+  });
+
   it("should export context utilities", () => {
     expect(core.createTestExecutorContext).toBeTypeOf("function");
   });
