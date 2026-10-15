@@ -17,23 +17,67 @@ export interface AuditLogger {
   log(entry: AuditLogEntry): void;
 }
 
-/**
- * Sensitive fields to strip from logged args.
- * These are replaced with '[REDACTED]' to prevent token leakage.
- */
-const SENSITIVE_KEYS = ["apiToken", "token", "password", "secret", "key", "credentials"];
+const REDACTED = "[REDACTED]";
 
 /**
- * Return a shallow copy of `args` with sensitive keys replaced by '[REDACTED]'.
+ * Option names whose whole value is redacted, compared after `normalizeKey()`.
+ *
+ * - `content`: env files, nginx and PHP config, deployment scripts (`forge env update --content`).
+ * - `script`: recipe and deployment scripts.
+ */
+const SENSITIVE_NAMES = new Set(["content", "script"]);
+
+/**
+ * Name endings that mark a secret, compared after `normalizeKey()`: `token`, `apiToken`,
+ * `access_token`, `password`, `db-password`, `key`, `private_key`, `secret`, `client_secret`,
+ * `credential`, `credentials`, `passphrase`… IDs such as `credential_id` do not match.
+ */
+const SENSITIVE_SUFFIXES = [
+  "token",
+  "password",
+  "passphrase",
+  "secret",
+  "key",
+  "credential",
+  "credentials",
+];
+
+/**
+ * Lowercase a key and remove `-` and `_`, so `api-token`, `api_token` and `apiToken` match.
+ */
+function normalizeKey(key: string): string {
+  return key.toLowerCase().replaceAll(/[-_]/g, "");
+}
+
+/**
+ * Whether the value of an option with this name can hold a secret.
+ */
+function isSensitiveKey(key: string): boolean {
+  const normalized = normalizeKey(key);
+  return SENSITIVE_NAMES.has(normalized) || SENSITIVE_SUFFIXES.some((s) => normalized.endsWith(s));
+}
+
+/**
+ * Redact sensitive keys at any depth, keeping the structure (arrays and plain objects are copied).
+ */
+function redact(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map(redact);
+  }
+  if (value !== null && typeof value === "object") {
+    return Object.fromEntries(
+      Object.entries(value).map(([k, v]) => [k, isSensitiveKey(k) ? REDACTED : redact(v)]),
+    );
+  }
+  return value;
+}
+
+/**
+ * Return a copy of `args` with the value of every sensitive key replaced by '[REDACTED]',
+ * at any depth. Keys stay in place, so the logged structure is the same.
  */
 export function sanitizeArgs(args: Record<string, unknown>): Record<string, unknown> {
-  const sanitized = { ...args };
-  for (const k of SENSITIVE_KEYS) {
-    if (k in sanitized) {
-      sanitized[k] = "[REDACTED]";
-    }
-  }
-  return sanitized;
+  return redact(args) as Record<string, unknown>;
 }
 
 /**

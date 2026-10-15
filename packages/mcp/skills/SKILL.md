@@ -361,7 +361,7 @@ When enabled, only `forge` (read operations), `forge_configure`, and `forge_get_
 
 ## Audit Logging
 
-All `forge_write` operations are automatically logged to `~/.config/forge-tools/audit.log` (configurable via `FORGE_AUDIT_LOG` env var). Sensitive fields (tokens, passwords) are redacted. Logging never interrupts operations.
+All `forge_write` operations are automatically logged to `~/.config/forge-tools/audit.log` (configurable via `FORGE_AUDIT_LOG` env var). Sensitive fields (tokens, passwords, keys, credentials, and `content` and `script` values such as env files) are redacted. Logging never interrupts operations.
 
 ## Tips for Efficient Usage
 

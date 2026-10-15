@@ -200,12 +200,12 @@ logger.log({
 
 - Logs JSON lines via [pino](https://github.com/pinojs/pino) to `~/.config/forge-tools/audit.log`
 - Override path with `FORGE_AUDIT_LOG` environment variable
-- Sensitive fields (`apiToken`, `token`, `password`, `secret`, `key`, `credentials`) are automatically redacted
+- Sensitive fields are replaced with `[REDACTED]` at any depth, by name: `content` and `script` (env files, configs, scripts), and every name that ends with `token`, `password`, `passphrase`, `secret`, `key`, `credential` or `credentials` (case, `-` and `_` are ignored, so `apiToken`, `db-password` and `client_secret` match, `credential_id` does not). The keys stay in place
 - Silent no-op on failure — never interrupts the actual operation
 
 ### Utilities
 
-- `sanitizeArgs(args)` — Strip sensitive fields from an args object
+- `sanitizeArgs(args)` — Return a copy of an args object with sensitive fields redacted
 - `getAuditLogPath()` — Resolve the audit log file path
 
 ## Testing

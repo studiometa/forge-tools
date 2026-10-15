@@ -75,6 +75,62 @@ describe("sanitizeArgs", () => {
     expect(sanitizeArgs(args).credentials).toBe("[REDACTED]");
   });
 
+  it("should redact content (env, nginx, PHP config, deployment script)", () => {
+    const args = {
+      server_id: "1",
+      site_id: "2",
+      content: "APP_KEY=base64:abc\nDB_PASSWORD=hunter2",
+    };
+    expect(sanitizeArgs(args)).toEqual({ server_id: "1", site_id: "2", content: "[REDACTED]" });
+  });
+
+  it("should redact script", () => {
+    expect(sanitizeArgs({ script: "export TOKEN=abc" }).script).toBe("[REDACTED]");
+  });
+
+  it.each([
+    "Content",
+    "api-token",
+    "api_token",
+    "access_token",
+    "db-password",
+    "DB_PASSWORD",
+    "passphrase",
+    "client_secret",
+    "private_key",
+    "secretKey",
+    "credential",
+  ])("should redact %s", (key) => {
+    expect(sanitizeArgs({ [key]: "value" })[key]).toBe("[REDACTED]");
+  });
+
+  it.each([
+    "credential_id",
+    "credential-id",
+    "server_id",
+    "name",
+    "file",
+    "script-file",
+    "command",
+  ])("should keep %s", (key) => {
+    expect(sanitizeArgs({ [key]: "value" })[key]).toBe("value");
+  });
+
+  it("should redact sensitive keys at any depth and keep the structure", () => {
+    const args = {
+      server_id: "1",
+      properties: { name: "web", password: "hunter2", nested: [{ token: "abc", id: 3 }] },
+      servers: [1, 2],
+      empty: null,
+    };
+    expect(sanitizeArgs(args)).toEqual({
+      server_id: "1",
+      properties: { name: "web", password: "[REDACTED]", nested: [{ token: "[REDACTED]", id: 3 }] },
+      servers: [1, 2],
+      empty: null,
+    });
+  });
+
   it("should not mutate the original args", () => {
     const args = { apiToken: "secret", resource: "servers" };
     sanitizeArgs(args);
@@ -236,6 +292,46 @@ describe("createAuditLogger", () => {
     const loggedArgs = call.args as Record<string, unknown>;
     expect(loggedArgs.apiToken).toBe("[REDACTED]");
     expect(loggedArgs.name).toBe("web-01");
+  });
+
+  it("should never write env content to the audit log file", async () => {
+    const { default: realPino } = await vi.importActual<typeof import("pino")>("pino");
+    const lines: string[] = [];
+    const stream = {
+      write(chunk: string) {
+        lines.push(chunk);
+        return true;
+      },
+    };
+    mockedCreateWriteStream.mockReturnValue(
+      stream as unknown as ReturnType<typeof createWriteStream>,
+    );
+    mockedPino.mockImplementationOnce(((
+      options: pino.LoggerOptions,
+      destination: pino.DestinationStream,
+    ) => realPino(options, destination)) as unknown as typeof pino);
+
+    const envContent = "APP_KEY=base64:c2VjcmV0\nDB_PASSWORD=hunter2";
+    const logger = createAuditLogger("cli");
+    logger.log({
+      source: "cli",
+      resource: "env",
+      action: "update",
+      args: { server: "1", site: "2", content: envContent, token: "forge-token" },
+      status: "success",
+    });
+
+    expect(lines).toHaveLength(1);
+    const written = lines[0];
+    expect(written).not.toContain("hunter2");
+    expect(written).not.toContain("c2VjcmV0");
+    expect(written).not.toContain("forge-token");
+    expect(JSON.parse(written).args).toEqual({
+      server: "1",
+      site: "2",
+      content: "[REDACTED]",
+      token: "[REDACTED]",
+    });
   });
 
   it("should be a silent no-op when createWriteStream throws", () => {
