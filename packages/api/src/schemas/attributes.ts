@@ -128,7 +128,8 @@ export type DeploymentOutputAttributes = v.InferOutput<typeof DeploymentOutputAt
 
 export const DeploymentScriptAttributesSchema = v.object({
   content: v.string(),
-  auto_source: v.string(),
+  // The OpenAPI spec says string, but the API returns a boolean.
+  auto_source: v.boolean(),
 });
 
 export type DeploymentScriptAttributes = v.InferOutput<typeof DeploymentScriptAttributesSchema>;

@@ -237,8 +237,8 @@ testSchema(
 testSchema(
   "DeploymentScriptAttributesSchema",
   DeploymentScriptAttributesSchema,
-  { content: "cd /home/forge && git pull", auto_source: "source .env" },
-  { content: 123 },
+  { content: "cd /home/forge && git pull", auto_source: false },
+  { content: "cd /home/forge && git pull", auto_source: "false" },
 );
 
 testSchema(

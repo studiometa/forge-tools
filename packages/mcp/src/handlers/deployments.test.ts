@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { mockDocument, mockListDocument } from "@studiometa/forge-core";
 
@@ -203,7 +203,7 @@ describe("handleDeployments", () => {
           get: async () =>
             mockDocument(1, "deployment-scripts", {
               content: "#!/bin/bash\ncd /home/forge",
-              auto_source: "",
+              auto_source: false,
             }),
         } as never,
       },
@@ -215,15 +215,15 @@ describe("handleDeployments", () => {
       ctx,
     );
     expect(result.isError).toBeUndefined();
+    expect(result.content[0].text).toContain("cd /home/forge");
   });
 
   it("should update deployment script with content", async () => {
+    const put = vi.fn(async () => ({}));
     const ctx: HandlerContext = {
       executorContext: {
         organizationSlug: "test-org",
-        client: {
-          put: async () => ({}),
-        } as never,
+        client: { put } as never,
       },
       compact: true,
     };
@@ -240,6 +240,9 @@ describe("handleDeployments", () => {
     );
     expect(result.isError).toBeUndefined();
     expect(result.content[0].text).toContain("updated");
+    expect(put).toHaveBeenCalledWith("/orgs/test-org/servers/123/sites/456/deployments/script", {
+      content: "#!/bin/bash\necho deploy",
+    });
   });
 
   it("should list deployments in non-compact mode", async () => {
