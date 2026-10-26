@@ -12,6 +12,7 @@ import { exitWithValidationError, runCommand } from "../../error-handler.ts";
 import { ApiError } from "../../errors.ts";
 import { readContentFile, readContentOption } from "../../utils/content-source.ts";
 import { reportTextDrift } from "../../utils/drift.ts";
+import { printContent } from "../../utils/print-content.ts";
 import { resolveServerId, resolveSiteId } from "../../utils/resolve.ts";
 
 export async function deploymentsList(ctx: CommandContext): Promise<void> {
@@ -125,8 +126,7 @@ export async function deploymentsScript(ctx: CommandContext): Promise<void> {
     if (ctx.formatter.isJson()) {
       console.log(JSON.stringify({ content: result.data }));
     } else {
-      // Keep the content as it is, so `script > deploy.sh` round-trips without drift.
-      process.stdout.write(result.data.endsWith("\n") ? result.data : `${result.data}\n`);
+      printContent(result.data);
     }
   }, ctx.formatter);
 }

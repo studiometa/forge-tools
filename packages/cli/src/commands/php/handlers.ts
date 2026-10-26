@@ -19,6 +19,7 @@ import { ValidationError } from "../../errors.ts";
 import { exitWithError, exitWithValidationError, runCommand } from "../../error-handler.ts";
 import { readContentOption } from "../../utils/content-source.ts";
 import { reportTextDrift } from "../../utils/drift.ts";
+import { printContent } from "../../utils/print-content.ts";
 import { resolveServerId } from "../../utils/resolve.ts";
 
 const CONFIG_USAGE =
@@ -140,7 +141,7 @@ export async function phpConfig(ctx: CommandContext): Promise<void> {
     if (ctx.formatter.isJson()) {
       console.log(JSON.stringify({ content: result.data }));
     } else {
-      console.log(result.data);
+      printContent(result.data);
     }
   });
 }
