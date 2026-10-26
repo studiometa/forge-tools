@@ -17,7 +17,7 @@ describe("updateEnv", () => {
     );
 
     expect(putMock).toHaveBeenCalledWith("/orgs/test-org/servers/1/sites/2/environment", {
-      content: "APP_ENV=production",
+      environment: "APP_ENV=production",
     });
     expect(result.data).toBeUndefined();
   });

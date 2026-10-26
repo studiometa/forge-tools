@@ -322,7 +322,7 @@ export class SiteEnvResource extends BaseCollection {
    * @param content The full .env file content.
    */
   async update(content: string): Promise<void> {
-    await this.client.put(this.basePath, { content });
+    await this.client.put(this.basePath, { environment: content });
   }
 }
 
@@ -365,6 +365,6 @@ export class SiteNginxResource extends BaseCollection {
    * @param content The full Nginx config content.
    */
   async update(content: string): Promise<void> {
-    await this.client.put(this.basePath, { content });
+    await this.client.put(this.basePath, { config: content });
   }
 }

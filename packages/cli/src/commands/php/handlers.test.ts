@@ -101,12 +101,14 @@ describe("phpList", () => {
 
 describe("phpConfig", () => {
   it("should resolve the version and print the raw config", async () => {
+    const stdoutSpy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
     const { ctx, client } = setup({ format: "human", server: "10", version: "8.3", type: "fpm" });
 
     await phpConfig(ctx);
 
     expect(client.get).toHaveBeenLastCalledWith(`${BASE}/versions/12/configs/fpm`);
-    expect(logSpy).toHaveBeenCalledWith("memory_limit = 512M\n");
+    expect(stdoutSpy).toHaveBeenCalledTimes(1);
+    expect(stdoutSpy).toHaveBeenCalledWith("memory_limit = 512M\n");
   });
 
   it("should pass the pool user and print JSON", async () => {

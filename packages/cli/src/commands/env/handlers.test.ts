@@ -62,6 +62,7 @@ describe("envGet", () => {
   });
 
   it("should output raw content in human format", async () => {
+    const stdoutSpy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
     const { getEnv } = await import("@studiometa/forge-core");
     vi.mocked(getEnv).mockResolvedValue({ data: "APP_ENV=production" });
 
@@ -72,7 +73,7 @@ describe("envGet", () => {
     });
 
     await envGet(ctx);
-    expect(vi.mocked(console.log)).toHaveBeenCalledWith("APP_ENV=production");
+    expect(stdoutSpy).toHaveBeenCalledWith("APP_ENV=production\n");
   });
 });
 

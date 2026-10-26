@@ -15,7 +15,7 @@ export async function updateEnv(
     ctx,
     { server_id: options.server_id, site_id: options.site_id },
     {
-      body: { content: options.content },
+      body: { environment: options.content },
     },
   );
 

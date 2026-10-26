@@ -5,6 +5,7 @@ import type { CommandContext } from "../../context.ts";
 import { exitWithValidationError, runCommand } from "../../error-handler.ts";
 import { readContentOption } from "../../utils/content-source.ts";
 import { reportDrift } from "../../utils/drift.ts";
+import { printContent } from "../../utils/print-content.ts";
 import { resolveServerId, resolveSiteId } from "../../utils/resolve.ts";
 import { envDrift } from "./env-diff.ts";
 
@@ -37,7 +38,7 @@ export async function envGet(ctx: CommandContext): Promise<void> {
     if (ctx.formatter.isJson()) {
       console.log(JSON.stringify({ content: result.data }));
     } else {
-      console.log(result.data);
+      printContent(result.data);
     }
   }, ctx.formatter);
 }

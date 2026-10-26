@@ -62,8 +62,9 @@ describe("nginxGet", () => {
   });
 
   it("should output raw config in human format", async () => {
+    const stdoutSpy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
     const { getNginxConfig } = await import("@studiometa/forge-core");
-    vi.mocked(getNginxConfig).mockResolvedValue({ data: "server { listen 80; }" });
+    vi.mocked(getNginxConfig).mockResolvedValue({ data: "server { listen 80; }\n" });
 
     const ctx = createTestContext({
       token: "test",
@@ -72,7 +73,9 @@ describe("nginxGet", () => {
     });
 
     await nginxGet(ctx);
-    expect(vi.mocked(console.log)).toHaveBeenCalledWith("server { listen 80; }");
+    // Do not add a second newline, so the output round-trips with `update --file --check`.
+    expect(stdoutSpy).toHaveBeenCalledTimes(1);
+    expect(stdoutSpy).toHaveBeenCalledWith("server { listen 80; }\n");
   });
 });
 
