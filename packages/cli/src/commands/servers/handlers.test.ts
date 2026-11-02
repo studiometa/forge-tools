@@ -3,11 +3,12 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import type { ServerAttributes } from "@studiometa/forge-api";
 
 import { createTestContext } from "../../context.ts";
-import { serversList, serversGet, serversReboot } from "./handlers.ts";
+import { serversList, serversGet, serversCreate, serversReboot } from "./handlers.ts";
 
 vi.mock("@studiometa/forge-core", () => ({
   listServers: vi.fn(),
   getServer: vi.fn(),
+  createServer: vi.fn(),
   rebootServer: vi.fn(),
 }));
 
@@ -274,5 +275,155 @@ describe("serversList — human format lineFormat", () => {
     const ctx = createTestContext({ token: "test", mockClient: {} as never, options: {} as never });
     await serversList(ctx);
     expect(vi.mocked(console.log)).toHaveBeenCalled();
+  });
+});
+
+describe("serversCreate", () => {
+  let processExitSpy: ReturnType<typeof vi.spyOn>;
+
+  beforeEach(() => {
+    processExitSpy = vi.spyOn(process, "exit").mockImplementation(() => undefined as never);
+    vi.spyOn(console, "log").mockImplementation(() => {});
+    vi.spyOn(console, "error").mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("should create a Custom VPS app server on Ubuntu 24.04 by default", async () => {
+    const { createServer } = await import("@studiometa/forge-core");
+    vi.mocked(createServer).mockResolvedValue({ data: { ...mockServer, provider: "custom" } });
+
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "human", name: "my-server", "ip-address": "1.2.3.4" },
+    });
+
+    await serversCreate(ctx);
+    expect(createServer).toHaveBeenCalledWith(
+      {
+        name: "my-server",
+        provider: "custom",
+        type: "app",
+        ubuntu_version: "24.04",
+        custom: { ip_address: "1.2.3.4" },
+      },
+      expect.anything(),
+    );
+    const logSpy = vi.mocked(console.log);
+    expect(logSpy).toHaveBeenCalledWith(expect.stringContaining("created (ID 1)"));
+    expect(logSpy).toHaveBeenCalledWith(expect.stringContaining("provisioning command"));
+  });
+
+  it("should send every optional field", async () => {
+    const { createServer } = await import("@studiometa/forge-core");
+    vi.mocked(createServer).mockResolvedValue({ data: mockServer });
+
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: {
+        format: "json",
+        name: "my-server",
+        "ip-address": "1.2.3.4",
+        "private-ip": "10.0.0.1",
+        "ssh-port": "2222",
+        type: "database",
+        "ubuntu-version": "26.04",
+        "php-version": "php84",
+        database: "mariadb1011",
+        tag: ["prod", "ovh"],
+      },
+    });
+
+    await serversCreate(ctx);
+    expect(createServer).toHaveBeenCalledWith(
+      {
+        name: "my-server",
+        provider: "custom",
+        type: "database",
+        ubuntu_version: "26.04",
+        php_version: "php84",
+        database_type: "mariadb1011",
+        tags: ["prod", "ovh"],
+        custom: { ip_address: "1.2.3.4", private_ip_address: "10.0.0.1", ssh_port: "2222" },
+      },
+      expect.anything(),
+    );
+    const logSpy = vi.mocked(console.log);
+    expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('"my-server"'));
+  });
+
+  it("should send region and size for a cloud provider", async () => {
+    const { createServer } = await import("@studiometa/forge-core");
+    vi.mocked(createServer).mockResolvedValue({ data: mockServer });
+
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: {
+        format: "human",
+        name: "my-server",
+        provider: "hetzner",
+        "credential-id": "42",
+        region: "fsn1",
+        size: "cpx31",
+        tag: "prod",
+      },
+    });
+
+    await serversCreate(ctx);
+    expect(createServer).toHaveBeenCalledWith(
+      {
+        name: "my-server",
+        provider: "hetzner",
+        type: "app",
+        ubuntu_version: "24.04",
+        credential_id: "42",
+        tags: ["prod"],
+        hetzner: { region_id: "fsn1", size_id: "cpx31" },
+      },
+      expect.anything(),
+    );
+    const logSpy = vi.mocked(console.log);
+    expect(logSpy).not.toHaveBeenCalledWith(expect.stringContaining("provisioning command"));
+  });
+
+  it("should exit with validation error when no name", async () => {
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "human", "ip-address": "1.2.3.4" },
+    });
+
+    await serversCreate(ctx).catch(() => {});
+    expect(processExitSpy).toHaveBeenCalledWith(3);
+  });
+
+  it("should exit with validation error when a Custom VPS has no IP address", async () => {
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "human", name: "my-server" },
+    });
+
+    await serversCreate(ctx).catch(() => {});
+    expect(processExitSpy).toHaveBeenCalledWith(3);
+  });
+
+  it("should handle API errors", async () => {
+    const { createServer } = await import("@studiometa/forge-core");
+    vi.mocked(createServer).mockRejectedValue(new Error("validation failed"));
+
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "json", name: "my-server", "ip-address": "1.2.3.4" },
+    });
+
+    await serversCreate(ctx);
+    expect(processExitSpy).toHaveBeenCalled();
   });
 });

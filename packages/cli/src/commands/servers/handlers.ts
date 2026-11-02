@@ -3,7 +3,8 @@
  * Delegates all HTTP logic to forge-core executors.
  */
 
-import { listServers, getServer, rebootServer } from "@studiometa/forge-core";
+import type { CreateServerOptions } from "@studiometa/forge-core";
+import { listServers, getServer, createServer, rebootServer } from "@studiometa/forge-core";
 
 import type { CommandContext } from "../../context.ts";
 
@@ -53,6 +54,71 @@ export async function serversGet(args: string[], ctx: CommandContext): Promise<v
     const server_id = await resolveServerId(server, execCtx);
     const result = await getServer({ server_id }, execCtx);
     ctx.formatter.output(result.data);
+  }, ctx.formatter);
+}
+
+const CREATE_USAGE = "forge servers create --name <name> --ip-address <ip> [options]";
+
+/**
+ * Create a server. Defaults to a Custom VPS app server on Ubuntu 24.04.
+ */
+export async function serversCreate(ctx: CommandContext): Promise<void> {
+  const name = String(ctx.options.name ?? "");
+  const provider = String(ctx.options.provider ?? "custom");
+  const ip_address = String(ctx.options["ip-address"] ?? "");
+
+  if (!name) {
+    exitWithValidationError("name", CREATE_USAGE, ctx.formatter);
+  }
+
+  if (provider === "custom" && !ip_address) {
+    exitWithValidationError("ip-address", CREATE_USAGE, ctx.formatter);
+  }
+
+  const options: CreateServerOptions = {
+    name,
+    provider,
+    type: String(ctx.options.type ?? "app"),
+    ubuntu_version: String(ctx.options["ubuntu-version"] ?? "24.04"),
+  };
+
+  if (ctx.options["php-version"]) options.php_version = String(ctx.options["php-version"]);
+  if (ctx.options.database) options.database_type = String(ctx.options.database);
+  if (ctx.options["credential-id"]) options.credential_id = String(ctx.options["credential-id"]);
+
+  const tags = ctx.options.tag;
+  if (tags) options.tags = (Array.isArray(tags) ? tags : [tags]).map(String);
+
+  if (provider === "custom") {
+    options.custom = { ip_address };
+    if (ctx.options["private-ip"])
+      options.custom.private_ip_address = String(ctx.options["private-ip"]);
+    if (ctx.options["ssh-port"]) options.custom.ssh_port = String(ctx.options["ssh-port"]);
+  } else {
+    (options as Record<string, unknown>)[provider] = {
+      region_id: String(ctx.options.region ?? ""),
+      size_id: String(ctx.options.size ?? ""),
+    };
+  }
+
+  await runCommand(async () => {
+    const token = ctx.getToken();
+    const execCtx = ctx.createExecutorContext(token);
+    const result = await createServer(options, execCtx);
+
+    const format = String(ctx.options.format ?? ctx.options.f ?? "human");
+
+    if (format === "table" || format === "json") {
+      ctx.formatter.output(result.data);
+      return;
+    }
+
+    ctx.formatter.success(`Server ${result.data.name} created (ID ${result.data.id}).`);
+    if (provider === "custom") {
+      ctx.formatter.info(
+        `Run the provisioning command from the Forge server page as root on ${ip_address}.`,
+      );
+    }
   }, ctx.formatter);
 }
 

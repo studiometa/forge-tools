@@ -5,6 +5,7 @@ import { handleServersCommand } from "./command.ts";
 vi.mock("./handlers.ts", () => ({
   serversList: vi.fn().mockResolvedValue(),
   serversGet: vi.fn().mockResolvedValue(),
+  serversCreate: vi.fn().mockResolvedValue(),
   serversReboot: vi.fn().mockResolvedValue(),
 }));
 
@@ -58,6 +59,12 @@ describe("handleServersCommand routing", () => {
     const handlers = await import("./handlers.ts");
     await handleServersCommand("get", ["123"], {});
     expect(handlers.serversGet).toHaveBeenCalledWith(["123"], expect.anything());
+  });
+
+  it("should route create subcommand", async () => {
+    const handlers = await import("./handlers.ts");
+    await handleServersCommand("create", [], { name: "my-server" });
+    expect(handlers.serversCreate).toHaveBeenCalled();
   });
 
   it("should route reboot subcommand with args", async () => {

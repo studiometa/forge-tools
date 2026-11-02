@@ -1,5 +1,5 @@
 import { createCommandRouter } from "../../utils/command-router.ts";
-import { serversList, serversGet, serversReboot } from "./handlers.ts";
+import { serversList, serversGet, serversCreate, serversReboot } from "./handlers.ts";
 
 export const handleServersCommand = createCommandRouter({
   resource: "servers",
@@ -7,7 +7,8 @@ export const handleServersCommand = createCommandRouter({
     list: serversList,
     ls: serversList,
     get: [serversGet, "args"],
+    create: serversCreate,
     reboot: [serversReboot, "args"],
   },
-  writeSubcommands: ["reboot"],
+  writeSubcommands: ["create", "reboot"],
 });
