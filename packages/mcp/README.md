@@ -179,7 +179,7 @@ All write operations (`forge_write` tool calls) are automatically logged for tra
 
 - **Default path**: `~/.config/forge-tools/audit.log`
 - **Override**: Set `FORGE_AUDIT_LOG` environment variable
-- **Format**: JSON lines (via pino) with timestamp, resource, action, sanitized args, and status
+- **Format**: JSON lines (via pino) with timestamp, resource, action, sanitized args, and status. Tokens, passwords, keys, credentials, and `content` and `script` values (such as env files) are redacted
 - **Safety**: Logging never interrupts operations — silent on failure
 
 The CLI also logs write commands to the same audit log.

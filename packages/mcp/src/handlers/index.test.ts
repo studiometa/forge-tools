@@ -8,6 +8,19 @@ import { describe, expect, it, vi } from "vitest";
 import { ForgeApiError } from "@studiometa/forge-api";
 import { UserInputError } from "../errors.ts";
 
+// Capture what the audit logger writes instead of writing a real file.
+const auditLines = vi.hoisted((): string[] => []);
+vi.mock("node:fs", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("node:fs")>()),
+  mkdirSync: vi.fn(),
+  createWriteStream: vi.fn(() => ({
+    write(chunk: string) {
+      auditLines.push(chunk);
+      return true;
+    },
+  })),
+}));
+
 // Mock servers handler to throw errors for various error handling tests
 vi.mock("./servers.ts", async (importOriginal) => {
   const mod = await importOriginal<typeof import("./servers.ts")>();
@@ -48,6 +61,7 @@ vi.mock("@studiometa/forge-api", async (importOriginal) => {
       async get() {
         return {};
       }
+      async put() {}
     },
     ForgeApiError: mod.ForgeApiError,
     isForgeApiError: mod.isForgeApiError,
@@ -88,5 +102,30 @@ describe("executeToolWithCredentials error handling", () => {
     );
     expect(result.isError).toBe(true);
     expect(result.content[0].text).toContain("string error");
+  });
+});
+
+describe("executeToolWithCredentials audit log", () => {
+  it("should never write env content to the audit log", async () => {
+    auditLines.length = 0;
+    const content = "APP_KEY=base64:c2VjcmV0\nDB_PASSWORD=hunter2";
+
+    const result = await executeToolWithCredentials(
+      "forge_write",
+      { resource: "env", action: "update", server_id: "1", site_id: "2", content },
+      creds,
+    );
+
+    expect(result.isError).toBeFalsy();
+    expect(auditLines).toHaveLength(1);
+    expect(auditLines[0]).not.toContain("hunter2");
+    expect(auditLines[0]).not.toContain("c2VjcmV0");
+    expect(JSON.parse(auditLines[0])).toMatchObject({
+      source: "mcp",
+      resource: "env",
+      action: "update",
+      args: { server_id: "1", site_id: "2", content: "[REDACTED]" },
+      status: "success",
+    });
   });
 });
