@@ -415,6 +415,25 @@ describe("serversCreate", () => {
     expect(processExitSpy).toHaveBeenCalledWith(3);
   });
 
+  it.each(["credential-id", "region", "size"])(
+    "should exit with validation error when a cloud provider has no --%s",
+    async (missing) => {
+      const options: Record<string, string> = {
+        format: "human",
+        name: "my-server",
+        provider: "hetzner",
+        "credential-id": "42",
+        region: "fsn1",
+        size: "cpx31",
+      };
+      delete options[missing];
+      const ctx = createTestContext({ token: "test", mockClient: {} as never, options });
+
+      await serversCreate(ctx).catch(() => {});
+      expect(processExitSpy).toHaveBeenCalledWith(3);
+    },
+  );
+
   it("should handle API errors", async () => {
     const { createServer } = await import("@studiometa/forge-core");
     vi.mocked(createServer).mockRejectedValue(new Error("validation failed"));

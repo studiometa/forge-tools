@@ -75,6 +75,12 @@ export async function serversCreate(ctx: CommandContext): Promise<void> {
     exitWithValidationError("ip-address", CREATE_USAGE, ctx.formatter);
   }
 
+  if (provider !== "custom") {
+    for (const option of ["credential-id", "region", "size"]) {
+      if (!ctx.options[option]) exitWithValidationError(option, CREATE_USAGE, ctx.formatter);
+    }
+  }
+
   const options: CreateServerOptions = {
     name,
     provider,
@@ -95,8 +101,8 @@ export async function serversCreate(ctx: CommandContext): Promise<void> {
       options.custom.private_ip_address = String(ctx.options["private-ip"]);
   } else {
     (options as Record<string, unknown>)[provider] = {
-      region_id: String(ctx.options.region ?? ""),
-      size_id: String(ctx.options.size ?? ""),
+      region_id: String(ctx.options.region),
+      size_id: String(ctx.options.size),
     };
   }
 
