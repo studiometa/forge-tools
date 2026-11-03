@@ -294,7 +294,7 @@ printf '%s' "$S3_SECRET_KEY" | forge storage-providers create \
   --access-key "$S3_ACCESS_KEY" --secret-key-file - --format json
 ```
 
-`--provider` is one of `s3`, `spaces`, `hetzner`, `ovh`, `scaleway` or `custom`. The secret key is read only from `--secret-key-file <path>` or `--secret-key-file -` (stdin), so it does not show in the shell history or the process list; surrounding whitespace is removed. `--assume-role` uses the EC2 instance role instead of keys. Forge never returns the keys. `--format json` prints the created provider with its `id`.
+`--provider` is one of `s3`, `spaces`, `hetzner`, `ovh`, `scaleway` or `custom`. The secret key is read only from `--secret-key-file <path>` or `--secret-key-file -` (stdin), so it does not show in the shell history or the process list; one trailing newline is removed. `--assume-role` uses the EC2 instance role instead of keys. Forge never returns the keys. `--format json` prints the created provider with its `id`.
 
 ### `backups` — Manage database backups
 

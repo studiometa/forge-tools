@@ -107,7 +107,8 @@ export async function storageProvidersCreate(ctx: CommandContext): Promise<void>
   const accessKey = stringOption(ctx, "access-key");
 
   // The secret key is read from a file or stdin, never from the command line,
-  // so it does not show in the shell history or the process list.
+  // so it does not show in the shell history or the process list. Only one
+  // trailing newline is removed (as `echo` or an editor adds it): a secret is kept as is.
   const secretKey =
     ctx.options["secret-key-file"] === undefined
       ? undefined
@@ -115,7 +116,7 @@ export async function storageProvidersCreate(ctx: CommandContext): Promise<void>
           label: "secret key",
           usage: CREATE_USAGE,
           formatter: ctx.formatter,
-        }).trim();
+        }).replace(/\r?\n$/, "");
 
   await runCommand(async () => {
     const token = ctx.getToken();

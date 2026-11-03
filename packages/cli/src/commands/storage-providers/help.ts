@@ -41,7 +41,7 @@ ${colors.bold("OPTIONS:")}
   -f, --format <fmt>         Output format: json, human, table
 
 The secret key is not accepted as an option value, so it does not show in the
-shell history or the process list. Surrounding whitespace is removed.
+shell history or the process list. One trailing newline is removed.
 
 ${colors.bold("EXAMPLE:")}
   printf '%s' "$S3_SECRET_KEY" | forge storage-providers create --name Backups \\

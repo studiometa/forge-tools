@@ -227,6 +227,29 @@ describe("storageProvidersCreate", () => {
     expect(vi.mocked(createStorageProvider)).not.toHaveBeenCalled();
   });
 
+  it("should remove only one trailing newline from the secret key", async () => {
+    const { readFileSync } = await import("node:fs");
+    vi.mocked(readFileSync).mockReturnValue(" secret \r\n\n");
+    const { createStorageProvider } = await import("@studiometa/forge-core");
+    vi.mocked(createStorageProvider).mockResolvedValue({ data: mockProvider });
+
+    const ctx = createTestContext({
+      mockClient: {} as never,
+      options: {
+        format: "json",
+        name: "Backups",
+        provider: "custom",
+        "secret-key-file": "secret.txt",
+      },
+    });
+
+    await storageProvidersCreate(ctx);
+    expect(vi.mocked(createStorageProvider)).toHaveBeenCalledWith(
+      expect.objectContaining({ secret_key: " secret \r\n" }),
+      expect.anything(),
+    );
+  });
+
   it("should exit with error for an empty secret key", async () => {
     const { readFileSync } = await import("node:fs");
     vi.mocked(readFileSync).mockReturnValue("\n");
