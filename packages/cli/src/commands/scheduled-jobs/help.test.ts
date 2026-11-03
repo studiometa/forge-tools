@@ -38,6 +38,18 @@ describe("showScheduledJobsHelp", () => {
     expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining("scheduled-jobs create"));
   });
 
+  it("should document the create options with their defaults", () => {
+    showScheduledJobsHelp("create");
+    const output = consoleLogSpy.mock.calls.map((c) => c.join("")).join("");
+    expect(output).toContain("--site <id>");
+    expect(output).toContain("--user <user>");
+    expect(output).toContain("(default: forge)");
+    expect(output).toContain("--frequency <freq>");
+    expect(output).toContain("minutely, hourly, nightly, weekly, monthly, reboot");
+    expect(output).toContain("(default: custom)");
+    expect(output).toContain("--cron <expr>");
+  });
+
   it("should show delete help", () => {
     showScheduledJobsHelp("delete");
     expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining("scheduled-jobs delete"));

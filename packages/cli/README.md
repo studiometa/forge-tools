@@ -264,6 +264,18 @@ forge ssh-keys sync --file - --server <id> --user deploy    # Read the keys from
 
 `sync` makes the SSH keys of a server user (`--user`, default `forge`) match a file in `authorized_keys` format: one `<type> <base64> [comment]` per line, blank lines and `#` comments ignored. A malformed line stops the command with its line number. Each key gets the name `<comment slug>-<first 8 hex chars of the SHA-256 of the key>`. The Forge API does not return public keys, so keys are matched by name, and a changed key gets a new name. The command prints the plan per server (`+` add, `-` remove, `=` unchanged), applies it, then prints the result. It only adds keys, unless you give `--prune`; `--dry-run` changes nothing. Servers run one after the other. When an operation fails, the other operations still run and the command exits non-zero. When an add fails on a server, the removals on that server are skipped, so nobody loses access. `--format json` prints one document, `{ dry_run, servers: [{ id, name, added, removed, unchanged, errors }] }`. With `--dry-run`, `dry_run` is `true` and `added` and `removed` hold the planned changes.
 
+### `scheduled-jobs` — Manage scheduled jobs (cron)
+
+```bash
+forge scheduled-jobs list --server <id>                                       # List scheduled jobs
+forge scheduled-jobs get <job_id> --server <id>                               # Get scheduled job details
+forge scheduled-jobs create --server <id> --command "..." --frequency hourly  # Create a job with a preset frequency
+forge scheduled-jobs create --server <id> --command "..." --cron "0 3 * * *"  # Create a job with a cron expression
+forge scheduled-jobs delete <job_id> --server <id>                            # Delete a scheduled job
+```
+
+`create` takes `--user` (default `forge`), `--frequency` (`minutely`, `hourly`, `nightly`, `weekly`, `monthly`, `reboot` or `custom`, default `custom`) and `--cron`, which Forge uses only when the frequency is `custom`. Add `--site <id>` to create the job on a site.
+
 ### `recipes` — Manage recipes
 
 ```bash
