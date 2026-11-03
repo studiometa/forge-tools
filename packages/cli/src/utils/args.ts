@@ -23,7 +23,7 @@ function isOptionValue(arg: string): boolean {
 /**
  * Options that accept several values. Every other option keeps the last value.
  */
-const REPEATABLE = new Set(["server"]);
+const REPEATABLE = new Set(["server", "tag"]);
 
 /**
  * Set an option value. A repeatable option given more than once collects its string
