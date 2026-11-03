@@ -402,6 +402,23 @@ describe("backupsUpdate", () => {
     await backupsUpdate(["5"], ctx).catch(() => {});
     expect(processExitSpy).toHaveBeenCalledWith(3);
   });
+
+  it("should exit with error when no databases", async () => {
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: {
+        format: "json",
+        server: "10",
+        "storage-provider": "1",
+        frequency: "weekly",
+        retention: "7",
+      },
+    });
+
+    await backupsUpdate(["5"], ctx).catch(() => {});
+    expect(processExitSpy).toHaveBeenCalledWith(3);
+  });
 });
 
 describe("backupsDelete", () => {
