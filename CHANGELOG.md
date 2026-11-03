@@ -5,6 +5,34 @@ All notable changes to this project will be documented in this file. Each pull r
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.5.0 - 2026-11-03
+
+### Added
+
+- **API/Core/SDK/MCP**: Add an organization-scoped `storage-providers` resource to list, get, create and delete the storage providers of database backups (`s3`, `spaces`, `hetzner`, `ovh`, `scaleway` or `custom` S3-compatible) ([#144])
+- **CLI**: Add `forge storage-providers` (`list`, `get`, `create`, `delete`); `create` reads the secret key from `--secret-key-file <path|->` only, so it does not show in the shell history ([#144])
+- **CLI**: Add `--retention`, `--time`, `--day`, `--cron`, `--bucket`, `--directory`, `--name`, `--notification-email` and `--include-new-databases` to `forge backups create` ([#144])
+- **API/MCP**: Accept `include_new_databases` when creating a backup configuration ([#144])
+- **CLI**: Add the `servers create` command, which creates a Custom VPS app server on Ubuntu 26.04 with PHP 8.4 by default ([#143])
+
+### Changed
+
+- **CLI**: Breaking: rename the `--provider` option of `forge backups create` and `forge backups update` to `--storage-provider`, which takes a storage provider ID or exact name ([#144])
+- **CLI**: Require `--databases` on `forge backups create` and `forge backups update`, and accept database IDs or exact names, comma separated or repeated ([#144])
+- **CLI**: Default `forge backups create` to a retention of 5 backups only when `--retention` is not given, and check `--frequency` and `--retention` before calling Forge ([#144])
+- **Core**: Redact `access_key` and `secret_key` in the audit log ([#144])
+
+### Fixed
+
+- **CLI**: Document the `--user`, `--frequency`, `--cron` and `--site` options in `forge scheduled-jobs create --help` and the README, and add `--cron` to the bash, zsh and fish completions ([#142])
+- **CLI**: Send every ID of a comma-separated `--databases` list in `forge backups create` and `forge backups update`, instead of `NaN` ([#144])
+- **MCP**: Validate `backups` create with the fields the Forge API takes (`storage_provider_id`, `frequency`, `retention`, `database_ids`) instead of `provider`, `credentials` and `databases`, and document them in the help and schema ([#144])
+- **API**: Accept a null `revoked`, `connection_status` and `is_ready` in the server attributes, as the Forge API returns them for a server that is not provisioned ([#143])
+
+[#142]: https://github.com/studiometa/forge-tools/pull/142
+[#143]: https://github.com/studiometa/forge-tools/pull/143
+[#144]: https://github.com/studiometa/forge-tools/pull/144
+
 ## 0.4.8 - 2026-10-26
 
 ### Fixed
