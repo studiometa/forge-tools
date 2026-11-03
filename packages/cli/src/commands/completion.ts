@@ -18,7 +18,7 @@ _forge_completions() {
   prev="\${COMP_WORDS[COMP_CWORD-1]}"
 
   # Main commands
-  commands="config servers s sites deployments d databases db database-users daemons env nginx certificates certs firewall-rules fw ssh ssh-keys backups commands scheduled-jobs services php user monitors nginx-templates security-rules redirect-rules recipes completion help"
+  commands="config servers s sites deployments d databases db database-users daemons env nginx certificates certs firewall-rules fw ssh ssh-keys backups storage-providers commands scheduled-jobs services php user monitors nginx-templates security-rules redirect-rules recipes completion help"
 
   # Subcommands for each command
   local config_cmds="set get delete"
@@ -33,7 +33,8 @@ _forge_completions() {
   local certificates_cmds="get activate"
   local firewall_rules_cmds="list ls get"
   local ssh_keys_cmds="list ls get sync"
-  local backups_cmds="list ls get create delete"
+  local backups_cmds="list ls get create update delete"
+  local storage_providers_cmds="list ls get create delete"
   local commands_cmds="list ls get create"
   local scheduled_jobs_cmds="list ls get create delete"
   local services_cmds="list ls restart"
@@ -47,7 +48,7 @@ _forge_completions() {
   local completion_cmds="bash zsh fish"
 
   # Global options
-  options="--token --server --site -f --format --no-color -h --help -v --version --name --command --content --from --to --provider --frequency --cron --type --operator --threshold --minutes --key --port --ip-address --user --private --dry-run --script --servers --domain --password --credential-id --region --size --project-type --directory --file --script-file --check --all-servers --prune --ubuntu-version --php-version --database --private-ip --ssh-port --tag"
+  options="--token --server --site -f --format --no-color -h --help -v --version --name --command --content --from --to --provider --frequency --cron --type --operator --threshold --minutes --key --port --ip-address --user --private --dry-run --script --servers --domain --password --credential-id --region --size --project-type --directory --file --script-file --check --all-servers --prune --ubuntu-version --php-version --database --private-ip --ssh-port --tag --storage-provider --databases --retention --time --day --bucket --notification-email --include-new-databases --endpoint --access-key --secret-key-file --assume-role"
 
   # Format options
   local formats="json human table"
@@ -100,6 +101,9 @@ _forge_completions() {
         backups)
           COMPREPLY=( $(compgen -W "\${backups_cmds}" -- "\${cur}") )
           ;;
+        storage-providers)
+          COMPREPLY=( $(compgen -W "\${storage_providers_cmds}" -- "\${cur}") )
+          ;;
         commands)
           COMPREPLY=( $(compgen -W "\${commands_cmds}" -- "\${cur}") )
           ;;
@@ -148,7 +152,7 @@ _forge_completions() {
           # Complete file paths
           COMPREPLY=( $(compgen -f -- "\${cur}") )
           ;;
-        --token|--server|--site|--version|--name|--command|--content|--from|--to|--provider|--frequency|--cron|--type|--operator|--threshold|--minutes|--key|--port|--ip-address|--user|--script|--servers|--domain|--password|--credential-id|--region|--size|--project-type|--directory|--ubuntu-version|--php-version|--database|--private-ip|--ssh-port|--tag)
+        --token|--server|--site|--version|--name|--command|--content|--from|--to|--provider|--frequency|--cron|--type|--operator|--threshold|--minutes|--key|--port|--ip-address|--user|--script|--servers|--domain|--password|--credential-id|--region|--size|--project-type|--directory|--ubuntu-version|--php-version|--database|--private-ip|--ssh-port|--tag|--storage-provider|--databases|--retention|--time|--day|--bucket|--notification-email|--endpoint|--access-key)
           # No completion for values requiring arguments
           COMPREPLY=()
           ;;
@@ -197,7 +201,8 @@ _forge() {
         'fw:Manage firewall rules (alias)'
         'ssh:Open an SSH session to a server'
         'ssh-keys:Manage SSH keys'
-        'backups:Manage backup configurations'
+        'backups:Manage database backup configurations'
+        'storage-providers:Manage the storage providers of database backups'
         'commands:Manage site commands'
         'scheduled-jobs:Manage scheduled jobs'
         'services:List and restart server services'
@@ -339,9 +344,21 @@ _forge() {
             'ls:List backup configurations (alias)'
             'get:Get backup configuration details'
             'create:Create a backup configuration'
+            'update:Update a backup configuration'
             'delete:Delete a backup configuration'
           )
           _describe 'backups command' backups_cmds
+          ;;
+        storage-providers)
+          local -a storage_providers_cmds
+          storage_providers_cmds=(
+            'list:List storage providers'
+            'ls:List storage providers (alias)'
+            'get:Get storage provider details'
+            'create:Create a storage provider'
+            'delete:Delete a storage provider'
+          )
+          _describe 'storage-providers command' storage_providers_cmds
           ;;
         commands)
           local -a commands_cmds
@@ -509,7 +526,20 @@ _forge() {
         '--all-servers[Target every server]' \\
         '--prune[Remove SSH keys that are not in the file]' \\
         '--dry-run[Print the plan and change nothing]' \\
-        '--check[Compare with Forge, do not write]'
+        '--check[Compare with Forge, do not write]' \\
+        '--storage-provider[Storage provider ID or name]:storage provider:' \\
+        '--databases[Database IDs or names]:databases:' \\
+        '--retention[Number of backups to keep]:retention:' \\
+        '--time[Backup time (HH:MM)]:time:' \\
+        '--day[Backup day of week (0-6)]:day:' \\
+        '--cron[Cron expression]:cron:' \\
+        '--bucket[Bucket]:bucket:' \\
+        '--notification-email[Notification email]:email:' \\
+        '--include-new-databases[Also back up new databases]' \\
+        '--endpoint[S3 endpoint URL]:endpoint:' \\
+        '--access-key[Access key ID]:access key:' \\
+        '--secret-key-file[Secret key file (- for stdin)]:file:_files' \\
+        '--assume-role[Use the EC2 instance role]'
       ;;
   esac
 }
@@ -538,7 +568,8 @@ complete -c forge -f -n "__fish_use_subcommand" -a "firewall-rules" -d "Manage f
 complete -c forge -f -n "__fish_use_subcommand" -a "fw" -d "Manage firewall rules (alias)"
 complete -c forge -f -n "__fish_use_subcommand" -a "ssh" -d "Open an SSH session to a server"
 complete -c forge -f -n "__fish_use_subcommand" -a "ssh-keys" -d "Manage SSH keys"
-complete -c forge -f -n "__fish_use_subcommand" -a "backups" -d "Manage backup configurations"
+complete -c forge -f -n "__fish_use_subcommand" -a "backups" -d "Manage database backup configurations"
+complete -c forge -f -n "__fish_use_subcommand" -a "storage-providers" -d "Manage the storage providers of database backups"
 complete -c forge -f -n "__fish_use_subcommand" -a "commands" -d "Manage site commands"
 complete -c forge -f -n "__fish_use_subcommand" -a "scheduled-jobs" -d "Manage scheduled jobs"
 complete -c forge -f -n "__fish_use_subcommand" -a "services" -d "List and restart server services"
@@ -627,7 +658,15 @@ complete -c forge -f -n "__fish_seen_subcommand_from backups" -a "list" -d "List
 complete -c forge -f -n "__fish_seen_subcommand_from backups" -a "ls" -d "List backup configurations (alias)"
 complete -c forge -f -n "__fish_seen_subcommand_from backups" -a "get" -d "Get backup configuration details"
 complete -c forge -f -n "__fish_seen_subcommand_from backups" -a "create" -d "Create a backup configuration"
+complete -c forge -f -n "__fish_seen_subcommand_from backups" -a "update" -d "Update a backup configuration"
 complete -c forge -f -n "__fish_seen_subcommand_from backups" -a "delete" -d "Delete a backup configuration"
+
+# storage-providers subcommands
+complete -c forge -f -n "__fish_seen_subcommand_from storage-providers" -a "list" -d "List storage providers"
+complete -c forge -f -n "__fish_seen_subcommand_from storage-providers" -a "ls" -d "List storage providers (alias)"
+complete -c forge -f -n "__fish_seen_subcommand_from storage-providers" -a "get" -d "Get storage provider details"
+complete -c forge -f -n "__fish_seen_subcommand_from storage-providers" -a "create" -d "Create a storage provider"
+complete -c forge -f -n "__fish_seen_subcommand_from storage-providers" -a "delete" -d "Delete a storage provider"
 
 # commands subcommands
 complete -c forge -f -n "__fish_seen_subcommand_from commands" -a "list" -d "List commands"
@@ -748,6 +787,19 @@ complete -c forge -l ssh-port -d "SSH port" -r
 complete -c forge -l tag -d "Tag" -r
 complete -c forge -l dry-run -d "Print the plan and change nothing"
 complete -c forge -l check -d "Compare with Forge, do not write"
+complete -c forge -l storage-provider -d "Storage provider ID or name" -r
+complete -c forge -l databases -d "Database IDs or names" -r
+complete -c forge -l retention -d "Number of backups to keep" -r
+complete -c forge -l time -d "Backup time (HH:MM)" -r
+complete -c forge -l day -d "Backup day of week (0-6)" -r
+complete -c forge -l cron -d "Cron expression" -r
+complete -c forge -l bucket -d "Bucket" -r
+complete -c forge -l notification-email -d "Notification email" -r
+complete -c forge -l include-new-databases -d "Also back up new databases"
+complete -c forge -l endpoint -d "S3 endpoint URL" -r
+complete -c forge -l access-key -d "Access key ID" -r
+complete -c forge -l secret-key-file -d "Secret key file (- for stdin)" -r -F
+complete -c forge -l assume-role -d "Use the EC2 instance role"
 `;
 
 /**

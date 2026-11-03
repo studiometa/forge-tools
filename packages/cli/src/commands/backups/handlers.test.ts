@@ -17,6 +17,8 @@ vi.mock("@studiometa/forge-core", () => ({
   createBackupConfig: vi.fn(),
   updateBackupConfig: vi.fn(),
   deleteBackupConfig: vi.fn(),
+  listDatabases: vi.fn(),
+  listStorageProviders: vi.fn(),
 }));
 
 const mockBackup: BackupConfigAttributes & { id: number } = {
@@ -146,11 +148,27 @@ describe("backupsCreate", () => {
     const ctx = createTestContext({
       token: "test",
       mockClient: {} as never,
-      options: { format: "json", server: "10", provider: "1", frequency: "weekly" },
+      options: {
+        format: "json",
+        server: "10",
+        "storage-provider": "1",
+        frequency: "weekly",
+        databases: "1",
+      },
     });
 
     await backupsCreate(ctx);
     expect(vi.mocked(console.log)).toHaveBeenCalledWith(expect.stringContaining("created"));
+    expect(vi.mocked(createBackupConfig)).toHaveBeenCalledWith(
+      {
+        server_id: "10",
+        storage_provider_id: 1,
+        frequency: "weekly",
+        retention: 5,
+        database_ids: [1],
+      },
+      expect.anything(),
+    );
   });
 
   it("should create with databases array", async () => {
@@ -163,7 +181,7 @@ describe("backupsCreate", () => {
       options: {
         format: "json",
         server: "10",
-        provider: "1",
+        "storage-provider": "1",
         frequency: "weekly",
         databases: ["1", "2"],
       },
@@ -186,7 +204,7 @@ describe("backupsCreate", () => {
       options: {
         format: "json",
         server: "10",
-        provider: "1",
+        "storage-provider": "1",
         frequency: "weekly",
         databases: "1",
       },
@@ -203,7 +221,7 @@ describe("backupsCreate", () => {
     const ctx = createTestContext({
       token: "test",
       mockClient: {} as never,
-      options: { format: "json", provider: "1", frequency: "weekly" },
+      options: { format: "json", "storage-provider": "1", frequency: "weekly" },
     });
 
     await backupsCreate(ctx).catch(() => {});
@@ -225,7 +243,7 @@ describe("backupsCreate", () => {
     const ctx = createTestContext({
       token: "test",
       mockClient: {} as never,
-      options: { format: "json", server: "10", provider: "1" },
+      options: { format: "json", server: "10", "storage-provider": "1" },
     });
 
     await backupsCreate(ctx).catch(() => {});
@@ -256,7 +274,7 @@ describe("backupsUpdate", () => {
       options: {
         format: "json",
         server: "10",
-        provider: "1",
+        "storage-provider": "1",
         frequency: "weekly",
         retention: "7",
         databases: ["1", "2"],
@@ -281,7 +299,14 @@ describe("backupsUpdate", () => {
     const ctx = createTestContext({
       token: "test",
       mockClient: {} as never,
-      options: { format: "json", server: "10", provider: "1", frequency: "weekly", retention: "7" },
+      options: {
+        format: "json",
+        server: "10",
+        "storage-provider": "1",
+        frequency: "weekly",
+        retention: "7",
+        databases: "1",
+      },
     });
 
     await backupsUpdate([], ctx).catch(() => {});
@@ -292,7 +317,13 @@ describe("backupsUpdate", () => {
     const ctx = createTestContext({
       token: "test",
       mockClient: {} as never,
-      options: { format: "json", provider: "1", frequency: "weekly", retention: "7" },
+      options: {
+        format: "json",
+        "storage-provider": "1",
+        frequency: "weekly",
+        retention: "7",
+        databases: "1",
+      },
     });
 
     await backupsUpdate(["5"], ctx).catch(() => {});
@@ -314,7 +345,7 @@ describe("backupsUpdate", () => {
     const ctx = createTestContext({
       token: "test",
       mockClient: {} as never,
-      options: { format: "json", server: "10", provider: "1", retention: "7" },
+      options: { format: "json", server: "10", "storage-provider": "1", retention: "7" },
     });
 
     await backupsUpdate(["5"], ctx).catch(() => {});
@@ -331,14 +362,14 @@ describe("backupsUpdate", () => {
       options: {
         format: "json",
         server: "10",
-        provider: "1",
+        "storage-provider": "1",
         frequency: "daily",
         retention: "14",
         databases: "3",
         name: "my-backup",
         bucket: "s3-bucket",
         directory: "/backups",
-        day: "monday",
+        day: "1",
         time: "03:00",
         cron: "0 3 * * *",
         "notification-email": "admin@example.com",
@@ -351,7 +382,7 @@ describe("backupsUpdate", () => {
         name: "my-backup",
         bucket: "s3-bucket",
         directory: "/backups",
-        day: "monday",
+        day: "1",
         time: "03:00",
         cron: "0 3 * * *",
         notification_email: "admin@example.com",
@@ -365,7 +396,7 @@ describe("backupsUpdate", () => {
     const ctx = createTestContext({
       token: "test",
       mockClient: {} as never,
-      options: { format: "json", server: "10", provider: "1", frequency: "weekly" },
+      options: { format: "json", server: "10", "storage-provider": "1", frequency: "weekly" },
     });
 
     await backupsUpdate(["5"], ctx).catch(() => {});
@@ -443,5 +474,220 @@ describe("backupsList — human format lineFormat", () => {
     });
     await backupsList(ctx);
     expect(vi.mocked(console.log)).toHaveBeenCalled();
+  });
+});
+
+describe("backupsCreate — options", () => {
+  let processExitSpy: ReturnType<typeof vi.spyOn>;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    processExitSpy = vi.spyOn(process, "exit").mockImplementation(() => undefined as never);
+    vi.spyOn(console, "log").mockImplementation(() => {});
+    vi.spyOn(console, "error").mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("should send the schedule, retention, location and databases", async () => {
+    const { createBackupConfig } = await import("@studiometa/forge-core");
+    vi.mocked(createBackupConfig).mockResolvedValue({ data: undefined });
+
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: {
+        format: "json",
+        server: "10",
+        "storage-provider": "3",
+        frequency: "daily",
+        time: "02:00",
+        retention: "7",
+        bucket: "my-bucket",
+        directory: "web-1",
+        name: "nightly",
+        "notification-email": "ops@example.com",
+        "include-new-databases": true,
+        databases: ["1,2", "3"],
+      },
+    });
+
+    await backupsCreate(ctx);
+    expect(vi.mocked(createBackupConfig)).toHaveBeenCalledWith(
+      {
+        server_id: "10",
+        storage_provider_id: 3,
+        frequency: "daily",
+        time: "02:00",
+        retention: 7,
+        bucket: "my-bucket",
+        directory: "web-1",
+        name: "nightly",
+        notification_email: "ops@example.com",
+        include_new_databases: true,
+        database_ids: [1, 2, 3],
+      },
+      expect.anything(),
+    );
+  });
+
+  it("should resolve the storage provider and databases by name", async () => {
+    const { createBackupConfig, listDatabases, listStorageProviders } =
+      await import("@studiometa/forge-core");
+    vi.mocked(createBackupConfig).mockResolvedValue({ data: undefined });
+    vi.mocked(listStorageProviders).mockResolvedValue({
+      data: [
+        { id: 3, name: "Backups" },
+        { id: 4, name: "Archive" },
+      ] as never,
+    });
+    vi.mocked(listDatabases).mockResolvedValue({
+      data: [
+        { id: 11, name: "app" },
+        { id: 12, name: "wordpress" },
+      ] as never,
+    });
+
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: {
+        format: "json",
+        server: "10",
+        "storage-provider": "Backups",
+        frequency: "daily",
+        databases: "app,12",
+      },
+    });
+
+    await backupsCreate(ctx);
+    expect(vi.mocked(listDatabases)).toHaveBeenCalledWith({ server_id: "10" }, expect.anything());
+    expect(vi.mocked(createBackupConfig)).toHaveBeenCalledWith(
+      expect.objectContaining({ storage_provider_id: 3, database_ids: [11, 12] }),
+      expect.anything(),
+    );
+  });
+
+  it("should fail for an unknown storage provider name", async () => {
+    const { createBackupConfig, listStorageProviders } = await import("@studiometa/forge-core");
+    vi.mocked(listStorageProviders).mockResolvedValue({ data: [] });
+
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: {
+        format: "json",
+        server: "10",
+        "storage-provider": "Missing",
+        frequency: "daily",
+        databases: "1",
+      },
+    });
+
+    await backupsCreate(ctx);
+    expect(processExitSpy).toHaveBeenCalledWith(3);
+    expect(vi.mocked(createBackupConfig)).not.toHaveBeenCalled();
+  });
+
+  it("should fail when several storage providers have the name", async () => {
+    const { createBackupConfig, listStorageProviders } = await import("@studiometa/forge-core");
+    vi.mocked(listStorageProviders).mockResolvedValue({
+      data: [
+        { id: 3, name: "Backups" },
+        { id: 4, name: "Backups" },
+      ] as never,
+    });
+
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: {
+        format: "json",
+        server: "10",
+        "storage-provider": "Backups",
+        frequency: "daily",
+        databases: "1",
+      },
+    });
+
+    await backupsCreate(ctx);
+    expect(processExitSpy).toHaveBeenCalledWith(3);
+    expect(vi.mocked(console.log)).toHaveBeenCalledWith(expect.stringContaining("3, 4"));
+    expect(vi.mocked(createBackupConfig)).not.toHaveBeenCalled();
+  });
+
+  it("should fail for an unknown database name", async () => {
+    const { createBackupConfig, listDatabases } = await import("@studiometa/forge-core");
+    vi.mocked(listDatabases).mockResolvedValue({ data: [{ id: 11, name: "app" }] as never });
+
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: {
+        format: "json",
+        server: "10",
+        "storage-provider": "3",
+        frequency: "daily",
+        databases: "app,shop",
+      },
+    });
+
+    await backupsCreate(ctx);
+    expect(processExitSpy).toHaveBeenCalledWith(3);
+    expect(vi.mocked(createBackupConfig)).not.toHaveBeenCalled();
+  });
+
+  it("should exit with error when no databases", async () => {
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "json", server: "10", "storage-provider": "3", frequency: "daily" },
+    });
+
+    await backupsCreate(ctx).catch(() => {});
+    expect(processExitSpy).toHaveBeenCalledWith(3);
+  });
+
+  it("should fail for an unknown frequency", async () => {
+    const { createBackupConfig } = await import("@studiometa/forge-core");
+
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: {
+        format: "json",
+        server: "10",
+        "storage-provider": "3",
+        frequency: "monthly",
+        databases: "1",
+      },
+    });
+
+    await backupsCreate(ctx);
+    expect(processExitSpy).toHaveBeenCalledWith(3);
+    expect(vi.mocked(createBackupConfig)).not.toHaveBeenCalled();
+  });
+
+  it.each(["0", "8761", "1.5", "seven"])("should fail for retention %s", async (retention) => {
+    const { createBackupConfig } = await import("@studiometa/forge-core");
+
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: {
+        format: "json",
+        server: "10",
+        "storage-provider": "3",
+        frequency: "daily",
+        retention,
+        databases: "1",
+      },
+    });
+
+    await backupsCreate(ctx);
+    expect(processExitSpy).toHaveBeenCalledWith(3);
+    expect(vi.mocked(createBackupConfig)).not.toHaveBeenCalled();
   });
 });

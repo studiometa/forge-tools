@@ -408,6 +408,38 @@ describe("handleCompletionCommand", () => {
     });
   });
 
+  describe("storage-providers and backups completion", () => {
+    it("should complete bash commands and options", () => {
+      handleCompletionCommand("bash", { print: true });
+      const script = stdoutWriteSpy.mock.calls[0]![0] as string;
+      expect(script).toContain("backups storage-providers commands");
+      expect(script).toContain('backups_cmds="list ls get create update delete"');
+      expect(script).toContain('storage_providers_cmds="list ls get create delete"');
+      expect(script).toContain("--storage-provider --databases --retention");
+      expect(script).toContain("--secret-key-file");
+    });
+
+    it("should complete zsh commands and options", () => {
+      handleCompletionCommand("zsh", { print: true });
+      const script = stdoutWriteSpy.mock.calls[0]![0] as string;
+      expect(script).toContain(
+        "'storage-providers:Manage the storage providers of database backups'",
+      );
+      expect(script).toContain("'update:Update a backup configuration'");
+      expect(script).toContain("'--secret-key-file[Secret key file (- for stdin)]:file:_files'");
+    });
+
+    it("should complete fish commands and options", () => {
+      handleCompletionCommand("fish", { print: true });
+      const script = stdoutWriteSpy.mock.calls[0]![0] as string;
+      expect(script).toContain(
+        '-a "storage-providers" -d "Manage the storage providers of database backups"',
+      );
+      expect(script).toContain('__fish_seen_subcommand_from storage-providers" -a "create"');
+      expect(script).toContain('-l secret-key-file -d "Secret key file (- for stdin)" -r -F');
+    });
+  });
+
   describe("ssh-keys sync completion", () => {
     it("should complete bash sync subcommand and flags", () => {
       handleCompletionCommand("bash", { print: true });

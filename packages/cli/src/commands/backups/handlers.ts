@@ -10,6 +10,17 @@ import type { CommandContext } from "../../context.ts";
 
 import { exitWithValidationError, runCommand } from "../../error-handler.ts";
 import { resolveServerId } from "../../utils/resolve.ts";
+import {
+  checkFrequency,
+  listValues,
+  optionalBackupFields,
+  parseRetention,
+  resolveDatabaseIds,
+  resolveStorageProviderId,
+} from "./options.ts";
+
+/** Retention when --retention is not given: Forge requires a value. */
+const DEFAULT_RETENTION = 5;
 
 export async function backupsList(ctx: CommandContext): Promise<void> {
   const server = String(ctx.options.server ?? "");
@@ -60,7 +71,10 @@ export async function backupsGet(args: string[], ctx: CommandContext): Promise<v
     ctx.formatter.outputOne(result.data, [
       "id",
       "name",
+      "storage_provider_id",
       "provider",
+      "bucket",
+      "directory",
       "schedule",
       "displayable_schedule",
       "retention",
@@ -70,127 +84,109 @@ export async function backupsGet(args: string[], ctx: CommandContext): Promise<v
   }, ctx.formatter);
 }
 
+const CREATE_USAGE =
+  "forge backups create --server <server> --storage-provider <id|name> --frequency <hourly|daily|weekly|custom> --databases <ids|names> [--retention <n>]";
+
 export async function backupsCreate(ctx: CommandContext): Promise<void> {
   const server = String(ctx.options.server ?? "");
-  const storageProviderId = Number(ctx.options.provider ?? 0);
-  const frequency = String(ctx.options.frequency ?? "");
-  const databaseIdsRaw = ctx.options.databases;
-  const database_ids = Array.isArray(databaseIdsRaw)
-    ? databaseIdsRaw.map(Number)
-    : databaseIdsRaw
-      ? [Number(databaseIdsRaw)]
-      : [];
+  const storageProvider = ctx.options["storage-provider"];
+  const frequency = ctx.options.frequency;
+  const databases = listValues(ctx.options.databases);
 
   if (!server) {
-    exitWithValidationError(
-      "server_id",
-      "forge backups create --server <server_id> --provider <provider> --frequency <frequency>",
-      ctx.formatter,
-    );
+    exitWithValidationError("server_id", CREATE_USAGE, ctx.formatter);
   }
 
-  if (!storageProviderId) {
-    exitWithValidationError(
-      "provider",
-      "forge backups create --server <server_id> --provider <provider> --frequency <frequency>",
-      ctx.formatter,
-    );
+  if (typeof storageProvider !== "string" || !storageProvider) {
+    exitWithValidationError("storage-provider", CREATE_USAGE, ctx.formatter);
   }
 
-  if (!frequency) {
-    exitWithValidationError(
-      "frequency",
-      "forge backups create --server <server_id> --provider <provider> --frequency <frequency>",
-      ctx.formatter,
-    );
+  if (typeof frequency !== "string" || !frequency) {
+    exitWithValidationError("frequency", CREATE_USAGE, ctx.formatter);
+  }
+
+  if (databases.length === 0) {
+    exitWithValidationError("databases", CREATE_USAGE, ctx.formatter);
   }
 
   await runCommand(async () => {
+    checkFrequency(frequency);
+    const retention =
+      ctx.options.retention === undefined
+        ? DEFAULT_RETENTION
+        : parseRetention(ctx.options.retention);
     const token = ctx.getToken();
     const execCtx = ctx.createExecutorContext(token);
     const server_id = await resolveServerId(server, execCtx);
+    const storage_provider_id = await resolveStorageProviderId(storageProvider, execCtx);
+    const database_ids = await resolveDatabaseIds(databases, server_id, execCtx);
     await createBackupConfig(
-      { server_id, storage_provider_id: storageProviderId, frequency, retention: 5, database_ids },
+      {
+        server_id,
+        storage_provider_id,
+        frequency,
+        retention,
+        database_ids,
+        ...(ctx.options["include-new-databases"] === true ? { include_new_databases: true } : {}),
+        ...optionalBackupFields(ctx.options),
+      },
       execCtx,
     );
     ctx.formatter.success("Backup configuration created.");
   }, ctx.formatter);
 }
 
+const UPDATE_USAGE =
+  "forge backups update <backup_id> --server <server> --storage-provider <id|name> --frequency <hourly|daily|weekly|custom> --retention <n> --databases <ids|names>";
+
 export async function backupsUpdate(args: string[], ctx: CommandContext): Promise<void> {
   const [id] = args;
   const server = String(ctx.options.server ?? "");
-  const storageProviderId = Number(ctx.options.provider ?? 0);
-  const frequency = String(ctx.options.frequency ?? "");
-  const retention = Number(ctx.options.retention ?? 0);
-  const databaseIdsRaw = ctx.options.databases;
-  const database_ids = Array.isArray(databaseIdsRaw)
-    ? databaseIdsRaw.map(Number)
-    : databaseIdsRaw
-      ? [Number(databaseIdsRaw)]
-      : [];
+  const storageProvider = ctx.options["storage-provider"];
+  const frequency = ctx.options.frequency;
+  const databases = listValues(ctx.options.databases);
 
   if (!id) {
-    exitWithValidationError(
-      "backup_id",
-      "forge backups update <backup_id> --server <server_id> --provider <provider> --frequency <frequency> --retention <retention>",
-      ctx.formatter,
-    );
+    exitWithValidationError("backup_id", UPDATE_USAGE, ctx.formatter);
   }
 
   if (!server) {
-    exitWithValidationError(
-      "server_id",
-      "forge backups update <backup_id> --server <server_id> --provider <provider> --frequency <frequency> --retention <retention>",
-      ctx.formatter,
-    );
+    exitWithValidationError("server_id", UPDATE_USAGE, ctx.formatter);
   }
 
-  if (!storageProviderId) {
-    exitWithValidationError(
-      "provider",
-      "forge backups update <backup_id> --server <server_id> --provider <provider> --frequency <frequency> --retention <retention>",
-      ctx.formatter,
-    );
+  if (typeof storageProvider !== "string" || !storageProvider) {
+    exitWithValidationError("storage-provider", UPDATE_USAGE, ctx.formatter);
   }
 
-  if (!frequency) {
-    exitWithValidationError(
-      "frequency",
-      "forge backups update <backup_id> --server <server_id> --provider <provider> --frequency <frequency> --retention <retention>",
-      ctx.formatter,
-    );
+  if (typeof frequency !== "string" || !frequency) {
+    exitWithValidationError("frequency", UPDATE_USAGE, ctx.formatter);
   }
 
-  if (!retention) {
-    exitWithValidationError(
-      "retention",
-      "forge backups update <backup_id> --server <server_id> --provider <provider> --frequency <frequency> --retention <retention>",
-      ctx.formatter,
-    );
+  if (ctx.options.retention === undefined) {
+    exitWithValidationError("retention", UPDATE_USAGE, ctx.formatter);
+  }
+
+  if (databases.length === 0) {
+    exitWithValidationError("databases", UPDATE_USAGE, ctx.formatter);
   }
 
   await runCommand(async () => {
+    checkFrequency(frequency);
+    const retention = parseRetention(ctx.options.retention);
     const token = ctx.getToken();
     const execCtx = ctx.createExecutorContext(token);
     const server_id = await resolveServerId(server, execCtx);
+    const storage_provider_id = await resolveStorageProviderId(storageProvider, execCtx);
+    const database_ids = await resolveDatabaseIds(databases, server_id, execCtx);
     await updateBackupConfig(
       {
         server_id,
         id,
-        storage_provider_id: storageProviderId,
+        storage_provider_id,
         frequency,
         retention,
         database_ids,
-        ...(ctx.options.name != null ? { name: String(ctx.options.name) } : {}),
-        ...(ctx.options.bucket != null ? { bucket: String(ctx.options.bucket) } : {}),
-        ...(ctx.options.directory != null ? { directory: String(ctx.options.directory) } : {}),
-        ...(ctx.options.day != null ? { day: String(ctx.options.day) } : {}),
-        ...(ctx.options.time != null ? { time: String(ctx.options.time) } : {}),
-        ...(ctx.options.cron != null ? { cron: String(ctx.options.cron) } : {}),
-        ...(ctx.options["notification-email"] != null
-          ? { notification_email: String(ctx.options["notification-email"]) }
-          : {}),
+        ...optionalBackupFields(ctx.options),
       },
       execCtx,
     );

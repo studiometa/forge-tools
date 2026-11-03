@@ -42,6 +42,10 @@ import { handleServicesCommand, showServicesHelp } from "./commands/services/ind
 import { handleSitesCommand, showSitesHelp } from "./commands/sites/index.ts";
 import { handleSshCommand, showSshHelp } from "./commands/ssh/index.ts";
 import { handleSshKeysCommand, showSshKeysHelp } from "./commands/ssh-keys/index.ts";
+import {
+  handleStorageProvidersCommand,
+  showStorageProvidersHelp,
+} from "./commands/storage-providers/index.ts";
 import { handleUserCommand, showUserHelp } from "./commands/user/index.ts";
 import { colors, setColorEnabled } from "./utils/colors.ts";
 import { isVersionRequest, parseArgs } from "./utils/args.ts";
@@ -119,11 +123,18 @@ ${colors.bold("COMMANDS:")}
     get <id>            Get SSH key details (requires --server)
     sync                Make server SSH keys match a file (requires --file, --server|--all-servers)
 
-  backups             Manage backup configurations
+  backups             Manage database backup configurations
     list, ls            List backup configurations (requires --server)
     get <id>            Get backup configuration details (requires --server)
-    create              Create a backup configuration (requires --server --provider --frequency)
+    create              Create a backup configuration (requires --server --storage-provider --frequency --databases)
+    update <id>         Update a backup configuration (requires --server --storage-provider --frequency --retention --databases)
     delete <id>         Delete a backup configuration (requires --server)
+
+  storage-providers   Manage the storage providers of database backups
+    list, ls            List storage providers
+    get <id>            Get storage provider details
+    create              Create a storage provider (requires --name --provider)
+    delete <id>         Delete a storage provider
 
   commands            Manage site commands
     list, ls            List commands (requires --server --site)
@@ -381,6 +392,14 @@ async function main(): Promise<void> {
           process.exit(0);
         }
         await handleBackupsCommand(subcommand ?? "list", positional, options);
+        break;
+
+      case "storage-providers":
+        if (wantsHelp) {
+          showStorageProvidersHelp(subcommand);
+          process.exit(0);
+        }
+        await handleStorageProvidersCommand(subcommand ?? "list", positional, options);
         break;
 
       case "commands":
