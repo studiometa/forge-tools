@@ -47,7 +47,7 @@ _forge_completions() {
   local completion_cmds="bash zsh fish"
 
   # Global options
-  options="--token --server --site -f --format --no-color -h --help -v --version --name --command --content --from --to --provider --frequency --type --operator --threshold --minutes --key --port --ip-address --user --private --dry-run --script --servers --domain --password --credential-id --region --size --project-type --directory --file --script-file --check --all-servers --prune"
+  options="--token --server --site -f --format --no-color -h --help -v --version --name --command --content --from --to --provider --frequency --cron --type --operator --threshold --minutes --key --port --ip-address --user --private --dry-run --script --servers --domain --password --credential-id --region --size --project-type --directory --file --script-file --check --all-servers --prune"
 
   # Format options
   local formats="json human table"
@@ -148,7 +148,7 @@ _forge_completions() {
           # Complete file paths
           COMPREPLY=( $(compgen -f -- "\${cur}") )
           ;;
-        --token|--server|--site|--version|--name|--command|--content|--from|--to|--provider|--frequency|--type|--operator|--threshold|--minutes|--key|--port|--ip-address|--user|--script|--servers|--domain|--password|--credential-id|--region|--size|--project-type|--directory)
+        --token|--server|--site|--version|--name|--command|--content|--from|--to|--provider|--frequency|--cron|--type|--operator|--threshold|--minutes|--key|--port|--ip-address|--user|--script|--servers|--domain|--password|--credential-id|--region|--size|--project-type|--directory)
           # No completion for values requiring arguments
           COMPREPLY=()
           ;;
@@ -479,6 +479,7 @@ _forge() {
         '--to[To]:to:' \\
         '--provider[Provider]:provider:' \\
         '--frequency[Frequency]:frequency:' \\
+        '--cron[Cron expression]:cron:' \\
         '--type[Type]:type:' \\
         '--operator[Operator]:operator:' \\
         '--threshold[Threshold]:threshold:' \\
@@ -709,6 +710,7 @@ complete -c forge -l from -d "From" -r
 complete -c forge -l to -d "To" -r
 complete -c forge -l provider -d "Provider" -r
 complete -c forge -l frequency -d "Frequency" -r
+complete -c forge -l cron -d "Cron expression" -r
 complete -c forge -l type -d "Type" -r
 complete -c forge -l operator -d "Operator" -r
 complete -c forge -l threshold -d "Threshold" -r

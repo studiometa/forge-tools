@@ -382,6 +382,32 @@ describe("handleCompletionCommand", () => {
     });
   });
 
+  describe("scheduled-jobs create completion", () => {
+    it("should complete the scheduled job flags in bash", () => {
+      handleCompletionCommand("bash", { print: true });
+      const script = stdoutWriteSpy.mock.calls[0]![0] as string;
+      expect(script).toContain("--frequency --cron");
+      expect(script).toContain("|--frequency|--cron|");
+      expect(script).toContain("--user");
+    });
+
+    it("should complete the scheduled job flags in zsh", () => {
+      handleCompletionCommand("zsh", { print: true });
+      const script = stdoutWriteSpy.mock.calls[0]![0] as string;
+      expect(script).toContain("'--frequency[Frequency]:frequency:'");
+      expect(script).toContain("'--cron[Cron expression]:cron:'");
+      expect(script).toContain("'--user[User]:user:'");
+    });
+
+    it("should complete the scheduled job flags in fish", () => {
+      handleCompletionCommand("fish", { print: true });
+      const script = stdoutWriteSpy.mock.calls[0]![0] as string;
+      expect(script).toContain('-l frequency -d "Frequency" -r');
+      expect(script).toContain('-l cron -d "Cron expression" -r');
+      expect(script).toContain('-l user -d "User" -r');
+    });
+  });
+
   describe("ssh-keys sync completion", () => {
     it("should complete bash sync subcommand and flags", () => {
       handleCompletionCommand("bash", { print: true });

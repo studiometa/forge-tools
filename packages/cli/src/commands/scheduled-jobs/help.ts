@@ -29,7 +29,16 @@ ${colors.bold("USAGE:")}
 ${colors.bold("OPTIONS:")}
   --server <id>         Server ID (required)
   --command <cmd>       Command to run (required)
+  --site <id>           Site ID, to create the job on a site
+  --user <user>         User that runs the command (default: forge)
+  --frequency <freq>    minutely, hourly, nightly, weekly, monthly, reboot
+                        or custom (default: custom)
+  --cron <expr>         Cron expression, used when --frequency is custom
   -f, --format <fmt>    Output format: json, human, table
+
+${colors.bold("EXAMPLES:")}
+  forge scheduled-jobs create --server web-1 --command "php artisan schedule:run" --frequency minutely
+  forge scheduled-jobs create --server web-1 --command "php artisan backup:run" --cron "0 3 * * *"
 `);
   } else if (subcommand === "delete") {
     console.log(`
