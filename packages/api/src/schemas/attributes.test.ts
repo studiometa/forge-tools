@@ -94,6 +94,40 @@ testSchema(
   { name: "web-1" },
 );
 
+describe("ServerAttributesSchema for a server that is not provisioned", () => {
+  it("should accept null status fields", () => {
+    expect(() =>
+      v.parse(ServerAttributesSchema, {
+        id: 1,
+        credential_id: null,
+        name: "web-1",
+        type: "app",
+        ubuntu_version: "24.04",
+        ssh_port: 22,
+        provider: "custom",
+        identifier: null,
+        size: "0GB",
+        region: "VPS",
+        php_version: "php84",
+        php_cli_version: "php84",
+        opcache_status: null,
+        database_type: "",
+        db_status: null,
+        redis_status: null,
+        ip_address: "203.0.113.10",
+        private_ip_address: null,
+        revoked: null,
+        created_at: "2024-01-01T00:00:00Z",
+        updated_at: "2024-01-01T00:00:00Z",
+        connection_status: null,
+        timezone: "UTC",
+        local_public_key: null,
+        is_ready: null,
+      }),
+    ).not.toThrow();
+  });
+});
+
 testSchema(
   "SiteRepositorySchema",
   SiteRepositorySchema,

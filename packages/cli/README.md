@@ -121,6 +121,8 @@ forge config delete                            # Delete all stored config
 forge servers list                  # List all servers
 forge servers get <id>              # Get server details
 forge servers reboot <id>           # Reboot a server
+forge servers create --name <name> --ip-address <ip> [--php-version php84 --database mariadb1011]
+                                    # Create a server (Custom VPS by default)
 ```
 
 ### `sites` — Manage sites

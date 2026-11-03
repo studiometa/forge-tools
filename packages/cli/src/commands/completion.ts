@@ -22,7 +22,7 @@ _forge_completions() {
 
   # Subcommands for each command
   local config_cmds="set get delete"
-  local servers_cmds="list ls get reboot"
+  local servers_cmds="list ls get create reboot"
   local sites_cmds="list ls get"
   local deployments_cmds="list ls deploy logs log script update-script"
   local databases_cmds="list ls get"
@@ -47,7 +47,7 @@ _forge_completions() {
   local completion_cmds="bash zsh fish"
 
   # Global options
-  options="--token --server --site -f --format --no-color -h --help -v --version --name --command --content --from --to --provider --frequency --cron --type --operator --threshold --minutes --key --port --ip-address --user --private --dry-run --script --servers --domain --password --credential-id --region --size --project-type --directory --file --script-file --check --all-servers --prune"
+  options="--token --server --site -f --format --no-color -h --help -v --version --name --command --content --from --to --provider --frequency --cron --type --operator --threshold --minutes --key --port --ip-address --user --private --dry-run --script --servers --domain --password --credential-id --region --size --project-type --directory --file --script-file --check --all-servers --prune --ubuntu-version --php-version --database --private-ip --ssh-port --tag"
 
   # Format options
   local formats="json human table"
@@ -148,7 +148,7 @@ _forge_completions() {
           # Complete file paths
           COMPREPLY=( $(compgen -f -- "\${cur}") )
           ;;
-        --token|--server|--site|--version|--name|--command|--content|--from|--to|--provider|--frequency|--cron|--type|--operator|--threshold|--minutes|--key|--port|--ip-address|--user|--script|--servers|--domain|--password|--credential-id|--region|--size|--project-type|--directory)
+        --token|--server|--site|--version|--name|--command|--content|--from|--to|--provider|--frequency|--cron|--type|--operator|--threshold|--minutes|--key|--port|--ip-address|--user|--script|--servers|--domain|--password|--credential-id|--region|--size|--project-type|--directory|--ubuntu-version|--php-version|--database|--private-ip|--ssh-port|--tag)
           # No completion for values requiring arguments
           COMPREPLY=()
           ;;
@@ -230,6 +230,7 @@ _forge() {
             'list:List all servers'
             'ls:List all servers (alias)'
             'get:Get server details'
+            'create:Create a server'
             'reboot:Reboot a server'
           )
           _describe 'servers command' servers_cmds
@@ -497,6 +498,12 @@ _forge() {
         '--size[Size]:size:' \\
         '--project-type[Project type]:project type:' \\
         '--directory[Directory]:directory:' \\
+        '--ubuntu-version[Ubuntu version]:ubuntu version:' \\
+        '--php-version[PHP version]:php version:' \\
+        '--database[Database type]:database type:' \\
+        '--private-ip[Private IP address]:private ip address:' \\
+        '--ssh-port[SSH port]:ssh port:' \\
+        '--tag[Tag]:tag:' \\
         '--file[File path (- for stdin)]:file:_files' \\
         '--script-file[Deployment script file]:file:_files' \\
         '--all-servers[Target every server]' \\
@@ -554,6 +561,7 @@ complete -c forge -f -n "__fish_seen_subcommand_from config" -a "delete" -d "Del
 complete -c forge -f -n "__fish_seen_subcommand_from servers s" -a "list" -d "List all servers"
 complete -c forge -f -n "__fish_seen_subcommand_from servers s" -a "ls" -d "List all servers (alias)"
 complete -c forge -f -n "__fish_seen_subcommand_from servers s" -a "get" -d "Get server details"
+complete -c forge -f -n "__fish_seen_subcommand_from servers s" -a "create" -d "Create a server"
 complete -c forge -f -n "__fish_seen_subcommand_from servers s" -a "reboot" -d "Reboot a server"
 
 # sites subcommands
@@ -732,6 +740,12 @@ complete -c forge -l file -d "File path (- for stdin)" -r -F
 complete -c forge -l script-file -d "Deployment script file" -r -F
 complete -c forge -l all-servers -d "Target every server"
 complete -c forge -l prune -d "Remove SSH keys that are not in the file"
+complete -c forge -l ubuntu-version -d "Ubuntu version" -r
+complete -c forge -l php-version -d "PHP version" -r
+complete -c forge -l database -d "Database type" -r
+complete -c forge -l private-ip -d "Private IP address" -r
+complete -c forge -l ssh-port -d "SSH port" -r
+complete -c forge -l tag -d "Tag" -r
 complete -c forge -l dry-run -d "Print the plan and change nothing"
 complete -c forge -l check -d "Compare with Forge, do not write"
 `;

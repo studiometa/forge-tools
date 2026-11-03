@@ -34,6 +34,11 @@ describe("showServersHelp", () => {
     expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining("server_id"));
   });
 
+  it("should show create help", () => {
+    showServersHelp("create");
+    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining("--ip-address"));
+  });
+
   it("should show reboot help", () => {
     showServersHelp("reboot");
     expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining("reboot"));

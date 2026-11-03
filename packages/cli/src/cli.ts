@@ -65,6 +65,7 @@ ${colors.bold("COMMANDS:")}
   servers, s          Manage servers
     list, ls            List all servers
     get <id>            Get server details
+    create              Create a server (requires --name, and --ip-address for custom)
     reboot <id>         Reboot a server
 
   sites               Manage sites
