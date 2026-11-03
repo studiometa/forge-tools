@@ -38,13 +38,13 @@ export const ServerAttributesSchema = v.object({
   redis_status: v.nullable(v.string()),
   ip_address: v.nullable(v.string()),
   private_ip_address: v.nullable(v.string()),
-  revoked: v.boolean(),
+  revoked: v.nullable(v.boolean()),
   created_at: v.string(),
   updated_at: v.string(),
-  connection_status: v.string(),
+  connection_status: v.nullable(v.string()),
   timezone: v.string(),
   local_public_key: v.nullable(v.string()),
-  is_ready: v.boolean(),
+  is_ready: v.nullable(v.boolean()),
 });
 
 export type ServerAttributes = v.InferOutput<typeof ServerAttributesSchema>;

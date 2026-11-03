@@ -80,9 +80,9 @@ export async function serversCreate(ctx: CommandContext): Promise<void> {
     provider,
     type: String(ctx.options.type ?? "app"),
     ubuntu_version: String(ctx.options["ubuntu-version"] ?? "24.04"),
+    php_version: String(ctx.options["php-version"] ?? "php84"),
   };
 
-  if (ctx.options["php-version"]) options.php_version = String(ctx.options["php-version"]);
   if (ctx.options.database) options.database_type = String(ctx.options.database);
   if (ctx.options["credential-id"]) options.credential_id = String(ctx.options["credential-id"]);
 
@@ -90,10 +90,9 @@ export async function serversCreate(ctx: CommandContext): Promise<void> {
   if (tags) options.tags = (Array.isArray(tags) ? tags : [tags]).map(String);
 
   if (provider === "custom") {
-    options.custom = { ip_address };
+    options.custom = { ip_address, ssh_port: String(ctx.options["ssh-port"] ?? "22") };
     if (ctx.options["private-ip"])
       options.custom.private_ip_address = String(ctx.options["private-ip"]);
-    if (ctx.options["ssh-port"]) options.custom.ssh_port = String(ctx.options["ssh-port"]);
   } else {
     (options as Record<string, unknown>)[provider] = {
       region_id: String(ctx.options.region ?? ""),

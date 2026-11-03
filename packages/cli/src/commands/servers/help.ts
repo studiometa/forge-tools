@@ -53,7 +53,7 @@ ${colors.bold("OPTIONS:")}
   --credential-id <id>       Server provider credential ID (cloud providers)
   --type <type>              Server type: app, web, loadbalancer, database... (default: app)
   --ubuntu-version <ver>     Ubuntu version (default: 24.04)
-  --php-version <ver>        PHP version, e.g. php84
+  --php-version <ver>        PHP version (default: php84)
   --database <type>          Database type, e.g. mariadb1011
   --tag <tag>                Tag, repeatable
   -f, --format <fmt>         Output format: json, human, table
