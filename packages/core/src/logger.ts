@@ -21,7 +21,18 @@ export interface AuditLogger {
  * Sensitive fields to strip from logged args.
  * These are replaced with '[REDACTED]' to prevent token leakage.
  */
-const SENSITIVE_KEYS = ["apiToken", "token", "password", "secret", "key", "credentials"];
+const SENSITIVE_KEYS = [
+  "apiToken",
+  "token",
+  "password",
+  "secret",
+  "key",
+  "credentials",
+  "access_key",
+  "secret_key",
+  "access-key",
+  "secret-key",
+];
 
 /**
  * Return a shallow copy of `args` with sensitive keys replaced by '[REDACTED]'.

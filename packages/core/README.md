@@ -32,7 +32,7 @@ import { RESOURCES, ACTIONS } from "@studiometa/forge-core";
 // RESOURCES: ['servers', 'sites', 'deployments', 'certificates', 'databases',
 //   'database-users', 'daemons', 'env', 'nginx', 'firewall-rules', 'ssh-keys',
 //   'security-rules', 'redirect-rules', 'nginx-templates', 'monitors', 'recipes',
-//   'backups', 'commands', 'scheduled-jobs', 'services', 'php', 'user', 'batch']
+//   'backups', 'storage-providers', 'commands', 'scheduled-jobs', 'services', 'php', 'user', 'batch']
 // ACTIONS: ['list', 'get', 'create', 'update', 'delete', 'deploy', 'reboot', 'restart',
 //   'activate', 'run', 'resolve', 'help', 'schema', 'context']
 ```
@@ -113,6 +113,10 @@ import { RESOURCES, ACTIONS } from "@studiometa/forge-core";
 ### Backups
 
 - `listBackupConfigs`, `getBackupConfig`, `createBackupConfig`, `deleteBackupConfig`
+
+### Storage Providers
+
+- `listStorageProviders`, `getStorageProvider`, `createStorageProvider`, `deleteStorageProvider`
 
 ### Commands
 

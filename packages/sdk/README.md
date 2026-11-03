@@ -204,6 +204,25 @@ forge.server(id).php.enableOpcache();
 forge.server(id).php.disableOpcache();
 ```
 
+### Storage Providers
+
+Storage providers are the organization's S3-compatible buckets for database backups.
+
+```typescript
+forge.storageProviders.list();
+forge.storageProviders.get(providerId);
+forge.storageProviders.create({
+  name: "Backups",
+  provider: "custom", // "s3", "spaces", "hetzner", "ovh", "scaleway" or "custom"
+  endpoint: "https://s3.example.com",
+  region: "eu-west-1",
+  bucket: "my-bucket",
+  access_key: "AKIA...",
+  secret_key: process.env.S3_SECRET_KEY,
+});
+forge.storageProviders.delete(providerId);
+```
+
 ### User
 
 ```typescript

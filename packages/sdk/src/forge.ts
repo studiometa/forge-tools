@@ -4,6 +4,7 @@ import { HttpClient, unwrapDocument } from "@studiometa/forge-api";
 
 import { ServersCollection, ServerResource } from "./resources/servers.ts";
 import { RecipesCollection } from "./resources/recipes.ts";
+import { StorageProvidersCollection } from "./resources/storage-providers.ts";
 
 /**
  * Laravel Forge TypeScript SDK.
@@ -43,6 +44,9 @@ export class Forge {
   /** Recipe operations (list, get, create, delete, run). */
   readonly recipes: RecipesCollection;
 
+  /** Storage provider operations (list, get, create, delete), used by database backups. */
+  readonly storageProviders: StorageProvidersCollection;
+
   /**
    * Create a new Forge SDK instance.
    *
@@ -69,6 +73,7 @@ export class Forge {
     this.organizationSlug = organizationSlug;
     this.servers = new ServersCollection(this.client, organizationSlug);
     this.recipes = new RecipesCollection(this.client, organizationSlug);
+    this.storageProviders = new StorageProvidersCollection(this.client, organizationSlug);
   }
 
   /**

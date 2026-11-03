@@ -134,6 +134,13 @@ describe("@studiometa/forge-core", () => {
     expect(core.deleteBackupConfig).toBeTypeOf("function");
   });
 
+  it("should export storage provider executors", () => {
+    expect(core.listStorageProviders).toBeTypeOf("function");
+    expect(core.getStorageProvider).toBeTypeOf("function");
+    expect(core.createStorageProvider).toBeTypeOf("function");
+    expect(core.deleteStorageProvider).toBeTypeOf("function");
+  });
+
   it("should export command executors", () => {
     expect(core.listCommands).toBeTypeOf("function");
     expect(core.getCommand).toBeTypeOf("function");

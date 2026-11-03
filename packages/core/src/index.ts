@@ -264,6 +264,20 @@ export type {
   UpdateBackupConfigOptions,
 } from "./executors/backups/index.ts";
 
+// Storage providers
+export {
+  createStorageProvider,
+  deleteStorageProvider,
+  getStorageProvider,
+  listStorageProviders,
+} from "./executors/storage-providers/index.ts";
+export type {
+  CreateStorageProviderOptions,
+  DeleteStorageProviderOptions,
+  GetStorageProviderOptions,
+  ListStorageProvidersOptions,
+} from "./executors/storage-providers/index.ts";
+
 // Commands
 export { createCommand, getCommand, listCommands } from "./executors/commands/index.ts";
 export type {

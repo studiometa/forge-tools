@@ -168,6 +168,12 @@ export const ROUTES = {
     update: { method: "PUT", path: "/orgs/:org/servers/:server_id/database/backups/:id" },
     delete: { method: "DELETE", path: "/orgs/:org/servers/:server_id/database/backups/:id" },
   },
+  storageProviders: {
+    list: { method: "GET", path: "/orgs/:org/storage-providers" },
+    get: { method: "GET", path: "/orgs/:org/storage-providers/:id" },
+    create: { method: "POST", path: "/orgs/:org/storage-providers" },
+    delete: { method: "DELETE", path: "/orgs/:org/storage-providers/:id" },
+  },
   commands: {
     list: { method: "GET", path: "/orgs/:org/servers/:server_id/sites/:site_id/commands" },
     get: { method: "GET", path: "/orgs/:org/servers/:server_id/sites/:site_id/commands/:id" },
