@@ -7,10 +7,14 @@ vi.mock("node:fs", () => ({
   readFileSync: vi.fn(),
 }));
 
-vi.mock("@studiometa/forge-core", () => ({
-  getNginxConfig: vi.fn(),
-  updateNginxConfig: vi.fn(),
-}));
+vi.mock("@studiometa/forge-core", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@studiometa/forge-core")>();
+  return {
+    getNginxConfig: vi.fn(),
+    updateNginxConfig: vi.fn(),
+    compareText: actual.compareText,
+  };
+});
 
 describe("nginxGet", () => {
   let processExitSpy: ReturnType<typeof vi.spyOn>;

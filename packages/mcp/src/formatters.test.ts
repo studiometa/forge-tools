@@ -40,6 +40,7 @@ import {
   formatDeploymentOutput,
   formatDeploymentScript,
   formatDeploymentScriptUpdated,
+  formatDrift,
   formatEnv,
   formatFirewallRule,
   formatFirewallRuleList,
@@ -1224,6 +1225,33 @@ describe("formatEnv", () => {
     const result = formatEnv("APP_ENV=production\nAPP_KEY=abc123");
     expect(result).toContain("Environment variables:");
     expect(result).toContain("APP_ENV=production");
+  });
+});
+
+// ── Drift ────────────────────────────────────────────
+
+describe("formatDrift", () => {
+  it("should say in sync", () => {
+    expect(formatDrift("nginx configuration", { inSync: true })).toBe(
+      "Nginx configuration is in sync with Forge.",
+    );
+  });
+
+  it("should print a text diff", () => {
+    expect(formatDrift("deployment script", { inSync: false, diff: "-a\n+b" })).toBe(
+      "Deployment script differs from Forge:\n-a\n+b",
+    );
+  });
+
+  it("should print env names only", () => {
+    expect(
+      formatDrift("environment file", {
+        inSync: false,
+        diff: { added: ["NEW"], removed: ["OLD"], changed: ["PASS"] },
+      }),
+    ).toBe(
+      "Environment file differs from Forge:\n+ NEW (added)\n- OLD (removed)\n~ PASS (changed)",
+    );
   });
 });
 

@@ -89,7 +89,7 @@ Add to your Claude Desktop config:
 
 Two tools with a clear safety split:
 
-- **`forge`** — read-only operations (`list`, `get`, `resolve`, `context`, `help`, `schema`) — auto-approvable
+- **`forge`** — read-only operations (`list`, `get`, `resolve`, `context`, `check`, `help`, `schema`) — auto-approvable
 - **`forge_write`** — write operations (`create`, `update`, `delete`, `deploy`, `reboot`, `restart`, `activate`, `run`, `batch`, etc.) — always requires confirmation
 
 Key MCP features:
@@ -110,7 +110,7 @@ For a read-only setup (no writes possible), use `"args": ["--read-only"]` or `FO
 ## Requirements
 
 - **Node.js 18+** (SDK and API packages)
-- **Node.js 24+** (for development)
+- **Node.js 24+** (Core, MCP and CLI packages, and development)
 - **Laravel Forge account** with API access
 
 ## Architecture

@@ -5,7 +5,16 @@ import { RESOURCES } from "@studiometa/forge-core";
 /**
  * Read-only actions — safe operations that don't modify server state.
  */
-export const READ_ACTIONS = ["list", "get", "resolve", "help", "schema", "context", "log"] as const;
+export const READ_ACTIONS = [
+  "list",
+  "get",
+  "resolve",
+  "help",
+  "schema",
+  "context",
+  "log",
+  "check",
+] as const;
 
 /**
  * Write actions — operations that modify server state.
@@ -98,7 +107,8 @@ const SHARED_INPUT_PROPERTIES = {
   },
   compact: {
     type: "boolean" as const,
-    description: "Compact output (default: true for list, false for get)",
+    description:
+      "Compact output (default: false for get and check, true for other actions and for batch)",
   },
   query: {
     type: "string" as const,
@@ -126,6 +136,7 @@ const FORGE_READ_TOOL: Tool = {
     "Deployment operations require server_id and site_id.",
     "Batch: use resource=batch action=run with an operations array to execute multiple reads in one call.",
     "resolve: find resources by name (partial, case-insensitive) — provide query field.",
+    "check: compare local content with Forge without writing (env, nginx, deployments, php setting=config) — returns { inSync, diff }; env returns variable names only, never values.",
   ].join("\n"),
   annotations: {
     title: "Laravel Forge",
@@ -147,19 +158,27 @@ const FORGE_READ_TOOL: Tool = {
       setting: {
         type: "string" as const,
         description:
-          "PHP setting to read (php get): version, config, max-upload-size, max-execution-time, opcache",
+          "PHP setting to read (php get): version, config, max-upload-size, max-execution-time, opcache. php check requires config",
       },
       version: {
         type: "string" as const,
-        description: 'PHP version ID or version (e.g. "8.3", "php83") for php get',
+        description:
+          'PHP version ID or version (e.g. "8.3", "php83") for php get and check (setting=config)',
       },
       type: {
         type: "string" as const,
-        description: "PHP configuration file for php get setting=config: cli, fpm, pool",
+        description:
+          "PHP configuration file for php get and check (setting=config): cli, fpm, pool",
       },
       user: {
         type: "string" as const,
-        description: "FPM pool user for php get setting=config type=pool (optional)",
+        description: "FPM pool user for php get and check (setting=config, type=pool, optional)",
+      },
+      // Check fields
+      content: {
+        type: "string" as const,
+        description:
+          "Local content to compare with Forge for action=check (env file, nginx config, deployment script or PHP config)",
       },
       operations: {
         type: "array" as const,

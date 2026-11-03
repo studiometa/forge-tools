@@ -122,6 +122,8 @@ const RESOURCE_HELP: Record<string, ResourceHelp> = {
       deploy: "Trigger a new deployment",
       get: "Get deployment output (requires deployment_id in 'id' field)",
       update: "Update the deployment script (provide 'content' field)",
+      check:
+        "Compare 'content' with the deployment script on Forge without writing. Returns { inSync, diff } with a unified line diff",
     },
     fields: {
       id: "Deployment ID",
@@ -161,6 +163,16 @@ const RESOURCE_HELP: Record<string, ResourceHelp> = {
             "cd /home/forge/app.example.com\ngit pull\ncomposer install\nphp artisan migrate --force",
         },
       },
+      {
+        description: "Check the deploy script against a local copy",
+        params: {
+          resource: "deployments",
+          action: "check",
+          server_id: "123",
+          site_id: "456",
+          content: "cd /home/forge/app.example.com\ngit pull\ncomposer install",
+        },
+      },
     ],
   },
 
@@ -170,6 +182,8 @@ const RESOURCE_HELP: Record<string, ResourceHelp> = {
     actions: {
       get: "Get the current .env file content",
       update: "Replace the entire .env file (provide 'content' field)",
+      check:
+        "Compare 'content' with the .env file on Forge without writing. Returns { inSync, diff } where diff is { added, removed, changed }: variable names only, never values",
     },
     examples: [
       {
@@ -186,6 +200,16 @@ const RESOURCE_HELP: Record<string, ResourceHelp> = {
           content: "APP_ENV=production\nAPP_DEBUG=false\nDB_HOST=127.0.0.1",
         },
       },
+      {
+        description: "Check a local .env against Forge (names only)",
+        params: {
+          resource: "env",
+          action: "check",
+          server_id: "123",
+          site_id: "456",
+          content: "APP_ENV=production\nAPP_DEBUG=false",
+        },
+      },
     ],
   },
 
@@ -195,11 +219,23 @@ const RESOURCE_HELP: Record<string, ResourceHelp> = {
     actions: {
       get: "Get the current Nginx config",
       update: "Replace the Nginx config (provide 'content' field)",
+      check:
+        "Compare 'content' with the Nginx config on Forge without writing. Returns { inSync, diff } with a unified line diff",
     },
     examples: [
       {
         description: "Get nginx config",
         params: { resource: "nginx", action: "get", server_id: "123", site_id: "456" },
+      },
+      {
+        description: "Check a local nginx config against Forge",
+        params: {
+          resource: "nginx",
+          action: "check",
+          server_id: "123",
+          site_id: "456",
+          content: "server {\n  listen 80;\n}",
+        },
       },
     ],
   },
@@ -404,6 +440,8 @@ const RESOURCE_HELP: Record<string, ResourceHelp> = {
       get: "Read one setting: version, config, max-upload-size, max-execution-time or opcache",
       update:
         "Write one setting: config (replaces the whole file), max-upload-size, max-execution-time or opcache",
+      check:
+        "Compare 'content' with a configuration file on Forge without writing (setting=config only). Returns { inSync, diff } with a unified line diff",
     },
     fields: {
       setting:
@@ -412,7 +450,7 @@ const RESOURCE_HELP: Record<string, ResourceHelp> = {
         'PHP version ID, or a version such as "8.3", "php83" or "php8.3" (for setting=version and setting=config)',
       type: "Configuration file for setting=config: cli, fpm or pool",
       user: "Unix user of the FPM pool (optional, type=pool only)",
-      content: "Full configuration file content (update setting=config)",
+      content: "Full configuration file content (update and check, setting=config)",
       value: "Integer for update: megabytes for max-upload-size, seconds for max-execution-time",
       enabled: "Boolean for update setting=opcache: true enables, false disables",
     },
@@ -441,6 +479,18 @@ const RESOURCE_HELP: Record<string, ResourceHelp> = {
           setting: "config",
           version: "8.3",
           type: "cli",
+          content: "memory_limit = 512M\n...",
+        },
+      },
+      {
+        description: "Check the FPM php.ini of PHP 8.3 against a local copy",
+        params: {
+          resource: "php",
+          action: "check",
+          server_id: "123",
+          setting: "config",
+          version: "8.3",
+          type: "fpm",
           content: "memory_limit = 512M\n...",
         },
       },

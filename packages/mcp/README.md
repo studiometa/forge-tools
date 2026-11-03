@@ -72,7 +72,7 @@ When enabled, the `forge_write` tool is not registered at all — only `forge`, 
 
 Safe, read-only queries. Annotated `readOnlyHint: true` so MCP clients can auto-approve.
 
-**Actions**: `list`, `get`, `resolve`, `context`, `help`, `schema`
+**Actions**: `list`, `get`, `resolve`, `context`, `check`, `help`, `schema`
 
 ```json
 { "resource": "servers", "action": "list" }
@@ -83,7 +83,10 @@ Safe, read-only queries. Annotated `readOnlyHint: true` so MCP clients can auto-
 { "resource": "servers", "action": "context", "id": "123" }
 { "resource": "sites", "action": "context", "server_id": "123", "id": "456" }
 { "resource": "batch", "action": "run", "operations": [{ "resource": "servers", "action": "list" }, { "resource": "recipes", "action": "list" }] }
+{ "resource": "env", "action": "check", "server_id": "123", "site_id": "456", "content": "APP_ENV=production" }
 ```
+
+`check` compares local `content` with Forge without writing, for `env`, `nginx`, `deployments` (deployment script) and `php` (`setting: "config"`). It returns `{ "inSync": true }` or `{ "inSync": false, "diff": ... }`: a unified line diff, or for `env` only the variable names in `{ added, removed, changed }`, never values.
 
 ### `forge_write` — Write Operations
 
@@ -104,9 +107,9 @@ Mutating operations. Annotated `destructiveHint: true` so MCP clients always pro
 | --------------- | --------------------------- | ------------------------ | -------------------------- |
 | servers         | list, get, resolve, context | create, delete, reboot   | id (for get/delete/reboot) |
 | sites           | list, get, resolve, context | create, delete           | server_id                  |
-| deployments     | list, get                   | deploy, update           | server_id, site_id         |
-| env             | get                         | update                   | server_id, site_id         |
-| nginx           | get                         | update                   | server_id, site_id         |
+| deployments     | list, get, check            | deploy, update           | server_id, site_id         |
+| env             | get, check                  | update                   | server_id, site_id         |
+| nginx           | get, check                  | update                   | server_id, site_id         |
 | certificates    | list, get                   | create, delete, activate | server_id, site_id         |
 | databases       | list, get                   | create, delete           | server_id                  |
 | database-users  | list, get                   | create, delete           | server_id                  |
@@ -120,7 +123,7 @@ Mutating operations. Annotated `destructiveHint: true` so MCP clients always pro
 | scheduled-jobs  | list, get                   | create, delete           | server_id                  |
 | backups         | list, get                   | create, delete           | server_id                  |
 | commands        | list, get                   | create                   | server_id, site_id         |
-| php             | list, get                   | update                   | server_id (+ setting)      |
+| php             | list, get, check            | update                   | server_id (+ setting)      |
 | recipes         | list, get                   | create, delete, run      | id (for get/delete/run)    |
 | user            | get                         | —                        | —                          |
 | batch           | run                         | —                        | operations array           |

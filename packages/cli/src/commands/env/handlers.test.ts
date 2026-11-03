@@ -7,10 +7,15 @@ vi.mock("node:fs", () => ({
   readFileSync: vi.fn(),
 }));
 
-vi.mock("@studiometa/forge-core", () => ({
-  getEnv: vi.fn(),
-  updateEnv: vi.fn(),
-}));
+vi.mock("@studiometa/forge-core", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@studiometa/forge-core")>();
+  return {
+    getEnv: vi.fn(),
+    updateEnv: vi.fn(),
+    compareEnv: actual.compareEnv,
+    formatEnvDiff: actual.formatEnvDiff,
+  };
+});
 
 describe("envGet", () => {
   let processExitSpy: ReturnType<typeof vi.spyOn>;

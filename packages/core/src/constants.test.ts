@@ -39,5 +39,6 @@ describe("constants", () => {
     expect(ACTIONS).toContain("deploy");
     expect(ACTIONS).toContain("reboot");
     expect(ACTIONS).toContain("help");
+    expect(ACTIONS).toContain("check");
   });
 });

@@ -288,3 +288,64 @@ describe("handlePhp", () => {
     expect(result.content[0].text).toContain("Unknown action");
   });
 });
+
+describe("handlePhp check", () => {
+  const args = {
+    resource: "php",
+    action: "check",
+    server_id: "1",
+    setting: "config",
+    version: "12",
+    type: "fpm",
+  };
+
+  it("should report in sync for equal content", async () => {
+    const { ctx, client } = createMockContext(false);
+    const result = await handlePhp("check", { ...args, content: "memory_limit = 512M\n" }, ctx);
+
+    expect(client.get).toHaveBeenCalledWith(`${BASE}/versions/12/configs/fpm`);
+    expect(client.put).not.toHaveBeenCalled();
+    expect(result.structuredContent).toEqual({ success: true, result: { inSync: true } });
+  });
+
+  it("should return a unified diff when the file differs", async () => {
+    const { ctx } = createMockContext(false);
+    const result = await handlePhp("check", { ...args, content: "memory_limit = 1G" }, ctx);
+
+    expect(result.structuredContent).toEqual({
+      success: true,
+      result: {
+        inSync: false,
+        diff: "--- remote\n+++ local\n@@ -1,1 +1,1 @@\n-memory_limit = 512M\n+memory_limit = 1G",
+      },
+    });
+  });
+
+  it("should format the result in compact output", async () => {
+    const { ctx } = createMockContext();
+    const result = await handlePhp("check", { ...args, content: "memory_limit = 1G" }, ctx);
+
+    expect(result.content[0].text).toMatch(
+      /^PHP fpm configuration differs from Forge:\n--- remote/,
+    );
+  });
+
+  it("should only check setting=config", async () => {
+    const { ctx } = createMockContext();
+    const result = await handlePhp(
+      "check",
+      { resource: "php", action: "check", server_id: "1", setting: "opcache", content: "x" },
+      ctx,
+    );
+
+    expect(result.isError).toBe(true);
+  });
+
+  it("should require content", async () => {
+    const { ctx } = createMockContext();
+    const result = await handlePhp("check", args, ctx);
+
+    expect(result.isError).toBe(true);
+    expect(result.content[0].text).toContain("content");
+  });
+});

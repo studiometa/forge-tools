@@ -213,7 +213,8 @@ export async function executeToolWithCredentials(
   };
   const handlerContext: HandlerContext = {
     executorContext,
-    compact: compact ?? action !== "get",
+    // `get` and `check` return structured data unless compact output is asked for.
+    compact: compact ?? (action !== "get" && action !== "check"),
     includeHints: action === "get",
   };
 

@@ -7,7 +7,7 @@
 
 import type { CommonArgs, HandlerContext, ToolResult } from "./types.ts";
 
-import { isReadAction } from "../tools.ts";
+import { isReadAction, READ_ACTIONS } from "../tools.ts";
 import { errorResult, jsonResult } from "./utils.ts";
 
 type RouteHandler = (
@@ -50,7 +50,7 @@ function validateOperation(
   if (!isReadAction(record["action"])) {
     return {
       ok: false,
-      error: `Operation at index ${index} has invalid action "${record["action"]}". Only read actions are allowed in batch: list, get, help, schema.`,
+      error: `Operation at index ${index} has invalid action "${record["action"]}". Only read actions are allowed in batch: ${READ_ACTIONS.join(", ")}.`,
     };
   }
   return { ok: true, value: record as BatchOperation };

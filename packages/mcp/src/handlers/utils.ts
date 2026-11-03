@@ -1,3 +1,5 @@
+import * as v from "valibot";
+
 import type { ToolResult } from "./types.ts";
 
 import { UserInputError } from "../errors.ts";
@@ -16,6 +18,12 @@ export function jsonResult(data: unknown): ToolResult {
     structuredContent: { success: true, result: data },
   };
 }
+
+/**
+ * Schema for the `content` of a `check` action.
+ * Its error message never repeats the input, so a value from an .env file cannot leak.
+ */
+export const contentSchema = v.string("Expected the content as a string.");
 
 /**
  * Validate an ID-like value (must be alphanumeric/dashes only).
