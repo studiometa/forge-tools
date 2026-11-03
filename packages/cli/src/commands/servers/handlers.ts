@@ -60,7 +60,7 @@ export async function serversGet(args: string[], ctx: CommandContext): Promise<v
 const CREATE_USAGE = "forge servers create --name <name> --ip-address <ip> [options]";
 
 /**
- * Create a server. Defaults to a Custom VPS app server on Ubuntu 24.04.
+ * Create a server. Defaults to a Custom VPS app server on Ubuntu 26.04.
  */
 export async function serversCreate(ctx: CommandContext): Promise<void> {
   const name = String(ctx.options.name ?? "");
@@ -79,7 +79,7 @@ export async function serversCreate(ctx: CommandContext): Promise<void> {
     name,
     provider,
     type: String(ctx.options.type ?? "app"),
-    ubuntu_version: String(ctx.options["ubuntu-version"] ?? "24.04"),
+    ubuntu_version: String(ctx.options["ubuntu-version"] ?? "26.04"),
     php_version: String(ctx.options["php-version"] ?? "php84"),
   };
 

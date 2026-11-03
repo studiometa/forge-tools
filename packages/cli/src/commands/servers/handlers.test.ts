@@ -291,7 +291,7 @@ describe("serversCreate", () => {
     vi.restoreAllMocks();
   });
 
-  it("should create a Custom VPS app server on Ubuntu 24.04 by default", async () => {
+  it("should create a Custom VPS app server on Ubuntu 26.04 by default", async () => {
     const { createServer } = await import("@studiometa/forge-core");
     vi.mocked(createServer).mockResolvedValue({ data: { ...mockServer, provider: "custom" } });
 
@@ -307,7 +307,7 @@ describe("serversCreate", () => {
         name: "my-server",
         provider: "custom",
         type: "app",
-        ubuntu_version: "24.04",
+        ubuntu_version: "26.04",
         php_version: "php84",
         custom: { ip_address: "1.2.3.4", ssh_port: "22" },
       },
@@ -332,7 +332,7 @@ describe("serversCreate", () => {
         "private-ip": "10.0.0.1",
         "ssh-port": "2222",
         type: "database",
-        "ubuntu-version": "26.04",
+        "ubuntu-version": "24.04",
         "php-version": "php83",
         database: "mariadb1011",
         tag: ["prod", "web"],
@@ -345,7 +345,7 @@ describe("serversCreate", () => {
         name: "my-server",
         provider: "custom",
         type: "database",
-        ubuntu_version: "26.04",
+        ubuntu_version: "24.04",
         php_version: "php83",
         database_type: "mariadb1011",
         tags: ["prod", "web"],
@@ -381,7 +381,7 @@ describe("serversCreate", () => {
         name: "my-server",
         provider: "hetzner",
         type: "app",
-        ubuntu_version: "24.04",
+        ubuntu_version: "26.04",
         php_version: "php84",
         credential_id: "42",
         tags: ["prod"],

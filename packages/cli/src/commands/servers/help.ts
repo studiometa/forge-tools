@@ -52,7 +52,7 @@ ${colors.bold("OPTIONS:")}
   --size <id>                Size ID (cloud providers)
   --credential-id <id>       Server provider credential ID (cloud providers)
   --type <type>              Server type: app, web, loadbalancer, database... (default: app)
-  --ubuntu-version <ver>     Ubuntu version (default: 24.04)
+  --ubuntu-version <ver>     Ubuntu version (default: 26.04)
   --php-version <ver>        PHP version (default: php84)
   --database <type>          Database type, e.g. mariadb1011
   --tag <tag>                Tag, repeatable
