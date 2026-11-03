@@ -27,6 +27,7 @@ import type {
   ServerAttributes,
   SiteAttributes,
   SshKeyAttributes,
+  StorageProviderAttributes,
   UserAttributes,
 } from "@studiometa/forge-api";
 
@@ -442,6 +443,41 @@ export function formatBackupConfig(backup: BackupConfigAttributes & { id: number
     `Status: ${backup.status}`,
     `Retention: ${backup.retention} backups`,
     `Next run: ${backup.next_run_time ?? "—"}`,
+  ].join("\n");
+}
+
+// ── Storage Providers ────────────────────────────────
+
+/**
+ * Format a list of storage providers.
+ */
+export function formatStorageProviderList(
+  providers: (StorageProviderAttributes & { id: number })[],
+): string {
+  if (providers.length === 0) {
+    return "No storage providers found.";
+  }
+  const lines = providers.map(
+    (p) =>
+      `• ${p.name} (ID: ${p.id}) — ${p.provider_name} — bucket: ${p.bucket ?? "—"}${p.in_use ? " — in use" : ""}`,
+  );
+  return `${providers.length} storage provider(s):\n${lines.join("\n")}`;
+}
+
+/**
+ * Format a single storage provider. Forge never returns the keys.
+ */
+export function formatStorageProvider(
+  provider: StorageProviderAttributes & { id: number },
+): string {
+  return [
+    `Storage Provider: ${provider.name} (ID: ${provider.id})`,
+    `Provider: ${provider.provider_name} (${provider.provider})`,
+    `Endpoint: ${provider.endpoint ?? "—"}`,
+    `Region: ${provider.region ?? "—"}`,
+    `Bucket: ${provider.bucket ?? "—"}`,
+    `Directory: ${provider.directory ?? "—"}`,
+    `In use: ${provider.in_use ? "yes" : "no"}`,
   ].join("\n");
 }
 

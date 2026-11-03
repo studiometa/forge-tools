@@ -657,20 +657,27 @@ const RESOURCE_HELP: Record<string, ResourceHelp> = {
 
   backups: {
     description:
-      "Manage backup configurations — automated database backups to S3, Spaces, or other providers",
+      "Manage database backup configurations — scheduled database backups to a storage provider (see storage-providers)",
     scope: "server (requires server_id)",
     actions: {
       list: "List backup configurations on a server",
       get: "Get backup config details (databases, schedule, retention)",
       create: "Create a new backup configuration",
+      update: "Update a backup configuration (send every required field)",
       delete: "Delete a backup configuration",
     },
     fields: {
-      provider: "Backup provider (s3, spaces, custom)",
-      credentials: "Provider credentials (keys, bucket, region)",
-      schedule: "Backup schedule (daily, weekly, custom cron)",
-      databases: "Array of database IDs to back up",
-      retention: "Number of backups to retain",
+      storage_provider_id: "Storage provider ID (from storage-providers list)",
+      frequency: "hourly, daily, weekly or custom",
+      day: "Weekly: day of week, 0 (Sunday) to 6",
+      time: "Daily or weekly: HH:MM on the hour or half hour, e.g. 02:00",
+      cron: "Custom: cron expression",
+      retention: "Number of backups to keep (1-8760)",
+      database_ids: "Array of database IDs to back up (at least one)",
+      include_new_databases: "Also back up databases created later",
+      bucket: "Bucket (overrides the provider bucket)",
+      directory: "Directory in the bucket",
+      notification_email: "Email notified when a backup fails",
     },
     examples: [
       {
@@ -680,6 +687,62 @@ const RESOURCE_HELP: Record<string, ResourceHelp> = {
       {
         description: "Get backup config details",
         params: { resource: "backups", action: "get", server_id: "123", id: "456" },
+      },
+      {
+        description: "Back up two databases every day at 02:00 and keep 7 backups",
+        params: {
+          resource: "backups",
+          action: "create",
+          server_id: "123",
+          storage_provider_id: 7,
+          frequency: "daily",
+          time: "02:00",
+          retention: 7,
+          directory: "web-1",
+          database_ids: [11, 12],
+        },
+      },
+    ],
+  },
+
+  "storage-providers": {
+    description:
+      "Manage the organization's storage providers — S3-compatible buckets used by database backups",
+    scope: "global (no parent ID needed)",
+    actions: {
+      list: "List storage providers (filter with provider, e.g. custom)",
+      get: "Get storage provider details (keys are never returned)",
+      create: "Create a storage provider",
+      delete: "Delete a storage provider (fails when a backup configuration uses it)",
+    },
+    fields: {
+      name: "Provider name",
+      provider: "s3, spaces, hetzner, ovh, scaleway or custom (S3 compatible)",
+      endpoint: "S3 endpoint URL (custom providers)",
+      region: "Bucket region",
+      bucket: "Default bucket",
+      directory: "Default directory",
+      access_key: "Access key ID",
+      secret_key: "Secret access key",
+    },
+    examples: [
+      {
+        description: "List storage providers",
+        params: { resource: "storage-providers", action: "list" },
+      },
+      {
+        description: "Create a custom S3-compatible provider",
+        params: {
+          resource: "storage-providers",
+          action: "create",
+          name: "Backups",
+          provider: "custom",
+          endpoint: "https://s3.example.com",
+          region: "eu-west-1",
+          bucket: "my-bucket",
+          access_key: "<access-key>",
+          secret_key: "<secret-key>",
+        },
       },
     ],
   },

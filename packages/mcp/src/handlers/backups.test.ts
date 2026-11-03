@@ -86,15 +86,35 @@ describe("handleBackups", () => {
         resource: "backups",
         action: "create",
         server_id: "1",
-        provider: "s3",
-        credentials: {},
+        storage_provider_id: 3,
         frequency: "daily",
-        databases: [1],
+        time: "02:00",
+        retention: 7,
+        directory: "web-1",
+        database_ids: [1],
       },
       createMockContext(),
     );
     expect(result.isError).toBeUndefined();
     expect(result.content[0].text).toContain("Done");
+  });
+
+  it("should reject a backup config without databases", async () => {
+    const result = await handleBackups(
+      "create",
+      {
+        resource: "backups",
+        action: "create",
+        server_id: "1",
+        storage_provider_id: 3,
+        frequency: "daily",
+        retention: 7,
+        database_ids: [],
+      },
+      createMockContext(),
+    );
+    expect(result.isError).toBe(true);
+    expect(result.content[0].text).toContain("database_ids");
   });
 
   it("should update a backup config", async () => {

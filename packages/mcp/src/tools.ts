@@ -220,9 +220,13 @@ const FORGE_WRITE_TOOL: Tool = {
       },
       provider: {
         type: "string" as const,
-        description: "Server provider (e.g. ocean2, linode, aws)",
+        description:
+          "Server provider (e.g. ocean2, linode, aws), or storage provider type (s3, spaces, hetzner, ovh, scaleway, custom)",
       },
-      region: { type: "string" as const, description: "Server region (e.g. nyc3, us-east-1)" },
+      region: {
+        type: "string" as const,
+        description: "Server region (e.g. nyc3, us-east-1), or storage provider bucket region",
+      },
       size: { type: "string" as const, description: "Server size (e.g. s-1vcpu-1gb)" },
       credential_id: {
         type: "string" as const,
@@ -304,7 +308,47 @@ const FORGE_WRITE_TOOL: Tool = {
       // Scheduled job fields
       frequency: {
         type: "string" as const,
-        description: "Cron frequency for scheduled jobs (e.g. minutely, hourly, nightly, custom)",
+        description:
+          "Frequency: scheduled jobs (minutely, hourly, nightly, custom) or backups (hourly, daily, weekly, custom)",
+      },
+      // Storage provider and backup fields
+      endpoint: {
+        type: "string" as const,
+        description: "S3 endpoint URL for storage providers (e.g. https://s3.example.com)",
+      },
+      bucket: { type: "string" as const, description: "Bucket for storage providers and backups" },
+      directory: {
+        type: "string" as const,
+        description: "Directory in the bucket for storage providers and backups",
+      },
+      access_key: { type: "string" as const, description: "Storage provider access key ID" },
+      secret_key: { type: "string" as const, description: "Storage provider secret access key" },
+      storage_provider_id: {
+        type: "number" as const,
+        description: "Storage provider ID for backups (from storage-providers list)",
+      },
+      retention: { type: "number" as const, description: "Number of backups to keep (1-8760)" },
+      database_ids: {
+        type: "array" as const,
+        description: "Database IDs to back up (at least one)",
+        items: { type: "number" as const },
+      },
+      include_new_databases: {
+        type: "boolean" as const,
+        description: "Backups: also back up databases created later",
+      },
+      day: {
+        type: "string" as const,
+        description: "Weekly backups: day of week, 0 (Sunday) to 6",
+      },
+      time: {
+        type: "string" as const,
+        description: "Daily or weekly backups: HH:MM on the hour or half hour (e.g. 02:00)",
+      },
+      cron: { type: "string" as const, description: "Custom backups: cron expression" },
+      notification_email: {
+        type: "string" as const,
+        description: "Backups: email notified when a backup fails",
       },
       // Recipe fields
       script: { type: "string" as const, description: "Bash script content for recipes" },
