@@ -20,6 +20,7 @@ export const RESOURCES = [
   "monitors",
   "recipes",
   "backups",
+  "storage-providers",
   "commands",
   "scheduled-jobs",
   "services",

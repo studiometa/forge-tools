@@ -42,30 +42,31 @@ forge_write(resource, action, [parameters...])
 
 ### Resources & Actions
 
-| Resource          | Read Actions (`forge`)              | Write Actions (`forge_write`)  | Scope  |
-| ----------------- | ----------------------------------- | ------------------------------ | ------ |
-| `servers`         | `list`, `get`, `resolve`, `context` | `create`, `delete`, `reboot`   | global |
-| `sites`           | `list`, `get`, `resolve`, `context` | `create`, `delete`             | server |
-| `deployments`     | `list`                              | `deploy`, `update`             | site   |
-| `env`             | `get`                               | `update`                       | site   |
-| `nginx`           | `get`                               | `update`                       | site   |
-| `certificates`    | `get`                               | `create`, `delete`, `activate` | domain |
-| `databases`       | `list`, `get`                       | `create`, `delete`             | server |
-| `database-users`  | `list`, `get`                       | `create`, `delete`             | server |
-| `daemons`         | `list`, `get`                       | `create`, `delete`, `restart`  | server |
-| `firewall-rules`  | `list`, `get`                       | `create`, `delete`             | server |
-| `ssh-keys`        | `list`, `get`                       | `create`, `delete`             | server |
-| `security-rules`  | `list`, `get`                       | `create`, `delete`             | site   |
-| `redirect-rules`  | `list`, `get`                       | `create`, `delete`             | site   |
-| `monitors`        | `list`, `get`                       | `create`, `delete`             | server |
-| `nginx-templates` | `list`, `get`                       | `create`, `update`, `delete`   | server |
-| `recipes`         | `list`, `get`                       | `create`, `delete`, `run`      | global |
-| `scheduled-jobs`  | `list`, `get`                       | `create`, `delete`             | server |
-| `backups`         | `list`, `get`                       | `create`, `delete`             | server |
-| `commands`        | `list`, `get`                       | `create`                       | site   |
-| `php`             | `list`, `get`                       | `update`                       | server |
-| `user`            | `get`                               | —                              | global |
-| `batch`           | `run`                               | —                              | global |
+| Resource            | Read Actions (`forge`)              | Write Actions (`forge_write`)  | Scope  |
+| ------------------- | ----------------------------------- | ------------------------------ | ------ |
+| `servers`           | `list`, `get`, `resolve`, `context` | `create`, `delete`, `reboot`   | global |
+| `sites`             | `list`, `get`, `resolve`, `context` | `create`, `delete`             | server |
+| `deployments`       | `list`                              | `deploy`, `update`             | site   |
+| `env`               | `get`                               | `update`                       | site   |
+| `nginx`             | `get`                               | `update`                       | site   |
+| `certificates`      | `get`                               | `create`, `delete`, `activate` | domain |
+| `databases`         | `list`, `get`                       | `create`, `delete`             | server |
+| `database-users`    | `list`, `get`                       | `create`, `delete`             | server |
+| `daemons`           | `list`, `get`                       | `create`, `delete`, `restart`  | server |
+| `firewall-rules`    | `list`, `get`                       | `create`, `delete`             | server |
+| `ssh-keys`          | `list`, `get`                       | `create`, `delete`             | server |
+| `security-rules`    | `list`, `get`                       | `create`, `delete`             | site   |
+| `redirect-rules`    | `list`, `get`                       | `create`, `delete`             | site   |
+| `monitors`          | `list`, `get`                       | `create`, `delete`             | server |
+| `nginx-templates`   | `list`, `get`                       | `create`, `update`, `delete`   | server |
+| `recipes`           | `list`, `get`                       | `create`, `delete`, `run`      | global |
+| `scheduled-jobs`    | `list`, `get`                       | `create`, `delete`             | server |
+| `backups`           | `list`, `get`                       | `create`, `update`, `delete`   | server |
+| `storage-providers` | `list`, `get`                       | `create`, `delete`             | global |
+| `commands`          | `list`, `get`                       | `create`                       | site   |
+| `php`               | `list`, `get`                       | `update`                       | server |
+| `user`              | `get`                               | —                              | global |
+| `batch`             | `run`                               | —                              | global |
 
 ### Scope Guide
 
@@ -225,6 +226,16 @@ Use `action: "schema"` for a compact machine-readable spec:
 
 // Run it on servers (forge_write)
 { "resource": "recipes", "action": "run", "id": "456", "servers": [1, 2, 3] }
+```
+
+### Back Up Databases to an S3-Compatible Bucket
+
+```json
+// Create the storage provider once per organization (forge_write)
+{ "resource": "storage-providers", "action": "create", "name": "Backups", "provider": "custom", "endpoint": "https://s3.example.com", "region": "eu-west-1", "bucket": "my-bucket", "access_key": "...", "secret_key": "..." }
+
+// Back up two databases every day at 02:00 and keep 7 backups (forge_write)
+{ "resource": "backups", "action": "create", "server_id": "123", "storage_provider_id": 7, "frequency": "daily", "time": "02:00", "retention": 7, "directory": "web-1", "database_ids": [11, 12] }
 ```
 
 ### Auto-Resolve: Deploy Using Names Instead of IDs

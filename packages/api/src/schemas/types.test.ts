@@ -12,6 +12,7 @@ import {
   UpdateDaemonDataSchema,
   CreateBackupConfigDataSchema,
   UpdateBackupConfigDataSchema,
+  CreateStorageProviderDataSchema,
   CreateCommandDataSchema,
   CreateScheduledJobDataSchema,
   CreateFirewallRuleDataSchema,
@@ -107,6 +108,21 @@ testSchema(
   UpdateBackupConfigDataSchema,
   { storage_provider_id: 1, frequency: "daily", retention: 7, database_ids: [1] },
   { storage_provider_id: "not-a-number" },
+);
+
+testSchema(
+  "CreateStorageProviderDataSchema",
+  CreateStorageProviderDataSchema,
+  {
+    name: "Backups",
+    provider: "custom",
+    region: "eu-west-1",
+    endpoint: "https://s3.example.com",
+    bucket: "my-bucket",
+    access_key: "access",
+    secret_key: "secret",
+  },
+  { name: "Backups", provider: "dropbox" },
 );
 
 testSchema(

@@ -99,6 +99,13 @@ vi.mock("@studiometa/forge-api", async (importOriginal) => {
             links: { next: null, prev: null },
             meta: { per_page: 30, next_cursor: null, prev_cursor: null },
           };
+        // Storage providers
+        if (path.includes("/storage-providers"))
+          return {
+            data: [],
+            links: { next: null, prev: null },
+            meta: { per_page: 30, next_cursor: null, prev_cursor: null },
+          };
         // Recipes
         if (path.includes("/recipes"))
           return {
@@ -223,6 +230,7 @@ describe("routeToHandler — resource routing coverage", () => {
     { resource: "nginx-templates", extra: { server_id: "1" } },
     { resource: "recipes", extra: {} },
     { resource: "backups", extra: { server_id: "1" } },
+    { resource: "storage-providers", extra: {} },
     { resource: "commands", extra: { server_id: "1", site_id: "10" } },
     { resource: "scheduled-jobs", extra: { server_id: "1" } },
     { resource: "services", extra: { server_id: "1" } },

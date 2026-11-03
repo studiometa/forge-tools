@@ -25,6 +25,7 @@ import {
   CommandAttributesSchema,
   BackupConfigAttributesSchema,
   BackupAttributesSchema,
+  StorageProviderAttributesSchema,
   OrganizationAttributesSchema,
   EnvironmentAttributesSchema,
   PhpVersionAttributesSchema,
@@ -488,6 +489,25 @@ testSchema(
   BackupAttributesSchema,
   { status: "completed", is_partial: "false", size: 1024, finished_at: "2024-01-01T00:00:00Z" },
   { status: 123 },
+);
+
+testSchema(
+  "StorageProviderAttributesSchema",
+  StorageProviderAttributesSchema,
+  {
+    name: "Backups",
+    provider: "custom",
+    provider_name: "Custom (S3 Compatible)",
+    region: "eu-west-1",
+    bucket: "my-bucket",
+    directory: null,
+    endpoint: "https://s3.example.com",
+    assume_role: false,
+    in_use: true,
+    created_at: "2024-01-01T00:00:00Z",
+    updated_at: "2024-01-01T00:00:00Z",
+  },
+  { name: 123 },
 );
 
 testSchema(

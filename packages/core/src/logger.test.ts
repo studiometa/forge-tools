@@ -75,6 +75,16 @@ describe("sanitizeArgs", () => {
     expect(sanitizeArgs(args).credentials).toBe("[REDACTED]");
   });
 
+  it("should redact storage provider keys", () => {
+    const result = sanitizeArgs({
+      access_key: "id",
+      secret_key: "shh",
+      "access-key": "id",
+      "secret-key": "shh",
+    });
+    expect(Object.values(result)).toEqual(Array(4).fill("[REDACTED]"));
+  });
+
   it("should not mutate the original args", () => {
     const args = { apiToken: "secret", resource: "servers" };
     sanitizeArgs(args);

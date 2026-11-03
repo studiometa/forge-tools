@@ -21,38 +21,51 @@ ${colors.bold("USAGE:")}
 `);
   } else if (subcommand === "create") {
     console.log(`
-${colors.bold("forge backups create")} - Create a new backup configuration
+${colors.bold("forge backups create")} - Create a database backup configuration
 
 ${colors.bold("USAGE:")}
-  forge backups create --server <server_id> --provider <provider> --frequency <frequency> [options]
+  forge backups create --server <server> --storage-provider <id|name> --frequency <frequency> --databases <ids|names> [options]
 
 ${colors.bold("OPTIONS:")}
-  --server <id>         Server ID (required)
-  --provider <name>     Backup provider (required)
-  --frequency <freq>    Backup frequency (required)
-  --databases <ids>     Comma-separated database IDs to back up (optional)
-  -f, --format <fmt>    Output format: json, human, table
+  --server <id|name>             Server ID or name (required)
+  --storage-provider <id|name>   Storage provider ID or exact name (required, see forge storage-providers list)
+  --frequency <freq>             hourly, daily, weekly or custom (required)
+  --databases <ids|names>        Database IDs or exact names, comma separated or repeated (required)
+  --retention <n>                Number of backups to keep, 1 to 8760 (default: 5)
+  --time <HH:MM>                 Daily and weekly: time on the hour or half hour, e.g. 02:00
+  --day <0-6>                    Weekly: day of week, 0 is Sunday
+  --cron <expr>                  Custom: cron expression
+  --bucket <bucket>              Bucket (default: the storage provider bucket)
+  --directory <dir>              Directory in the bucket
+  --name <name>                  Configuration name
+  --notification-email <email>   Email notified when a backup fails
+  --include-new-databases        Also back up databases created later
+  -f, --format <fmt>             Output format: json, human, table
+
+${colors.bold("EXAMPLE:")}
+  forge backups create --server web-1 --storage-provider Backups --frequency daily \\
+    --time 02:00 --retention 7 --directory web-1 --databases app,wordpress
 `);
   } else if (subcommand === "update") {
     console.log(`
-${colors.bold("forge backups update")} - Update a backup configuration
+${colors.bold("forge backups update")} - Update a database backup configuration
 
 ${colors.bold("USAGE:")}
-  forge backups update <backup_id> --server <server_id> --provider <provider> --frequency <frequency> --retention <retention> [options]
+  forge backups update <backup_id> --server <server> --storage-provider <id|name> --frequency <frequency> --retention <n> --databases <ids|names> [options]
 
 ${colors.bold("OPTIONS:")}
-  --server <id>                  Server ID (required)
-  --provider <id>                Storage provider ID (required)
-  --frequency <freq>             Backup frequency (required)
-  --retention <n>                Retention count (required)
-  --databases <ids>              Comma-separated database IDs (optional)
-  --name <name>                  Backup name (optional)
-  --bucket <bucket>              Bucket name (optional)
-  --directory <dir>              Directory (optional)
-  --day <day>                    Day of week (optional)
-  --time <time>                  Time (optional)
-  --cron <cron>                  Cron expression (optional)
-  --notification-email <email>   Notification email (optional)
+  --server <id|name>             Server ID or name (required)
+  --storage-provider <id|name>   Storage provider ID or exact name (required)
+  --frequency <freq>             hourly, daily, weekly or custom (required)
+  --retention <n>                Number of backups to keep, 1 to 8760 (required)
+  --databases <ids|names>        Database IDs or exact names, comma separated or repeated (required)
+  --time <HH:MM>                 Daily and weekly: time on the hour or half hour
+  --day <0-6>                    Weekly: day of week, 0 is Sunday
+  --cron <expr>                  Custom: cron expression
+  --bucket <bucket>              Bucket
+  --directory <dir>              Directory in the bucket
+  --name <name>                  Configuration name
+  --notification-email <email>   Email notified when a backup fails
   -f, --format <fmt>             Output format: json, human, table
 `);
   } else if (subcommand === "delete") {

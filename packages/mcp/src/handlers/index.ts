@@ -38,6 +38,7 @@ import { handleServers } from "./servers.ts";
 import { handleServices } from "./services.ts";
 import { handleSites } from "./sites.ts";
 import { handleSshKeys } from "./ssh-keys.ts";
+import { handleStorageProviders } from "./storage-providers.ts";
 import { handleUser } from "./user.ts";
 import { isForgeApiError } from "@studiometa/forge-api";
 
@@ -102,6 +103,8 @@ function routeToHandler(
       return handleRecipes(action, args, ctx);
     case "backups":
       return handleBackups(action, args, ctx);
+    case "storage-providers":
+      return handleStorageProviders(action, args, ctx);
     case "commands":
       return handleCommands(action, args, ctx);
     case "scheduled-jobs":

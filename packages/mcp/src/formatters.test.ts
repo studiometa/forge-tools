@@ -18,12 +18,15 @@ import type {
   ServerAttributes,
   SiteAttributes,
   SshKeyAttributes,
+  StorageProviderAttributes,
   UserAttributes,
 } from "@studiometa/forge-api";
 
 import {
   formatBackupConfig,
   formatBackupConfigList,
+  formatStorageProvider,
+  formatStorageProviderList,
   formatCertificate,
   formatCommand,
   formatCommandList,
@@ -1296,5 +1299,61 @@ describe("formatCreated", () => {
   it("should format a created confirmation", () => {
     const result = formatCreated("Database", "myapp", 42);
     expect(result).toBe("Database created: myapp (ID: 42)");
+  });
+});
+
+describe("formatStorageProviderList", () => {
+  const provider: StorageProviderAttributes & { id: number } = {
+    id: 3,
+    name: "Backups",
+    provider: "custom",
+    provider_name: "Custom (S3 Compatible)",
+    region: "eu-west-1",
+    bucket: "my-bucket",
+    directory: null,
+    endpoint: "https://s3.example.com",
+    assume_role: false,
+    in_use: true,
+    created_at: null,
+    updated_at: null,
+  };
+
+  it("should format storage providers", () => {
+    const result = formatStorageProviderList([
+      provider,
+      { ...provider, id: 4, bucket: null, in_use: false },
+    ]);
+    expect(result).toContain("2 storage provider(s):");
+    expect(result).toContain(
+      "• Backups (ID: 3) — Custom (S3 Compatible) — bucket: my-bucket — in use",
+    );
+    expect(result).toContain("• Backups (ID: 4) — Custom (S3 Compatible) — bucket: —\n".trimEnd());
+  });
+
+  it("should handle empty list", () => {
+    expect(formatStorageProviderList([])).toBe("No storage providers found.");
+  });
+
+  it("should format a single storage provider", () => {
+    const result = formatStorageProvider(provider);
+    expect(result).toContain("Storage Provider: Backups (ID: 3)");
+    expect(result).toContain("Provider: Custom (S3 Compatible) (custom)");
+    expect(result).toContain("Endpoint: https://s3.example.com");
+    expect(result).toContain("Directory: —");
+    expect(result).toContain("In use: yes");
+  });
+
+  it("should show dashes for empty fields", () => {
+    const result = formatStorageProvider({
+      ...provider,
+      endpoint: null,
+      region: null,
+      bucket: null,
+      in_use: false,
+    });
+    expect(result).toContain("Endpoint: —");
+    expect(result).toContain("Region: —");
+    expect(result).toContain("Bucket: —");
+    expect(result).toContain("In use: no");
   });
 });

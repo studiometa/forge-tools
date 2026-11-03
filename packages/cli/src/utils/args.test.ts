@@ -50,6 +50,11 @@ describe("parseArgs", () => {
     expect(result.options.tag).toEqual(["prod", "web"]);
   });
 
+  it("should collect a repeated --databases into an array", () => {
+    const result = parseArgs(["--databases", "app", "--databases", "12"]);
+    expect(result.options.databases).toEqual(["app", "12"]);
+  });
+
   it("should keep the last value of other repeated options", () => {
     const result = parseArgs(["--token", "a", "--token", "b", "-f", "json", "-f", "human"]);
     expect(result.options.token).toBe("b");

@@ -180,6 +180,7 @@ export const CreateBackupConfigDataSchema = v.object({
   frequency: v.string(),
   retention: v.number(),
   database_ids: v.array(v.number()),
+  include_new_databases: v.optional(v.boolean()),
   name: v.optional(v.nullable(v.string())),
   bucket: v.optional(v.nullable(v.string())),
   directory: v.optional(v.nullable(v.string())),
@@ -308,6 +309,31 @@ export const CreateNginxTemplateDataSchema = v.object({
 });
 
 export type CreateNginxTemplateData = v.InferOutput<typeof CreateNginxTemplateDataSchema>;
+
+// ── Storage providers ────────────────────────────────
+
+export const STORAGE_PROVIDER_TYPES = [
+  "s3",
+  "spaces",
+  "hetzner",
+  "ovh",
+  "scaleway",
+  "custom",
+] as const;
+
+export const CreateStorageProviderDataSchema = v.object({
+  name: v.pipe(v.string(), v.maxLength(255)),
+  provider: v.picklist(STORAGE_PROVIDER_TYPES),
+  region: v.optional(v.string()),
+  bucket: v.optional(v.nullable(v.string())),
+  directory: v.optional(v.nullable(v.string())),
+  endpoint: v.optional(v.string()),
+  access_key: v.optional(v.nullable(v.string())),
+  secret_key: v.optional(v.nullable(v.string())),
+  assume_role: v.optional(v.boolean()),
+});
+
+export type CreateStorageProviderData = v.InferOutput<typeof CreateStorageProviderDataSchema>;
 
 // ── Recipes ──────────────────────────────────────────
 

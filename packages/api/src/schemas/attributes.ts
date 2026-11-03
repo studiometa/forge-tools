@@ -341,6 +341,24 @@ export const BackupAttributesSchema = v.object({
 
 export type BackupAttributes = v.InferOutput<typeof BackupAttributesSchema>;
 
+// ── Storage providers ────────────────────────────────
+
+export const StorageProviderAttributesSchema = v.object({
+  name: v.string(),
+  provider: v.string(),
+  provider_name: v.string(),
+  region: v.nullable(v.string()),
+  bucket: v.nullable(v.string()),
+  directory: v.nullable(v.string()),
+  endpoint: v.nullable(v.string()),
+  assume_role: v.nullable(v.boolean()),
+  in_use: v.boolean(),
+  created_at: v.nullable(v.string()),
+  updated_at: v.nullable(v.string()),
+});
+
+export type StorageProviderAttributes = v.InferOutput<typeof StorageProviderAttributesSchema>;
+
 // ── Organizations ────────────────────────────────────
 
 export const OrganizationAttributesSchema = v.object({

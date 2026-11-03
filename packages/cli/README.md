@@ -41,32 +41,33 @@ forge config delete
 forge <command> [subcommand] [options]
 ```
 
-| Command           | Alias   | Description                                          |
-| ----------------- | ------- | ---------------------------------------------------- |
-| `config`          |         | Manage CLI configuration (`set`, `get`, `delete`)    |
-| `servers`         | `s`     | List, get, reboot servers                            |
-| `sites`           |         | List, get sites on a server                          |
-| `deployments`     | `d`     | List deployments, trigger deploys, deploy script     |
-| `databases`       | `db`    | List, get databases on a server                      |
-| `database-users`  |         | List, get, create, delete database users on a server |
-| `daemons`         |         | List, get, restart daemons on a server               |
-| `backups`         |         | List, get, create, delete backup configs on a server |
-| `commands`        |         | List, get, create commands on a server               |
-| `scheduled-jobs`  |         | List, get, create, delete scheduled jobs on a server |
-| `monitors`        |         | List, get, create, delete monitors on a server       |
-| `env`             |         | Get, update environment variables for a site         |
-| `nginx`           |         | Get, update Nginx configuration for a site           |
-| `nginx-templates` |         | List, get, create, update, delete Nginx templates    |
-| `php`             |         | PHP versions, config files, limits and OPcache       |
-| `certificates`    | `certs` | List, get, activate SSL certificates for a site      |
-| `firewall-rules`  | `fw`    | List, get firewall rules on a server                 |
-| `ssh`             |         | Open an SSH session to a server                      |
-| `ssh-keys`        |         | List, get, sync SSH keys on servers                  |
-| `security-rules`  |         | List, get, create, delete security rules for a site  |
-| `redirect-rules`  |         | List, get, create, delete redirect rules for a site  |
-| `recipes`         |         | List, get, run recipes                               |
-| `user`            |         | Get the authenticated user's profile                 |
-| `completion`      |         | Install shell completion (bash, zsh, fish)           |
+| Command             | Alias   | Description                                          |
+| ------------------- | ------- | ---------------------------------------------------- |
+| `config`            |         | Manage CLI configuration (`set`, `get`, `delete`)    |
+| `servers`           | `s`     | List, get, reboot servers                            |
+| `sites`             |         | List, get sites on a server                          |
+| `deployments`       | `d`     | List deployments, trigger deploys, deploy script     |
+| `databases`         | `db`    | List, get databases on a server                      |
+| `database-users`    |         | List, get, create, delete database users on a server |
+| `daemons`           |         | List, get, restart daemons on a server               |
+| `backups`           |         | List, get, create, update, delete database backups   |
+| `storage-providers` |         | List, get, create, delete backup storage providers   |
+| `commands`          |         | List, get, create commands on a server               |
+| `scheduled-jobs`    |         | List, get, create, delete scheduled jobs on a server |
+| `monitors`          |         | List, get, create, delete monitors on a server       |
+| `env`               |         | Get, update environment variables for a site         |
+| `nginx`             |         | Get, update Nginx configuration for a site           |
+| `nginx-templates`   |         | List, get, create, update, delete Nginx templates    |
+| `php`               |         | PHP versions, config files, limits and OPcache       |
+| `certificates`      | `certs` | List, get, activate SSL certificates for a site      |
+| `firewall-rules`    | `fw`    | List, get firewall rules on a server                 |
+| `ssh`               |         | Open an SSH session to a server                      |
+| `ssh-keys`          |         | List, get, sync SSH keys on servers                  |
+| `security-rules`    |         | List, get, create, delete security rules for a site  |
+| `redirect-rules`    |         | List, get, create, delete redirect rules for a site  |
+| `recipes`           |         | List, get, run recipes                               |
+| `user`              |         | Get the authenticated user's profile                 |
+| `completion`        |         | Install shell completion (bash, zsh, fish)           |
 
 Run `forge <command> --help` for detailed usage of each command.
 
@@ -278,6 +279,38 @@ forge scheduled-jobs delete <job_id> --server <id>                            # 
 
 `create` takes `--user` (default `forge`), `--frequency` (`minutely`, `hourly`, `nightly`, `weekly`, `monthly`, `reboot` or `custom`, default `custom`) and `--cron`, which Forge uses only when the frequency is `custom`. Add `--site <id>` to create the job on a site.
 
+### `storage-providers` — Manage backup storage providers
+
+```bash
+forge storage-providers list                                # List storage providers
+forge storage-providers list --provider custom              # Only one provider type
+forge storage-providers get <id>                            # Get storage provider details
+forge storage-providers delete <id>                         # Delete an unused storage provider
+
+# Create a custom S3-compatible provider; the secret key comes from stdin
+printf '%s' "$S3_SECRET_KEY" | forge storage-providers create \
+  --name Backups --provider custom \
+  --endpoint https://s3.example.com --region eu-west-1 --bucket my-bucket \
+  --access-key "$S3_ACCESS_KEY" --secret-key-file - --format json
+```
+
+`--provider` is one of `s3`, `spaces`, `hetzner`, `ovh`, `scaleway` or `custom`. The secret key is read only from `--secret-key-file <path>` or `--secret-key-file -` (stdin), so it does not show in the shell history or the process list; one trailing newline is removed. `--assume-role` uses the EC2 instance role instead of keys. Forge never returns the keys. `--format json` prints the created provider with its `id`.
+
+### `backups` — Manage database backups
+
+```bash
+forge backups list --server <id>                            # List backup configurations
+forge backups get <id> --server <id>                        # Get backup configuration details
+forge backups delete <id> --server <id>                     # Delete a backup configuration
+
+# Back up two databases every day at 02:00 into web-1/, keep 7 backups
+forge backups create --server web-1 --storage-provider Backups \
+  --frequency daily --time 02:00 --retention 7 \
+  --directory web-1 --databases app,wordpress
+```
+
+`--storage-provider` takes a storage provider ID or exact name and `--databases` takes database IDs or exact names, comma separated or repeated. `--frequency` is `hourly`, `daily`, `weekly` (with `--day 0` to `6`, 0 is Sunday) or `custom` (with `--cron`). `--time` is on the hour or half hour. `--retention` defaults to 5. Other options: `--bucket` (defaults to the provider bucket), `--name`, `--notification-email` and `--include-new-databases`. `forge backups update <id>` takes the same options and requires `--retention`.
+
 ### `recipes` — Manage recipes
 
 ```bash
@@ -297,7 +330,7 @@ forge completion bash --print   # Print script without installing
 
 ## Audit Logging
 
-All write operations (`deploy`, `create`, `delete`, `reboot`, `restart`, `update`, `run`, `activate`) are automatically logged to `~/.config/forge-tools/audit.log`. Override the path with the `FORGE_AUDIT_LOG` environment variable. Sensitive fields (tokens, passwords) are redacted.
+All write operations (`deploy`, `create`, `delete`, `reboot`, `restart`, `update`, `run`, `activate`) are automatically logged to `~/.config/forge-tools/audit.log`. Override the path with the `FORGE_AUDIT_LOG` environment variable. Sensitive fields (tokens, passwords, storage provider keys) are redacted.
 
 ## Global Options
 

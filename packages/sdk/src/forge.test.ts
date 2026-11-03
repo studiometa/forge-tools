@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { Forge } from "./forge.ts";
 import { ServersCollection, ServerResource } from "./resources/servers.ts";
 import { RecipesCollection } from "./resources/recipes.ts";
+import { StorageProvidersCollection } from "./resources/storage-providers.ts";
 
 function mockJsonApiDocument<T>(id: string, attributes: T) {
   return {
@@ -40,6 +41,11 @@ describe("Forge", () => {
   it("should expose recipes collection", () => {
     const forge = new Forge("test-token", "test-org", { fetch: createMockFetch() });
     expect(forge.recipes).toBeInstanceOf(RecipesCollection);
+  });
+
+  it("should expose storage providers collection", () => {
+    const forge = new Forge("test-token", "test-org", { fetch: createMockFetch() });
+    expect(forge.storageProviders).toBeInstanceOf(StorageProvidersCollection);
   });
 
   describe("server()", () => {
