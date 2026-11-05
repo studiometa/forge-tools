@@ -8,6 +8,15 @@ vi.mock("./handlers.ts", () => ({
   sitesUpdate: vi.fn().mockResolvedValue(),
 }));
 
+const auditLog = vi.fn();
+vi.mock("../../audit.ts", () => ({
+  getCliAuditLogger: () => ({ log: auditLog }),
+}));
+
+vi.mock("./apply/handler.ts", () => ({
+  sitesApply: vi.fn().mockResolvedValue(),
+}));
+
 vi.mock("../../context.ts", () => ({
   createContext: vi.fn().mockReturnValue({
     options: { format: "json" },
@@ -62,6 +71,15 @@ describe("handleSitesCommand routing", () => {
     const handlers = await import("./handlers.ts");
     await handleSitesCommand("update", ["1"], { server: "123" });
     expect(handlers.sitesUpdate).toHaveBeenCalledWith(["1"], expect.anything());
+  });
+
+  it("should route apply and record it in the audit log", async () => {
+    const { sitesApply } = await import("./apply/handler.ts");
+    await handleSitesCommand("apply", [], { file: "site.json", check: true });
+    expect(sitesApply).toHaveBeenCalledWith(expect.anything());
+    expect(auditLog).toHaveBeenCalledWith(
+      expect.objectContaining({ resource: "sites", action: "apply", status: "success" }),
+    );
   });
 
   it("should exit for unknown subcommand", async () => {

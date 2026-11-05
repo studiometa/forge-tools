@@ -15,6 +15,7 @@ import {
   CreateStorageProviderDataSchema,
   CreateCommandDataSchema,
   CreateScheduledJobDataSchema,
+  CreateDomainDataSchema,
   CreateFirewallRuleDataSchema,
   CreateSshKeyDataSchema,
   CreateSecurityRuleDataSchema,
@@ -196,3 +197,10 @@ testSchema(
 );
 
 testSchema("UpdateRecipeDataSchema", UpdateRecipeDataSchema, { name: "deploy" }, { name: 123 });
+
+testSchema(
+  "CreateDomainDataSchema",
+  CreateDomainDataSchema,
+  { name: "example.com", allow_wildcard_subdomains: false, www_redirect_type: "none" },
+  { name: "example.com", allow_wildcard_subdomains: false, www_redirect_type: "sometimes" },
+);

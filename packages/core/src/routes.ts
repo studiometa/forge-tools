@@ -80,6 +80,9 @@ export const ROUTES = {
       path: "/orgs/:org/servers/:server_id/sites/:site_id/deployments/status",
     },
   },
+  domains: {
+    create: { method: "POST", path: "/orgs/:org/servers/:server_id/sites/:site_id/domains" },
+  },
   certificates: {
     get: {
       method: "GET",

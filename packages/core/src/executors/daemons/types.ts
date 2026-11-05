@@ -9,6 +9,8 @@ import type { CreateDaemonData, UpdateDaemonData } from "@studiometa/forge-api";
  */
 export interface ListDaemonsOptions {
   server_id: string;
+  /** Only the daemons that Forge associates with this site. */
+  site_id?: string;
 }
 
 /**

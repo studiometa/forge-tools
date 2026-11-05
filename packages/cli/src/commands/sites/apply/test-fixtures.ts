@@ -1,0 +1,280 @@
+/**
+ * Fixtures of Forge resources for the tests of `forge sites apply`.
+ */
+
+import { vi } from "vitest";
+
+import type { CliExecutorContext } from "../../../context.ts";
+import type { Daemon, ScheduledJob, Site } from "./plan.ts";
+
+export function site(id: number, name: string, overrides: Partial<Site> = {}): Site {
+  return {
+    id,
+    name,
+    aliases: [],
+    root_directory: `/home/forge/${name}`,
+    web_directory: `/home/forge/${name}/public`,
+    wildcards: false,
+    status: "installed",
+    repository: {
+      provider: "Custom Git",
+      url: `https://git.example.com/group/${name}.git`,
+      branch: "main",
+      status: "installed",
+    },
+    quick_deploy: false,
+    deployment_status: null,
+    deployment_url: "https://forge.laravel.com/deploy",
+    deployment_script: null,
+    php_version: "PHP 8.3",
+    app_type: "Custom",
+    url: `https://${name}`,
+    https: true,
+    isolated: false,
+    user: "forge",
+    database: null,
+    shared_paths: null,
+    uses_envoyer: false,
+    zero_downtime_deployments: false,
+    maintenance_mode: null,
+    healthcheck_url: null,
+    created_at: null,
+    updated_at: null,
+    ...overrides,
+  };
+}
+
+export function daemon(
+  id: number,
+  command: string,
+  directory: string | null,
+  overrides: Partial<Daemon> = {},
+): Daemon {
+  return {
+    id,
+    command,
+    directory,
+    user: "forge",
+    processes: 1,
+    status: "installed",
+    created_at: "2024-01-01T00:00:00Z",
+    ...overrides,
+  };
+}
+
+export function job(
+  id: number,
+  command: string,
+  overrides: Partial<ScheduledJob> = {},
+): ScheduledJob {
+  return {
+    id,
+    name: null,
+    command,
+    user: "forge",
+    frequency: "Minutely",
+    cron: "* * * * *",
+    next_run_time: "2024-01-01T00:00:00Z",
+    status: "installed",
+    created_at: null,
+    updated_at: null,
+    ...overrides,
+  };
+}
+
+type Call = [method: string, url: string, body?: unknown];
+
+function resource(type: string, item: { id: number }) {
+  const { id, ...attributes } = item;
+  return { id: String(id), type, attributes };
+}
+
+function list(type: string, items: Array<{ id: number }>) {
+  return {
+    data: items.map((item) => resource(type, item)),
+    links: {},
+    meta: { per_page: 30, next_cursor: null, prev_cursor: null },
+  };
+}
+
+function doc(type: string, item: { id: number }) {
+  return { data: resource(type, item) };
+}
+
+function server(id: number, name: string) {
+  return {
+    id,
+    credential_id: null,
+    name,
+    type: "app",
+    ubuntu_version: "24.04",
+    ssh_port: 22,
+    provider: "custom",
+    identifier: null,
+    size: "",
+    region: "",
+    php_version: null,
+    php_cli_version: null,
+    opcache_status: null,
+    database_type: null,
+    db_status: null,
+    redis_status: null,
+    ip_address: null,
+    private_ip_address: null,
+    revoked: false,
+    created_at: "",
+    updated_at: "",
+    connection_status: null,
+    timezone: "UTC",
+    local_public_key: null,
+    is_ready: true,
+  };
+}
+
+/** Route on any organization: the CLI test context uses its own. */
+function route(url: string): string {
+  return decodeURIComponent(url).replace(/^\/orgs\/[^/]+/, "/orgs/org");
+}
+
+export interface FakeForge {
+  sites: Site[];
+  daemons: Daemon[];
+  siteDaemonIds: number[];
+  jobs: ScheduledJob[];
+  siteJobIds: number[];
+  databases: Array<{ id: number; name: string }>;
+  users: Array<{ id: number; name: string }>;
+  env: string;
+  /** Statuses a new site goes through, one per read. */
+  newSiteStatuses: string[];
+}
+
+/**
+ * A fake Forge API client, enough for `apply`. It records every call.
+ */
+export function fakeForge(initial: Partial<FakeForge> = {}) {
+  const state: FakeForge = {
+    sites: [],
+    daemons: [],
+    siteDaemonIds: [],
+    jobs: [],
+    siteJobIds: [],
+    databases: [],
+    users: [],
+    env: "",
+    newSiteStatuses: ["installed"],
+    ...initial,
+  };
+  const calls: Call[] = [];
+  const stamp = { status: "installed", created_at: "", updated_at: "" };
+
+  const client = {
+    get: vi.fn(async (url: string) => {
+      calls.push(["GET", url]);
+      const [path, query = ""] = route(url).split("?");
+      let match: RegExpExecArray | null;
+      if (path === "/orgs/org/servers") {
+        // Server attributes keep their id.
+        const servers = [server(123, "web-1"), server(124, "web-10")];
+        return {
+          ...list("servers", []),
+          data: servers.map((item) => ({ id: String(item.id), type: "servers", attributes: item })),
+        };
+      }
+      if (path === "/orgs/org/servers/123/sites") return list("sites", state.sites);
+      if ((match = /^\/orgs\/org\/sites\/(\d+)$/.exec(path))) {
+        const found = state.sites.find((s) => s.id === Number(match![1]))!;
+        const status = state.newSiteStatuses.shift() ?? "installed";
+        found.status = status;
+        return doc("sites", found);
+      }
+      if (path === "/orgs/org/servers/123/database/schemas") {
+        return list(
+          "databases",
+          state.databases.map((d) => ({ ...stamp, ...d })),
+        );
+      }
+      if (path === "/orgs/org/servers/123/database/users") {
+        return list(
+          "users",
+          state.users.map((u) => ({ ...stamp, ...u })),
+        );
+      }
+      if (/^\/orgs\/org\/servers\/123\/sites\/\d+\/environment$/.test(path)) {
+        return doc("environment", { id: 1, content: state.env } as never);
+      }
+      if (path === "/orgs/org/servers/123/background-processes") {
+        const items = query.includes("filter[site_id]")
+          ? state.daemons.filter((d) => state.siteDaemonIds.includes(d.id))
+          : state.daemons;
+        return list("backgroundProcesses", items);
+      }
+      if (path === "/orgs/org/servers/123/scheduled-jobs") return list("jobs", state.jobs);
+      if (/^\/orgs\/org\/servers\/123\/sites\/\d+\/scheduled-jobs$/.test(path)) {
+        return list(
+          "jobs",
+          state.jobs.filter((j) => state.siteJobIds.includes(j.id)),
+        );
+      }
+      throw new Error(`Unexpected GET ${url}`);
+    }),
+    post: vi.fn(async (raw: string, body: Record<string, unknown>) => {
+      calls.push(["POST", raw, body]);
+      const url = route(raw);
+      if (url === "/orgs/org/servers/123/sites") {
+        const created = site(999, String(body.name), { status: "installing" });
+        state.sites.push(created);
+        return doc("sites", created);
+      }
+      if (url === "/orgs/org/servers/123/database/schemas") {
+        const created = { id: 70, name: String(body.name) };
+        state.databases.push(created);
+        return doc("databases", { ...stamp, ...created });
+      }
+      if (url === "/orgs/org/servers/123/database/users") {
+        const created = { id: 71, name: String(body.name) };
+        state.users.push(created);
+        return doc("users", { ...stamp, ...created });
+      }
+      if (url.endsWith("/domains")) {
+        return doc("domainRecords", {
+          id: 80,
+          name: body.name,
+          type: "alias",
+          status: "pending",
+          www_redirect_type: "none",
+          allow_wildcard_subdomains: false,
+          created_at: null,
+          updated_at: null,
+        } as never);
+      }
+      if (url === "/orgs/org/servers/123/background-processes") {
+        return doc("backgroundProcesses", daemon(90, String(body.command), String(body.directory)));
+      }
+      if (url.endsWith("/scheduled-jobs")) {
+        return doc("jobs", job(91, String(body.command)));
+      }
+      throw new Error(`Unexpected POST ${url}`);
+    }),
+    put: vi.fn(async (raw: string, body: Record<string, unknown>) => {
+      calls.push(["PUT", raw, body]);
+      const url = route(raw);
+      if (url.endsWith("/environment")) {
+        state.env = String(body.environment);
+        return null;
+      }
+      return doc("sites", { ...state.sites[0] });
+    }),
+    delete: vi.fn(async (url: string) => {
+      calls.push(["DELETE", url]);
+    }),
+    patch: vi.fn(),
+  };
+
+  const ctx = {
+    client,
+    organizationSlug: "org",
+    exactMatch: false,
+  } as unknown as CliExecutorContext;
+  return { ctx, calls, state, client };
+}

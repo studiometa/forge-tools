@@ -90,6 +90,20 @@ export const SiteAttributesSchema = v.object({
 
 export type SiteAttributes = v.InferOutput<typeof SiteAttributesSchema>;
 
+// ── Domains ──────────────────────────────────────────
+
+export const DomainAttributesSchema = v.object({
+  name: v.string(),
+  type: v.string(),
+  status: v.string(),
+  www_redirect_type: v.string(),
+  allow_wildcard_subdomains: v.boolean(),
+  created_at: v.nullable(v.string()),
+  updated_at: v.nullable(v.string()),
+});
+
+export type DomainAttributes = v.InferOutput<typeof DomainAttributesSchema>;
+
 // ── Deployments ──────────────────────────────────────
 
 export const DeploymentCommitSchema = v.object({

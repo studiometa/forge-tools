@@ -45,7 +45,7 @@ forge <command> [subcommand] [options]
 | ------------------- | ------- | ---------------------------------------------------- |
 | `config`            |         | Manage CLI configuration (`set`, `get`, `delete`)    |
 | `servers`           | `s`     | List, get, reboot servers                            |
-| `sites`             |         | List, get sites on a server                          |
+| `sites`             |         | List, get sites; apply a site file                   |
 | `deployments`       | `d`     | List deployments, trigger deploys, deploy script     |
 | `databases`         | `db`    | List, get databases on a server                      |
 | `database-users`    |         | List, get, create, delete database users on a server |
@@ -131,6 +131,63 @@ forge servers create --name <name> --ip-address <ip> [--php-version php84 --data
 ```bash
 forge sites list --server <id>              # List sites on a server
 forge sites get <site_id> --server <id>     # Get site details
+forge sites apply --file site.json --check  # Print the plan, change nothing
+forge sites apply --file site.json          # Make the site match the file
+```
+
+#### Declare a site in a file with `sites apply`
+
+`sites apply` makes a Forge site match a JSON file kept in the project, for example `config/forge/production/site.json`. Only `server` and `domain` are required. A key that is absent is not managed: `apply` does not read it, compare it or change it.
+
+```json
+{
+  "$schema": "https://unpkg.com/@studiometa/forge-cli/schemas/site.schema.json",
+  "server": "web-1",
+  "domain": "www.example.com",
+  "aliases": ["example.com"],
+  "type": "php",
+  "php": "php83",
+  "webDirectory": "/public",
+  "repository": {
+    "provider": "custom",
+    "url": "https://git.example.com/group/project.git",
+    "branch": "main"
+  },
+  "database": { "name": "example", "user": "example" },
+  "env": { "APP_ENV": "production" },
+  "workers": [{ "command": "php artisan queue:work database --queue=default", "processes": 4 }],
+  "schedule": [{ "command": "php artisan schedule:run", "frequency": "minutely" }]
+}
+```
+
+| Key                                         | What `apply` does                                                                                                                                                                      |
+| ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `server`, `domain`                          | Find the server and the site by exact name (never a partial match, with or without `--exact`). `server` can also be an ID                                                              |
+| `type`, `php`, `webDirectory`, `repository` | Create the site when it is missing (`type` is then required) and wait until Forge installs it. On an existing site, update `php`, `webDirectory` and the branch                        |
+| `aliases`                                   | Add the missing aliases. Never remove one                                                                                                                                              |
+| `database`                                  | Create the database and the user when they are missing. A new user gets a random password, written only into the site `.env` (`DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`)             |
+| `env`                                       | Add the missing keys to the site `.env`. A key with another value on Forge is reported, never overwritten                                                                              |
+| `workers`                                   | Forge background processes of the site. Create the missing ones, delete the ones of the site that the file does not declare. The directory defaults to the site root                   |
+| `schedule`                                  | Forge scheduled jobs of the site (`minutely`, `hourly`, `nightly`, `weekly`, `monthly`, `reboot`, or `custom` with `cron`). A relative `artisan` becomes the absolute path of the site |
+
+A worker or a scheduled job matches the file when its command, directory, processes (or frequency) and user are the same. Commands are compared after normalization: quotes (`'database'` and `database`), repeated spaces and a relative `artisan` (`php artisan` and `php /home/forge/www.example.com/artisan`) do not count as differences. Forge cannot update a worker: a changed worker is created again, then the old one is deleted.
+
+`workers` and `schedule` delete what the file does not declare, so `apply` deletes only what surely belongs to the site, because a server often hosts several sites:
+
+- A scheduled job belongs to the site when Forge lists it on the site, or when its command uses the site path and no other site path.
+- A worker belongs to the site when its directory is the site path or inside it. Without a directory, its command must use the site path and no other site path, and Forge must associate it with the site.
+- Paths are compared on whole segments: `/home/forge/example.com` does not own `/home/forge/example.com-staging` or `/home/forge/example.com.old`.
+- Workers and scheduled jobs that run as `root` are never deleted, and neither are the ones whose owner is not certain: they are reported as kept.
+- Without the `workers` key, no worker is read or deleted. With `"workers": []`, all the workers of the site are deleted. The same applies to `schedule`.
+- The site, its aliases, its database and its `.env` keys are never deleted.
+
+With `--check`, `apply` prints the plan and changes nothing. It exits `0` when Forge matches the file, `1` when it differs, and another code on an error (`3` for an invalid file). Every deletion shows its ID and full command. The plan gives `.env` key names only, never values, and shows a generated password as `<generated>`. With `--format json`, it prints `{ "inSync": false, "changes": [...], "warnings": [...] }`.
+
+Run `--check` in merge request pipelines and `apply` on the main branch:
+
+```bash
+forge sites apply --file config/forge/production/site.json --check
+forge sites apply --file config/forge/production/site.json
 ```
 
 ### `deployments` (`d`) — Manage deployments
