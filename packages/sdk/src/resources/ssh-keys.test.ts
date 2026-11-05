@@ -94,6 +94,24 @@ describe("SshKeysCollection", () => {
     expect(calls[0].body).toMatchObject({ name: "deploy-key" });
   });
 
+  it("should accept the empty 202 response of Forge on create", async () => {
+    const client = new HttpClient({
+      token: "test",
+      fetch: async () =>
+        ({
+          ok: true,
+          status: 202,
+          headers: new Headers(),
+          text: async () => "",
+        }) as Response,
+    });
+    const collection = new SshKeysCollection(client, ORG, 123);
+
+    await expect(
+      collection.create({ name: "deploy-key", key: "ssh-rsa AAAA..." }),
+    ).resolves.toBeUndefined();
+  });
+
   it("should delete an SSH key", async () => {
     const { client, calls } = createTrackingClient();
     const collection = new SshKeysCollection(client, ORG, 123);

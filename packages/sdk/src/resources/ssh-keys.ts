@@ -106,17 +106,18 @@ export class SshKeysCollection extends BaseCollection {
   /**
    * Create a new SSH key.
    *
+   * Forge answers `202 Accepted` without a body: the key is installed in the background.
+   *
    * @example
    * ```ts
-   * const key = await forge.server(123).sshKeys.create({
+   * await forge.server(123).sshKeys.create({
    *   name: 'deploy-key',
    *   key: 'ssh-rsa AAAA...',
    * });
    * ```
    */
-  async create(data: CreateSshKeyData): Promise<SshKeyAttributes & { id: number }> {
-    const response = await this.client.post<JsonApiDocument<SshKeyAttributes>>(this.basePath, data);
-    return unwrapDocument(response);
+  async create(data: CreateSshKeyData): Promise<void> {
+    await this.client.post(this.basePath, data);
   }
 
   /**
