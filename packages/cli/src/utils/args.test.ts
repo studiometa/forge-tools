@@ -40,6 +40,13 @@ describe("parseArgs", () => {
     expect(result.options.f).toBe("-");
   });
 
+  it("should parse --exact as a flag that never takes a value", () => {
+    const result = parseArgs(["--exact", "deployments", "deploy", "--site", "example.com"]);
+    expect(result.options.exact).toBe(true);
+    expect(result.command).toEqual(["deployments", "deploy"]);
+    expect(result.options.site).toBe("example.com");
+  });
+
   it("should collect a repeated --server into an array", () => {
     const result = parseArgs(["--server", "1", "--server=2", "--server", "3"]);
     expect(result.options.server).toEqual(["1", "2", "3"]);

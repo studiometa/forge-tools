@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
-import { createContext, createTestContext } from "./context.ts";
+import { createContext, createTestContext, isExactMatch } from "./context.ts";
 import { OutputFormatter } from "./output.ts";
 import { ConfigError } from "./errors.ts";
 
@@ -98,6 +98,49 @@ describe("createContext", () => {
       const execCtx = ctx.createExecutorContext("my-token");
       expect(execCtx.client).toBeDefined();
     });
+
+    it("should turn off exact matching by default", () => {
+      vi.stubEnv("FORGE_EXACT_MATCH", "");
+      const execCtx = createContext({}).createExecutorContext("my-token");
+      vi.unstubAllEnvs();
+      expect(execCtx.exactMatch).toBe(false);
+    });
+
+    it("should turn on exact matching with --exact", () => {
+      vi.stubEnv("FORGE_EXACT_MATCH", "");
+      const execCtx = createContext({ exact: true }).createExecutorContext("my-token");
+      vi.unstubAllEnvs();
+      expect(execCtx.exactMatch).toBe(true);
+    });
+
+    it("should turn on exact matching with FORGE_EXACT_MATCH", () => {
+      vi.stubEnv("FORGE_EXACT_MATCH", "1");
+      const execCtx = createContext({}).createExecutorContext("my-token");
+      vi.unstubAllEnvs();
+      expect(execCtx.exactMatch).toBe(true);
+    });
+  });
+});
+
+describe("isExactMatch", () => {
+  it("should be off without the flag or the variable", () => {
+    expect(isExactMatch({}, {})).toBe(false);
+  });
+
+  it("should be on with the --exact flag", () => {
+    expect(isExactMatch({ exact: true }, {})).toBe(true);
+  });
+
+  it.each(["1", "true", "TRUE", " 1 "])("should be on with FORGE_EXACT_MATCH=%j", (value) => {
+    expect(isExactMatch({}, { FORGE_EXACT_MATCH: value })).toBe(true);
+  });
+
+  it.each(["", "0", "false", "no"])("should be off with FORGE_EXACT_MATCH=%j", (value) => {
+    expect(isExactMatch({}, { FORGE_EXACT_MATCH: value })).toBe(false);
+  });
+
+  it("should be on when the flag or the variable is set", () => {
+    expect(isExactMatch({ exact: true }, { FORGE_EXACT_MATCH: "0" })).toBe(true);
   });
 });
 
@@ -140,5 +183,11 @@ describe("createTestContext", () => {
     const ctx = createTestContext({ mockClient });
     const execCtx = ctx.createExecutorContext("token");
     expect(execCtx.client).toBe(mockClient);
+  });
+
+  it("should pass --exact to the executor context", () => {
+    const mockClient = { get: vi.fn() } as never;
+    const ctx = createTestContext({ mockClient, options: { exact: true } });
+    expect(ctx.createExecutorContext("token").exactMatch).toBe(true);
   });
 });

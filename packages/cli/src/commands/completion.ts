@@ -48,7 +48,7 @@ _forge_completions() {
   local completion_cmds="bash zsh fish"
 
   # Global options
-  options="--token --server --site -f --format --no-color -h --help -v --version --name --command --content --from --to --provider --frequency --cron --type --operator --threshold --minutes --key --port --ip-address --user --private --dry-run --script --servers --domain --password --credential-id --region --size --project-type --directory --file --script-file --check --all-servers --prune --ubuntu-version --php-version --database --private-ip --ssh-port --tag --storage-provider --databases --retention --time --day --bucket --notification-email --include-new-databases --endpoint --access-key --secret-key-file --assume-role"
+  options="--token --server --site --exact -f --format --no-color -h --help -v --version --name --command --content --from --to --provider --frequency --cron --type --operator --threshold --minutes --key --port --ip-address --user --private --dry-run --script --servers --domain --password --credential-id --region --size --project-type --directory --file --script-file --check --all-servers --prune --ubuntu-version --php-version --database --private-ip --ssh-port --tag --storage-provider --databases --retention --time --day --bucket --notification-email --include-new-databases --endpoint --access-key --secret-key-file --assume-role"
 
   # Format options
   local formats="json human table"
@@ -485,6 +485,7 @@ _forge() {
         '--token[API token]:token:' \\
         '--server[Server ID]:server id:' \\
         '--site[Site ID]:site id:' \\
+        '--exact[Match server and site names exactly]' \\
         '(-f --format)'{-f,--format}'[Output format]:format:(json human table)' \\
         '--no-color[Disable colored output]' \\
         '(-h --help)'{-h,--help}'[Show help]' \\
@@ -746,6 +747,7 @@ complete -c forge -f -n "__fish_seen_subcommand_from completion" -a "fish" -d "I
 complete -c forge -l token -d "API token" -r
 complete -c forge -l server -d "Server ID" -r
 complete -c forge -l site -d "Site ID" -r
+complete -c forge -l exact -d "Match server and site names exactly"
 complete -c forge -s f -l format -d "Output format" -xa "json human table"
 complete -c forge -l no-color -d "Disable colored output"
 complete -c forge -s h -l help -d "Show help"
