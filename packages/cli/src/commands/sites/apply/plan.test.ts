@@ -436,7 +436,12 @@ describe("buildPlan", () => {
     expect(plan.changes).toEqual([
       { action: "create-database", name: "example" },
       { action: "create-database-user", name: "example", database: "example" },
-      { action: "add-env", keys: [], generated: ["DB_DATABASE", "DB_USERNAME", "DB_PASSWORD"] },
+      {
+        action: "add-env",
+        keys: [],
+        generated: ["DB_DATABASE", "DB_USERNAME", "DB_PASSWORD"],
+        password: "DB_PASSWORD",
+      },
     ]);
     expect(formatPlan(plan)).toContain("DB_PASSWORD=<generated>");
   });
@@ -607,6 +612,7 @@ describe("describeChange", () => {
         action: "add-env",
         keys: ["APP_ENV"],
         generated: ["DB_USERNAME", "DB_PASSWORD"],
+        password: "DB_PASSWORD",
       }),
       describeChange({
         action: "create-worker",
@@ -650,5 +656,94 @@ describe("describeChange", () => {
       "+ create scheduled job: php x (custom 0 3 * * *)",
       `- delete scheduled job 10: php ${A}/artisan schedule:run (minutely * * * * *)`,
     ]);
+  });
+});
+
+describe("buildPlan with database .env keys", () => {
+  it("writes the generated values into the keys of the file", () => {
+    const plan = buildPlan(
+      {
+        server: "web-1",
+        domain: "a.example.com",
+        database: {
+          name: "example",
+          user: "example",
+          env: { name: "DB_NAME", user: "DB_USER", password: "DB_PASS" },
+        },
+        env: { DB_PASS: "ignored" },
+      },
+      sharedServer({ databases: [], databaseUsers: [], env: "" }),
+    );
+
+    expect(plan.changes.at(-1)).toEqual({
+      action: "add-env",
+      keys: [],
+      generated: ["DB_NAME", "DB_USER", "DB_PASS"],
+      password: "DB_PASS",
+    });
+    expect(formatPlan(plan)).toContain("+ add .env keys: DB_NAME, DB_USER, DB_PASS=<generated>");
+  });
+
+  it("keeps the Laravel names for the keys that the file does not map", () => {
+    const plan = buildPlan(
+      {
+        server: "web-1",
+        domain: "a.example.com",
+        database: { name: "example", user: "example", env: { password: "DB_PASS" } },
+      },
+      sharedServer({ databases: [], databaseUsers: [], env: "" }),
+    );
+
+    expect(plan.changes.at(-1)).toMatchObject({
+      generated: ["DB_DATABASE", "DB_USERNAME", "DB_PASS"],
+      password: "DB_PASS",
+    });
+  });
+});
+
+describe("buildPlan with an Nginx file", () => {
+  const file: SiteFile = { server: "web-1", domain: "a.example.com", nginxTemplate: "x" };
+
+  it("writes the file once a new site exists", () => {
+    const plan = buildPlan({ ...file, type: "php" }, { sites: [], site: null, nginx: null });
+    expect(plan.changes).toEqual([
+      expect.objectContaining({ action: "create-site" }),
+      { action: "update-nginx", diff: null },
+    ]);
+    expect(formatPlan(plan)).toContain(
+      "~ write Nginx configuration (rendered once the site exists)",
+    );
+  });
+
+  it("changes nothing when the rendered file matches, after normalization", () => {
+    const plan = buildPlan(
+      file,
+      sharedServer({ nginx: { remote: "root /a;\r\n", rendered: "root /a;" } }),
+    );
+    expect(plan.changes).toEqual([]);
+  });
+
+  it("shows the diff from Forge to the rendered file", () => {
+    const plan = buildPlan(
+      file,
+      sharedServer({ nginx: { remote: "root /a;\nindex x;\n", rendered: "root /b;\nindex x;\n" } }),
+    );
+    expect(plan.changes).toEqual([
+      {
+        action: "update-nginx",
+        diff: "--- remote\n+++ local\n@@ -1,2 +1,2 @@\n-root /a;\n+root /b;\n index x;",
+      },
+    ]);
+    expect(formatPlan(plan)).toBe(
+      "~ update Nginx configuration:\n--- remote\n+++ local\n@@ -1,2 +1,2 @@\n-root /a;\n+root /b;\n index x;",
+    );
+  });
+
+  it("does not read Nginx when the file has no Nginx file", () => {
+    const plan = buildPlan(
+      { server: "web-1", domain: "a.example.com" },
+      sharedServer({ nginx: { remote: "a", rendered: "b" } }),
+    );
+    expect(plan.changes).toEqual([]);
   });
 });

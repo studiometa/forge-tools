@@ -4,10 +4,12 @@
  */
 
 import { readFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
 
 import * as v from "valibot";
 
 import { ValidationError } from "../../../errors.ts";
+import { assertNginxTemplate } from "./nginx.ts";
 
 /** URL of the JSON Schema of the site file, published with the package. */
 export const SITE_FILE_SCHEMA_URL =
@@ -65,6 +67,26 @@ export const ScheduledJobSchema = v.pipe(
   ),
 );
 
+const envName = v.pipe(
+  v.string(),
+  v.regex(/^[A-Za-z_][A-Za-z0-9_]*$/, "invalid .env variable name"),
+);
+
+/** The .env keys that a new database user gets. Default: the Laravel names. */
+export const DatabaseEnvSchema = v.pipe(
+  v.strictObject({
+    name: v.optional(envName),
+    user: v.optional(envName),
+    password: v.optional(envName),
+  }),
+  v.check(
+    (env) =>
+      new Set([env.name ?? "DB_DATABASE", env.user ?? "DB_USERNAME", env.password ?? "DB_PASSWORD"])
+        .size === 3,
+    "the .env keys of the database must be different",
+  ),
+);
+
 export const SiteFileSchema = v.strictObject({
   $schema: v.optional(v.string()),
   server: v.union([text, v.pipe(v.number(), v.integer(), v.minValue(1))]),
@@ -80,25 +102,26 @@ export const SiteFileSchema = v.strictObject({
       branch: v.optional(text),
     }),
   ),
-  database: v.optional(v.strictObject({ name: text, user: text })),
-  env: v.optional(
-    v.record(
-      v.pipe(v.string(), v.regex(/^[A-Za-z_][A-Za-z0-9_]*$/, "invalid .env variable name")),
-      v.union([v.string(), v.number(), v.boolean()]),
-    ),
+  database: v.optional(
+    v.strictObject({ name: text, user: text, env: v.optional(DatabaseEnvSchema) }),
   ),
+  env: v.optional(v.record(envName, v.union([v.string(), v.number(), v.boolean()]))),
+  nginx: v.optional(text),
   workers: v.optional(v.array(WorkerSchema)),
   schedule: v.optional(v.array(ScheduledJobSchema)),
 });
 
-export type SiteFile = v.InferOutput<typeof SiteFileSchema>;
+export type SiteFileData = v.InferOutput<typeof SiteFileSchema>;
+
+/** A site file with the content of its Nginx file, when it declares one. */
+export type SiteFile = SiteFileData & { nginxTemplate?: string };
 export type WorkerDeclaration = v.InferOutput<typeof WorkerSchema>;
 export type ScheduledJobDeclaration = v.InferOutput<typeof ScheduledJobSchema>;
 
 /**
  * Validate parsed JSON as a site file. Throws a ValidationError that lists every issue.
  */
-export function parseSiteFile(data: unknown, source = "site file"): SiteFile {
+export function parseSiteFile(data: unknown, source = "site file"): SiteFileData {
   const result = v.safeParse(SiteFileSchema, data);
   if (!result.success) {
     const issues = result.issues.map((issue) => {
@@ -111,7 +134,8 @@ export function parseSiteFile(data: unknown, source = "site file"): SiteFile {
 }
 
 /**
- * Read and validate a site file from disk.
+ * Read and validate a site file from disk, with its Nginx file: a relative `nginx` path is
+ * read against the folder of the site file.
  */
 export function readSiteFile(path: string): SiteFile {
   let content: string;
@@ -130,5 +154,16 @@ export function readSiteFile(path: string): SiteFile {
     throw new ValidationError(`Site file ${path} is not valid JSON: ${reason}`, "file");
   }
 
-  return parseSiteFile(data, `site file ${path}`);
+  const file: SiteFile = parseSiteFile(data, `site file ${path}`);
+  if (file.nginx) {
+    const nginxPath = resolve(dirname(path), file.nginx);
+    try {
+      file.nginxTemplate = readFileSync(nginxPath, "utf8");
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : String(error);
+      throw new ValidationError(`Cannot read Nginx file ${nginxPath}: ${reason}`, "nginx");
+    }
+    assertNginxTemplate(file.nginxTemplate, nginxPath);
+  }
+  return file;
 }

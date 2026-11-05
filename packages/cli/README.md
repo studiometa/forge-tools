@@ -121,6 +121,7 @@ forge config delete                            # Delete all stored config
 ```bash
 forge servers list                  # List all servers
 forge servers get <id>              # Get server details
+forge servers public-key <id>       # Print the public key of the forge user, for the git host
 forge servers reboot <id>           # Reboot a server
 forge servers create --name <name> --ip-address <ip> [--php-version php84 --database mariadb1011]
                                     # Create a server (Custom VPS by default)
@@ -155,6 +156,7 @@ forge sites apply --file site.json          # Make the site match the file
   },
   "database": { "name": "example", "user": "example" },
   "env": { "APP_ENV": "production" },
+  "nginx": "nginx.conf",
   "workers": [{ "command": "php artisan queue:work database --queue=default", "processes": 4 }],
   "schedule": [{ "command": "php artisan schedule:run", "frequency": "minutely" }]
 }
@@ -165,10 +167,43 @@ forge sites apply --file site.json          # Make the site match the file
 | `server`, `domain`                          | Find the server and the site by exact name (never a partial match, with or without `--exact`). `server` can also be an ID                                                              |
 | `type`, `php`, `webDirectory`, `repository` | Create the site when it is missing (`type` is then required) and wait until Forge installs it. On an existing site, update `php`, `webDirectory` and the branch                        |
 | `aliases`                                   | Add the missing aliases. Never remove one                                                                                                                                              |
-| `database`                                  | Create the database and the user when they are missing. A new user gets a random password, written only into the site `.env` (`DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`)             |
+| `database`                                  | Create the database and the user when they are missing. A new user gets a random password, written only into the site `.env` (`DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`, see below)  |
 | `env`                                       | Add the missing keys to the site `.env`. A key with another value on Forge is reported, never overwritten                                                                              |
+| `nginx`                                     | Nginx file, relative to the site file, with Forge template variables. Rendered for the site and written when it differs from Forge (see below)                                         |
 | `workers`                                   | Forge background processes of the site. Create the missing ones, delete the ones of the site that the file does not declare. The directory defaults to the site root                   |
 | `schedule`                                  | Forge scheduled jobs of the site (`minutely`, `hourly`, `nightly`, `weekly`, `monthly`, `reboot`, or `custom` with `cron`). A relative `artisan` becomes the absolute path of the site |
+
+For an application that does not read the Laravel names, `database.env` maps the database name, the user and the password to other `.env` keys. Each key is optional and defaults to the Laravel name. Other values, such as the host, go in `env`:
+
+```json
+{
+  "database": {
+    "name": "example",
+    "user": "example",
+    "env": { "name": "DB_NAME", "user": "DB_USER", "password": "DB_PASSWD" }
+  },
+  "env": { "DB_SERVER": "127.0.0.1" }
+}
+```
+
+`nginx` points to an Nginx file that uses the variables of [Forge Nginx templates](https://forge.laravel.com/docs/servers/nginx-templates). `apply` renders the file locally with the values of the site, so one file works on any server, without a template on the server:
+
+| Variable                                        | Value                                                                                                    |
+| ----------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| `{{SITE}}`, `{{SITE_ID}}`, `{{USER}}`           | Site name (`www.example.com`), site ID (`456`), site user (`forge`)                                      |
+| `{{DOMAINS}}`                                   | Site name and aliases, separated by spaces                                                               |
+| `{{ROOT_PATH}}`, `{{PATH}}`, `{{DIRECTORY}}`    | Site root, web directory (`/home/forge/www.example.com/public`) and its relative path (`/public`)        |
+| `{{PROXY_PASS}}`                                | PHP-FPM socket, e.g. `unix:/var/run/php/php8.3-fpm.sock` (`php8.3-fpm-<user>.sock` for an isolated site) |
+| `{{PORT}}`, `{{PORT_V6}}`                       | `80` and `[::]:80` (with `default_server` for the site named `default`)                                  |
+| `{{SERVER_PUBLIC_IP}}`, `{{SERVER_PRIVATE_IP}}` | IP addresses of the server (empty when there is no private IP)                                           |
+
+Spaces inside the braces are allowed (`{{ SITE_ID }}`). An unknown variable is an error (exit `3`). On a new site, `apply` writes the file after Forge installs the site. On an existing site, the plan shows the diff from Forge to the rendered file (CRLF and the final newline do not count), and `apply` writes it. When `apply` also changes the site or its aliases, it reads the site again and renders the file with the new values. Forge returns the full `server` block on old servers and only its content on recent ones: write the file in the same form as `forge nginx get` prints it.
+
+Forge clones the repository when it creates the site, with the key of the `forge` user of the server. Add this key to the git host (for example as a deploy key) before `apply` creates the site:
+
+```bash
+forge servers public-key web-1 > server.pub   # The key only; --format json gives { "public_key": "..." }
+```
 
 A worker or a scheduled job matches the file when its command, directory, processes (or frequency) and user are the same. Commands are compared after normalization: quotes (`'database'` and `database`), repeated spaces and a relative `artisan` (`php artisan` and `php /home/forge/www.example.com/artisan`) do not count as differences. Forge cannot update a worker: a changed worker is created again, then the old one is deleted.
 

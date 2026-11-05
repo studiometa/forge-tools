@@ -11,6 +11,7 @@ import type {
   SiteAttributes,
 } from "@studiometa/forge-api";
 
+import { unifiedDiff } from "../../../utils/drift.ts";
 import { parseEnv } from "../../env/env-diff.ts";
 import type { SiteFile } from "./site-file.ts";
 import {
@@ -51,6 +52,8 @@ export interface RemoteState {
   jobs?: ScheduledJob[];
   /** IDs of the scheduled jobs that Forge lists on the site. */
   siteJobIds?: ReadonlySet<number>;
+  /** Nginx configuration on Forge and the Nginx file rendered for the site; null when the site does not exist. */
+  nginx?: { remote: string; rendered: string } | null;
 }
 
 export interface SiteSettings {
@@ -68,7 +71,14 @@ export type Change =
   | { action: "add-alias"; name: string }
   | { action: "create-database"; name: string }
   | { action: "create-database-user"; name: string; database: string }
-  | { action: "add-env"; keys: string[]; generated: string[] }
+  | {
+      action: "add-env";
+      keys: string[];
+      /** Keys that get the database name, user and password of a new database user. */
+      generated: string[];
+      /** The generated key that holds the password; its value never shows. */
+      password?: string;
+    }
   | { action: "create-worker"; command: string; directory: string; processes: number }
   | {
       action: "delete-worker";
@@ -78,6 +88,8 @@ export type Change =
       processes: number;
     }
   | { action: "create-job"; command: string; frequency: string; cron?: string }
+  /** `diff` is null for a site that does not exist yet: the file is rendered once it exists. */
+  | { action: "update-nginx"; diff: string | null }
   | {
       action: "delete-job";
       id: number;
@@ -232,6 +244,19 @@ function planAliases(file: SiteFile, site: Site | null, changes: Change[]): void
   }
 }
 
+/** The .env keys of a new database user, from `database.env` or the Laravel names. */
+export function databaseEnvKeys(database: NonNullable<SiteFile["database"]>): {
+  name: string;
+  user: string;
+  password: string;
+} {
+  return {
+    name: database.env?.name ?? "DB_DATABASE",
+    user: database.env?.user ?? "DB_USERNAME",
+    password: database.env?.password ?? "DB_PASSWORD",
+  };
+}
+
 /**
  * Plan the database and its user. Returns the names of the .env keys that get generated values.
  */
@@ -251,7 +276,8 @@ function planDatabase(
   }
   if (!userExists) {
     changes.push({ action: "create-database-user", name: user, database: name });
-    return ["DB_DATABASE", "DB_USERNAME", "DB_PASSWORD"];
+    const keys = databaseEnvKeys(file.database);
+    return [keys.name, keys.user, keys.password];
   }
   if (!databaseExists) {
     warnings.push(
@@ -278,8 +304,20 @@ function planEnv(
     }
   }
   if (keys.length > 0 || generated.length > 0) {
-    changes.push({ action: "add-env", keys, generated });
+    const password =
+      file.database && generated.length > 0 ? databaseEnvKeys(file.database).password : undefined;
+    changes.push({ action: "add-env", keys, generated, ...(password ? { password } : {}) });
   }
+}
+
+function planNginx(file: SiteFile, state: RemoteState, changes: Change[]): void {
+  if (file.nginxTemplate === undefined) return;
+  if (!state.nginx) {
+    changes.push({ action: "update-nginx", diff: null });
+    return;
+  }
+  const diff = unifiedDiff(state.nginx.remote, state.nginx.rendered);
+  if (diff) changes.push({ action: "update-nginx", diff });
 }
 
 function describeOwnership(ownership: Ownership): string {
@@ -458,6 +496,7 @@ export function buildPlan(file: SiteFile, state: RemoteState): Plan {
   if (file.env || generated.length > 0) {
     planEnv(file, state, generated, changes, warnings);
   }
+  planNginx(file, state, changes);
   planWorkers(file, state, changes, warnings);
   planSchedule(file, state, changes, warnings);
 
@@ -492,8 +531,12 @@ export function describeChange(change: Change): string {
     case "add-env":
       return `+ add .env keys: ${[
         ...change.keys,
-        ...change.generated.map((key) => (key === "DB_PASSWORD" ? `${key}=${GENERATED}` : key)),
+        ...change.generated.map((key) => (key === change.password ? `${key}=${GENERATED}` : key)),
       ].join(", ")}`;
+    case "update-nginx":
+      return change.diff === null
+        ? "~ write Nginx configuration (rendered once the site exists)"
+        : `~ update Nginx configuration:\n${change.diff}`;
     case "create-worker":
       return `+ create worker: ${change.command} (directory: ${change.directory}, processes: ${change.processes})`;
     case "delete-worker":

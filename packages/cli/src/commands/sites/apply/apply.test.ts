@@ -56,6 +56,31 @@ describe("assertCanCreateSite", () => {
 });
 
 describe("readRemoteState", () => {
+  it("reads and renders the Nginx file of an existing site", async () => {
+    const { ctx } = fakeForge({ sites: [site(456, "a.example.com")], nginx: "root /old;" });
+    const state = await readRemoteState(
+      { server: 123, domain: "a.example.com", nginxTemplate: "root {{ PATH }};" },
+      "123",
+      ctx,
+    );
+
+    expect(state.nginx).toEqual({
+      remote: "root /old;",
+      rendered: "root /home/forge/a.example.com/public;",
+    });
+  });
+
+  it("reads no Nginx configuration when the site does not exist", async () => {
+    const { ctx } = fakeForge();
+    const state = await readRemoteState(
+      { server: 123, domain: "a.example.com", nginxTemplate: "root {{ PATH }};" },
+      "123",
+      ctx,
+    );
+
+    expect(state.nginx).toBeNull();
+  });
+
   it("reads only what the file manages", async () => {
     const { ctx, calls } = fakeForge({ sites: [site(456, "a.example.com")] });
     const state = await readRemoteState({ server: 123, domain: "a.example.com" }, "123", ctx);
@@ -381,6 +406,183 @@ describe("applySiteFile", () => {
       applySiteFile({ server: 123, domain: "a.example.com" }, "123", ctx),
     ).rejects.toThrow(ValidationError);
     expect(calls.filter(([method]) => method !== "GET")).toEqual([]);
+  });
+});
+
+describe("applySiteFile with an Nginx file", () => {
+  const template = "include forge-conf/{{ SITE_ID }}/server/*;\nroot {{ PATH }};\n";
+
+  it("renders the file for a new site and writes it once the site exists", async () => {
+    const { ctx, calls, state } = fakeForge({ newSiteStatuses: ["installing", "installed"] });
+    const changes: Change[] = [];
+    const plan = await applySiteFile(
+      { server: 123, domain: "a.example.com", type: "php", nginxTemplate: template },
+      "123",
+      ctx,
+      { sleep: async () => {}, pollIntervalMs: 1, onChange: (change) => changes.push(change) },
+    );
+
+    expect(plan.changes).toEqual([
+      expect.objectContaining({ action: "create-site" }),
+      { action: "update-nginx", diff: null },
+    ]);
+    const writes = calls.filter(([method]) => method !== "GET").map(([m, url]) => `${m} ${url}`);
+    expect(writes).toEqual([
+      "POST /orgs/org/servers/123/sites",
+      "PUT /orgs/org/servers/123/sites/999/nginx",
+    ]);
+    expect(state.nginx).toBe(
+      "include forge-conf/999/server/*;\nroot /home/forge/a.example.com/public;\n",
+    );
+    expect(changes.at(-1)).toMatchObject({
+      action: "update-nginx",
+      diff: expect.stringContaining("+root"),
+    });
+  });
+
+  it("writes the rendered file when Forge differs", async () => {
+    const { ctx, calls, state } = fakeForge({
+      sites: [site(456, "a.example.com")],
+      nginx: "include forge-conf/456/server/*;\nroot /home/forge/a.example.com/web;\n",
+    });
+    const plan = await applySiteFile(
+      { server: 123, domain: "a.example.com", nginxTemplate: template },
+      "123",
+      ctx,
+    );
+
+    expect(plan.changes).toEqual([
+      {
+        action: "update-nginx",
+        diff: expect.stringContaining("+root /home/forge/a.example.com/public;"),
+      },
+    ]);
+    expect(calls.filter(([method]) => method !== "GET")).toEqual([
+      [
+        "PUT",
+        "/orgs/org/servers/123/sites/456/nginx",
+        { config: "include forge-conf/456/server/*;\nroot /home/forge/a.example.com/public;\n" },
+      ],
+    ]);
+    expect(state.nginx).toContain("/public;");
+  });
+
+  it("changes nothing when Forge matches the rendered file", async () => {
+    const { ctx, calls } = fakeForge({
+      sites: [site(456, "a.example.com")],
+      nginx: "include forge-conf/456/server/*;\nroot /home/forge/a.example.com/public;",
+    });
+    const plan = await applySiteFile(
+      { server: 123, domain: "a.example.com", nginxTemplate: template },
+      "123",
+      ctx,
+    );
+
+    expect(plan.changes).toEqual([]);
+    expect(calls.filter(([method]) => method !== "GET")).toEqual([]);
+    expect(calls.map(([, url]) => url)).not.toContain("/orgs/org/servers/123");
+  });
+
+  it("reads the server only for the SERVER_ variables", async () => {
+    const { ctx, state } = fakeForge({ sites: [site(456, "a.example.com")] });
+    await applySiteFile(
+      {
+        server: 123,
+        domain: "a.example.com",
+        nginxTemplate: "allow {{ SERVER_PRIVATE_IP }};\nset_real_ip_from {{ SERVER_PUBLIC_IP }};",
+      },
+      "123",
+      ctx,
+    );
+
+    expect(state.nginx).toBe("allow 10.0.0.10;\nset_real_ip_from 203.0.113.10;");
+  });
+
+  it("renders again after a change of the site", async () => {
+    const forge = fakeForge({
+      sites: [site(456, "a.example.com")],
+      nginx: "include forge-conf/456/server/*;\nroot /home/forge/a.example.com/public;\n",
+    });
+    const put = forge.client.put.getMockImplementation()!;
+    forge.client.put.mockImplementation(async (url: string, body: Record<string, unknown>) => {
+      if (url.endsWith("/sites/456")) {
+        forge.state.sites[0] = {
+          ...forge.state.sites[0],
+          web_directory: "/home/forge/a.example.com/web",
+        };
+      }
+      return put(url, body);
+    });
+
+    await applySiteFile(
+      { server: 123, domain: "a.example.com", webDirectory: "/web", nginxTemplate: template },
+      "123",
+      forge.ctx,
+    );
+
+    const writes = forge.calls.filter(([method]) => method !== "GET");
+    expect(writes.map(([m, url]) => `${m} ${url}`)).toEqual([
+      "PUT /orgs/org/servers/123/sites/456",
+      "PUT /orgs/org/servers/123/sites/456/nginx",
+    ]);
+    expect(forge.state.nginx).toContain("root /home/forge/a.example.com/web;");
+  });
+
+  it("does not read the site again when nothing changes", async () => {
+    const { ctx, calls } = fakeForge({ sites: [site(456, "a.example.com")] });
+    await applySiteFile(
+      { server: 123, domain: "a.example.com", aliases: ["a.example.com"], nginxTemplate: "" },
+      "123",
+      ctx,
+    );
+
+    expect(calls.map(([, url]) => url)).not.toContain("/orgs/org/sites/456");
+  });
+});
+
+describe("applySiteFile with database .env keys", () => {
+  it("writes the generated values into the keys of the file", async () => {
+    const { ctx, state } = fakeForge({ sites: [site(456, "a.example.com")] });
+    const plan = await applySiteFile(
+      {
+        server: 123,
+        domain: "a.example.com",
+        database: {
+          name: "example",
+          user: "example_user",
+          env: { name: "DB_NAME", user: "DB_USER", password: "DB_PASS" },
+        },
+      },
+      "123",
+      ctx,
+      { generatePassword: () => "s3cr3t" },
+    );
+
+    expect(state.env).toBe("DB_NAME=example\nDB_USER=example_user\nDB_PASS=s3cr3t\n");
+    expect(JSON.stringify(plan)).not.toContain("s3cr3t");
+  });
+});
+
+describe("applySiteFile repository hint", () => {
+  it("points to the public key of the server when a site with a repository is not installed", async () => {
+    const { ctx } = fakeForge({ newSiteStatuses: ["installing", "installing"] });
+    const file: SiteFile = {
+      server: 123,
+      domain: "a.example.com",
+      type: "php",
+      repository: { provider: "custom", url: "git@git.example.com:group/a.git" },
+    };
+
+    const error = await applySiteFile(file, "123", ctx, {
+      sleep: async () => {},
+      pollIntervalMs: 10,
+      timeoutMs: 10,
+    }).catch((caught: unknown) => caught);
+
+    expect(error).toBeInstanceOf(ApplyError);
+    expect((error as ApplyError).hints).toContain(
+      "Check that the git host accepts the key of the server: forge servers public-key 123",
+    );
   });
 });
 
