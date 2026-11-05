@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file. Each pull r
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.5.3 - 2026-11-05
+
+### Added
+
+- **CLI**: Add `nginx` to the site file of `forge sites apply`: an Nginx file with Forge template variables, rendered for the site, compared with Forge and written when it differs ([#151])
+- **CLI**: Add `database.env` to the site file of `forge sites apply` to write the database name, user and password into other `.env` keys ([#151])
+- **CLI**: Add `forge servers public-key <server>` to print the public key of the `forge` user, the key that the git host must accept ([#151])
+
+[#151]: https://github.com/studiometa/forge-tools/pull/151
+
 ## 0.5.2 - 2026-11-05
 
 ### Added
