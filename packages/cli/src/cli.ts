@@ -75,6 +75,7 @@ ${colors.bold("COMMANDS:")}
   sites               Manage sites
     list, ls            List sites (requires --server)
     get <id>            Get site details (requires --server)
+    apply               Make a site match a site file (--file, --check)
 
   deployments, d      Manage deployments
     list, ls            List deployments (requires --server --site)

@@ -9,7 +9,7 @@ export default defineConfig({
       index: "./src/index.ts",
       cli: "./src/cli.ts",
     },
-    external: [/^@studiometa\/forge-api/, /^@studiometa\/forge-core/],
+    external: [/^@studiometa\/forge-api/, /^@studiometa\/forge-core/, /^valibot/],
   }),
   test: createTestConfig({
     name: "cli",

@@ -32,4 +32,10 @@ describe("showSitesHelp", () => {
     showSitesHelp("get");
     expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining("site_id"));
   });
+
+  it("should show apply help", () => {
+    showSitesHelp("apply");
+    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining("forge sites apply"));
+    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining("--check"));
+  });
 });

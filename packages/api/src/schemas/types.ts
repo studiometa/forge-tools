@@ -88,6 +88,16 @@ export const UpdateSiteDataSchema = v.object({
 
 export type UpdateSiteData = v.InferOutput<typeof UpdateSiteDataSchema>;
 
+// ── Domains ──────────────────────────────────────────
+
+export const CreateDomainDataSchema = v.object({
+  name: v.string(),
+  allow_wildcard_subdomains: v.boolean(),
+  www_redirect_type: v.picklist(["from-www", "to-www", "none"]),
+});
+
+export type CreateDomainData = v.InferOutput<typeof CreateDomainDataSchema>;
+
 // ── Certificates ─────────────────────────────────────
 
 export const CreateCertificateDataSchema = v.object({
@@ -155,6 +165,7 @@ export type UpdateDatabaseUserData = v.InferOutput<typeof UpdateDatabaseUserData
 
 export const CreateDaemonDataSchema = v.object({
   name: v.string(),
+  site_id: v.optional(v.number()),
   command: v.string(),
   user: v.string(),
   directory: v.optional(v.nullable(v.string())),

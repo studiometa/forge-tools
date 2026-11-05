@@ -75,6 +75,10 @@ export type {
   UpdateDeploymentScriptOptions,
 } from "./executors/deployments/index.ts";
 
+// Domains
+export { createDomain } from "./executors/domains/index.ts";
+export type { CreateDomainOptions } from "./executors/domains/index.ts";
+
 // Certificates
 export {
   activateCertificate,

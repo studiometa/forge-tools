@@ -23,7 +23,7 @@ _forge_completions() {
   # Subcommands for each command
   local config_cmds="set get delete"
   local servers_cmds="list ls get create reboot"
-  local sites_cmds="list ls get"
+  local sites_cmds="list ls get apply"
   local deployments_cmds="list ls deploy logs log script update-script"
   local databases_cmds="list ls get"
   local database_users_cmds="list ls get create delete"
@@ -246,6 +246,7 @@ _forge() {
             'list:List sites'
             'ls:List sites (alias)'
             'get:Get site details'
+            'apply:Make a site match a site file'
           )
           _describe 'sites command' sites_cmds
           ;;
@@ -600,6 +601,7 @@ complete -c forge -f -n "__fish_seen_subcommand_from servers s" -a "reboot" -d "
 complete -c forge -f -n "__fish_seen_subcommand_from sites" -a "list" -d "List sites"
 complete -c forge -f -n "__fish_seen_subcommand_from sites" -a "ls" -d "List sites (alias)"
 complete -c forge -f -n "__fish_seen_subcommand_from sites" -a "get" -d "Get site details"
+complete -c forge -f -n "__fish_seen_subcommand_from sites" -a "apply" -d "Make a site match a site file"
 
 # deployments subcommands
 complete -c forge -f -n "__fish_seen_subcommand_from deployments d" -a "list" -d "List deployments"

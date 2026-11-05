@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { mockListDocument } from "../../test-helpers.ts";
 import { createTestExecutorContext } from "../../context.ts";
@@ -36,5 +36,32 @@ describe("listDaemons", () => {
     });
     const result = await listDaemons({ server_id: "1" }, ctx);
     expect(result.data).toHaveLength(0);
+  });
+
+  it("filters on the site when site_id is given", async () => {
+    const get = vi.fn(async () => mockListDocument("background-processes", []));
+    const ctx = createTestExecutorContext({ client: { get } as never, organizationSlug: "org" });
+
+    await listDaemons({ server_id: "123", site_id: "456" }, ctx);
+
+    expect(decodeURIComponent(get.mock.calls[0][0] as string)).toBe(
+      "/orgs/org/servers/123/background-processes?filter[site_id]=456",
+    );
+  });
+
+  it("follows the next pages", async () => {
+    const first = mockListDocument("background-processes", []);
+    const get = vi
+      .fn()
+      .mockResolvedValueOnce({ ...first, meta: { ...first.meta, next_cursor: "c2" } })
+      .mockResolvedValueOnce(first);
+    const ctx = createTestExecutorContext({ client: { get } as never, organizationSlug: "org" });
+
+    await listDaemons({ server_id: "123" }, ctx);
+
+    expect(get).toHaveBeenCalledTimes(2);
+    expect(decodeURIComponent(get.mock.calls[1][0] as string)).toBe(
+      "/orgs/org/servers/123/background-processes?page[cursor]=c2",
+    );
   });
 });

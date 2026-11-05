@@ -22,6 +22,7 @@ import {
   NginxTemplateAttributesSchema,
   RecipeAttributesSchema,
   ScheduledJobAttributesSchema,
+  DomainAttributesSchema,
   CommandAttributesSchema,
   BackupConfigAttributesSchema,
   BackupAttributesSchema,
@@ -563,4 +564,19 @@ testSchema(
   PhpOpcacheAttributesSchema,
   { opcache_enabled: true },
   { opcache_enabled: "yes" },
+);
+
+testSchema(
+  "DomainAttributesSchema",
+  DomainAttributesSchema,
+  {
+    name: "example.com",
+    type: "alias",
+    status: "enabled",
+    www_redirect_type: "none",
+    allow_wildcard_subdomains: false,
+    created_at: "2024-01-01T00:00:00Z",
+    updated_at: null,
+  },
+  { name: 123 },
 );
