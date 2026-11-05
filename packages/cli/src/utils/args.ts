@@ -26,6 +26,12 @@ function isOptionValue(arg: string): boolean {
 const REPEATABLE = new Set(["server", "tag", "databases"]);
 
 /**
+ * Long options that never take a value, so the argument after them stays a command
+ * or a positional argument (`forge --exact deployments deploy`).
+ */
+const FLAGS = new Set(["exact"]);
+
+/**
  * Set an option value. A repeatable option given more than once collects its string
  * values into an array (`--server 1 --server 2` → `["1", "2"]`).
  */
@@ -66,7 +72,7 @@ export function parseArgs(argv: string[] = process.argv.slice(2)): ParsedArgs {
         const key = arg.slice(2);
         const nextArg = argv[i + 1];
 
-        if (nextArg !== undefined && isOptionValue(nextArg)) {
+        if (!FLAGS.has(key) && nextArg !== undefined && isOptionValue(nextArg)) {
           setOption(options, key, nextArg);
           i++;
         } else {

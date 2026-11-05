@@ -15,12 +15,34 @@ import { ConfigError } from "./errors.ts";
 import { createConfigStore, getToken, getOrganizationSlug } from "./config.ts";
 import { OutputFormatter } from "./output.ts";
 
+/**
+ * Executor context of the CLI. It also tells the resolvers of --server and --site
+ * how to match names.
+ */
+export interface CliExecutorContext extends ExecutorContext {
+  /** Accept only a numeric ID or an exact name (`--exact` or `FORGE_EXACT_MATCH=1`). */
+  readonly exactMatch: boolean;
+}
+
 export interface CommandOptions {
   [key: string]: string | boolean | string[] | undefined;
   format?: string;
   f?: string;
   token?: string;
   "no-color"?: boolean;
+  exact?: boolean;
+}
+
+/**
+ * Whether --server and --site must match an exact name: the `--exact` flag or the
+ * `FORGE_EXACT_MATCH` environment variable (`1` or `true`) turns it on.
+ */
+export function isExactMatch(
+  options: CommandOptions,
+  env: Record<string, string | undefined> = process.env,
+): boolean {
+  const value = env.FORGE_EXACT_MATCH?.trim().toLowerCase();
+  return options.exact === true || value === "1" || value === "true";
 }
 
 /**
@@ -32,7 +54,7 @@ export interface CommandContext {
   /** Raw CLI options */
   readonly options: CommandOptions;
   /** Create an ExecutorContext from this command context */
-  createExecutorContext(token: string): ExecutorContext;
+  createExecutorContext(token: string): CliExecutorContext;
   /** Resolve the API token or throw ConfigError */
   getToken(): string;
 }
@@ -45,18 +67,19 @@ export function createContext(options: CommandOptions = {}): CommandContext {
   const format: OutputFormat = isOutputFormat(rawFormat) ? rawFormat : "human";
   const noColor = options["no-color"] === true;
   const formatter = new OutputFormatter(format, noColor);
+  const exactMatch = isExactMatch(options);
 
   return {
     formatter,
     options,
 
-    createExecutorContext(token: string): ExecutorContext {
+    createExecutorContext(token: string): CliExecutorContext {
       const client: HttpClient = new ForgeHttpClient({ token });
       const orgSlug =
         (typeof options.org === "string" && options.org) ||
         getOrganizationSlug(createConfigStore()) ||
         undefined;
-      return { client, organizationSlug: orgSlug };
+      return { client, organizationSlug: orgSlug, exactMatch };
     },
 
     getToken(): string {
@@ -102,13 +125,17 @@ export function createTestContext(overrides: {
   return {
     formatter,
     options: opts,
-    createExecutorContext(_token: string): ExecutorContext {
+    createExecutorContext(_token: string): CliExecutorContext {
       if (!overrides.mockClient) {
         throw new Error(
           "createTestContext: provide mockClient to use createExecutorContext in tests",
         );
       }
-      return { client: overrides.mockClient, organizationSlug: "test-org" };
+      return {
+        client: overrides.mockClient,
+        organizationSlug: "test-org",
+        exactMatch: isExactMatch(opts, {}),
+      };
     },
     getToken(): string {
       if (overrides.token) return overrides.token;

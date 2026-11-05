@@ -340,10 +340,22 @@ All write operations (`deploy`, `create`, `delete`, `reboot`, `restart`, `update
 | `--org <slug>`    |       | Organization slug (overrides config and env)     |
 | `--server <id>`   |       | Server ID or name (auto-resolved if non-numeric) |
 | `--site <id>`     |       | Site ID or domain (auto-resolved if non-numeric) |
+| `--exact`         |       | Match `--server` and `--site` names exactly      |
 | `--format <fmt>`  | `-f`  | Output format: `json`, `human`, `table`          |
 | `--no-color`      |       | Disable colored output                           |
 | `--help`          | `-h`  | Show help                                        |
 | `--version`       | `-v`  | Show version                                     |
+
+### Exact name matching
+
+`--server` and `--site` accept a numeric ID or a name. A name resolves to the server or site with that exact name first, then to a single partial match: `--site example.com` resolves to `shop.example.com` when no site is named `example.com`.
+
+In CI and scripts, turn on exact matching with the `--exact` flag or the `FORGE_EXACT_MATCH=1` environment variable. A name must then match exactly (case-insensitive); otherwise the command fails and lists the near matches.
+
+```bash
+FORGE_EXACT_MATCH=1 forge deployments deploy --server 123 --site example.com
+forge deployments deploy --server 123 --site example.com --exact
+```
 
 ## AI Agent Integration
 

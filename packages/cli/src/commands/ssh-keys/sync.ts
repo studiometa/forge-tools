@@ -1,7 +1,7 @@
 import type { ExecutorContext } from "@studiometa/forge-core";
 import { createSshKey, deleteSshKey, listServers, listSshKeys } from "@studiometa/forge-core";
 
-import type { CommandContext } from "../../context.ts";
+import type { CliExecutorContext, CommandContext } from "../../context.ts";
 import type { FileKey, SyncPlan } from "./sync-plan.ts";
 
 import {
@@ -82,7 +82,7 @@ function readFileKeys(ctx: CommandContext): FileKey[] {
 async function resolveTargets(
   values: string[],
   allServers: boolean,
-  execCtx: ExecutorContext,
+  execCtx: CliExecutorContext,
 ): Promise<Array<{ id: number; name: string }>> {
   const servers = (await listServers({}, execCtx)).data;
   if (allServers) {
@@ -91,7 +91,7 @@ async function resolveTargets(
 
   const targets = new Map<number, string>();
   for (const value of values) {
-    const id = Number(matchServerId(value, servers));
+    const id = Number(matchServerId(value, servers, execCtx.exactMatch));
     targets.set(id, servers.find((s) => s.id === id)?.name ?? String(id));
   }
   return [...targets].map(([id, name]) => ({ id, name }));

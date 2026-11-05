@@ -208,6 +208,7 @@ ${colors.bold("OPTIONS:")}
   --org <slug>        Organization slug (overrides config and FORGE_ORG)
   --server <id>       Server ID (required for server-scoped commands)
   --site <id>         Site ID (required for site-scoped commands)
+  --exact             Match --server and --site names exactly (no partial match)
   --domain <id>       Domain record ID (for certificate commands)
   -f, --format <fmt>  Output format: json, human, table (default: human)
   --no-color          Disable colored output
@@ -241,6 +242,7 @@ ${colors.bold("CREDENTIAL PRIORITY:")}
 ${colors.bold("ENVIRONMENT VARIABLES:")}
   FORGE_API_TOKEN    API token
   FORGE_ORG          Organization slug (e.g. studio-meta)
+  FORGE_EXACT_MATCH  Set to 1 to match --server and --site names exactly (same as --exact)
   NO_COLOR           Disable colors
   XDG_CONFIG_HOME    Config directory (respects XDG spec)
 `);

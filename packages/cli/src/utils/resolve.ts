@@ -2,104 +2,130 @@
  * Smart resolution utilities for --server and --site options.
  *
  * Accepts numeric IDs (used as-is) or plain strings (resolved by name/partial match).
+ * In exact mode (`--exact` or `FORGE_EXACT_MATCH=1`), a plain string must match a name exactly.
  */
 
 import { listServers, listSites, matchByName } from "@studiometa/forge-core";
-import type { ExecutorContext } from "@studiometa/forge-core";
+import type { CliExecutorContext } from "../context.ts";
 import { ValidationError } from "../errors.ts";
 
-/**
- * Resolve a --server value to a numeric server ID string.
- *
- * - Numeric string → returned as-is (no API call)
- * - Plain string → fetch all servers, exact match first, then partial match
- *   - 0 matches → ValidationError listing available servers
- *   - 2+ matches → ValidationError listing ambiguous matches
- */
-export async function resolveServerId(value: string, execCtx: ExecutorContext): Promise<string> {
-  if (/^\d+$/.test(value)) {
-    return value;
-  }
+interface NamedResource {
+  id: number;
+  name: string;
+}
 
-  const result = await listServers({}, execCtx);
-  return matchServerId(value, result.data);
+const EXACT_MATCH_HINT =
+  "Pass the numeric ID or the exact name, or turn off exact matching: remove --exact and unset FORGE_EXACT_MATCH";
+
+function formatResources(resources: NamedResource[]): string {
+  return resources.map((r) => `  ${r.name} (${r.id})`).join("\n");
 }
 
 /**
- * Resolve a --server value to a numeric server ID string, against a list of servers
- * that is already loaded. Same rules as {@link resolveServerId}, with no API call.
+ * Match a --server or --site value against a list of resources.
+ *
+ * - Numeric string → returned as-is
+ * - Exact name (case-insensitive) → its ID
+ * - Exact mode: no exact name → ValidationError listing the near (partial) matches
+ * - Otherwise one partial match → its ID; 0 or 2+ partial matches → ValidationError
  */
-export function matchServerId(value: string, servers: Array<{ id: number; name: string }>): string {
+function matchResourceId(
+  value: string,
+  resources: NamedResource[],
+  kind: "server" | "site",
+  scope: string,
+  exactMatch: boolean,
+): string {
   if (/^\d+$/.test(value)) {
     return value;
   }
 
-  const { exact, partial } = matchByName(servers, value, (s) => s.name);
+  const { exact, partial } = matchByName(resources, value, (r) => r.name);
 
   if (exact.length === 1) {
     return String(exact[0].id);
   }
 
+  if (exactMatch && exact.length === 0) {
+    const candidates =
+      partial.length > 0
+        ? `Near matches:\n${formatResources(partial)}`
+        : `Available ${kind}s:\n${formatResources(resources)}`;
+    throw new ValidationError(`No ${kind} named "${value}"${scope} (exact match required)`, kind, [
+      candidates,
+      EXACT_MATCH_HINT,
+    ]);
+  }
+
   if (partial.length === 0) {
-    const available = servers.map((s) => `  ${s.name} (${s.id})`).join("\n");
-    throw new ValidationError(`No server found matching "${value}"`, "server", [
-      `Available servers:\n${available}`,
+    throw new ValidationError(`No ${kind} found matching "${value}"${scope}`, kind, [
+      `Available ${kind}s:\n${formatResources(resources)}`,
     ]);
   }
 
   if (partial.length > 1) {
-    const matches = partial.map((s) => `  ${s.name} (${s.id})`).join("\n");
     throw new ValidationError(
-      `Ambiguous server name "${value}" — ${partial.length} matches found`,
-      "server",
-      [`Matching servers:\n${matches}`, "Use a more specific name or pass the numeric ID"],
+      `Ambiguous ${kind} name "${value}" — ${partial.length} matches found`,
+      kind,
+      [
+        `Matching ${kind}s:\n${formatResources(partial)}`,
+        "Use a more specific name or pass the numeric ID",
+      ],
     );
   }
 
   return String(partial[0].id);
+}
+
+/**
+ * Resolve a --server value to a numeric server ID string.
+ *
+ * - Numeric string → returned as-is (no API call)
+ * - Plain string → fetch all servers, then see {@link matchServerId}
+ */
+export async function resolveServerId(value: string, execCtx: CliExecutorContext): Promise<string> {
+  if (/^\d+$/.test(value)) {
+    return value;
+  }
+
+  const result = await listServers({}, execCtx);
+  return matchServerId(value, result.data, execCtx.exactMatch);
+}
+
+/**
+ * Resolve a --server value to a numeric server ID string, against a list of servers
+ * that is already loaded, with no API call.
+ *
+ * - Exact name match first, then a single partial match (unless `exactMatch`)
+ *   - 0 matches → ValidationError listing available servers (near matches in exact mode)
+ *   - 2+ matches → ValidationError listing ambiguous matches
+ */
+export function matchServerId(
+  value: string,
+  servers: NamedResource[],
+  exactMatch: boolean,
+): string {
+  return matchResourceId(value, servers, "server", "", exactMatch);
 }
 
 /**
  * Resolve a --site value to a numeric site ID string.
  *
  * - Numeric string → returned as-is (no API call)
- * - Plain string → fetch all sites for the server, exact domain match first, then partial
- *   - 0 matches → ValidationError listing available sites
+ * - Plain string → fetch all sites for the server, exact domain match first, then a single
+ *   partial match (unless `execCtx.exactMatch`)
+ *   - 0 matches → ValidationError listing available sites (near matches in exact mode)
  *   - 2+ matches → ValidationError listing ambiguous matches
  */
 export async function resolveSiteId(
   value: string,
   serverId: string,
-  execCtx: ExecutorContext,
+  execCtx: CliExecutorContext,
 ): Promise<string> {
   if (/^\d+$/.test(value)) {
     return value;
   }
 
   const result = await listSites({ server_id: serverId }, execCtx);
-  const sites = result.data;
-
-  const { exact, partial } = matchByName(sites, value, (s) => s.name);
-
-  if (exact.length === 1) {
-    return String(exact[0].id);
-  }
-
-  if (partial.length === 0) {
-    const available = sites.map((s) => `  ${s.name} (${s.id})`).join("\n");
-    throw new ValidationError(`No site found matching "${value}" on server ${serverId}`, "site", [
-      `Available sites:\n${available}`,
-    ]);
-  }
-
-  if (partial.length > 1) {
-    const matches = partial.map((s) => `  ${s.name} (${s.id})`).join("\n");
-    throw new ValidationError(
-      `Ambiguous site name "${value}" — ${partial.length} matches found`,
-      "site",
-      [`Matching sites:\n${matches}`, "Use a more specific name or pass the numeric ID"],
-    );
-  }
-
-  return String(partial[0].id);
+  return matchResourceId(value, result.data, "site", ` on server ${serverId}`, execCtx.exactMatch);
 }
