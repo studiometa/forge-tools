@@ -351,6 +351,29 @@ describe("applySiteFile", () => {
     ).rejects.toThrow(ApplyError);
   });
 
+  it("waits with a real timer by default", async () => {
+    const { ctx } = fakeForge({ newSiteStatuses: ["installing", "installed"] });
+
+    await applySiteFile({ server: 123, domain: "a.example.com", type: "php" }, "123", ctx, {
+      pollIntervalMs: 1,
+    });
+  });
+
+  it("stops when the new site is not listed after its creation", async () => {
+    const forge = fakeForge();
+    const post = forge.client.post.getMockImplementation()!;
+    forge.client.post.mockImplementation(async (url: string, body: Record<string, unknown>) => {
+      const created = await post(url, body);
+      forge.state.sites.length = 0;
+      forge.state.sites.push(site(999, "other.example.com"));
+      return created;
+    });
+
+    await expect(
+      applySiteFile({ server: 123, domain: "a.example.com", type: "php" }, "123", forge.ctx),
+    ).rejects.toThrow("Site a.example.com is not on server 123 after its creation");
+  });
+
   it("refuses to create a site without a type", async () => {
     const { ctx, calls } = fakeForge();
 
@@ -358,5 +381,13 @@ describe("applySiteFile", () => {
       applySiteFile({ server: 123, domain: "a.example.com" }, "123", ctx),
     ).rejects.toThrow(ValidationError);
     expect(calls.filter(([method]) => method !== "GET")).toEqual([]);
+  });
+});
+
+describe("fakeForge", () => {
+  it("rejects a route it does not know", async () => {
+    const { client } = fakeForge();
+    await expect(client.get("/orgs/org/unknown")).rejects.toThrow("Unexpected GET");
+    await expect(client.post("/orgs/org/unknown", {})).rejects.toThrow("Unexpected POST");
   });
 });

@@ -498,6 +498,31 @@ describe("buildPlan", () => {
   });
 });
 
+describe("relative directories from Forge", () => {
+  it("reads a relative web directory against the site root", () => {
+    const relative = site(456, "a.example.com", { root_directory: "/", web_directory: "/public" });
+    const state = { sites: [relative], site: relative };
+
+    expect(
+      buildPlan({ server: "web-1", domain: "a.example.com", webDirectory: "/public" }, state),
+    ).toEqual({ changes: [], warnings: [] });
+    expect(
+      buildPlan({ server: "web-1", domain: "a.example.com", webDirectory: "/web" }, state).changes,
+    ).toEqual([
+      { action: "update-site", changes: [{ field: "web_directory", from: "/public", to: "/web" }] },
+    ]);
+  });
+
+  it("never turns a relative root directory into the root of the server", () => {
+    expect(siteRoots([site(1, "a.example.com", { root_directory: "/" })])).toEqual([
+      { id: 1, roots: ["/home/forge/a.example.com"] },
+    ]);
+    expect(siteRoots([site(2, "b.example.com", { root_directory: "/current" })])).toEqual([
+      { id: 2, roots: ["/home/forge/b.example.com", "/home/forge/b.example.com/current"] },
+    ]);
+  });
+});
+
 describe("siteRoots", () => {
   it("gives the site folder and the root directory", () => {
     expect(
@@ -525,6 +550,11 @@ describe("describeChange", () => {
   it("prints every change on one line, with full command and id for deletions", () => {
     const lines = [
       describeChange({ action: "create-site", name: "a.example.com", settings: {} }),
+      describeChange({
+        action: "create-site",
+        name: "a.example.com",
+        settings: { type: "php", php_version: "php83", branch: undefined },
+      }),
       describeChange({
         action: "update-site",
         changes: [{ field: "branch", from: null, to: "main" }],
@@ -568,6 +598,7 @@ describe("describeChange", () => {
 
     expect(lines).toEqual([
       "+ create site a.example.com",
+      "+ create site a.example.com (type: php, php_version: php83)",
       "~ update site: branch (none) → main",
       "+ add alias example.com",
       "+ create database example",

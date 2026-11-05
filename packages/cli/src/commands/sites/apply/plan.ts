@@ -18,6 +18,7 @@ import {
   type SiteRoots,
   canonicalCommand,
   daemonOwnership,
+  isPathInside,
   normalizePath,
   resolvePath,
   scheduledJobOwnership,
@@ -99,7 +100,19 @@ export function siteHome(site: Pick<Site, "user" | "name">): string {
 
 /** The directory that workers run in and relative `artisan` resolves against. */
 export function siteWorkDirectory(site: Pick<Site, "user" | "name" | "root_directory">): string {
-  return normalizePath(site.root_directory || siteHome(site));
+  return inSiteHome(site, site.root_directory || "/");
+}
+
+/**
+ * Read a directory of a site, absolute (`/home/forge/example.com/public`) or relative to the
+ * site folder (`/public`), as an absolute path inside the site folder. A relative `/` never
+ * becomes the root of the server.
+ */
+function inSiteHome(site: Pick<Site, "user" | "name">, directory: string): string {
+  const home = siteHome(site);
+  return isPathInside(directory, home)
+    ? normalizePath(directory)
+    : resolvePath(home, directory.replace(/^\/+/, ""));
 }
 
 /** The paths that belong to each site, for ownership. */
@@ -172,8 +185,13 @@ function planSite(file: SiteFile, site: Site | null, changes: Change[], warnings
     updates.push({ field: "php_version", from: site.php_version, to: file.php });
   }
   if (file.webDirectory) {
-    const expected = resolvePath(siteWorkDirectory(site), file.webDirectory.replace(/^\/+/, ""));
-    if (normalizePath(site.web_directory) !== expected) {
+    const root = siteWorkDirectory(site);
+    const expected = resolvePath(root, file.webDirectory.replace(/^\/+/, ""));
+    // Forge gives an absolute path; a relative one is read against the site root.
+    const remote = isPathInside(site.web_directory, root)
+      ? normalizePath(site.web_directory)
+      : resolvePath(root, site.web_directory.replace(/^\/+/, ""));
+    if (remote !== expected) {
       updates.push({ field: "web_directory", from: site.web_directory, to: file.webDirectory });
     }
   }
