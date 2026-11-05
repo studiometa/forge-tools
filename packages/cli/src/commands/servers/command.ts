@@ -1,5 +1,11 @@
 import { createCommandRouter } from "../../utils/command-router.ts";
-import { serversList, serversGet, serversCreate, serversReboot } from "./handlers.ts";
+import {
+  serversList,
+  serversGet,
+  serversCreate,
+  serversReboot,
+  serversPublicKey,
+} from "./handlers.ts";
 
 export const handleServersCommand = createCommandRouter({
   resource: "servers",
@@ -7,6 +13,7 @@ export const handleServersCommand = createCommandRouter({
     list: serversList,
     ls: serversList,
     get: [serversGet, "args"],
+    "public-key": [serversPublicKey, "args"],
     create: serversCreate,
     reboot: [serversReboot, "args"],
   },

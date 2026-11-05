@@ -3,7 +3,13 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import type { ServerAttributes } from "@studiometa/forge-api";
 
 import { createTestContext } from "../../context.ts";
-import { serversList, serversGet, serversCreate, serversReboot } from "./handlers.ts";
+import {
+  serversList,
+  serversGet,
+  serversCreate,
+  serversReboot,
+  serversPublicKey,
+} from "./handlers.ts";
 
 vi.mock("@studiometa/forge-core", () => ({
   listServers: vi.fn(),
@@ -446,5 +452,66 @@ describe("serversCreate", () => {
 
     await serversCreate(ctx);
     expect(processExitSpy).toHaveBeenCalled();
+  });
+});
+
+describe("serversPublicKey", () => {
+  let processExitSpy: ReturnType<typeof vi.spyOn>;
+  const key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIExample root@web-1";
+
+  beforeEach(() => {
+    processExitSpy = vi.spyOn(process, "exit").mockImplementation(() => undefined as never);
+    vi.spyOn(console, "log").mockImplementation(() => {});
+    vi.spyOn(console, "error").mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("prints only the key in human format", async () => {
+    const { getServer } = await import("@studiometa/forge-core");
+    vi.mocked(getServer).mockResolvedValue({
+      data: { ...mockServer, local_public_key: `${key}\n` },
+    });
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "human" },
+    });
+
+    await serversPublicKey(["1"], ctx);
+    expect(vi.mocked(console.log).mock.calls).toEqual([[key]]);
+  });
+
+  it("prints { public_key } in json format", async () => {
+    const { getServer } = await import("@studiometa/forge-core");
+    vi.mocked(getServer).mockResolvedValue({ data: { ...mockServer, local_public_key: key } });
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "json" },
+    });
+
+    await serversPublicKey(["1"], ctx);
+    expect(JSON.parse(String(vi.mocked(console.log).mock.calls[0][0]))).toEqual({
+      public_key: key,
+    });
+  });
+
+  it("exits with not found when the server has no key yet", async () => {
+    const { getServer } = await import("@studiometa/forge-core");
+    vi.mocked(getServer).mockResolvedValue({ data: { ...mockServer, local_public_key: null } });
+    const ctx = createTestContext({ token: "test", mockClient: {} as never, options: {} });
+
+    await serversPublicKey(["1"], ctx);
+    expect(processExitSpy).toHaveBeenCalledWith(5);
+  });
+
+  it("exits with a validation error without a server", async () => {
+    const ctx = createTestContext({ token: "test", mockClient: {} as never, options: {} });
+
+    await serversPublicKey([], ctx).catch(() => {});
+    expect(processExitSpy).toHaveBeenCalledWith(3);
   });
 });

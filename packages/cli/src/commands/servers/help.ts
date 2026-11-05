@@ -35,6 +35,28 @@ ${colors.bold("EXAMPLES:")}
   forge servers get 123
   forge servers get 123 --format json
 `);
+  } else if (subcommand === "public-key") {
+    console.log(`
+${colors.bold("forge servers public-key")} - Print the public key of the forge user
+
+${colors.bold("USAGE:")}
+  forge servers public-key <server_id> [options]
+
+${colors.bold("ARGUMENTS:")}
+  <server_id>         Server ID or name (required)
+
+${colors.bold("OPTIONS:")}
+  -f, --format <fmt>  Output format: json ({ "public_key": "..." }), human (the key only)
+
+Forge clones repositories as the forge user, with this key (~/.ssh/id_rsa.pub).
+Add it to the git host (e.g. as a deploy key) before you create a site with a
+repository. It is not the key of GET /servers/{id}/key: that key lets Forge
+connect to the server.
+
+${colors.bold("EXAMPLES:")}
+  forge servers public-key 123
+  forge servers public-key 123 > server.pub
+`);
   } else if (subcommand === "create") {
     console.log(`
 ${colors.bold("forge servers create")} - Create a server
@@ -91,6 +113,7 @@ ${colors.bold("ALIASES:")}
 ${colors.bold("SUBCOMMANDS:")}
   list, ls            List all servers
   get <id>            Get server details
+  public-key <id>     Print the public key of the forge user
   create              Create a server (requires --name, and --ip-address for custom)
   reboot <id>         Reboot a server
 

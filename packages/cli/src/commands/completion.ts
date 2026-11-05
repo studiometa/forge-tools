@@ -22,7 +22,7 @@ _forge_completions() {
 
   # Subcommands for each command
   local config_cmds="set get delete"
-  local servers_cmds="list ls get create reboot"
+  local servers_cmds="list ls get public-key create reboot"
   local sites_cmds="list ls get apply"
   local deployments_cmds="list ls deploy logs log script update-script"
   local databases_cmds="list ls get"
@@ -235,6 +235,7 @@ _forge() {
             'list:List all servers'
             'ls:List all servers (alias)'
             'get:Get server details'
+            'public-key:Print the public key of the forge user'
             'create:Create a server'
             'reboot:Reboot a server'
           )
@@ -594,6 +595,7 @@ complete -c forge -f -n "__fish_seen_subcommand_from config" -a "delete" -d "Del
 complete -c forge -f -n "__fish_seen_subcommand_from servers s" -a "list" -d "List all servers"
 complete -c forge -f -n "__fish_seen_subcommand_from servers s" -a "ls" -d "List all servers (alias)"
 complete -c forge -f -n "__fish_seen_subcommand_from servers s" -a "get" -d "Get server details"
+complete -c forge -f -n "__fish_seen_subcommand_from servers s" -a "public-key" -d "Print the public key of the forge user"
 complete -c forge -f -n "__fish_seen_subcommand_from servers s" -a "create" -d "Create a server"
 complete -c forge -f -n "__fish_seen_subcommand_from servers s" -a "reboot" -d "Reboot a server"
 

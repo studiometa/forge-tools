@@ -7,6 +7,7 @@ vi.mock("./handlers.ts", () => ({
   serversGet: vi.fn().mockResolvedValue(),
   serversCreate: vi.fn().mockResolvedValue(),
   serversReboot: vi.fn().mockResolvedValue(),
+  serversPublicKey: vi.fn().mockResolvedValue(),
 }));
 
 vi.mock("../../context.ts", () => ({
@@ -59,6 +60,12 @@ describe("handleServersCommand routing", () => {
     const handlers = await import("./handlers.ts");
     await handleServersCommand("get", ["123"], {});
     expect(handlers.serversGet).toHaveBeenCalledWith(["123"], expect.anything());
+  });
+
+  it("should route public-key subcommand with args", async () => {
+    const handlers = await import("./handlers.ts");
+    await handleServersCommand("public-key", ["123"], {});
+    expect(handlers.serversPublicKey).toHaveBeenCalledWith(["123"], expect.anything());
   });
 
   it("should route create subcommand", async () => {
