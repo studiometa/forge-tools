@@ -107,6 +107,29 @@ describe("BackupsCollection", () => {
     expect(calls[0].body).toMatchObject({ provider: "s3" });
   });
 
+  it("should accept the empty 202 response of Forge on create", async () => {
+    const client = new HttpClient({
+      token: "test",
+      fetch: async () =>
+        ({
+          ok: true,
+          status: 202,
+          headers: new Headers(),
+          text: async () => "",
+        }) as Response,
+    });
+    const collection = new BackupsCollection(client, ORG, 123);
+
+    await expect(
+      collection.create({
+        provider: "s3",
+        credentials: { key: "ACCESS_KEY", secret: "SECRET_KEY", region: "us-east-1", bucket: "b" },
+        frequency: "weekly",
+        databases: [1],
+      }),
+    ).resolves.toBeUndefined();
+  });
+
   it("should delete a backup configuration", async () => {
     const { client, calls } = createTrackingClient();
     const collection = new BackupsCollection(client, ORG, 123);

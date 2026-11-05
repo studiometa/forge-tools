@@ -108,9 +108,11 @@ export class BackupsCollection extends BaseCollection {
   /**
    * Create a new backup configuration.
    *
+   * Forge answers `202 Accepted` without a body: the configuration is created in the background.
+   *
    * @example
    * ```ts
-   * const backup = await forge.server(123).backups.create({
+   * await forge.server(123).backups.create({
    *   provider: 's3',
    *   credentials: { key: 'ACCESS_KEY', secret: 'SECRET_KEY', region: 'us-east-1', bucket: 'my-bucket' },
    *   frequency: 'weekly',
@@ -119,12 +121,8 @@ export class BackupsCollection extends BaseCollection {
    * });
    * ```
    */
-  async create(data: CreateBackupConfigData): Promise<BackupConfigAttributes & { id: number }> {
-    const response = await this.client.post<JsonApiDocument<BackupConfigAttributes>>(
-      this.basePath,
-      data,
-    );
-    return unwrapDocument(response);
+  async create(data: CreateBackupConfigData): Promise<void> {
+    await this.client.post(this.basePath, data);
   }
 
   /**
