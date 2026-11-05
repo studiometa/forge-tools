@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file. Each pull r
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.5.2 - 2026-11-05
+
+### Added
+
+- **CLI**: Add the `--exact` flag and the `FORGE_EXACT_MATCH` environment variable to resolve `--server` and `--site` names by exact match only ([#148])
+- **CLI**: Add `forge sites apply --file site.json [--check]` to declare a Forge site in a JSON file (site, aliases, database, `.env` keys, workers and scheduled jobs) and print or apply the changes, with a JSON Schema published in the package ([#149])
+- **Core**: Add the `createDomain` executor to add a domain to a site ([#149])
+- **Core**: Add the `site_id` option to `listDaemons`, to list the daemons that Forge associates with a site ([#149])
+- **API**: Add `DomainAttributes`, `CreateDomainData` and the `site_id` field of `CreateDaemonData` ([#149])
+
+### Fixed
+
+- **SDK**: Fix `recipes.run()` failing with a 404: it now calls `POST /orgs/{org}/recipes/{id}/runs` instead of `/run` ([#147])
+- **Core**: List every page of sites, databases, database users, daemons and scheduled jobs, not only the first 30 items ([#149])
+
+[#147]: https://github.com/studiometa/forge-tools/pull/147
+[#148]: https://github.com/studiometa/forge-tools/pull/148
+[#149]: https://github.com/studiometa/forge-tools/pull/149
+
 ## 0.5.1 - 2026-11-05
 
 ### Fixed
