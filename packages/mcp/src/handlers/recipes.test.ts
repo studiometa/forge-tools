@@ -31,9 +31,9 @@ function createMockContext(): HandlerContext {
           ]);
         },
         post: async (url: string) => {
-          // run action posts to /run endpoint
-          if (url.endsWith("/run")) {
-            return {};
+          // run action posts to /runs endpoint
+          if (url.endsWith("/runs")) {
+            return;
           }
           return mockDocument(
             2,
@@ -91,12 +91,26 @@ describe("handleRecipes", () => {
   });
 
   it("should run a recipe", async () => {
+    const ctx = createMockContext();
+    const posted: Array<{ url: string; body: unknown }> = [];
+    const client = ctx.executorContext.client as unknown as {
+      post: (url: string, body: unknown) => Promise<unknown>;
+    };
+    const post = client.post;
+    client.post = async (url, body) => {
+      posted.push({ url, body });
+      return post(url, body);
+    };
+
     const result = await handleRecipes(
       "run",
       { resource: "recipes", action: "run", id: "1", servers: [1, 2, 3] },
-      createMockContext(),
+      ctx,
     );
     expect(result.isError).toBeUndefined();
+    expect(posted).toEqual([
+      { url: "/orgs/test-org/recipes/1/runs", body: { servers: [1, 2, 3] } },
+    ]);
     expect(result.content[0].text).toContain("run on 3 server(s)");
   });
 

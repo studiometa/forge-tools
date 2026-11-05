@@ -108,8 +108,24 @@ describe("RecipesCollection", () => {
 
     await collection.run(789, { servers: [123, 456] });
     expect(calls[0].method).toBe("POST");
-    expect(calls[0].url).toContain(`/orgs/${ORG}/recipes/789/run`);
-    expect(calls[0].body).toMatchObject({ servers: [123, 456] });
+    expect(new URL(calls[0].url).pathname).toMatch(new RegExp(`/orgs/${ORG}/recipes/789/runs$`));
+    expect(calls[0].body).toEqual({ servers: [123, 456] });
+  });
+
+  it("should accept the empty 202 response of Forge on run", async () => {
+    const client = new HttpClient({
+      token: "test",
+      fetch: async () =>
+        ({
+          ok: true,
+          status: 202,
+          headers: new Headers(),
+          text: async () => "",
+        }) as Response,
+    });
+    const collection = new RecipesCollection(client, ORG);
+
+    await expect(collection.run(789, { servers: [123] })).resolves.toBeUndefined();
   });
 
   it("should return an AsyncPaginatedIterator from all()", () => {

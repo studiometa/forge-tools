@@ -141,6 +141,6 @@ export class RecipesCollection extends BaseCollection {
    * ```
    */
   async run(recipeId: number, options: RunRecipeOptions): Promise<void> {
-    await this.client.post(`${this.basePath}/${recipeId}/run`, options);
+    await this.client.post(`${this.basePath}/${recipeId}/runs`, options);
   }
 }
