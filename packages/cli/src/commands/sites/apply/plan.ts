@@ -329,10 +329,12 @@ function planWorkers(
     candidates,
     (worker) => worker.key,
     ({ daemon }) => {
-      const directory = daemon.directory ? normalizePath(daemon.directory) : "";
+      // A daemon without a directory compares as one in the site root, but its relative
+      // `artisan` stays relative: it does not run in the site root.
+      const directory = daemon.directory?.trim() ? normalizePath(daemon.directory) : null;
       return [
-        canonicalCommand(daemon.command, directory || null),
-        directory,
+        canonicalCommand(daemon.command, directory),
+        directory ?? workDirectory,
         daemon.processes,
         daemon.user,
       ].join("\n");

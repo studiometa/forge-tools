@@ -167,17 +167,58 @@ describe("buildPlan", () => {
     ]);
   });
 
-  it("matches an ambiguous daemon but never deletes it", () => {
+  it("matches a daemon without directory to a worker in the site root", () => {
+    const state = sharedServer({ daemons: [daemon(7, `php ${A}/artisan reverb:start`, null)] });
+
+    expect(
+      buildPlan(
+        {
+          server: "web-1",
+          domain: "a.example.com",
+          workers: [{ command: "php artisan reverb:start", processes: 1 }],
+        },
+        state,
+      ),
+    ).toEqual({ changes: [], warnings: [] });
+    expect(
+      buildPlan(
+        {
+          server: "web-1",
+          domain: "a.example.com",
+          workers: [{ command: `php ${A}/artisan reverb:start`, processes: 1, directory: A }],
+        },
+        sharedServer({
+          daemons: [daemon(7, `php ${A}/artisan reverb:start`, null)],
+          siteDaemonIds: new Set([7]),
+        }),
+      ).changes,
+    ).toEqual([]);
+  });
+
+  it("never matches a relative artisan of a daemon without directory", () => {
     const plan = buildPlan(
       {
         server: "web-1",
         domain: "a.example.com",
-        workers: [{ command: `php ${A}/artisan reverb:start`, processes: 1, directory: A }],
+        workers: [{ command: "php artisan horizon", processes: 1 }],
       },
-      sharedServer({ daemons: [daemon(7, `php ${A}/artisan reverb:start`, null)] }),
+      sharedServer({ daemons: [daemon(8, "php artisan horizon", null)] }),
     );
 
     expect(actions(plan.changes)).toEqual(["create-worker"]);
+  });
+
+  it("matches an ambiguous daemon but never deletes it", () => {
+    const plan = buildPlan(
+      { server: "web-1", domain: "a.example.com", workers: [] },
+      sharedServer({
+        daemons: [daemon(7, `php ${A}/artisan reverb:start`, null)],
+        siteDaemonIds: new Set(),
+      }),
+    );
+
+    expect(plan.changes).toEqual([]);
+    expect(plan.warnings).toHaveLength(1);
   });
 
   it("owns a daemon without directory when Forge associates it with the site", () => {
