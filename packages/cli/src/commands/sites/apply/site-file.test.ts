@@ -13,6 +13,7 @@ import { readFileSync } from "node:fs";
 import { ValidationError } from "../../../errors.ts";
 import {
   SITE_FILE_SCHEMA_URL,
+  DatabaseEnvSchema,
   SiteFileSchema,
   ScheduledJobSchema,
   WorkerSchema,
@@ -99,6 +100,28 @@ describe("parseSiteFile", () => {
     ).toEqual(["schedule.0: cron is required with the custom frequency, and only with it"]);
   });
 
+  it("accepts .env keys for the database, each one optional", () => {
+    const database = {
+      name: "example",
+      user: "example",
+      env: { name: "DB_NAME", password: "DB_PASS" },
+    };
+    expect(parseSiteFile({ ...example, database }).database).toEqual(database);
+  });
+
+  it("refuses invalid or identical .env keys for the database", () => {
+    const database = { name: "example", user: "example" };
+    expect(issues({ ...example, database: { ...database, env: { name: "DB-NAME" } } })).toEqual([
+      "database.env.name: invalid .env variable name",
+    ]);
+    expect(issues({ ...example, database: { ...database, env: { user: "DB_PASSWORD" } } })).toEqual(
+      ["database.env: the .env keys of the database must be different"],
+    );
+    expect(issues({ ...example, database: { ...database, env: { host: "DB_HOST" } } })).toEqual([
+      expect.stringMatching(/^database\.env\.host: /),
+    ]);
+  });
+
   it("names the root when the file is not an object", () => {
     expect(issues("site")).toEqual([expect.stringMatching(/^\(root\): /)]);
   });
@@ -125,6 +148,43 @@ describe("readSiteFile", () => {
   it("reports invalid JSON", () => {
     vi.mocked(readFileSync).mockReturnValue("{");
     expect(() => readSiteFile("site.json")).toThrow(/is not valid JSON/);
+  });
+
+  it("reads the Nginx file next to the site file", () => {
+    vi.mocked(readFileSync).mockImplementation((path) =>
+      String(path).endsWith("site.json")
+        ? JSON.stringify({ ...example, nginx: "nginx.conf" })
+        : "root {{ PATH }};\n",
+    );
+    const file = readSiteFile("config/forge/production/site.json");
+    expect(file.nginx).toBe("nginx.conf");
+    expect(file.nginxTemplate).toBe("root {{ PATH }};\n");
+    expect(readFileSync).toHaveBeenLastCalledWith(
+      resolve("config/forge/production/nginx.conf"),
+      "utf8",
+    );
+  });
+
+  it("reports a missing Nginx file", () => {
+    vi.mocked(readFileSync).mockImplementation((path) => {
+      if (String(path).endsWith("site.json"))
+        return JSON.stringify({ ...example, nginx: "x.conf" });
+      throw new Error("ENOENT");
+    });
+    expect(() => readSiteFile("site.json")).toThrow(
+      `Cannot read Nginx file ${resolve("x.conf")}: ENOENT`,
+    );
+  });
+
+  it("refuses an unknown variable in the Nginx file", () => {
+    vi.mocked(readFileSync).mockImplementation((path) =>
+      String(path).endsWith("site.json")
+        ? JSON.stringify({ ...example, nginx: "/etc/forge/nginx.conf" })
+        : "root {{ WEB_ROOT }};",
+    );
+    expect(() => readSiteFile("site.json")).toThrow(
+      "Nginx file /etc/forge/nginx.conf has unknown variables: {{WEB_ROOT}}",
+    );
   });
 
   it("names the file in validation errors", () => {
@@ -168,6 +228,9 @@ describe("site.schema.json", () => {
     );
     expect(Object.keys(schema.properties.database.properties).toSorted()).toEqual(
       keys(SiteFileSchema.entries.database.wrapped),
+    );
+    expect(Object.keys(schema.properties.database.properties.env.properties).toSorted()).toEqual(
+      keys(DatabaseEnvSchema.pipe[0]),
     );
   });
 

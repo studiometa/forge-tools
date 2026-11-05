@@ -131,6 +131,11 @@ function server(id: number, name: string) {
   };
 }
 
+/** Attributes of server 123, for the `SERVER_*` Nginx variables. */
+export function webServer() {
+  return { ...server(123, "web-1"), ip_address: "203.0.113.10", private_ip_address: "10.0.0.10" };
+}
+
 /** Route on any organization: the CLI test context uses its own. */
 function route(url: string): string {
   return decodeURIComponent(url).replace(/^\/orgs\/[^/]+/, "/orgs/org");
@@ -145,6 +150,8 @@ export interface FakeForge {
   databases: Array<{ id: number; name: string }>;
   users: Array<{ id: number; name: string }>;
   env: string;
+  /** Nginx configuration of every site. */
+  nginx: string;
   /** Statuses a new site goes through, one per read. */
   newSiteStatuses: string[];
 }
@@ -162,6 +169,7 @@ export function fakeForge(initial: Partial<FakeForge> = {}) {
     databases: [],
     users: [],
     env: "",
+    nginx: "",
     newSiteStatuses: ["installed"],
     ...initial,
   };
@@ -181,7 +189,14 @@ export function fakeForge(initial: Partial<FakeForge> = {}) {
           data: servers.map((item) => ({ id: String(item.id), type: "servers", attributes: item })),
         };
       }
+      if (path === "/orgs/org/servers/123") {
+        const attributes = webServer();
+        return { data: { id: "123", type: "servers", attributes } };
+      }
       if (path === "/orgs/org/servers/123/sites") return list("sites", state.sites);
+      if ((match = /^\/orgs\/org\/servers\/123\/sites\/(\d+)\/nginx$/.exec(path))) {
+        return doc("nginxConfigs", { id: Number(match[1]), content: state.nginx } as never);
+      }
       if ((match = /^\/orgs\/org\/sites\/(\d+)$/.exec(path))) {
         const found = state.sites.find((s) => s.id === Number(match![1]))!;
         const status = state.newSiteStatuses.shift() ?? "installed";
@@ -261,6 +276,10 @@ export function fakeForge(initial: Partial<FakeForge> = {}) {
       const url = route(raw);
       if (url.endsWith("/environment")) {
         state.env = String(body.environment);
+        return null;
+      }
+      if (url.endsWith("/nginx")) {
+        state.nginx = String(body.config);
         return null;
       }
       return doc("sites", { ...state.sites[0] });

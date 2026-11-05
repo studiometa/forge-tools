@@ -68,7 +68,29 @@
       "required": ["name", "user"],
       "properties": {
         "name": { "type": "string", "minLength": 1 },
-        "user": { "type": "string", "minLength": 1 }
+        "user": { "type": "string", "minLength": 1 },
+        "env": {
+          "description": ".env keys that get the database name, user and password of a new user. The keys must be different.",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+              "default": "DB_DATABASE"
+            },
+            "user": {
+              "type": "string",
+              "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+              "default": "DB_USERNAME"
+            },
+            "password": {
+              "type": "string",
+              "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+              "default": "DB_PASSWORD"
+            }
+          }
+        }
       }
     },
     "env": {
@@ -76,6 +98,11 @@
       "type": "object",
       "propertyNames": { "pattern": "^[A-Za-z_][A-Za-z0-9_]*$" },
       "additionalProperties": { "type": ["string", "number", "boolean"] }
+    },
+    "nginx": {
+      "description": "Nginx file, relative to the site file, with the Forge template variables {{DIRECTORY}}, {{DOMAINS}}, {{PATH}}, {{PORT}}, {{PORT_V6}}, {{PROXY_PASS}}, {{ROOT_PATH}}, {{SERVER_PUBLIC_IP}}, {{SERVER_PRIVATE_IP}}, {{SITE}}, {{SITE_ID}} and {{USER}}. Rendered for the site and written when it differs from Forge. An unknown variable is an error.",
+      "type": "string",
+      "minLength": 1
     },
     "workers": {
       "description": "Forge background processes of the site. [] deletes all the workers of the site.",

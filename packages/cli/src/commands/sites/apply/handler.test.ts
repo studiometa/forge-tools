@@ -71,6 +71,44 @@ describe("sitesApply", () => {
     expect(exitSpy).toHaveBeenCalledWith(3);
   });
 
+  it("exits 3 on an unknown variable in the Nginx file, before any call", async () => {
+    vi.mocked(readFileSync).mockImplementation((path) =>
+      String(path).endsWith("site.json")
+        ? JSON.stringify({ server: 123, domain: "a.example.com", nginx: "nginx.conf" })
+        : "root {{ WEBROOT }};",
+    );
+    const { ctx, forge } = context("json", { file: "site.json", check: true });
+
+    await sitesApply(ctx);
+
+    expect(exitSpy).toHaveBeenCalledWith(3);
+    expect(forge.calls).toEqual([]);
+  });
+
+  it("prints the Nginx diff with --check and exits 1", async () => {
+    vi.mocked(readFileSync).mockImplementation((path) =>
+      String(path).endsWith("site.json")
+        ? JSON.stringify({ server: 123, domain: "a.example.com", nginx: "nginx.conf" })
+        : "root {{ PATH }};\n",
+    );
+    const { ctx, forge } = context("json", { file: "site.json", check: true });
+
+    await sitesApply(ctx);
+
+    expect(process.exitCode).toBe(1);
+    expect(JSON.parse(String(vi.mocked(console.log).mock.calls[0][0]))).toEqual({
+      inSync: false,
+      changes: [
+        {
+          action: "update-nginx",
+          diff: "--- remote\n+++ local\n@@ -0,0 +1,1 @@\n+root /home/forge/a.example.com/public;",
+        },
+      ],
+      warnings: [],
+    });
+    expect(forge.calls.filter(([method]) => method !== "GET")).toEqual([]);
+  });
+
   it("exits 0 with --check when Forge matches", async () => {
     siteFile({
       server: 123,

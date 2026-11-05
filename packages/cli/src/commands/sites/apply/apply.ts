@@ -14,6 +14,8 @@ import {
   deleteDaemon,
   deleteScheduledJob,
   getEnv,
+  getNginxConfig,
+  getServer,
   getSite,
   listDaemons,
   listDatabaseUsers,
@@ -22,13 +24,23 @@ import {
   listServers,
   listSites,
   updateEnv,
+  updateNginxConfig,
   updateSite,
 } from "@studiometa/forge-core";
 
 import type { CliExecutorContext } from "../../../context.ts";
 import { CliError, ValidationError } from "../../../errors.ts";
+import { unifiedDiff } from "../../../utils/drift.ts";
 import { matchServerId } from "../../../utils/resolve.ts";
-import { type Change, type Plan, type RemoteState, type Site, buildPlan } from "./plan.ts";
+import { needsServer, renderNginx } from "./nginx.ts";
+import {
+  type Change,
+  type Plan,
+  type RemoteState,
+  type Site,
+  buildPlan,
+  databaseEnvKeys,
+} from "./plan.ts";
 import type { SiteFile } from "./site-file.ts";
 
 /** Error of `apply` that is not a validation error, e.g. a site that never gets installed. */
@@ -88,6 +100,10 @@ export async function readRemoteState(
     );
   }
 
+  if (file.nginxTemplate !== undefined) {
+    state.nginx = site ? await readNginx(file.nginxTemplate, serverId, site, ctx) : null;
+  }
+
   if (file.schedule) {
     const siteJobs = siteId
       ? (await listScheduledJobs({ server_id: serverId, site_id: siteId }, ctx)).data
@@ -98,6 +114,23 @@ export async function readRemoteState(
   }
 
   return state;
+}
+
+/**
+ * Read the Nginx configuration of a site on Forge and render the Nginx file for the site.
+ */
+export async function readNginx(
+  template: string,
+  serverId: string,
+  site: Site,
+  ctx: CliExecutorContext,
+): Promise<{ remote: string; rendered: string }> {
+  const remote = (await getNginxConfig({ server_id: serverId, site_id: String(site.id) }, ctx))
+    .data;
+  const server = needsServer(template)
+    ? (await getServer({ server_id: serverId }, ctx)).data
+    : null;
+  return { remote, rendered: renderNginx(template, site, server) };
 }
 
 /**
@@ -168,12 +201,17 @@ export interface ApplyOptions {
   generatePassword?: () => string;
 }
 
+/** Forge clones the repository with the key of the server: the git host must accept it. */
+const REPOSITORY_HINT = (serverId: string) =>
+  `Check that the git host accepts the key of the server: forge servers public-key ${serverId}`;
+
 const defaultSleep = (ms: number) =>
   new Promise<void>((resolve) => {
     setTimeout(resolve, ms);
   });
 
 async function waitForSite(
+  file: SiteFile,
   serverId: string,
   siteId: string,
   ctx: CliExecutorContext,
@@ -188,6 +226,7 @@ async function waitForSite(
     if (waited >= timeout) {
       throw new ApplyError(`Site ${site.name} is still ${site.status} on Forge`, [
         "Run forge sites apply again once the site is installed",
+        ...(file.repository ? [REPOSITORY_HINT(serverId)] : []),
       ]);
     }
     await sleep(interval);
@@ -232,13 +271,41 @@ async function applyDatabase(
         ctx,
       );
       ids.database_user_id = String(user.data.id);
-      env.set("DB_DATABASE", change.database);
-      env.set("DB_USERNAME", change.name);
-      env.set("DB_PASSWORD", password);
+      const keys = databaseEnvKeys(file.database);
+      env.set(keys.name, change.database);
+      env.set(keys.user, change.name);
+      env.set(keys.password, password);
     }
   }
   if (databaseId !== undefined) ids.database_id = databaseId;
   return { ids, env };
+}
+
+/**
+ * Write the rendered Nginx file when it differs from Forge. After a change of the site or its
+ * aliases, read the site again: the web directory and the domains are template variables.
+ */
+async function applyNginx(
+  template: string,
+  plan: Plan,
+  serverId: string,
+  site: Site,
+  ctx: CliExecutorContext,
+  options: ApplyOptions,
+): Promise<void> {
+  const siteChanged = plan.changes.some(
+    (change) => change.action === "update-site" || change.action === "add-alias",
+  );
+  const planned = plan.changes.some((change) => change.action === "update-nginx");
+  if (!planned && !siteChanged) return;
+
+  const params = { server_id: serverId, site_id: String(site.id) };
+  const current = siteChanged ? (await getSite(params, ctx)).data : site;
+  const { remote, rendered } = await readNginx(template, serverId, current, ctx);
+  const diff = unifiedDiff(remote, rendered);
+  if (!diff) return;
+  options.onChange?.({ action: "update-nginx", diff });
+  await updateNginxConfig({ ...params, content: rendered }, ctx);
 }
 
 /**
@@ -306,6 +373,10 @@ async function applyChanges(
     if (addEnv) options.onChange?.(addEnv);
     const content = (await getEnv(params, ctx)).data;
     await updateEnv({ ...params, content: setEnvValues(content, env) }, ctx);
+  }
+
+  if (file.nginxTemplate !== undefined) {
+    await applyNginx(file.nginxTemplate, plan, serverId, site, ctx, options);
   }
 
   // Create first, then delete: a changed worker runs again before the old one stops.
@@ -393,7 +464,7 @@ export async function applySiteFile(
       },
       ctx,
     );
-    await waitForSite(serverId, String(created.data.id), ctx, options);
+    await waitForSite(file, serverId, String(created.data.id), ctx, options);
     state = await readRemoteState(file, serverId, ctx);
     plan = buildPlan(file, state);
   }

@@ -9,6 +9,7 @@ import { listServers, getServer, createServer, rebootServer } from "@studiometa/
 import type { CommandContext } from "../../context.ts";
 
 import { exitWithValidationError, runCommand } from "../../error-handler.ts";
+import { ApiError } from "../../errors.ts";
 import { resolveServerId } from "../../utils/resolve.ts";
 
 /**
@@ -54,6 +55,36 @@ export async function serversGet(args: string[], ctx: CommandContext): Promise<v
     const server_id = await resolveServerId(server, execCtx);
     const result = await getServer({ server_id }, execCtx);
     ctx.formatter.output(result.data);
+  }, ctx.formatter);
+}
+
+/**
+ * Print the public key of the `forge` user of a server (`~/.ssh/id_rsa.pub`), the key that
+ * Forge uses to clone repositories: add it to the git host before you create a site.
+ */
+export async function serversPublicKey(args: string[], ctx: CommandContext): Promise<void> {
+  const [server] = args;
+
+  if (!server) {
+    exitWithValidationError("server_id", "forge servers public-key <server_id>", ctx.formatter);
+  }
+
+  await runCommand(async () => {
+    const token = ctx.getToken();
+    const execCtx = ctx.createExecutorContext(token);
+    const server_id = await resolveServerId(server, execCtx);
+    const result = await getServer({ server_id }, execCtx);
+    const key = result.data.local_public_key?.trim();
+    if (!key) {
+      throw new ApiError(`Server ${result.data.name} has no public key yet`, 404, [
+        "Wait until Forge provisions the server",
+      ]);
+    }
+    if (ctx.formatter.isJson()) {
+      ctx.formatter.output({ public_key: key });
+    } else {
+      console.log(key);
+    }
   }, ctx.formatter);
 }
 

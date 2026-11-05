@@ -48,9 +48,15 @@ ${colors.bold("SITE FILE:")}
   A key that is absent is not managed: apply does not read or change it.
     type, php, webDirectory, repository   Create the site, or update php, web directory, branch
     aliases                               Add missing aliases, never remove one
-    database { name, user }               Create when missing; a new user gets a random
-                                          password, written into the site .env only
+    database { name, user, env }          Create when missing; a new user gets a random
+                                          password, written into the site .env only.
+                                          env maps { name, user, password } to .env keys
+                                          (default DB_DATABASE, DB_USERNAME, DB_PASSWORD)
     env                                   Add missing keys, never overwrite a value
+    nginx                                 Nginx file, relative to the site file, with Forge
+                                          template variables such as {{PATH}}, {{SITE_ID}},
+                                          {{PROXY_PASS}}: rendered for the site, written
+                                          when it differs (an unknown variable exits 3)
     workers, schedule                     Create missing ones, delete the ones of the site
                                           that the file does not declare ([] deletes all)
 
