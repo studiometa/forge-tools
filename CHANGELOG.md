@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file. Each pull r
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.5.4 - 2026-11-10
+
+### Added
+
+- **CLI**: Add `loadBalancer` to `forge sites apply`, to send the traffic of a load balancer site to the server of the site file ([#152])
+- **Core**: Add `listLoadBalancingNodes` and `updateLoadBalancingNodes` ([#152])
+- **API**: Add the load balancing node schemas and types ([#152])
+
+[#152]: https://github.com/studiometa/forge-tools/pull/152
+
 ## 0.5.3 - 2026-11-05
 
 ### Added
