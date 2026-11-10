@@ -98,6 +98,29 @@ export const CreateDomainDataSchema = v.object({
 
 export type CreateDomainData = v.InferOutput<typeof CreateDomainDataSchema>;
 
+// ── Load balancing ───────────────────────────────────
+
+export const LOAD_BALANCER_METHODS = ["round_robin", "least_conn", "ip_hash"] as const;
+
+/** The servers of a site of a load balancer. The list replaces the current nodes. */
+export const UpdateLoadBalancingNodesDataSchema = v.object({
+  balancer_method: v.picklist(LOAD_BALANCER_METHODS),
+  balancing: v.pipe(
+    v.array(
+      v.object({
+        server_id: v.number(),
+        port: v.optional(v.number()),
+        weight: v.number(),
+        backup: v.optional(v.boolean()),
+        down: v.optional(v.boolean()),
+      }),
+    ),
+    v.minLength(1),
+  ),
+});
+
+export type UpdateLoadBalancingNodesData = v.InferOutput<typeof UpdateLoadBalancingNodesDataSchema>;
+
 // ── Certificates ─────────────────────────────────────
 
 export const CreateCertificateDataSchema = v.object({

@@ -5,6 +5,7 @@ import {
   type ApplyOptions,
   applySiteFile,
   assertCanCreateSite,
+  assertLoadBalancerSite,
   readRemoteState,
   resolveApplyServer,
 } from "./apply.ts";
@@ -36,6 +37,7 @@ export async function sitesApply(
     if (check) {
       const state = await readRemoteState(file, server_id, execCtx);
       assertCanCreateSite(file, state);
+      assertLoadBalancerSite(file, state);
       const plan = buildPlan(file, state);
       const inSync = plan.changes.length === 0;
       if (ctx.formatter.isJson()) {

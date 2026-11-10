@@ -158,7 +158,8 @@ forge sites apply --file site.json          # Make the site match the file
   "env": { "APP_ENV": "production" },
   "nginx": "nginx.conf",
   "workers": [{ "command": "php artisan queue:work database --queue=default", "processes": 4 }],
-  "schedule": [{ "command": "php artisan schedule:run", "frequency": "minutely" }]
+  "schedule": [{ "command": "php artisan schedule:run", "frequency": "minutely" }],
+  "loadBalancer": { "server": "lb-1", "port": 80 }
 }
 ```
 
@@ -172,6 +173,7 @@ forge sites apply --file site.json          # Make the site match the file
 | `nginx`                                     | Nginx file, relative to the site file, with Forge template variables. Rendered for the site and written when it differs from Forge (see below)                                         |
 | `workers`                                   | Forge background processes of the site. Create the missing ones, delete the ones of the site that the file does not declare. The directory defaults to the site root                   |
 | `schedule`                                  | Forge scheduled jobs of the site (`minutely`, `hourly`, `nightly`, `weekly`, `monthly`, `reboot`, or `custom` with `cron`). A relative `artisan` becomes the absolute path of the site |
+| `loadBalancer`                              | Set the nodes of the site on the load balancer to `server` only, on `port` (default `80`), with round robin and weight 1. The site of the load balancer must exist (see below)         |
 
 For an application that does not read the Laravel names, `database.env` maps the database name, the user and the password to other `.env` keys. Each key is optional and defaults to the Laravel name. Other values, such as the host, go in `env`:
 
@@ -215,6 +217,8 @@ A worker or a scheduled job matches the file when its command, directory, proces
 - Workers and scheduled jobs that run as `root` are never deleted, and neither are the ones whose owner is not certain: they are reported as kept.
 - Without the `workers` key, no worker is read or deleted. With `"workers": []`, all the workers of the site are deleted. The same applies to `schedule`.
 - The site, its aliases, its database and its `.env` keys are never deleted.
+
+`loadBalancer` sends the traffic of the load balancer to the server of the file. The site of the load balancer is the one named `domain` or one of the `aliases`. When no site matches, `--check` and `apply` exit `3` before any change. When two sites match, they exit `3` too. The Forge API cannot create a site on a load balancer: create it in Forge (New site on the load balancer), with its certificate. To move a site to another server, change `server`: `apply` creates the site there, then moves the node, with no DNS change. It does not delete the site on the old server.
 
 With `--check`, `apply` prints the plan and changes nothing. It exits `0` when Forge matches the file, `1` when it differs, and another code on an error (`3` for an invalid file). Every deletion shows its ID and full command. The plan gives `.env` key names only, never values, and shows a generated password as `<generated>`. With `--format json`, it prints `{ "inSync": false, "changes": [...], "warnings": [...] }`.
 

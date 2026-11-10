@@ -20,10 +20,12 @@ import {
   listDaemons,
   listDatabaseUsers,
   listDatabases,
+  listLoadBalancingNodes,
   listScheduledJobs,
   listServers,
   listSites,
   updateEnv,
+  updateLoadBalancingNodes,
   updateNginxConfig,
   updateSite,
 } from "@studiometa/forge-core";
@@ -70,6 +72,41 @@ export function findSite(sites: Site[], domain: string): Site | null {
 }
 
 /**
+ * The site of the load balancer named `domain` or one of the aliases, compared without case.
+ * Its name can be any of them, e.g. the domain without `www`. Two matches are an error: a guess
+ * could send the traffic of another site.
+ */
+export function findLoadBalancerSite(sites: Site[], names: string[]): Site | null {
+  const wanted = new Set(names.map((name) => name.toLowerCase()));
+  const matches = sites.filter((site) => wanted.has(site.name.toLowerCase()));
+  if (matches.length > 1) {
+    throw new ValidationError(
+      `Several sites of the load balancer match the site file: ${matches.map((site) => site.name).join(", ")}`,
+      "loadBalancer",
+      ["Keep one site for the domain and its aliases on the load balancer"],
+    );
+  }
+  return matches[0] ?? null;
+}
+
+/**
+ * Exit with a validation error when the load balancer has no site for the site file: the Forge
+ * API cannot create a site on a load balancer.
+ */
+export function assertLoadBalancerSite(file: SiteFile, state: RemoteState): void {
+  if (file.loadBalancer && !state.loadBalancer?.site) {
+    throw new ValidationError(
+      `The load balancer ${file.loadBalancer.server} has no site for ${file.domain}`,
+      "loadBalancer",
+      [
+        `In Forge, create the site ${file.domain} on the load balancer (New site), then run apply again`,
+        "Check the domain, the aliases and the server of the load balancer",
+      ],
+    );
+  }
+}
+
+/**
  * Read from Forge what the site file manages, and nothing else.
  */
 export async function readRemoteState(
@@ -111,6 +148,29 @@ export async function readRemoteState(
     const serverJobs = (await listScheduledJobs({ server_id: serverId }, ctx)).data;
     state.jobs = [...siteJobs, ...serverJobs];
     state.siteJobIds = new Set(siteJobs.map((job) => job.id));
+  }
+
+  if (file.loadBalancer) {
+    const balancerId = await resolveApplyServer(file.loadBalancer.server, ctx);
+    const balancerSites = (await listSites({ server_id: balancerId }, ctx)).data;
+    const balancerSite = findLoadBalancerSite(balancerSites, [
+      file.domain,
+      ...(file.aliases ?? []),
+    ]);
+    const nodes = balancerSite
+      ? (
+          await listLoadBalancingNodes(
+            { server_id: balancerId, site_id: String(balancerSite.id) },
+            ctx,
+          )
+        ).data
+      : [];
+    state.loadBalancer = {
+      serverId: balancerId,
+      site: balancerSite,
+      nodes,
+      target: Number(serverId),
+    };
   }
 
   return state;
@@ -409,6 +469,22 @@ async function applyChanges(
     }
   }
 
+  // Last: the load balancer sends traffic to the server once the site is ready there.
+  const balancer = state.loadBalancer;
+  const balancing = plan.changes.find((change) => change.action === "update-load-balancer");
+  if (balancing?.action === "update-load-balancer" && balancer?.site) {
+    options.onChange?.(balancing);
+    await updateLoadBalancingNodes(
+      {
+        server_id: balancer.serverId,
+        site_id: String(balancer.site.id),
+        balancer_method: "round_robin",
+        balancing: [{ ...balancing.to, weight: 1 }],
+      },
+      ctx,
+    );
+  }
+
   for (const change of deletions) {
     options.onChange?.(change);
     if (change.action === "delete-worker") {
@@ -437,6 +513,7 @@ export async function applySiteFile(
   options: ApplyOptions = {},
 ): Promise<Plan> {
   let state = await readRemoteState(file, serverId, ctx);
+  assertLoadBalancerSite(file, state);
   const firstPlan = buildPlan(file, state);
   let plan = firstPlan;
   let generatedEnv = new Map<string, string>();

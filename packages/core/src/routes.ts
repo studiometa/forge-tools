@@ -105,6 +105,16 @@ export const ROUTES = {
     get: { method: "GET", path: "/orgs/:org/servers/:server_id/sites/:site_id/environment" },
     update: { method: "PUT", path: "/orgs/:org/servers/:server_id/sites/:site_id/environment" },
   },
+  loadBalancing: {
+    list: {
+      method: "GET",
+      path: "/orgs/:org/servers/:server_id/sites/:site_id/load-balancing-nodes",
+    },
+    update: {
+      method: "PUT",
+      path: "/orgs/:org/servers/:server_id/sites/:site_id/load-balancing-nodes",
+    },
+  },
   nginx: {
     get: { method: "GET", path: "/orgs/:org/servers/:server_id/sites/:site_id/nginx" },
     update: { method: "PUT", path: "/orgs/:org/servers/:server_id/sites/:site_id/nginx" },

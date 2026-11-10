@@ -79,6 +79,16 @@ export type {
 export { createDomain } from "./executors/domains/index.ts";
 export type { CreateDomainOptions } from "./executors/domains/index.ts";
 
+// Load balancing
+export {
+  listLoadBalancingNodes,
+  updateLoadBalancingNodes,
+} from "./executors/load-balancing/index.ts";
+export type {
+  ListLoadBalancingNodesOptions,
+  UpdateLoadBalancingNodesOptions,
+} from "./executors/load-balancing/index.ts";
+
 // Certificates
 export {
   activateCertificate,

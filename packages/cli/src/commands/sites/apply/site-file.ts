@@ -17,6 +17,9 @@ export const SITE_FILE_SCHEMA_URL =
 
 const text = v.pipe(v.string(), v.trim(), v.nonEmpty());
 
+/** A server name (exact match) or ID. */
+const serverRef = v.union([text, v.pipe(v.number(), v.integer(), v.minValue(1))]);
+
 export const SITE_TYPES = [
   "laravel",
   "symfony",
@@ -87,9 +90,15 @@ export const DatabaseEnvSchema = v.pipe(
   ),
 );
 
+/** The load balancer that sends the traffic of the site to its server. */
+export const LoadBalancerSchema = v.strictObject({
+  server: serverRef,
+  port: v.optional(v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(65535)), 80),
+});
+
 export const SiteFileSchema = v.strictObject({
   $schema: v.optional(v.string()),
-  server: v.union([text, v.pipe(v.number(), v.integer(), v.minValue(1))]),
+  server: serverRef,
   domain: text,
   aliases: v.optional(v.array(text)),
   type: v.optional(v.picklist(SITE_TYPES)),
@@ -109,6 +118,7 @@ export const SiteFileSchema = v.strictObject({
   nginx: v.optional(text),
   workers: v.optional(v.array(WorkerSchema)),
   schedule: v.optional(v.array(ScheduledJobSchema)),
+  loadBalancer: v.optional(LoadBalancerSchema),
 });
 
 export type SiteFileData = v.InferOutput<typeof SiteFileSchema>;

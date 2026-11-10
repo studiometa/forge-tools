@@ -23,6 +23,7 @@ import {
   RecipeAttributesSchema,
   ScheduledJobAttributesSchema,
   DomainAttributesSchema,
+  LoadBalancingNodeAttributesSchema,
   CommandAttributesSchema,
   BackupConfigAttributesSchema,
   BackupAttributesSchema,
@@ -579,4 +580,11 @@ testSchema(
     updated_at: null,
   },
   { name: 123 },
+);
+
+testSchema(
+  "LoadBalancingNodeAttributesSchema",
+  LoadBalancingNodeAttributesSchema,
+  { server_id: 123, port: 80, weight: 1, backup: false, down: false },
+  { server_id: "123" },
 );

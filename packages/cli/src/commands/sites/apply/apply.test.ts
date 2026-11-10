@@ -14,7 +14,7 @@ import {
 } from "./apply.ts";
 import type { Change } from "./plan.ts";
 import type { SiteFile } from "./site-file.ts";
-import { daemon, fakeForge, job, site } from "./test-fixtures.ts";
+import { daemon, fakeForge, job, node, site } from "./test-fixtures.ts";
 
 const A = "/home/forge/a.example.com";
 const sibling = site(457, "a.example.com-staging");
@@ -591,5 +591,82 @@ describe("fakeForge", () => {
     const { client } = fakeForge();
     await expect(client.get("/orgs/org/unknown")).rejects.toThrow("Unexpected GET");
     await expect(client.post("/orgs/org/unknown", {})).rejects.toThrow("Unexpected POST");
+  });
+});
+
+describe("applySiteFile with a load balancer", () => {
+  const file: SiteFile = {
+    server: 123,
+    domain: "www.example.com",
+    aliases: ["example.com"],
+    loadBalancer: { server: "lb-1", port: 80 },
+  };
+
+  it("finds the site of the load balancer by an alias and moves its node to the server", async () => {
+    const { ctx, calls, state } = fakeForge({
+      sites: [site(456, "www.example.com", { aliases: ["example.com"] })],
+      balancerSites: [site(600, "example.com"), site(601, "other.example.com")],
+      nodes: { 600: [node(124)], 601: [node(124)] },
+    });
+    const changes: Change[] = [];
+
+    const plan = await applySiteFile(file, "123", ctx, { onChange: (c) => changes.push(c) });
+
+    expect(plan.changes).toEqual([
+      {
+        action: "update-load-balancer",
+        site: "example.com",
+        from: [{ server_id: 124, port: 80 }],
+        to: { server_id: 123, port: 80 },
+      },
+    ]);
+    expect(changes.map((c) => c.action)).toEqual(["update-load-balancer"]);
+    expect(calls.filter(([method]) => method !== "GET")).toEqual([
+      [
+        "PUT",
+        "/orgs/org/servers/300/sites/600/load-balancing-nodes",
+        { balancer_method: "round_robin", balancing: [{ server_id: 123, port: 80, weight: 1 }] },
+      ],
+    ]);
+    expect(state.nodes[601]).toEqual([node(124)]);
+  });
+
+  it("changes nothing when the node is the server", async () => {
+    const { ctx, calls } = fakeForge({
+      sites: [site(456, "www.example.com", { aliases: ["example.com"] })],
+      balancerSites: [site(600, "www.example.com")],
+      nodes: { 600: [node(123)] },
+    });
+    expect((await applySiteFile(file, "123", ctx)).changes).toEqual([]);
+    expect(calls.filter(([method]) => method !== "GET")).toEqual([]);
+  });
+
+  it("sets the node after the creation of a new site", async () => {
+    const { ctx, calls } = fakeForge({
+      balancerSites: [site(600, "example.com")],
+      nodes: { 600: [node(124)] },
+    });
+    await applySiteFile({ ...file, type: "php" }, "123", ctx);
+    const writes = calls.filter(([method]) => method !== "GET").map(([m, url]) => `${m} ${url}`);
+    expect(writes[0]).toBe("POST /orgs/org/servers/123/sites");
+    expect(writes.at(-1)).toBe("PUT /orgs/org/servers/300/sites/600/load-balancing-nodes");
+  });
+
+  it("stops before any change when the load balancer has no site", async () => {
+    const { ctx, calls } = fakeForge({ balancerSites: [site(601, "other.example.com")] });
+    await expect(applySiteFile({ ...file, type: "php" }, "123", ctx)).rejects.toThrow(
+      "The load balancer lb-1 has no site for www.example.com",
+    );
+    expect(calls.filter(([method]) => method !== "GET")).toEqual([]);
+  });
+
+  it("stops when several sites of the load balancer match", async () => {
+    const { ctx } = fakeForge({
+      sites: [site(456, "www.example.com")],
+      balancerSites: [site(600, "example.com"), site(602, "www.example.com")],
+    });
+    await expect(readRemoteState(file, "123", ctx)).rejects.toThrow(
+      "Several sites of the load balancer match the site file: example.com, www.example.com",
+    );
   });
 });
