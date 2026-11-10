@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   type Change,
+  type LoadBalancingNode,
   type RemoteState,
   buildPlan,
   describeChange,
@@ -10,7 +11,7 @@ import {
   siteRoots,
 } from "./plan.ts";
 import type { SiteFile } from "./site-file.ts";
-import { daemon, job, site } from "./test-fixtures.ts";
+import { daemon, job, node, site } from "./test-fixtures.ts";
 
 const A = "/home/forge/a.example.com";
 const STAGING = "/home/forge/a.example.com-staging";
@@ -745,5 +746,84 @@ describe("buildPlan with an Nginx file", () => {
       sharedServer({ nginx: { remote: "a", rendered: "b" } }),
     );
     expect(plan.changes).toEqual([]);
+  });
+});
+
+describe("buildPlan with a load balancer", () => {
+  const balanced: SiteFile = {
+    server: 123,
+    domain: "www.example.com",
+    loadBalancer: { server: "lb-1", port: 80 },
+  };
+  const balancerSite = site(600, "example.com");
+
+  function withNodes(nodes: LoadBalancingNode[]): RemoteState {
+    return {
+      sites: [site(456, "www.example.com")],
+      site: site(456, "www.example.com"),
+      loadBalancer: { serverId: "300", site: balancerSite, nodes, target: 123 },
+    };
+  }
+
+  it("changes nothing when the one node is the server of the file", () => {
+    expect(buildPlan(balanced, withNodes([node(123)])).changes).toEqual([]);
+  });
+
+  it("replaces other nodes with the server of the file", () => {
+    expect(buildPlan(balanced, withNodes([node(124), node(123)])).changes).toEqual([
+      {
+        action: "update-load-balancer",
+        site: "example.com",
+        from: [
+          { server_id: 124, port: 80 },
+          { server_id: 123, port: 80 },
+        ],
+        to: { server_id: 123, port: 80 },
+      },
+    ]);
+  });
+
+  it("updates a node with another port, weight or state", () => {
+    for (const nodes of [
+      [node(123, { port: 8080 })],
+      [node(123, { weight: 2 })],
+      [node(123, { backup: true })],
+      [node(123, { down: true })],
+      [],
+    ]) {
+      expect(actions(buildPlan(balanced, withNodes(nodes)).changes)).toEqual([
+        "update-load-balancer",
+      ]);
+    }
+  });
+
+  it("plans nothing without the key, or before the site of the load balancer exists", () => {
+    const { loadBalancer: _, ...plain } = balanced;
+    expect(buildPlan(plain, withNodes([node(124)])).changes).toEqual([]);
+    expect(
+      buildPlan(balanced, {
+        ...withNodes([]),
+        loadBalancer: { serverId: "300", site: null, nodes: [], target: 123 },
+      }).changes,
+    ).toEqual([]);
+  });
+
+  it("describes the nodes before and after", () => {
+    expect(
+      describeChange({
+        action: "update-load-balancer",
+        site: "example.com",
+        from: [{ server_id: 124, port: 80 }],
+        to: { server_id: 123, port: 80 },
+      }),
+    ).toBe("~ update load balancer site example.com: server 124:80 → server 123:80");
+    expect(
+      describeChange({
+        action: "update-load-balancer",
+        site: "example.com",
+        from: [],
+        to: { server_id: 123, port: 80 },
+      }),
+    ).toBe("~ update load balancer site example.com: (none) → server 123:80");
   });
 });

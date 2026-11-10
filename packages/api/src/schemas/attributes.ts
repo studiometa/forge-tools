@@ -104,6 +104,19 @@ export const DomainAttributesSchema = v.object({
 
 export type DomainAttributes = v.InferOutput<typeof DomainAttributesSchema>;
 
+// ── Load balancing ───────────────────────────────────
+
+/** A server that a site of a load balancer sends traffic to. */
+export const LoadBalancingNodeAttributesSchema = v.object({
+  server_id: v.number(),
+  port: v.number(),
+  weight: v.number(),
+  backup: v.boolean(),
+  down: v.boolean(),
+});
+
+export type LoadBalancingNodeAttributes = v.InferOutput<typeof LoadBalancingNodeAttributesSchema>;
+
 // ── Deployments ──────────────────────────────────────
 
 export const DeploymentCommitSchema = v.object({

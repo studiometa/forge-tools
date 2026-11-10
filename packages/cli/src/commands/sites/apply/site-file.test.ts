@@ -38,6 +38,7 @@ const example = {
   env: { APP_ENV: "production", APP_DEBUG: false, WORKERS: 2 },
   workers: [{ command: "php artisan queue:work database --queue=default", processes: 4 }],
   schedule: [{ command: "php artisan schedule:run", frequency: "minutely" }],
+  loadBalancer: { server: "lb-1", port: 80 },
 };
 
 function issues(data: unknown): string[] {
@@ -64,6 +65,16 @@ describe("parseSiteFile", () => {
   it("defaults the number of processes of a worker to 1", () => {
     const file = parseSiteFile({ ...example, workers: [{ command: "php artisan horizon" }] });
     expect(file.workers).toEqual([{ command: "php artisan horizon", processes: 1 }]);
+  });
+
+  it("defaults the port of the load balancer to 80 and refuses an invalid port", () => {
+    expect(
+      parseSiteFile({ server: 1, domain: "a.example.com", loadBalancer: { server: 300 } })
+        .loadBalancer,
+    ).toEqual({ server: 300, port: 80 });
+    expect(
+      issues({ server: 1, domain: "a.example.com", loadBalancer: { server: "lb-1", port: 0 } }),
+    ).toHaveLength(1);
   });
 
   it("keeps an empty list of workers, which differs from no list", () => {
@@ -228,6 +239,9 @@ describe("site.schema.json", () => {
     );
     expect(Object.keys(schema.properties.database.properties).toSorted()).toEqual(
       keys(SiteFileSchema.entries.database.wrapped),
+    );
+    expect(Object.keys(schema.properties.loadBalancer.properties).toSorted()).toEqual(
+      keys(SiteFileSchema.entries.loadBalancer.wrapped),
     );
     expect(Object.keys(schema.properties.database.properties.env.properties).toSorted()).toEqual(
       keys(DatabaseEnvSchema.pipe[0]),

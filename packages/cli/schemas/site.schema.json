@@ -7,12 +7,20 @@
   "additionalProperties": false,
   "required": ["server", "domain"],
   "properties": {
-    "$schema": { "type": "string" },
+    "$schema": {
+      "type": "string"
+    },
     "server": {
       "description": "Server name (exact match) or ID.",
       "oneOf": [
-        { "type": "string", "minLength": 1 },
-        { "type": "integer", "minimum": 1 }
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "type": "integer",
+          "minimum": 1
+        }
       ]
     },
     "domain": {
@@ -23,7 +31,10 @@
     "aliases": {
       "description": "Domains to add to the site. Aliases are added, never removed.",
       "type": "array",
-      "items": { "type": "string", "minLength": 1 }
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
     },
     "type": {
       "description": "Site type, used to create the site.",
@@ -56,9 +67,17 @@
       "additionalProperties": false,
       "required": ["provider", "url"],
       "properties": {
-        "provider": { "enum": ["github", "gitlab", "bitbucket", "gitlab-custom", "custom"] },
-        "url": { "type": "string", "minLength": 1 },
-        "branch": { "type": "string", "minLength": 1 }
+        "provider": {
+          "enum": ["github", "gitlab", "bitbucket", "gitlab-custom", "custom"]
+        },
+        "url": {
+          "type": "string",
+          "minLength": 1
+        },
+        "branch": {
+          "type": "string",
+          "minLength": 1
+        }
       }
     },
     "database": {
@@ -67,8 +86,14 @@
       "additionalProperties": false,
       "required": ["name", "user"],
       "properties": {
-        "name": { "type": "string", "minLength": 1 },
-        "user": { "type": "string", "minLength": 1 },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "user": {
+          "type": "string",
+          "minLength": 1
+        },
         "env": {
           "description": ".env keys that get the database name, user and password of a new user. The keys must be different.",
           "type": "object",
@@ -96,8 +121,12 @@
     "env": {
       "description": ".env variables to add when missing. Existing values are never overwritten.",
       "type": "object",
-      "propertyNames": { "pattern": "^[A-Za-z_][A-Za-z0-9_]*$" },
-      "additionalProperties": { "type": ["string", "number", "boolean"] }
+      "propertyNames": {
+        "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+      },
+      "additionalProperties": {
+        "type": ["string", "number", "boolean"]
+      }
     },
     "nginx": {
       "description": "Nginx file, relative to the site file, with the Forge template variables {{DIRECTORY}}, {{DOMAINS}}, {{PATH}}, {{PORT}}, {{PORT_V6}}, {{PROXY_PASS}}, {{ROOT_PATH}}, {{SERVER_PUBLIC_IP}}, {{SERVER_PRIVATE_IP}}, {{SITE}}, {{SITE_ID}} and {{USER}}. Rendered for the site and written when it differs from Forge. An unknown variable is an error.",
@@ -112,8 +141,15 @@
         "additionalProperties": false,
         "required": ["command"],
         "properties": {
-          "command": { "type": "string", "minLength": 1 },
-          "processes": { "type": "integer", "minimum": 1, "default": 1 },
+          "command": {
+            "type": "string",
+            "minLength": 1
+          },
+          "processes": {
+            "type": "integer",
+            "minimum": 1,
+            "default": 1
+          },
           "directory": {
             "description": "Directory, absolute or relative to the site root. Default: the site root.",
             "type": "string",
@@ -130,7 +166,10 @@
         "additionalProperties": false,
         "required": ["command", "frequency"],
         "properties": {
-          "command": { "type": "string", "minLength": 1 },
+          "command": {
+            "type": "string",
+            "minLength": 1
+          },
           "frequency": {
             "enum": ["minutely", "hourly", "nightly", "weekly", "monthly", "reboot", "custom"]
           },
@@ -140,9 +179,49 @@
             "minLength": 1
           }
         },
-        "if": { "properties": { "frequency": { "const": "custom" } } },
-        "then": { "required": ["cron"] },
-        "else": { "not": { "required": ["cron"] } }
+        "if": {
+          "properties": {
+            "frequency": {
+              "const": "custom"
+            }
+          }
+        },
+        "then": {
+          "required": ["cron"]
+        },
+        "else": {
+          "not": {
+            "required": ["cron"]
+          }
+        }
+      }
+    },
+    "loadBalancer": {
+      "description": "Load balancer of the site: apply sets its nodes to the server of the site file only, with round robin and weight 1. The site of the load balancer must exist: its name is the domain or one of the aliases. Create it in Forge (New site on the load balancer): the Forge API cannot. Its certificate is not managed.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["server"],
+      "properties": {
+        "server": {
+          "description": "Load balancer name (exact match) or ID.",
+          "oneOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "integer",
+              "minimum": 1
+            }
+          ]
+        },
+        "port": {
+          "description": "Port of the site on its server. Default: 80.",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535,
+          "default": 80
+        }
       }
     }
   }

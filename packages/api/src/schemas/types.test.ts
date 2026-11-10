@@ -16,6 +16,7 @@ import {
   CreateCommandDataSchema,
   CreateScheduledJobDataSchema,
   CreateDomainDataSchema,
+  UpdateLoadBalancingNodesDataSchema,
   CreateFirewallRuleDataSchema,
   CreateSshKeyDataSchema,
   CreateSecurityRuleDataSchema,
@@ -203,4 +204,11 @@ testSchema(
   CreateDomainDataSchema,
   { name: "example.com", allow_wildcard_subdomains: false, www_redirect_type: "none" },
   { name: "example.com", allow_wildcard_subdomains: false, www_redirect_type: "sometimes" },
+);
+
+testSchema(
+  "UpdateLoadBalancingNodesDataSchema",
+  UpdateLoadBalancingNodesDataSchema,
+  { balancer_method: "round_robin", balancing: [{ server_id: 123, port: 80, weight: 1 }] },
+  { balancer_method: "round_robin", balancing: [] },
 );

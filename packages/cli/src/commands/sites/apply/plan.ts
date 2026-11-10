@@ -7,6 +7,7 @@ import type {
   BackgroundProcessAttributes,
   DatabaseAttributes,
   DatabaseUserAttributes,
+  LoadBalancingNodeAttributes,
   ScheduledJobAttributes,
   SiteAttributes,
 } from "@studiometa/forge-api";
@@ -30,6 +31,7 @@ export type Daemon = BackgroundProcessAttributes & { id: number };
 export type ScheduledJob = ScheduledJobAttributes & { id: number };
 export type Database = DatabaseAttributes & { id: number };
 export type DatabaseUser = DatabaseUserAttributes & { id: number };
+export type LoadBalancingNode = LoadBalancingNodeAttributes & { id: number };
 
 /** Shown in place of a generated password. */
 export const GENERATED = "<generated>";
@@ -54,6 +56,14 @@ export interface RemoteState {
   siteJobIds?: ReadonlySet<number>;
   /** Nginx configuration on Forge and the Nginx file rendered for the site; null when the site does not exist. */
   nginx?: { remote: string; rendered: string } | null;
+  /** The site of the file on its load balancer, with its nodes; site is null when it does not exist. */
+  loadBalancer?: {
+    serverId: string;
+    site: Site | null;
+    nodes: LoadBalancingNode[];
+    /** The server of the site file: the one node that the load balancer must send traffic to. */
+    target: number;
+  };
 }
 
 export interface SiteSettings {
@@ -88,6 +98,12 @@ export type Change =
       processes: number;
     }
   | { action: "create-job"; command: string; frequency: string; cron?: string }
+  | {
+      action: "update-load-balancer";
+      site: string;
+      from: Array<{ server_id: number; port: number }>;
+      to: { server_id: number; port: number };
+    }
   /** `diff` is null for a site that does not exist yet: the file is rendered once it exists. */
   | { action: "update-nginx"; diff: string | null }
   | {
@@ -482,6 +498,32 @@ function planSchedule(
 }
 
 /**
+ * Plan the nodes of the site on the load balancer: one node, the server of the site file, with
+ * the default weight. Any other node is replaced.
+ */
+function planLoadBalancer(file: SiteFile, state: RemoteState, changes: Change[]): void {
+  const balancer = state.loadBalancer;
+  if (!file.loadBalancer || !balancer?.site) return;
+  const to = { server_id: balancer.target, port: file.loadBalancer.port };
+  const [node, ...others] = balancer.nodes;
+  const inSync =
+    node !== undefined &&
+    others.length === 0 &&
+    node.server_id === to.server_id &&
+    node.port === to.port &&
+    node.weight === 1 &&
+    !node.backup &&
+    !node.down;
+  if (inSync) return;
+  changes.push({
+    action: "update-load-balancer",
+    site: balancer.site.name,
+    from: balancer.nodes.map(({ server_id, port }) => ({ server_id, port })),
+    to,
+  });
+}
+
+/**
  * Compare the site file with the state of Forge. Keys that the file does not have are not
  * compared. The plan creates and updates what differs, and deletes only the workers and
  * scheduled jobs that surely belong to the site and that the file does not declare.
@@ -499,6 +541,7 @@ export function buildPlan(file: SiteFile, state: RemoteState): Plan {
   planNginx(file, state, changes);
   planWorkers(file, state, changes, warnings);
   planSchedule(file, state, changes, warnings);
+  planLoadBalancer(file, state, changes);
 
   return { changes, warnings };
 }
@@ -543,6 +586,12 @@ export function describeChange(change: Change): string {
       return `- delete worker ${change.id}: ${change.command} (directory: ${quoted(change.directory)}, processes: ${change.processes})`;
     case "create-job":
       return `+ create scheduled job: ${change.command} (${change.frequency}${change.cron ? ` ${change.cron}` : ""})`;
+    case "update-load-balancer": {
+      const node = ({ server_id, port }: { server_id: number; port: number }) =>
+        `server ${server_id}:${port}`;
+      const from = change.from.length > 0 ? change.from.map(node).join(", ") : "(none)";
+      return `~ update load balancer site ${change.site}: ${from} → ${node(change.to)}`;
+    }
     case "delete-job":
       return `- delete scheduled job ${change.id}: ${change.command} (${change.frequency.toLowerCase()} ${change.cron})`;
   }

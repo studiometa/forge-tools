@@ -180,6 +180,16 @@ describe("sitesApply", () => {
     expect(exitSpy).toHaveBeenCalledWith(3);
   });
 
+  it("exits 3 with --check when the load balancer has no site", async () => {
+    siteFile({ server: 123, domain: "a.example.com", loadBalancer: { server: "lb-1" } });
+    const { ctx, forge } = context("json", { file: "site.json", check: true });
+
+    await sitesApply(ctx);
+
+    expect(exitSpy).toHaveBeenCalledWith(3);
+    expect(forge.calls.filter(([method]) => method !== "GET")).toEqual([]);
+  });
+
   it("applies the changes and prints each one", async () => {
     siteFile({ server: 123, domain: "a.example.com", workers: [] });
     const { ctx, forge } = context("human", { file: "site.json" });

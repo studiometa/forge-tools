@@ -5,7 +5,7 @@
 import { vi } from "vitest";
 
 import type { CliExecutorContext } from "../../../context.ts";
-import type { Daemon, ScheduledJob, Site } from "./plan.ts";
+import type { Daemon, LoadBalancingNode, ScheduledJob, Site } from "./plan.ts";
 
 export function site(id: number, name: string, overrides: Partial<Site> = {}): Site {
   return {
@@ -141,8 +141,28 @@ function route(url: string): string {
   return decodeURIComponent(url).replace(/^\/orgs\/[^/]+/, "/orgs/org");
 }
 
+/** A node of a site on the load balancer, with the default weight. */
+export function node(
+  serverId: number,
+  overrides: Partial<LoadBalancingNode> = {},
+): LoadBalancingNode {
+  return {
+    id: serverId,
+    server_id: serverId,
+    port: 80,
+    weight: 1,
+    backup: false,
+    down: false,
+    ...overrides,
+  };
+}
+
 export interface FakeForge {
   sites: Site[];
+  /** Sites of the load balancer, server 300. */
+  balancerSites: Site[];
+  /** Nodes of each site of the load balancer, by site ID. */
+  nodes: Record<number, LoadBalancingNode[]>;
   daemons: Daemon[];
   siteDaemonIds: number[];
   jobs: ScheduledJob[];
@@ -162,6 +182,8 @@ export interface FakeForge {
 export function fakeForge(initial: Partial<FakeForge> = {}) {
   const state: FakeForge = {
     sites: [],
+    balancerSites: [],
+    nodes: {},
     daemons: [],
     siteDaemonIds: [],
     jobs: [],
@@ -183,7 +205,11 @@ export function fakeForge(initial: Partial<FakeForge> = {}) {
       let match: RegExpExecArray | null;
       if (path === "/orgs/org/servers") {
         // Server attributes keep their id.
-        const servers = [server(123, "web-1"), server(124, "web-10")];
+        const servers = [
+          server(123, "web-1"),
+          server(124, "web-10"),
+          { ...server(300, "lb-1"), type: "loadbalancer" },
+        ];
         return {
           ...list("servers", []),
           data: servers.map((item) => ({ id: String(item.id), type: "servers", attributes: item })),
@@ -194,6 +220,10 @@ export function fakeForge(initial: Partial<FakeForge> = {}) {
         return { data: { id: "123", type: "servers", attributes } };
       }
       if (path === "/orgs/org/servers/123/sites") return list("sites", state.sites);
+      if (path === "/orgs/org/servers/300/sites") return list("sites", state.balancerSites);
+      if ((match = /^\/orgs\/org\/servers\/300\/sites\/(\d+)\/load-balancing-nodes$/.exec(path))) {
+        return list("loadBalancingNodes", state.nodes[Number(match[1])] ?? []);
+      }
       if ((match = /^\/orgs\/org\/servers\/123\/sites\/(\d+)\/nginx$/.exec(path))) {
         return doc("nginxConfigs", { id: Number(match[1]), content: state.nginx } as never);
       }
@@ -280,6 +310,12 @@ export function fakeForge(initial: Partial<FakeForge> = {}) {
       }
       if (url.endsWith("/nginx")) {
         state.nginx = String(body.config);
+        return null;
+      }
+      const balancing = /^\/orgs\/org\/servers\/300\/sites\/(\d+)\/load-balancing-nodes$/.exec(url);
+      if (balancing) {
+        const nodes = body.balancing as Array<{ server_id: number; port: number; weight: number }>;
+        state.nodes[Number(balancing[1])] = nodes.map((item) => node(item.server_id, item));
         return null;
       }
       return doc("sites", { ...state.sites[0] });
