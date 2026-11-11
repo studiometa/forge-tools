@@ -367,6 +367,85 @@ describe("applySiteFile", () => {
     );
   });
 
+  it("waits until the new database and its user are installed before the next creation", async () => {
+    const { ctx, calls } = fakeForge({
+      newDatabaseStatuses: ["installing", "installed"],
+      newUserStatuses: ["installing", "installed"],
+    });
+    const file: SiteFile = {
+      server: 123,
+      domain: "a.example.com",
+      type: "php",
+      database: { name: "example", user: "example" },
+    };
+
+    await applySiteFile(file, "123", ctx, {
+      sleep: async () => {},
+      pollIntervalMs: 10,
+      generatePassword: () => "pw",
+    });
+
+    const requests = calls
+      .filter(([method, url]) => method === "POST" || /\/database\/\w+\/\d+$/.test(url))
+      .map(([method, url]) => `${method} ${url}`);
+    expect(requests).toEqual([
+      "POST /orgs/org/servers/123/database/schemas",
+      "GET /orgs/org/servers/123/database/schemas/70",
+      "GET /orgs/org/servers/123/database/schemas/70",
+      "POST /orgs/org/servers/123/database/users",
+      "GET /orgs/org/servers/123/database/users/71",
+      "GET /orgs/org/servers/123/database/users/71",
+      "POST /orgs/org/servers/123/sites",
+    ]);
+  });
+
+  it("stops before the user when the new database is not installed in time", async () => {
+    const { ctx, calls } = fakeForge({
+      newDatabaseStatuses: ["installing", "installing", "installing"],
+    });
+
+    await expect(
+      applySiteFile(
+        { server: 123, domain: "a.example.com", type: "php", database: { name: "example" } },
+        "123",
+        ctx,
+        { sleep: async () => {}, pollIntervalMs: 10, timeoutMs: 20 },
+      ),
+    ).rejects.toThrow("Database example is installing on Forge, not installed");
+    expect(calls.filter(([method]) => method === "POST").map(([, url]) => url)).toEqual([
+      "/orgs/org/servers/123/database/schemas",
+    ]);
+  });
+
+  it("stops before the site when the new database user fails, and says its password is lost", async () => {
+    const { ctx, calls } = fakeForge({ newUserStatuses: ["installing", "failed"] });
+
+    const error = await applySiteFile(
+      {
+        server: 123,
+        domain: "a.example.com",
+        type: "php",
+        database: { name: "example", user: "example" },
+      },
+      "123",
+      ctx,
+      { sleep: async () => {}, pollIntervalMs: 10, generatePassword: () => "pw" },
+    ).catch((caught: unknown) => caught);
+
+    expect(error).toBeInstanceOf(ApplyError);
+    expect((error as ApplyError).message).toBe(
+      "Database user example is failed on Forge, not installed",
+    );
+    expect((error as ApplyError).hints).toEqual([
+      "The database user example exists on Forge, but its password was not saved",
+      "Delete the database user example on Forge before you run forge sites apply again",
+    ]);
+    expect(calls.filter(([method]) => method === "POST").map(([, url]) => url)).toEqual([
+      "/orgs/org/servers/123/database/schemas",
+      "/orgs/org/servers/123/database/users",
+    ]);
+  });
+
   it("stops when a new site is not installed in time", async () => {
     const { ctx } = fakeForge({ newSiteStatuses: ["installing", "installing", "installing"] });
 
