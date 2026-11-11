@@ -169,7 +169,7 @@ forge sites apply --file site.json          # Make the site match the file
 | `type`, `php`, `webDirectory`, `repository` | Create the site when it is missing (`type` is then required) and wait until Forge installs it. On an existing site, update `php`, `webDirectory` and the branch                        |
 | `aliases`                                   | Add the missing aliases. Never remove one                                                                                                                                              |
 | `database`                                  | Create the database and the user when they are missing. A new user gets a random password, written only into the site `.env` (`DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`, see below)  |
-| `env`                                       | Add the missing keys to the site `.env`. A key with another value on Forge is reported, never overwritten                                                                              |
+| `env`                                       | On a new site, write the whole `.env` (see below). On an existing site, add the missing keys. A key with another value on Forge is reported, never overwritten                         |
 | `nginx`                                     | Nginx file, relative to the site file, with Forge template variables. Rendered for the site and written when it differs from Forge (see below)                                         |
 | `workers`                                   | Forge background processes of the site. Create the missing ones, delete the ones of the site that the file does not declare. The directory defaults to the site root                   |
 | `schedule`                                  | Forge scheduled jobs of the site (`minutely`, `hourly`, `nightly`, `weekly`, `monthly`, `reboot`, or `custom` with `cron`). A relative `artisan` becomes the absolute path of the site |
@@ -187,6 +187,8 @@ For an application that does not read the Laravel names, `database.env` maps the
   "env": { "DB_SERVER": "127.0.0.1" }
 }
 ```
+
+When `apply` creates the site, the site file owns the whole `.env`: once Forge installs the site, `apply` writes a `.env` with the `env` keys and the generated database keys only. When Forge creates the site from a repository, it copies the `.env.example` of the repository into `.env`: `apply` drops these keys and values. The plan shows it as `+ write .env with these keys only (...)`. On an existing site, `apply` only adds the missing keys and never replaces a value. A site file with neither `env` nor `database` does not touch the `.env`.
 
 `nginx` points to an Nginx file that uses the variables of [Forge Nginx templates](https://forge.laravel.com/docs/servers/nginx-templates). `apply` renders the file locally with the values of the site, so one file works on any server, without a template on the server:
 
@@ -216,7 +218,7 @@ A worker or a scheduled job matches the file when its command, directory, proces
 - Paths are compared on whole segments: `/home/forge/example.com` does not own `/home/forge/example.com-staging` or `/home/forge/example.com.old`.
 - Workers and scheduled jobs that run as `root` are never deleted, and neither are the ones whose owner is not certain: they are reported as kept.
 - Without the `workers` key, no worker is read or deleted. With `"workers": []`, all the workers of the site are deleted. The same applies to `schedule`.
-- The site, its aliases, its database and its `.env` keys are never deleted.
+- The site, its aliases, its database and its `.env` keys are never deleted. Only on a site that `apply` creates, the `.env` that Forge copies from `.env.example` is replaced.
 
 `loadBalancer` sends the traffic of the load balancer to the server of the file. The site of the load balancer is the one named `domain` or one of the `aliases`. When no site matches, `--check` and `apply` exit `3` before any change. When two sites match, they exit `3` too. The Forge API cannot create a site on a load balancer: create it in Forge (New site on the load balancer), with its certificate. The DNS points to the load balancer, so a change of node needs no DNS change. To move a site to another server, do not only change `server`: `apply` would send the traffic to the new site at once, before its first deployment and without its data. Declare the new server in a second site file without `loadBalancer`, deploy and test it, then move `loadBalancer` to that file. Only one site file declares `loadBalancer` for a site: with the key in two files, each `apply` replaces the node of the other.
 
