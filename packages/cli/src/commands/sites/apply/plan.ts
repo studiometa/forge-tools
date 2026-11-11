@@ -88,6 +88,11 @@ export type Change =
       generated: string[];
       /** The generated key that holds the password; its value never shows. */
       password?: string;
+      /**
+       * The site is new: apply writes the whole .env with these keys only, and drops the keys
+       * that Forge copies from the `.env.example` of the repository.
+       */
+      replace?: true;
     }
   | { action: "create-worker"; command: string; directory: string; processes: number }
   | {
@@ -322,7 +327,13 @@ function planEnv(
   if (keys.length > 0 || generated.length > 0) {
     const password =
       file.database && generated.length > 0 ? databaseEnvKeys(file.database).password : undefined;
-    changes.push({ action: "add-env", keys, generated, ...(password ? { password } : {}) });
+    changes.push({
+      action: "add-env",
+      keys,
+      generated,
+      ...(password ? { password } : {}),
+      ...(state.site ? {} : { replace: true }),
+    });
   }
 }
 
@@ -571,11 +582,15 @@ export function describeChange(change: Change): string {
       return `+ create database ${change.name}`;
     case "create-database-user":
       return `+ create database user ${change.name} for ${change.database} (password: ${GENERATED})`;
-    case "add-env":
-      return `+ add .env keys: ${[
+    case "add-env": {
+      const keys = [
         ...change.keys,
         ...change.generated.map((key) => (key === change.password ? `${key}=${GENERATED}` : key)),
-      ].join(", ")}`;
+      ].join(", ");
+      return change.replace
+        ? `+ write .env with these keys only (replaces the .env that Forge creates from .env.example): ${keys}`
+        : `+ add .env keys: ${keys}`;
+    }
     case "update-nginx":
       return change.diff === null
         ? "~ write Nginx configuration (rendered once the site exists)"

@@ -422,6 +422,7 @@ async function applyChanges(
   generatedEnv: Map<string, string>,
   ctx: CliExecutorContext,
   options: ApplyOptions,
+  newSiteEnv?: Change,
 ): Promise<void> {
   const params = { server_id: serverId, site_id: String(site.id) };
   const { env: databaseEnv } = await applyDatabase(file, plan, state, serverId, ctx, options);
@@ -470,7 +471,17 @@ async function applyChanges(
     }
   }
 
-  if (env.size > 0) {
+  if (newSiteEnv) {
+    // A site created in this run: the site file owns the whole .env, and the keys that Forge
+    // copied from .env.example go away. The generated database keys win over the file.
+    options.onChange?.(newSiteEnv);
+    const fileEnv = Object.entries(file.env ?? {}).map(([key, value]): [string, string] => [
+      key,
+      String(value),
+    ]);
+    const content = setEnvValues("", new Map([...fileEnv, ...env]));
+    await updateEnv({ ...params, content }, ctx);
+  } else if (env.size > 0) {
     const addEnv = plan.changes.find((change) => change.action === "add-env");
     if (addEnv) options.onChange?.(addEnv);
     const content = (await getEnv(params, ctx)).data;
@@ -595,6 +606,9 @@ export async function applySiteFile(
   if (!site) {
     throw new ApplyError(`Site ${file.domain} is not on server ${serverId} after its creation`);
   }
-  await applyChanges(file, plan, state, serverId, site, generatedEnv, ctx, options);
+  const newSiteEnv = createSiteChange
+    ? firstPlan.changes.find((change) => change.action === "add-env" && change.replace)
+    : undefined;
+  await applyChanges(file, plan, state, serverId, site, generatedEnv, ctx, options, newSiteEnv);
   return firstPlan;
 }

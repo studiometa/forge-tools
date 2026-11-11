@@ -363,8 +363,72 @@ describe("applySiteFile", () => {
       database_user_id: "71",
     });
     expect(state.env).toBe(
-      "DB_DATABASE=example\nDB_USERNAME=example\nDB_PASSWORD=pw\nAPP_ENV=production\n",
+      "APP_ENV=production\nDB_DATABASE=example\nDB_USERNAME=example\nDB_PASSWORD=pw\n",
     );
+  });
+
+  it("replaces the .env that Forge copies from .env.example on a new site", async () => {
+    const { ctx, calls, state } = fakeForge();
+    // Forge copies .env.example into .env when it creates the site from the repository.
+    state.env =
+      "DB_HOST=db\nWP_HOME=https://localhost\nAWS_ACCESS_KEY_ID=local\nDB_PASSWORD=local\n";
+    const changes: Change[] = [];
+
+    const plan = await applySiteFile(
+      {
+        server: 123,
+        domain: "a.example.com",
+        type: "php",
+        database: { name: "example", user: "example" },
+        env: { DB_HOST: "127.0.0.1", WP_HOME: "https://a.example.com" },
+      },
+      "123",
+      ctx,
+      {
+        sleep: async () => {},
+        pollIntervalMs: 10,
+        generatePassword: () => "pw",
+        onChange: (change) => changes.push(change),
+      },
+    );
+
+    expect(plan.changes).toContainEqual({
+      action: "add-env",
+      keys: ["DB_HOST", "WP_HOME"],
+      generated: ["DB_DATABASE", "DB_USERNAME", "DB_PASSWORD"],
+      password: "DB_PASSWORD",
+      replace: true,
+    });
+    expect(changes).toContainEqual(expect.objectContaining({ action: "add-env", replace: true }));
+    expect(state.env).toBe(
+      "DB_HOST=127.0.0.1\nWP_HOME=https://a.example.com\nDB_DATABASE=example\nDB_USERNAME=example\nDB_PASSWORD=pw\n",
+    );
+    expect(calls.filter(([method]) => method === "PUT").map(([, url]) => url)).toEqual([
+      "/orgs/org/servers/123/sites/999/environment",
+    ]);
+  });
+
+  it("never replaces a value of the .env of an existing site", async () => {
+    const { ctx, state } = fakeForge({
+      sites: [site(456, "a.example.com")],
+      env: "DB_HOST=db\nWP_HOME=https://localhost\n",
+    });
+
+    const plan = await applySiteFile(
+      {
+        server: 123,
+        domain: "a.example.com",
+        env: { DB_HOST: "127.0.0.1", WP_HOME: "https://localhost", APP_KEY: "key" },
+      },
+      "123",
+      ctx,
+    );
+
+    expect(plan.changes).toEqual([{ action: "add-env", keys: ["APP_KEY"], generated: [] }]);
+    expect(plan.warnings).toEqual([
+      ".env key DB_HOST has another value on Forge: apply does not overwrite it.",
+    ]);
+    expect(state.env).toBe("DB_HOST=db\nWP_HOME=https://localhost\nAPP_KEY=key\n");
   });
 
   it("waits until the new database and its user are installed before the next creation", async () => {

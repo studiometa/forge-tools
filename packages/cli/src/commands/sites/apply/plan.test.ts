@@ -506,7 +506,7 @@ describe("buildPlan", () => {
         },
       },
       { action: "add-alias", name: "example.org" },
-      { action: "add-env", keys: ["APP_ENV"], generated: [] },
+      { action: "add-env", keys: ["APP_ENV"], generated: [], replace: true },
       {
         action: "create-worker",
         command: "php artisan queue:work",
@@ -616,6 +616,13 @@ describe("describeChange", () => {
         password: "DB_PASSWORD",
       }),
       describeChange({
+        action: "add-env",
+        keys: ["APP_ENV"],
+        generated: ["DB_PASSWORD"],
+        password: "DB_PASSWORD",
+        replace: true,
+      }),
+      describeChange({
         action: "create-worker",
         command: "php artisan queue:work",
         directory: A,
@@ -652,6 +659,7 @@ describe("describeChange", () => {
       "+ create database example",
       "+ create database user example for example (password: <generated>)",
       "+ add .env keys: APP_ENV, DB_USERNAME, DB_PASSWORD=<generated>",
+      "+ write .env with these keys only (replaces the .env that Forge creates from .env.example): APP_ENV, DB_PASSWORD=<generated>",
       `+ create worker: php artisan queue:work (directory: ${A}, processes: 2)`,
       "- delete worker 1: php artisan queue:work (directory: (none), processes: 1)",
       "+ create scheduled job: php x (custom 0 3 * * *)",
