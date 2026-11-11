@@ -13,6 +13,8 @@ import {
   createSite,
   deleteDaemon,
   deleteScheduledJob,
+  getDatabase,
+  getDatabaseUser,
   getEnv,
   getNginxConfig,
   getServer,
@@ -253,7 +255,7 @@ export interface ApplyOptions {
   sleep?: (ms: number) => Promise<void>;
   /** Time between two reads of a new site, in ms. */
   pollIntervalMs?: number;
-  /** Time to wait for a new site to be installed, in ms. */
+  /** Time to wait for a new site, database or database user to be installed, in ms. */
   timeoutMs?: number;
   /** Called before each change. */
   onChange?: (change: Change) => void;
@@ -270,6 +272,26 @@ const defaultSleep = (ms: number) =>
     setTimeout(resolve, ms);
   });
 
+/**
+ * Read a new resource until Forge has installed it. Throw the error of `fail` when its status is
+ * `failed` or when it is not installed in time.
+ */
+async function waitForInstalled<T extends { status: string }>(
+  read: () => Promise<T>,
+  fail: (resource: T) => ApplyError,
+  options: ApplyOptions,
+): Promise<void> {
+  const sleep = options.sleep ?? defaultSleep;
+  const interval = options.pollIntervalMs ?? 5000;
+  const timeout = options.timeoutMs ?? 600_000;
+  for (let waited = 0; ; waited += interval) {
+    const resource = await read();
+    if (resource.status === "installed") return;
+    if (resource.status === "failed" || waited >= timeout) throw fail(resource);
+    await sleep(interval);
+  }
+}
+
 async function waitForSite(
   file: SiteFile,
   serverId: string,
@@ -277,20 +299,15 @@ async function waitForSite(
   ctx: CliExecutorContext,
   options: ApplyOptions,
 ): Promise<void> {
-  const sleep = options.sleep ?? defaultSleep;
-  const interval = options.pollIntervalMs ?? 5000;
-  const timeout = options.timeoutMs ?? 600_000;
-  for (let waited = 0; ; waited += interval) {
-    const site = (await getSite({ server_id: serverId, site_id: siteId }, ctx)).data;
-    if (site.status === "installed") return;
-    if (waited >= timeout) {
-      throw new ApplyError(`Site ${site.name} is still ${site.status} on Forge`, [
+  await waitForInstalled(
+    async () => (await getSite({ server_id: serverId, site_id: siteId }, ctx)).data,
+    (site) =>
+      new ApplyError(`Site ${site.name} is still ${site.status} on Forge`, [
         "Run forge sites apply again once the site is installed",
         ...(file.repository ? [REPOSITORY_HINT(serverId)] : []),
-      ]);
-    }
-    await sleep(interval);
-  }
+      ]),
+    options,
+  );
 }
 
 interface DatabaseIds {
@@ -317,7 +334,17 @@ async function applyDatabase(
   for (const change of plan.changes) {
     if (change.action === "create-database") {
       options.onChange?.(change);
-      databaseId = (await createDatabase({ server_id: serverId, name: change.name }, ctx)).data.id;
+      const id = (await createDatabase({ server_id: serverId, name: change.name }, ctx)).data.id;
+      // Forge refuses a user for a database that it is still installing.
+      await waitForInstalled(
+        async () => (await getDatabase({ server_id: serverId, id: String(id) }, ctx)).data,
+        (database) =>
+          new ApplyError(`Database ${change.name} is ${database.status} on Forge, not installed`, [
+            "Run forge sites apply again once the database is installed",
+          ]),
+        options,
+      );
+      databaseId = id;
     } else if (change.action === "create-database-user") {
       options.onChange?.(change);
       const password = (options.generatePassword ?? generatePassword)();
@@ -329,6 +356,21 @@ async function applyDatabase(
           ...(databaseId === undefined ? {} : { database_ids: [databaseId] }),
         },
         ctx,
+      );
+      // Forge refuses a site with a user that it is still installing. The password is only in
+      // memory until apply writes the .env of the site: a user that is not installed is lost.
+      await waitForInstalled(
+        async () =>
+          (await getDatabaseUser({ server_id: serverId, id: String(user.data.id) }, ctx)).data,
+        (created) =>
+          new ApplyError(
+            `Database user ${change.name} is ${created.status} on Forge, not installed`,
+            [
+              `The database user ${change.name} exists on Forge, but its password was not saved`,
+              `Delete the database user ${change.name} on Forge before you run forge sites apply again`,
+            ],
+          ),
+        options,
       );
       ids.database_user_id = String(user.data.id);
       const keys = databaseEnvKeys(file.database);

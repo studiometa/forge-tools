@@ -174,6 +174,10 @@ export interface FakeForge {
   nginx: string;
   /** Statuses a new site goes through, one per read. */
   newSiteStatuses: string[];
+  /** Statuses a new database goes through, one per read. */
+  newDatabaseStatuses: string[];
+  /** Statuses a new database user goes through, one per read. */
+  newUserStatuses: string[];
 }
 
 /**
@@ -193,6 +197,8 @@ export function fakeForge(initial: Partial<FakeForge> = {}) {
     env: "",
     nginx: "",
     newSiteStatuses: ["installed"],
+    newDatabaseStatuses: ["installed"],
+    newUserStatuses: ["installed"],
     ...initial,
   };
   const calls: Call[] = [];
@@ -232,6 +238,20 @@ export function fakeForge(initial: Partial<FakeForge> = {}) {
         const status = state.newSiteStatuses.shift() ?? "installed";
         found.status = status;
         return doc("sites", found);
+      }
+      if ((match = /^\/orgs\/org\/servers\/123\/database\/schemas\/(\d+)$/.exec(path))) {
+        const found = state.databases.find((d) => d.id === Number(match![1]))!;
+        const database = {
+          ...stamp,
+          ...found,
+          status: state.newDatabaseStatuses.shift() ?? "installed",
+        };
+        return doc("databases", database);
+      }
+      if ((match = /^\/orgs\/org\/servers\/123\/database\/users\/(\d+)$/.exec(path))) {
+        const found = state.users.find((u) => u.id === Number(match![1]))!;
+        const user = { ...stamp, ...found, status: state.newUserStatuses.shift() ?? "installed" };
+        return doc("users", user);
       }
       if (path === "/orgs/org/servers/123/database/schemas") {
         return list(
