@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file. Each pull r
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.5.8 - 2026-11-11
+
+### Removed
+
+- **SDK**: `servers.update()`, because the Forge API v2 has no route to update a server ([#157])
+
+### Fixed
+
+- **SDK**: `firewallRules.create()`, `redirectRules.create()`, `commands.create()` and `sites.update()` no longer fail on the empty `202` response of Forge, and return nothing ([#157])
+- **SDK**: `servers.reboot()`, `server().reboot()`, `daemons.restart()` and `site().deploy()` call the Forge routes of the API v2 ([#157])
+
+[#157]: https://github.com/studiometa/forge-tools/pull/157
+
 ## 0.5.7 - 2026-11-11
 
 ### Fixed
