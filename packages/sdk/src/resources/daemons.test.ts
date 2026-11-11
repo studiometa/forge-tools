@@ -133,7 +133,8 @@ describe("DaemonsCollection", () => {
 
     await collection.restart(789);
     expect(calls[0].method).toBe("POST");
-    expect(calls[0].url).toContain(`/orgs/${ORG}/servers/123/background-processes/789/restart`);
+    expect(calls[0].url).toContain(`/orgs/${ORG}/servers/123/background-processes/789/actions`);
+    expect(calls[0].body).toEqual({ action: "restart" });
   });
 
   it("should return an AsyncPaginatedIterator from all()", () => {

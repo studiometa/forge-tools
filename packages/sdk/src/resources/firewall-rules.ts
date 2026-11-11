@@ -108,21 +108,19 @@ export class FirewallRulesCollection extends BaseCollection {
   /**
    * Create a new firewall rule.
    *
+   * Forge answers `202 Accepted` without a body: the rule is installed in the background.
+   *
    * @example
    * ```ts
-   * const rule = await forge.server(123).firewallRules.create({
+   * await forge.server(123).firewallRules.create({
    *   name: 'Allow HTTP',
    *   port: 80,
    *   type: 'allow',
    * });
    * ```
    */
-  async create(data: CreateFirewallRuleData): Promise<FirewallRuleAttributes & { id: number }> {
-    const response = await this.client.post<JsonApiDocument<FirewallRuleAttributes>>(
-      this.basePath,
-      data,
-    );
-    return unwrapDocument(response);
+  async create(data: CreateFirewallRuleData): Promise<void> {
+    await this.client.post(this.basePath, data);
   }
 
   /**

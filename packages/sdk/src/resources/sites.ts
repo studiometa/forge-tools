@@ -130,20 +130,15 @@ export class SitesCollection extends BaseCollection {
   /**
    * Update a site.
    *
+   * Forge answers `202 Accepted` without a body: the site is updated in the background.
+   *
    * @example
    * ```ts
    * await forge.server(123).sites.update(456, { directory: '/public' });
    * ```
    */
-  async update(
-    siteId: number,
-    data: Partial<CreateSiteData>,
-  ): Promise<SiteAttributes & { id: number }> {
-    const response = await this.client.put<JsonApiDocument<SiteAttributes>>(
-      `${this.basePath}/${siteId}`,
-      data,
-    );
-    return unwrapDocument(response);
+  async update(siteId: number, data: Partial<CreateSiteData>): Promise<void> {
+    await this.client.put(`${this.basePath}/${siteId}`, data);
   }
 
   /**
@@ -267,7 +262,7 @@ export class SiteResource extends BaseCollection {
    * ```
    */
   async deploy(): Promise<void> {
-    await this.client.post(`${this.basePath}/deployments/deploy`);
+    await this.client.post(`${this.basePath}/deployments`, {});
   }
 
   /**

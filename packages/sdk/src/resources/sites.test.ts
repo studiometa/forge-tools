@@ -238,7 +238,7 @@ describe("SiteResource", () => {
 
     await resource.deploy();
     expect(calls[0].method).toBe("POST");
-    expect(calls[0].url).toContain(`/orgs/${ORG}/servers/123/sites/456/deployments/deploy`);
+    expect(calls[0].url).toContain(`/orgs/${ORG}/servers/123/sites/456/deployments`);
   });
 
   it("should delete site", async () => {
