@@ -163,6 +163,6 @@ export class DaemonsCollection extends BaseCollection {
    * ```
    */
   async restart(daemonId: number): Promise<void> {
-    await this.client.post(`${this.basePath}/${daemonId}/restart`);
+    await this.client.post(`${this.basePath}/${daemonId}/actions`, { action: "restart" });
   }
 }

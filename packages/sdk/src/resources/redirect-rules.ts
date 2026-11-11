@@ -109,21 +109,19 @@ export class RedirectRulesCollection extends BaseCollection {
   /**
    * Create a new redirect rule.
    *
+   * Forge answers `202 Accepted` without a body: the rule is installed in the background.
+   *
    * @example
    * ```ts
-   * const rule = await forge.server(123).site(456).redirectRules.create({
+   * await forge.server(123).site(456).redirectRules.create({
    *   from: '/old-path',
    *   to: '/new-path',
    *   type: 'redirect',
    * });
    * ```
    */
-  async create(data: CreateRedirectRuleData): Promise<RedirectRuleAttributes & { id: number }> {
-    const response = await this.client.post<JsonApiDocument<RedirectRuleAttributes>>(
-      this.basePath,
-      data,
-    );
-    return unwrapDocument(response);
+  async create(data: CreateRedirectRuleData): Promise<void> {
+    await this.client.post(this.basePath, data);
   }
 
   /**

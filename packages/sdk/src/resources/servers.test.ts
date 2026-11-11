@@ -122,14 +122,6 @@ describe("ServersCollection", () => {
     expect(server.id).toBe(3);
   });
 
-  it("should update a server", async () => {
-    const client = createClient(mockDocument("1", { name: "renamed" }));
-    const collection = new ServersCollection(client, ORG);
-
-    const server = await collection.update(1, { name: "renamed" });
-    expect(server.name).toBe("renamed");
-  });
-
   it("should delete a server", async () => {
     const { client, calls } = createTrackingClient();
     const collection = new ServersCollection(client, ORG);
@@ -145,7 +137,8 @@ describe("ServersCollection", () => {
 
     await collection.reboot(1);
     expect(calls[0].method).toBe("POST");
-    expect(calls[0].url).toContain(`/orgs/${ORG}/servers/1/reboot`);
+    expect(calls[0].url).toContain(`/orgs/${ORG}/servers/1/actions`);
+    expect(calls[0].body).toEqual({ action: "reboot" });
   });
 
   it("should return an AsyncPaginatedIterator from all()", () => {
@@ -294,7 +287,8 @@ describe("ServerResource", () => {
     const resource = new ServerResource(client, ORG, 123);
 
     await resource.reboot();
-    expect(calls[0].url).toContain(`/orgs/${ORG}/servers/123/reboot`);
+    expect(calls[0].url).toContain(`/orgs/${ORG}/servers/123/actions`);
+    expect(calls[0].body).toEqual({ action: "reboot" });
   });
 
   it("should delete server", async () => {

@@ -154,25 +154,6 @@ export class ServersCollection extends BaseCollection {
   }
 
   /**
-   * Update a server.
-   *
-   * @example
-   * ```ts
-   * await forge.servers.update(123, { name: 'web-1-renamed' });
-   * ```
-   */
-  async update(
-    serverId: number,
-    data: Partial<CreateServerData>,
-  ): Promise<ServerAttributes & { id: number }> {
-    const response = await this.client.put<JsonApiDocument<ServerAttributes>>(
-      `${this.basePath}/${serverId}`,
-      data,
-    );
-    return unwrapDocument(response);
-  }
-
-  /**
    * Delete a server.
    *
    * @example
@@ -193,7 +174,7 @@ export class ServersCollection extends BaseCollection {
    * ```
    */
   async reboot(serverId: number): Promise<void> {
-    await this.client.post(`${this.basePath}/${serverId}/reboot`);
+    await this.client.post(`${this.basePath}/${serverId}/actions`, { action: "reboot" });
   }
 
   /**
@@ -341,7 +322,9 @@ export class ServerResource extends BaseCollection {
    * ```
    */
   async reboot(): Promise<void> {
-    await this.client.post(`/orgs/${this.orgSlug}/servers/${this.serverId}/reboot`);
+    await this.client.post(`/orgs/${this.orgSlug}/servers/${this.serverId}/actions`, {
+      action: "reboot",
+    });
   }
 
   /**

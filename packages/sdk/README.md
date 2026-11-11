@@ -45,7 +45,6 @@ await forge.server(123).site(456).env.update("APP_ENV=production\nAPP_DEBUG=fals
 forge.servers.list()                    // List all servers
 forge.servers.get(id)                   // Get a server
 forge.servers.create({ ... })           // Create a server
-forge.servers.update(id, { ... })       // Update a server
 forge.servers.delete(id)                // Delete a server
 forge.servers.reboot(id)                // Reboot a server
 forge.servers.resolve('prod')           // Find servers by name

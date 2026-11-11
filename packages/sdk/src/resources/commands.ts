@@ -107,18 +107,17 @@ export class CommandsCollection extends BaseCollection {
   /**
    * Run a command on this site.
    *
+   * Forge answers `202 Accepted` without a body: the command runs in the background.
+   * Use `list()` to find it and read its status.
+   *
    * @example
    * ```ts
-   * const command = await forge.server(123).site(456).commands.create({
+   * await forge.server(123).site(456).commands.create({
    *   command: 'php artisan migrate',
    * });
    * ```
    */
-  async create(data: CreateCommandData): Promise<CommandAttributes & { id: number }> {
-    const response = await this.client.post<JsonApiDocument<CommandAttributes>>(
-      this.basePath,
-      data,
-    );
-    return unwrapDocument(response);
+  async create(data: CreateCommandData): Promise<void> {
+    await this.client.post(this.basePath, data);
   }
 }
