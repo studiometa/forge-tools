@@ -530,6 +530,9 @@ export async function applySiteFile(
         server_id: serverId,
         type: file.type!,
         name: file.domain,
+        domain_mode: "custom",
+        www_redirect_type: "none",
+        allow_wildcard_subdomains: false,
         ...(settings.php_version ? { php_version: settings.php_version } : {}),
         ...(settings.web_directory ? { web_directory: settings.web_directory } : {}),
         ...(settings.source_control_provider

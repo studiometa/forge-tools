@@ -45,7 +45,7 @@ export const CreateSiteDataSchema = v.object({
   name: v.optional(v.string()),
   domain_mode: v.optional(v.string()),
   www_redirect_type: v.optional(v.string()),
-  allow_wildcard_subdomains: v.optional(v.string()),
+  allow_wildcard_subdomains: v.optional(v.boolean()),
   root_directory: v.optional(v.nullable(v.string())),
   web_directory: v.optional(v.nullable(v.string())),
   is_isolated: v.optional(v.boolean()),
