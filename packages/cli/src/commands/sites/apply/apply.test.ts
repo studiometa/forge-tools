@@ -351,6 +351,9 @@ describe("applySiteFile", () => {
     expect(writes[2][2]).toEqual({
       type: "php",
       name: "a.example.com",
+      domain_mode: "custom",
+      www_redirect_type: "none",
+      allow_wildcard_subdomains: false,
       php_version: "php83",
       web_directory: "/public",
       source_control_provider: "custom",
