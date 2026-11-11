@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file. Each pull r
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.5.7 - 2026-11-11
+
+### Fixed
+
+- **CLI**: Fix `forge sites apply` on a new site: write the whole `.env` with the `env` keys and the generated database keys only, instead of keeping the keys that Forge copies from `.env.example`. The plan shows `+ write .env with these keys only`. On an existing site, `apply` still adds the missing keys only ([#156])
+
+[#156]: https://github.com/studiometa/forge-tools/pull/156
+
 ## 0.5.6 - 2026-11-11
 
 ### Fixed
