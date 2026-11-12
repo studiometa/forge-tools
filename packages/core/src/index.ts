@@ -76,8 +76,8 @@ export type {
 } from "./executors/deployments/index.ts";
 
 // Domains
-export { createDomain } from "./executors/domains/index.ts";
-export type { CreateDomainOptions } from "./executors/domains/index.ts";
+export { createDomain, listDomains } from "./executors/domains/index.ts";
+export type { CreateDomainOptions, ListDomainsOptions } from "./executors/domains/index.ts";
 
 // Load balancing
 export {

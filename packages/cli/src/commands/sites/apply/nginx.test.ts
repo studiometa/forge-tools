@@ -12,10 +12,8 @@ import {
 } from "./nginx.ts";
 import { site } from "./test-fixtures.ts";
 
-const example = site(456, "www.example.com", {
-  aliases: ["example.com"],
-  php_version: "PHP 8.3",
-});
+const example = site(456, "www.example.com", { aliases: null, php_version: "PHP 8.3" });
+const exampleDomains = ["www.example.com", "example.com"];
 
 describe("templateVariables", () => {
   it("lists each variable once, with or without spaces in the braces", () => {
@@ -68,7 +66,12 @@ describe("phpSocketVersion", () => {
 
 describe("nginxValues", () => {
   it("gives the values of a site", () => {
-    expect(nginxValues(example, { ip_address: "203.0.113.10", private_ip_address: null })).toEqual({
+    expect(
+      nginxValues(example, exampleDomains, {
+        ip_address: "203.0.113.10",
+        private_ip_address: null,
+      }),
+    ).toEqual({
       DIRECTORY: "/public",
       DOMAINS: "www.example.com example.com",
       PATH: "/home/forge/www.example.com/public",
@@ -86,21 +89,24 @@ describe("nginxValues", () => {
 
   it("uses the PHP pool of the user of an isolated site", () => {
     const isolated = site(457, "app.example.com", { isolated: true, user: "app" });
-    expect(nginxValues(isolated).PROXY_PASS).toBe("unix:/var/run/php/php8.3-fpm-app.sock");
+    expect(nginxValues(isolated, ["app.example.com"]).PROXY_PASS).toBe(
+      "unix:/var/run/php/php8.3-fpm-app.sock",
+    );
   });
 
   it("reads a relative web directory and the web directory at the root", () => {
-    expect(nginxValues(site(1, "a.example.com", { web_directory: "/web" })).PATH).toBe(
+    expect(nginxValues(site(1, "a.example.com", { web_directory: "/web" }), []).PATH).toBe(
       "/home/forge/a.example.com/web",
     );
     const atRoot = nginxValues(
       site(1, "a.example.com", { web_directory: "/home/forge/a.example.com" }),
+      [],
     );
     expect(atRoot.DIRECTORY).toBe("/");
   });
 
   it("adds default_server to the ports of the default site", () => {
-    const values = nginxValues(site(1, "default", { aliases: null }));
+    const values = nginxValues(site(1, "default"), ["default"]);
     expect(values.PORT).toBe("80 default_server");
     expect(values.PORT_V6).toBe("[::]:80 default_server");
     expect(values.DOMAINS).toBe("default");
@@ -108,10 +114,10 @@ describe("nginxValues", () => {
 
   it("reads the PHP version only when PROXY_PASS is used", () => {
     expect(() =>
-      renderNginx("{{ SITE }}", site(1, "a.example.com", { php_version: "" })),
+      renderNginx("{{ SITE }}", site(1, "a.example.com", { php_version: "" }), []),
     ).not.toThrow();
     expect(() =>
-      renderNginx("{{ PROXY_PASS }}", site(1, "a.example.com", { php_version: "" })),
+      renderNginx("{{ PROXY_PASS }}", site(1, "a.example.com", { php_version: "" }), []),
     ).toThrow(ValidationError);
   });
 });
@@ -125,7 +131,7 @@ describe("renderNginx", () => {
       "include /home/{{ USER }}/{{ SITE }}/nginx/*.conf;",
       "set $x '{literal}';",
     ].join("\n");
-    expect(renderNginx(template, example)).toBe(
+    expect(renderNginx(template, example, exampleDomains)).toBe(
       [
         "include forge-conf/456/server/*;",
         "root /home/forge/www.example.com/public;",
@@ -137,6 +143,8 @@ describe("renderNginx", () => {
   });
 
   it("keeps a text that is not a variable", () => {
-    expect(renderNginx("{{ NOT_A_VARIABLE }}", example)).toBe("{{ NOT_A_VARIABLE }}");
+    expect(renderNginx("{{ NOT_A_VARIABLE }}", example, exampleDomains)).toBe(
+      "{{ NOT_A_VARIABLE }}",
+    );
   });
 });

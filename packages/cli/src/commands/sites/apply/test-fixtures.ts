@@ -11,7 +11,8 @@ export function site(id: number, name: string, overrides: Partial<Site> = {}): S
   return {
     id,
     name,
-    aliases: [],
+    // The Forge API returns null, even for a site with aliases: see `FakeForge.domains`.
+    aliases: null,
     root_directory: `/home/forge/${name}`,
     web_directory: `/home/forge/${name}/public`,
     wildcards: false,
@@ -136,6 +137,20 @@ export function webServer() {
   return { ...server(123, "web-1"), ip_address: "203.0.113.10", private_ip_address: "10.0.0.10" };
 }
 
+/** A domain of a site, as the domains route of Forge returns it. */
+function domain(id: number, name: string, type: "primary" | "alias") {
+  return {
+    id,
+    name,
+    type,
+    status: "enabled",
+    www_redirect_type: "none",
+    allow_wildcard_subdomains: false,
+    created_at: null,
+    updated_at: null,
+  };
+}
+
 /** Route on any organization: the CLI test context uses its own. */
 function route(url: string): string {
   return decodeURIComponent(url).replace(/^\/orgs\/[^/]+/, "/orgs/org");
@@ -163,6 +178,8 @@ export interface FakeForge {
   balancerSites: Site[];
   /** Nodes of each site of the load balancer, by site ID. */
   nodes: Record<number, LoadBalancingNode[]>;
+  /** Aliases of each site of server 123, by site ID. The name of the site is its primary domain. */
+  domains: Record<number, string[]>;
   daemons: Daemon[];
   siteDaemonIds: number[];
   jobs: ScheduledJob[];
@@ -188,6 +205,7 @@ export function fakeForge(initial: Partial<FakeForge> = {}) {
     sites: [],
     balancerSites: [],
     nodes: {},
+    domains: {},
     daemons: [],
     siteDaemonIds: [],
     jobs: [],
@@ -229,6 +247,16 @@ export function fakeForge(initial: Partial<FakeForge> = {}) {
       if (path === "/orgs/org/servers/300/sites") return list("sites", state.balancerSites);
       if ((match = /^\/orgs\/org\/servers\/300\/sites\/(\d+)\/load-balancing-nodes$/.exec(path))) {
         return list("loadBalancingNodes", state.nodes[Number(match[1])] ?? []);
+      }
+      if ((match = /^\/orgs\/org\/servers\/123\/sites\/(\d+)\/domains$/.exec(path))) {
+        const id = Number(match[1]);
+        const found = state.sites.find((s) => s.id === id)!;
+        return list("domainRecords", [
+          domain(id, found.name, "primary"),
+          ...(state.domains[id] ?? []).map((name, index) =>
+            domain(id * 100 + index, name, "alias"),
+          ),
+        ]);
       }
       if ((match = /^\/orgs\/org\/servers\/123\/sites\/(\d+)\/nginx$/.exec(path))) {
         return doc("nginxConfigs", { id: Number(match[1]), content: state.nginx } as never);
@@ -301,17 +329,12 @@ export function fakeForge(initial: Partial<FakeForge> = {}) {
         state.users.push(created);
         return doc("users", { ...stamp, ...created });
       }
-      if (url.endsWith("/domains")) {
-        return doc("domainRecords", {
-          id: 80,
-          name: body.name,
-          type: "alias",
-          status: "pending",
-          www_redirect_type: "none",
-          allow_wildcard_subdomains: false,
-          created_at: null,
-          updated_at: null,
-        } as never);
+      const domains = /^\/orgs\/org\/servers\/123\/sites\/(\d+)\/domains$/.exec(url);
+      if (domains) {
+        const id = Number(domains[1]);
+        state.domains[id] = [...(state.domains[id] ?? []), String(body.name)];
+        const created = { ...domain(80, String(body.name), "alias"), status: "pending" };
+        return doc("domainRecords", created);
       }
       if (url === "/orgs/org/servers/123/background-processes") {
         return doc("backgroundProcesses", daemon(90, String(body.command), String(body.directory)));

@@ -398,11 +398,24 @@ describe("buildPlan", () => {
         aliases: ["example.com", "A.example.com", "www.example.com", "example.com"],
       },
       sharedServer({
-        site: site(456, "a.example.com", { aliases: ["WWW.example.com", "old.example.com"] }),
+        site: site(456, "a.example.com"),
+        domains: ["a.example.com", "WWW.example.com", "old.example.com"],
       }),
     );
 
     expect(plan.changes).toEqual([{ action: "add-alias", name: "example.com" }]);
+  });
+
+  it("reads the aliases from the domains of the site, not from its null aliases", () => {
+    const plan = buildPlan(
+      { server: "web-1", domain: "www.luxfilmfest.lu", aliases: ["luxfilmfest.staging.ikko.fr"] },
+      sharedServer({
+        site: site(456, "www.luxfilmfest.lu", { aliases: null }),
+        domains: ["www.luxfilmfest.lu", "LuxFilmFest.staging.ikko.fr"],
+      }),
+    );
+
+    expect(plan.changes).toEqual([]);
   });
 
   it("adds missing .env keys and reports different values by name only", () => {
