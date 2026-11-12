@@ -1,6 +1,6 @@
 {
   "name": "@studiometa/forge-core",
-  "version": "0.5.8",
+  "version": "0.5.9",
   "description": "Shared business logic for Laravel Forge tools — executors and dependency injection",
   "keywords": [
     "automation",
