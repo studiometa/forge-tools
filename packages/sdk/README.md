@@ -222,6 +222,19 @@ forge.storageProviders.create({
 forge.storageProviders.delete(providerId);
 ```
 
+### Teams
+
+Share servers with the organization's teams. Team methods take the team ID from `teams.list()`.
+
+```typescript
+forge.teams.list();
+forge.teams.all(); // Async iterator over all pages
+forge.team(teamId).servers.list(); // Servers shared with the team
+forge.team(teamId).servers.all();
+forge.team(teamId).servers.add(serverId);
+forge.team(teamId).servers.remove(serverId);
+```
+
 ### User
 
 ```typescript

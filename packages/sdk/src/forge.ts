@@ -5,6 +5,7 @@ import { HttpClient, unwrapDocument } from "@studiometa/forge-api";
 import { ServersCollection, ServerResource } from "./resources/servers.ts";
 import { RecipesCollection } from "./resources/recipes.ts";
 import { StorageProvidersCollection } from "./resources/storage-providers.ts";
+import { TeamsCollection, TeamResource } from "./resources/teams.ts";
 
 /**
  * Laravel Forge TypeScript SDK.
@@ -47,6 +48,9 @@ export class Forge {
   /** Storage provider operations (list, get, create, delete), used by database backups. */
   readonly storageProviders: StorageProvidersCollection;
 
+  /** Team operations (list). Use `forge.team(id)` for the servers of a team. */
+  readonly teams: TeamsCollection;
+
   /**
    * Create a new Forge SDK instance.
    *
@@ -74,6 +78,7 @@ export class Forge {
     this.servers = new ServersCollection(this.client, organizationSlug);
     this.recipes = new RecipesCollection(this.client, organizationSlug);
     this.storageProviders = new StorageProvidersCollection(this.client, organizationSlug);
+    this.teams = new TeamsCollection(this.client, organizationSlug);
   }
 
   /**
@@ -101,6 +106,24 @@ export class Forge {
    */
   server(serverId: number): ServerResource {
     return new ServerResource(this.client, this.organizationSlug, serverId);
+  }
+
+  /**
+   * Access a specific team by ID, with nested resources.
+   *
+   * @param teamId The team ID.
+   *
+   * @example
+   * ```ts
+   * // List the servers shared with a team
+   * const servers = await forge.team(17).servers.list();
+   *
+   * // Share a server with a team
+   * await forge.team(17).servers.add(123);
+   * ```
+   */
+  team(teamId: number): TeamResource {
+    return new TeamResource(this.client, this.organizationSlug, teamId);
   }
 
   /**
