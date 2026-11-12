@@ -271,6 +271,72 @@ describe("applySiteFile", () => {
     expect(calls.filter(([method]) => method !== "GET")).toEqual([]);
   });
 
+  it("creates the site with the www redirect of the file", async () => {
+    const { ctx, calls } = fakeForge();
+    const plan = await applySiteFile(
+      { server: 123, domain: "example.com", type: "php", wwwRedirect: "to-www" },
+      "123",
+      ctx,
+    );
+
+    expect(plan.changes).toEqual([
+      {
+        action: "create-site",
+        name: "example.com",
+        settings: expect.objectContaining({ www_redirect_type: "to-www" }),
+      },
+    ]);
+    const writes = calls.filter(([method]) => method !== "GET");
+    expect(writes).toEqual([
+      [
+        "POST",
+        "/orgs/org/servers/123/sites",
+        expect.objectContaining({ name: "example.com", www_redirect_type: "to-www" }),
+      ],
+    ]);
+  });
+
+  it("changes nothing when the primary domain has the www redirect of the file", async () => {
+    const { ctx, calls } = fakeForge({
+      sites: [site(456, "example.com")],
+      wwwRedirects: { 456: "to-www" },
+    });
+    const plan = await applySiteFile(
+      { server: 123, domain: "example.com", wwwRedirect: "to-www" },
+      "123",
+      ctx,
+    );
+
+    expect(plan.changes).toEqual([]);
+    expect(calls).toContainEqual(["GET", "/orgs/org/servers/123/sites/456/domains"]);
+    expect(calls.filter(([method]) => method !== "GET")).toEqual([]);
+  });
+
+  it("updates the www redirect of the primary domain when it differs", async () => {
+    const changes: Change[] = [];
+    const { ctx, calls, state } = fakeForge({ sites: [site(456, "example.com")] });
+    const plan = await applySiteFile(
+      { server: 123, domain: "example.com", wwwRedirect: "to-www" },
+      "123",
+      ctx,
+      { onChange: (change) => changes.push(change) },
+    );
+
+    const update = {
+      action: "update-www-redirect",
+      id: 456,
+      domain: "example.com",
+      from: "none",
+      to: "to-www",
+    };
+    expect(plan.changes).toEqual([update]);
+    expect(changes).toEqual([update]);
+    expect(calls.filter(([method]) => method !== "GET")).toEqual([
+      ["PATCH", "/orgs/org/servers/123/sites/456/domains/456", { www_redirect_type: "to-www" }],
+    ]);
+    expect(state.wwwRedirects[456]).toBe("to-www");
+  });
+
   it("updates the site, adds aliases and .env keys without overwriting", async () => {
     const { ctx, calls, state } = fakeForge({
       sites: [site(456, "a.example.com")],

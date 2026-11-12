@@ -26,6 +26,7 @@ const example = {
   server: "web-1",
   domain: "www.example.com",
   aliases: ["example.com"],
+  wwwRedirect: "none",
   type: "php",
   php: "php83",
   webDirectory: "/public",
@@ -60,6 +61,17 @@ describe("parseSiteFile", () => {
       server: 123,
       domain: "www.example.com",
     });
+  });
+
+  it("accepts each www redirect and refuses another value", () => {
+    for (const wwwRedirect of ["to-www", "from-www", "none"]) {
+      expect(parseSiteFile({ server: 1, domain: "example.com", wwwRedirect }).wwwRedirect).toBe(
+        wwwRedirect,
+      );
+    }
+    expect(issues({ server: 1, domain: "example.com", wwwRedirect: "www" })).toEqual([
+      expect.stringMatching(/^wwwRedirect: /),
+    ]);
   });
 
   it("defaults the number of processes of a worker to 1", () => {
@@ -250,6 +262,9 @@ describe("site.schema.json", () => {
 
   it("has the same enums as the valibot schema", () => {
     expect(schema.properties.type.enum).toEqual(SiteFileSchema.entries.type.wrapped.options);
+    expect(schema.properties.wwwRedirect.enum).toEqual(
+      SiteFileSchema.entries.wwwRedirect.wrapped.options,
+    );
     expect(schema.properties.repository.properties.provider.enum).toEqual(
       SiteFileSchema.entries.repository.wrapped.entries.provider.options,
     );

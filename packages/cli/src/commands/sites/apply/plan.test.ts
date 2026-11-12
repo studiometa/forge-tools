@@ -11,7 +11,7 @@ import {
   siteRoots,
 } from "./plan.ts";
 import type { SiteFile } from "./site-file.ts";
-import { daemon, job, node, site } from "./test-fixtures.ts";
+import { daemon, domain, job, node, site } from "./test-fixtures.ts";
 
 const A = "/home/forge/a.example.com";
 const STAGING = "/home/forge/a.example.com-staging";
@@ -765,6 +765,47 @@ describe("buildPlan with an Nginx file", () => {
     const plan = buildPlan(
       { server: "web-1", domain: "a.example.com" },
       sharedServer({ nginx: { remote: "a", rendered: "b" } }),
+    );
+    expect(plan.changes).toEqual([]);
+  });
+});
+
+describe("buildPlan with a www redirect", () => {
+  const file: SiteFile = { server: "web-1", domain: "example.com", wwwRedirect: "to-www" };
+  const primary = (wwwRedirect: string) =>
+    domain(456, "example.com", "primary", { www_redirect_type: wwwRedirect });
+
+  it("creates the site with the www redirect", () => {
+    const plan = buildPlan({ ...file, type: "php" }, { sites: [], site: null });
+    expect(plan.changes).toEqual([
+      {
+        action: "create-site",
+        name: "example.com",
+        settings: expect.objectContaining({ type: "php", www_redirect_type: "to-www" }),
+      },
+    ]);
+    expect(formatPlan(plan)).toBe(
+      "+ create site example.com (type: php, www_redirect_type: to-www)",
+    );
+  });
+
+  it("changes nothing when the primary domain has the www redirect", () => {
+    const plan = buildPlan(file, sharedServer({ primaryDomain: primary("to-www") }));
+    expect(plan.changes).toEqual([]);
+  });
+
+  it("updates the www redirect of the primary domain when it differs", () => {
+    const plan = buildPlan(file, sharedServer({ primaryDomain: primary("none") }));
+    expect(plan.changes).toEqual([
+      { action: "update-www-redirect", id: 456, domain: "example.com", from: "none", to: "to-www" },
+    ]);
+    expect(formatPlan(plan)).toBe("~ update www redirect of example.com: none → to-www");
+  });
+
+  it("does not manage the www redirect when the file has no wwwRedirect", () => {
+    const plan = buildPlan(
+      { server: "web-1", domain: "example.com" },
+      sharedServer({ primaryDomain: primary("from-www") }),
     );
     expect(plan.changes).toEqual([]);
   });

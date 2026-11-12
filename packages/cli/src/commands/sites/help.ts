@@ -48,6 +48,8 @@ ${colors.bold("SITE FILE:")}
   A key that is absent is not managed: apply does not read or change it.
     type, php, webDirectory, repository   Create the site, or update php, web directory, branch
     aliases                               Add missing aliases, never remove one
+    wwwRedirect                           to-www, from-www or none: the www redirect of
+                                          the primary domain
     database { name, user, env }          Create when missing; a new user gets a random
                                           password, written into the site .env only.
                                           env maps { name, user, password } to .env keys

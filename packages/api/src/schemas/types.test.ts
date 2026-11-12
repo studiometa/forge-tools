@@ -16,6 +16,7 @@ import {
   CreateCommandDataSchema,
   CreateScheduledJobDataSchema,
   CreateDomainDataSchema,
+  UpdateDomainDataSchema,
   UpdateLoadBalancingNodesDataSchema,
   CreateFirewallRuleDataSchema,
   CreateSshKeyDataSchema,
@@ -204,6 +205,13 @@ testSchema(
   CreateDomainDataSchema,
   { name: "example.com", allow_wildcard_subdomains: false, www_redirect_type: "none" },
   { name: "example.com", allow_wildcard_subdomains: false, www_redirect_type: "sometimes" },
+);
+
+testSchema(
+  "UpdateDomainDataSchema",
+  UpdateDomainDataSchema,
+  { www_redirect_type: "to-www" },
+  { www_redirect_type: "sometimes" },
 );
 
 testSchema(

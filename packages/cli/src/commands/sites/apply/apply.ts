@@ -27,6 +27,7 @@ import {
   listScheduledJobs,
   listServers,
   listSites,
+  updateDomain,
   updateEnv,
   updateLoadBalancingNodes,
   updateNginxConfig,
@@ -40,6 +41,7 @@ import { matchServerId } from "../../../utils/resolve.ts";
 import { needsServer, renderNginx } from "./nginx.ts";
 import {
   type Change,
+  type Domain,
   type Plan,
   type RemoteState,
   type Site,
@@ -140,8 +142,10 @@ export async function readRemoteState(
     );
   }
 
-  if (site && (file.aliases || file.nginxTemplate !== undefined)) {
-    state.domains = await readDomains(serverId, site, ctx);
+  if (site && (file.aliases || file.wwwRedirect || file.nginxTemplate !== undefined)) {
+    const domains = await readDomains(serverId, site, ctx);
+    state.domains = domains.map((domain) => domain.name);
+    state.primaryDomain = domains.find((domain) => domain.type === "primary") ?? null;
   }
 
   if (file.nginxTemplate !== undefined) {
@@ -187,19 +191,19 @@ export async function readRemoteState(
 }
 
 /**
- * The names of the domains of a site on Forge, the primary domain first, then the aliases.
+ * The domains of a site on Forge, the primary domain first, then the aliases.
  * The `aliases` of a site are always null in the Forge API: the domains route lists them.
  */
 export async function readDomains(
   serverId: string,
   site: Site,
   ctx: CliExecutorContext,
-): Promise<string[]> {
+): Promise<Domain[]> {
   const domains = (await listDomains({ server_id: serverId, site_id: String(site.id) }, ctx)).data;
   return [
     ...domains.filter((domain) => domain.type === "primary"),
     ...domains.filter((domain) => domain.type !== "primary"),
-  ].map((domain) => domain.name);
+  ];
 }
 
 /**
@@ -429,7 +433,9 @@ async function applyNginx(
 
   const params = { server_id: serverId, site_id: String(site.id) };
   const current = siteChanged ? (await getSite(params, ctx)).data : site;
-  const currentDomains = aliasAdded ? await readDomains(serverId, site, ctx) : domains;
+  const currentDomains = aliasAdded
+    ? (await readDomains(serverId, site, ctx)).map((domain) => domain.name)
+    : domains;
   const { remote, rendered } = await readNginx(template, serverId, current, currentDomains, ctx);
   const diff = unifiedDiff(remote, rendered);
   if (!diff) return;
@@ -479,6 +485,13 @@ async function applyChanges(
             allow_wildcard_subdomains: false,
             www_redirect_type: "none",
           },
+          ctx,
+        );
+        break;
+      case "update-www-redirect":
+        options.onChange?.(change);
+        await updateDomain(
+          { ...params, domain_id: String(change.id), www_redirect_type: change.to },
           ctx,
         );
         break;
@@ -611,7 +624,7 @@ export async function applySiteFile(
         type: file.type!,
         name: file.domain,
         domain_mode: "custom",
-        www_redirect_type: "none",
+        www_redirect_type: settings.www_redirect_type ?? "none",
         allow_wildcard_subdomains: false,
         ...(settings.php_version ? { php_version: settings.php_version } : {}),
         ...(settings.web_directory ? { web_directory: settings.web_directory } : {}),

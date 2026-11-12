@@ -5,7 +5,7 @@
 import { vi } from "vitest";
 
 import type { CliExecutorContext } from "../../../context.ts";
-import type { Daemon, LoadBalancingNode, ScheduledJob, Site } from "./plan.ts";
+import type { Daemon, Domain, LoadBalancingNode, ScheduledJob, Site } from "./plan.ts";
 
 export function site(id: number, name: string, overrides: Partial<Site> = {}): Site {
   return {
@@ -138,7 +138,12 @@ export function webServer() {
 }
 
 /** A domain of a site, as the domains route of Forge returns it. */
-function domain(id: number, name: string, type: "primary" | "alias") {
+export function domain(
+  id: number,
+  name: string,
+  type: "primary" | "alias",
+  overrides: Partial<Domain> = {},
+): Domain {
   return {
     id,
     name,
@@ -148,6 +153,7 @@ function domain(id: number, name: string, type: "primary" | "alias") {
     allow_wildcard_subdomains: false,
     created_at: null,
     updated_at: null,
+    ...overrides,
   };
 }
 
@@ -180,6 +186,8 @@ export interface FakeForge {
   nodes: Record<number, LoadBalancingNode[]>;
   /** Aliases of each site of server 123, by site ID. The name of the site is its primary domain. */
   domains: Record<number, string[]>;
+  /** The `www` redirect of the primary domain of each site of server 123, by site ID. Default: none. */
+  wwwRedirects: Record<number, string>;
   daemons: Daemon[];
   siteDaemonIds: number[];
   jobs: ScheduledJob[];
@@ -206,6 +214,7 @@ export function fakeForge(initial: Partial<FakeForge> = {}) {
     balancerSites: [],
     nodes: {},
     domains: {},
+    wwwRedirects: {},
     daemons: [],
     siteDaemonIds: [],
     jobs: [],
@@ -252,7 +261,9 @@ export function fakeForge(initial: Partial<FakeForge> = {}) {
         const id = Number(match[1]);
         const found = state.sites.find((s) => s.id === id)!;
         return list("domainRecords", [
-          domain(id, found.name, "primary"),
+          domain(id, found.name, "primary", {
+            www_redirect_type: state.wwwRedirects[id] ?? "none",
+          }),
           ...(state.domains[id] ?? []).map((name, index) =>
             domain(id * 100 + index, name, "alias"),
           ),
@@ -317,6 +328,7 @@ export function fakeForge(initial: Partial<FakeForge> = {}) {
       if (url === "/orgs/org/servers/123/sites") {
         const created = site(999, String(body.name), { status: "installing" });
         state.sites.push(created);
+        state.wwwRedirects[created.id] = String(body.www_redirect_type);
         return doc("sites", created);
       }
       if (url === "/orgs/org/servers/123/database/schemas") {
@@ -366,7 +378,21 @@ export function fakeForge(initial: Partial<FakeForge> = {}) {
     delete: vi.fn(async (url: string) => {
       calls.push(["DELETE", url]);
     }),
-    patch: vi.fn(),
+    patch: vi.fn(async (raw: string, body: Record<string, unknown>) => {
+      calls.push(["PATCH", raw, body]);
+      const url = route(raw);
+      const primary = /^\/orgs\/org\/servers\/123\/sites\/(\d+)\/domains\/(\d+)$/.exec(url);
+      if (primary && primary[1] === primary[2]) {
+        const id = Number(primary[1]);
+        const found = state.sites.find((s) => s.id === id)!;
+        state.wwwRedirects[id] = String(body.www_redirect_type);
+        return doc(
+          "domainRecords",
+          domain(id, found.name, "primary", { www_redirect_type: state.wwwRedirects[id] }),
+        );
+      }
+      throw new Error(`Unexpected PATCH ${url}`);
+    }),
   };
 
   const ctx = {

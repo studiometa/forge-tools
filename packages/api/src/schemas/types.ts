@@ -90,13 +90,23 @@ export type UpdateSiteData = v.InferOutput<typeof UpdateSiteDataSchema>;
 
 // ── Domains ──────────────────────────────────────────
 
+/** The `www` redirect of a domain: `to-www` sends `example.com` to `www.example.com`. */
+export const WWW_REDIRECT_TYPES = ["from-www", "to-www", "none"] as const;
+
 export const CreateDomainDataSchema = v.object({
   name: v.string(),
   allow_wildcard_subdomains: v.boolean(),
-  www_redirect_type: v.picklist(["from-www", "to-www", "none"]),
+  www_redirect_type: v.picklist(WWW_REDIRECT_TYPES),
 });
 
 export type CreateDomainData = v.InferOutput<typeof CreateDomainDataSchema>;
+
+export const UpdateDomainDataSchema = v.object({
+  www_redirect_type: v.picklist(WWW_REDIRECT_TYPES),
+  allow_wildcard_subdomains: v.optional(v.nullable(v.boolean())),
+});
+
+export type UpdateDomainData = v.InferOutput<typeof UpdateDomainDataSchema>;
 
 // ── Load balancing ───────────────────────────────────
 

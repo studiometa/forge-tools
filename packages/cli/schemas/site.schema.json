@@ -24,7 +24,7 @@
       ]
     },
     "domain": {
-      "description": "Site name on Forge, e.g. www.example.com (exact match).",
+      "description": "Site name on Forge, e.g. example.com (exact match).",
       "type": "string",
       "minLength": 1
     },
@@ -35,6 +35,10 @@
         "type": "string",
         "minLength": 1
       }
+    },
+    "wwwRedirect": {
+      "description": "Redirect of www on the primary domain: to-www sends example.com to www.example.com, from-www sends www.example.com to example.com.",
+      "enum": ["from-www", "to-www", "none"]
     },
     "type": {
       "description": "Site type, used to create the site.",
