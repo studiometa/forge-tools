@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file. Each pull r
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.5.10 - 2026-11-12
+
+### Fixed
+
+- **CLI**: Fix `forge sites apply`, which added an alias again at each run: read the domains of the site from the domains route of Forge, because the API always returns `aliases: null` on a site. `{{ DOMAINS }}` in the Nginx file gets these domains too ([#159])
+- **Core**: Add `listDomains()` to list the domains of a site ([#159])
+
+[#159]: https://github.com/studiometa/forge-tools/pull/159
+
 ## 0.5.9 - 2026-11-12
 
 ### Added
