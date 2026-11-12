@@ -144,8 +144,8 @@ forge sites apply --file site.json          # Make the site match the file
 {
   "$schema": "https://unpkg.com/@studiometa/forge-cli/schemas/site.schema.json",
   "server": "web-1",
-  "domain": "www.example.com",
-  "aliases": ["example.com"],
+  "domain": "example.com",
+  "wwwRedirect": "to-www",
   "type": "php",
   "php": "php83",
   "webDirectory": "/public",
@@ -168,12 +168,15 @@ forge sites apply --file site.json          # Make the site match the file
 | `server`, `domain`                          | Find the server and the site by exact name (never a partial match, with or without `--exact`). `server` can also be an ID                                                              |
 | `type`, `php`, `webDirectory`, `repository` | Create the site when it is missing (`type` is then required) and wait until Forge installs it. On an existing site, update `php`, `webDirectory` and the branch                        |
 | `aliases`                                   | Add the missing aliases. Never remove one                                                                                                                                              |
+| `wwwRedirect`                               | `to-www`, `from-www` or `none`. Create the site with this redirect. On an existing site, update the redirect of the primary domain when it differs. Aliases always get `none`          |
 | `database`                                  | Create the database and the user when they are missing. A new user gets a random password, written only into the site `.env` (`DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`, see below)  |
 | `env`                                       | On a new site, write the whole `.env` (see below). On an existing site, add the missing keys. A key with another value on Forge is reported, never overwritten                         |
 | `nginx`                                     | Nginx file, relative to the site file, with Forge template variables. Rendered for the site and written when it differs from Forge (see below)                                         |
 | `workers`                                   | Forge background processes of the site. Create the missing ones, delete the ones of the site that the file does not declare. The directory defaults to the site root                   |
 | `schedule`                                  | Forge scheduled jobs of the site (`minutely`, `hourly`, `nightly`, `weekly`, `monthly`, `reboot`, or `custom` with `cron`). A relative `artisan` becomes the absolute path of the site |
 | `loadBalancer`                              | Set the nodes of the site on the load balancer to `server` only, on `port` (default `80`), with round robin and weight 1. The site of the load balancer must exist (see below)         |
+
+A site that serves `www.example.com` is named by its apex domain, `"domain": "example.com"`, with `"wwwRedirect": "to-www"`: do not declare `www.example.com` as `domain` with `example.com` as an alias.
 
 For an application that does not read the Laravel names, `database.env` maps the database name, the user and the password to other `.env` keys. Each key is optional and defaults to the Laravel name. Other values, such as the host, go in `env`:
 

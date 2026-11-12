@@ -83,6 +83,10 @@ export const ROUTES = {
   domains: {
     list: { method: "GET", path: "/orgs/:org/servers/:server_id/sites/:site_id/domains" },
     create: { method: "POST", path: "/orgs/:org/servers/:server_id/sites/:site_id/domains" },
+    update: {
+      method: "PATCH",
+      path: "/orgs/:org/servers/:server_id/sites/:site_id/domains/:domain_id",
+    },
   },
   certificates: {
     get: {

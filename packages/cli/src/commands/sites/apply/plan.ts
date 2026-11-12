@@ -7,6 +7,7 @@ import type {
   BackgroundProcessAttributes,
   DatabaseAttributes,
   DatabaseUserAttributes,
+  DomainAttributes,
   LoadBalancingNodeAttributes,
   ScheduledJobAttributes,
   SiteAttributes,
@@ -32,6 +33,7 @@ export type ScheduledJob = ScheduledJobAttributes & { id: number };
 export type Database = DatabaseAttributes & { id: number };
 export type DatabaseUser = DatabaseUserAttributes & { id: number };
 export type LoadBalancingNode = LoadBalancingNodeAttributes & { id: number };
+export type Domain = DomainAttributes & { id: number };
 
 /** Shown in place of a generated password. */
 export const GENERATED = "<generated>";
@@ -44,9 +46,12 @@ export interface RemoteState {
   site: Site | null;
   /**
    * Names of the domains of the site on Forge, the primary domain first, then the aliases.
-   * Undefined when the site does not exist, or when the file manages no alias and no Nginx file.
+   * Undefined when the site does not exist, or when the file manages no alias, no `www`
+   * redirect and no Nginx file.
    */
   domains?: string[];
+  /** The primary domain of the site, read with `domains`; null when Forge lists none. */
+  primaryDomain?: Domain | null;
   databases?: Database[];
   databaseUsers?: DatabaseUser[];
   /** Content of the site .env; null when the site does not exist. */
@@ -73,6 +78,7 @@ export interface RemoteState {
 
 export interface SiteSettings {
   type?: string;
+  www_redirect_type?: string;
   php_version?: string;
   web_directory?: string;
   source_control_provider?: string;
@@ -84,6 +90,14 @@ export type Change =
   | { action: "create-site"; name: string; settings: SiteSettings }
   | { action: "update-site"; changes: Array<{ field: string; from: string | null; to: string }> }
   | { action: "add-alias"; name: string }
+  | {
+      action: "update-www-redirect";
+      /** ID of the primary domain. */
+      id: number;
+      domain: string;
+      from: string;
+      to: NonNullable<SiteFile["wwwRedirect"]>;
+    }
   | { action: "create-database"; name: string }
   | { action: "create-database-user"; name: string; database: string }
   | {
@@ -208,6 +222,7 @@ function planSite(file: SiteFile, site: Site | null, changes: Change[], warnings
       name: file.domain,
       settings: {
         type: file.type,
+        www_redirect_type: file.wwwRedirect,
         php_version: file.php,
         web_directory: file.webDirectory,
         source_control_provider: file.repository?.provider,
@@ -268,6 +283,18 @@ function planAliases(file: SiteFile, state: RemoteState, changes: Change[]): voi
       changes.push({ action: "add-alias", name: alias });
     }
   }
+}
+
+function planWwwRedirect(file: SiteFile, state: RemoteState, changes: Change[]): void {
+  const primary = state.primaryDomain;
+  if (!file.wwwRedirect || !primary || primary.www_redirect_type === file.wwwRedirect) return;
+  changes.push({
+    action: "update-www-redirect",
+    id: primary.id,
+    domain: primary.name,
+    from: primary.www_redirect_type,
+    to: file.wwwRedirect,
+  });
 }
 
 /** The .env keys of a new database user, from `database.env` or the Laravel names. */
@@ -550,6 +577,7 @@ export function buildPlan(file: SiteFile, state: RemoteState): Plan {
 
   planSite(file, state.site, changes, warnings);
   planAliases(file, state, changes);
+  planWwwRedirect(file, state, changes);
   const generated = planDatabase(file, state, changes, warnings);
   if (file.env || generated.length > 0) {
     planEnv(file, state, generated, changes, warnings);
@@ -583,6 +611,8 @@ export function describeChange(change: Change): string {
         .join(", ")}`;
     case "add-alias":
       return `+ add alias ${change.name}`;
+    case "update-www-redirect":
+      return `~ update www redirect of ${change.domain}: ${change.from} → ${change.to}`;
     case "create-database":
       return `+ create database ${change.name}`;
     case "create-database-user":
