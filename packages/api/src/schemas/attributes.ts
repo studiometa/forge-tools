@@ -397,6 +397,16 @@ export const OrganizationAttributesSchema = v.object({
 
 export type OrganizationAttributes = v.InferOutput<typeof OrganizationAttributesSchema>;
 
+// ── Teams ────────────────────────────────────────────
+
+export const TeamAttributesSchema = v.object({
+  name: v.string(),
+  created_at: v.nullable(v.string()),
+  updated_at: v.nullable(v.string()),
+});
+
+export type TeamAttributes = v.InferOutput<typeof TeamAttributesSchema>;
+
 // ── Environment ──────────────────────────────────────
 
 export const EnvironmentAttributesSchema = v.object({

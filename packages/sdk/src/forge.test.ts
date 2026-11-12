@@ -4,6 +4,7 @@ import { Forge } from "./forge.ts";
 import { ServersCollection, ServerResource } from "./resources/servers.ts";
 import { RecipesCollection } from "./resources/recipes.ts";
 import { StorageProvidersCollection } from "./resources/storage-providers.ts";
+import { TeamsCollection, TeamResource, TeamServersCollection } from "./resources/teams.ts";
 
 function mockJsonApiDocument<T>(id: string, attributes: T) {
   return {
@@ -46,6 +47,20 @@ describe("Forge", () => {
   it("should expose storage providers collection", () => {
     const forge = new Forge("test-token", "test-org", { fetch: createMockFetch() });
     expect(forge.storageProviders).toBeInstanceOf(StorageProvidersCollection);
+  });
+
+  it("should expose teams collection", () => {
+    const forge = new Forge("test-token", "test-org", { fetch: createMockFetch() });
+    expect(forge.teams).toBeInstanceOf(TeamsCollection);
+  });
+
+  describe("team()", () => {
+    it("should return a TeamResource with its servers", () => {
+      const forge = new Forge("test-token", "test-org", { fetch: createMockFetch() });
+      const team = forge.team(17);
+      expect(team).toBeInstanceOf(TeamResource);
+      expect(team.servers).toBeInstanceOf(TeamServersCollection);
+    });
   });
 
   describe("server()", () => {

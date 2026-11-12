@@ -123,6 +123,8 @@ const WRITE_CASES: WriteCase[] = [
   ["recipes.run", (f) => f.recipes.run(3, { servers: [1] })],
   ["storageProviders.create", (f) => f.storageProviders.create({ name: "s3" } as never)],
   ["storageProviders.delete", (f) => f.storageProviders.delete(3)],
+  ["team.servers.add", (f) => f.team(4).servers.add(1)],
+  ["team.servers.remove", (f) => f.team(4).servers.remove(1)],
 
   // Server
   ["server.reboot", (f) => server(f).reboot()],

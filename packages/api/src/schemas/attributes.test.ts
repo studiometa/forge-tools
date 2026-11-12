@@ -29,6 +29,7 @@ import {
   BackupAttributesSchema,
   StorageProviderAttributesSchema,
   OrganizationAttributesSchema,
+  TeamAttributesSchema,
   EnvironmentAttributesSchema,
   PhpVersionAttributesSchema,
   PhpConfigAttributesSchema,
@@ -516,6 +517,13 @@ testSchema(
   "OrganizationAttributesSchema",
   OrganizationAttributesSchema,
   { name: "My Org", slug: "my-org", created_at: null, updated_at: null },
+  { name: 123 },
+);
+
+testSchema(
+  "TeamAttributesSchema",
+  TeamAttributesSchema,
+  { name: "studiometa", created_at: "2024-01-01T00:00:00Z", updated_at: null },
   { name: 123 },
 );
 

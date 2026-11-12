@@ -46,6 +46,8 @@ export { SshKeysCollection } from "./resources/ssh-keys.ts";
 export type { SshKeyListOptions } from "./resources/ssh-keys.ts";
 export { StorageProvidersCollection } from "./resources/storage-providers.ts";
 export type { StorageProviderListOptions } from "./resources/storage-providers.ts";
+export { TeamResource, TeamServersCollection, TeamsCollection } from "./resources/teams.ts";
+export type { TeamListOptions, TeamServerListOptions } from "./resources/teams.ts";
 export {
   SiteEnvResource,
   SiteNginxResource,
@@ -90,6 +92,7 @@ export type {
   BackupAttributes,
   StorageProviderAttributes,
   OrganizationAttributes,
+  TeamAttributes,
 } from "@studiometa/forge-api";
 
 // Re-export create data types and options from forge-api
