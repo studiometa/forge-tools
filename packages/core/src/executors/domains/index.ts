@@ -1,2 +1,3 @@
 export { createDomain } from "./create.ts";
-export type { CreateDomainOptions } from "./types.ts";
+export { listDomains } from "./list.ts";
+export type { CreateDomainOptions, ListDomainsOptions } from "./types.ts";

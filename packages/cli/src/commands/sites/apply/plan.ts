@@ -42,6 +42,11 @@ export interface RemoteState {
   sites: Site[];
   /** The site of the file, or null when it does not exist yet. */
   site: Site | null;
+  /**
+   * Names of the domains of the site on Forge, the primary domain first, then the aliases.
+   * Undefined when the site does not exist, or when the file manages no alias and no Nginx file.
+   */
+  domains?: string[];
   databases?: Database[];
   databaseUsers?: DatabaseUser[];
   /** Content of the site .env; null when the site does not exist. */
@@ -256,8 +261,8 @@ function planSite(file: SiteFile, site: Site | null, changes: Change[], warnings
   }
 }
 
-function planAliases(file: SiteFile, site: Site | null, changes: Change[]): void {
-  const existing = site ? [site.name, ...(site.aliases ?? [])].map(String) : [];
+function planAliases(file: SiteFile, state: RemoteState, changes: Change[]): void {
+  const existing = state.domains ?? [];
   for (const alias of new Set(file.aliases ?? [])) {
     if (!existing.some((name) => sameName(name, alias))) {
       changes.push({ action: "add-alias", name: alias });
@@ -544,7 +549,7 @@ export function buildPlan(file: SiteFile, state: RemoteState): Plan {
   const warnings: string[] = [];
 
   planSite(file, state.site, changes, warnings);
-  planAliases(file, state.site, changes);
+  planAliases(file, state, changes);
   const generated = planDatabase(file, state, changes, warnings);
   if (file.env || generated.length > 0) {
     planEnv(file, state, generated, changes, warnings);

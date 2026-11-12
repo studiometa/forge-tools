@@ -70,11 +70,13 @@ export function phpSocketVersion(version: string): string {
 export type NginxServer = Pick<ServerAttributes, "ip_address" | "private_ip_address">;
 
 /**
- * The value of each variable for a site, as Forge renders its templates.
+ * The value of each variable for a site, as Forge renders its templates. `domains` are the
+ * names of the domains of the site, the primary domain first, then the aliases.
  * A server is needed only for the `SERVER_*` variables.
  */
 export function nginxValues(
   site: Site,
+  domains: string[],
   server: NginxServer | null = null,
 ): Record<NginxVariable, string> {
   const root = siteWorkDirectory(site);
@@ -87,7 +89,7 @@ export function nginxValues(
 
   return {
     DIRECTORY: directory,
-    DOMAINS: [site.name, ...(site.aliases ?? [])].join(" "),
+    DOMAINS: domains.join(" "),
     PATH: path,
     PORT: `80${defaultServer}`,
     PORT_V6: `[::]:80${defaultServer}`,
@@ -109,9 +111,10 @@ export function nginxValues(
 export function renderNginx(
   template: string,
   site: Site,
+  domains: string[],
   server: NginxServer | null = null,
 ): string {
-  const values = nginxValues(site, server);
+  const values = nginxValues(site, domains, server);
   return template.replaceAll(VARIABLE, (match, name: string) =>
     name in values ? values[name as NginxVariable] : match,
   );

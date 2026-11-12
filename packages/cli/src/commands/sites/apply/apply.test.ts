@@ -81,6 +81,20 @@ describe("readRemoteState", () => {
     expect(state.nginx).toBeNull();
   });
 
+  it("reads the domains of the site for the aliases", async () => {
+    const { ctx } = fakeForge({
+      sites: [site(456, "www.example.com", { aliases: null })],
+      domains: { 456: ["example.com"] },
+    });
+    const state = await readRemoteState(
+      { server: 123, domain: "www.example.com", aliases: ["example.com"] },
+      "123",
+      ctx,
+    );
+
+    expect(state.domains).toEqual(["www.example.com", "example.com"]);
+  });
+
   it("reads only what the file manages", async () => {
     const { ctx, calls } = fakeForge({ sites: [site(456, "a.example.com")] });
     const state = await readRemoteState({ server: 123, domain: "a.example.com" }, "123", ctx);
@@ -240,6 +254,21 @@ describe("applySiteFile", () => {
       "delete-job",
       "delete-job",
     ]);
+  });
+
+  it("adds no alias that the domains of the site have, although the site has null aliases", async () => {
+    const { ctx, calls } = fakeForge({
+      sites: [site(3494248, "www.luxfilmfest.lu", { aliases: null })],
+      domains: { 3494248: ["luxfilmfest.staging.ikko.fr"] },
+    });
+    const plan = await applySiteFile(
+      { server: 123, domain: "www.luxfilmfest.lu", aliases: ["luxfilmfest.staging.ikko.fr"] },
+      "123",
+      ctx,
+    );
+
+    expect(plan.changes).toEqual([]);
+    expect(calls.filter(([method]) => method !== "GET")).toEqual([]);
   });
 
   it("updates the site, adds aliases and .env keys without overwriting", async () => {
@@ -674,6 +703,56 @@ describe("applySiteFile with an Nginx file", () => {
     expect(forge.state.nginx).toContain("root /home/forge/a.example.com/web;");
   });
 
+  it("renders the domains from the domains route, not from the null aliases of the site", async () => {
+    const { ctx, calls, state } = fakeForge({
+      sites: [site(456, "www.example.com", { aliases: null })],
+      domains: { 456: ["example.com"] },
+      nginx: "server_name www.example.com example.com;",
+    });
+    const plan = await applySiteFile(
+      {
+        server: 123,
+        domain: "www.example.com",
+        aliases: ["Example.com"],
+        nginxTemplate: "server_name {{ DOMAINS }};",
+      },
+      "123",
+      ctx,
+    );
+
+    expect(plan.changes).toEqual([]);
+    expect(calls.filter(([method]) => method !== "GET")).toEqual([]);
+    expect(calls.filter(([, url]) => url.endsWith("/domains"))).toEqual([
+      ["GET", "/orgs/org/servers/123/sites/456/domains"],
+    ]);
+    expect(state.nginx).toBe("server_name www.example.com example.com;");
+  });
+
+  it("renders again with the domains after a new alias", async () => {
+    const { ctx, calls, state } = fakeForge({
+      sites: [site(456, "www.example.com")],
+      nginx: "server_name www.example.com;",
+    });
+    const plan = await applySiteFile(
+      {
+        server: 123,
+        domain: "www.example.com",
+        aliases: ["example.com"],
+        nginxTemplate: "server_name {{ DOMAINS }};",
+      },
+      "123",
+      ctx,
+    );
+
+    expect(plan.changes).toEqual([{ action: "add-alias", name: "example.com" }]);
+    expect(calls.filter(([method]) => method !== "GET").map(([m, url]) => `${m} ${url}`)).toEqual([
+      "POST /orgs/org/servers/123/sites/456/domains",
+      "PUT /orgs/org/servers/123/sites/456/nginx",
+    ]);
+    expect(calls.map(([, url]) => url)).not.toContain("/orgs/org/sites/456");
+    expect(state.nginx).toBe("server_name www.example.com example.com;");
+  });
+
   it("does not read the site again when nothing changes", async () => {
     const { ctx, calls } = fakeForge({ sites: [site(456, "a.example.com")] });
     await applySiteFile(
@@ -750,7 +829,8 @@ describe("applySiteFile with a load balancer", () => {
 
   it("finds the site of the load balancer by an alias and moves its node to the server", async () => {
     const { ctx, calls, state } = fakeForge({
-      sites: [site(456, "www.example.com", { aliases: ["example.com"] })],
+      sites: [site(456, "www.example.com")],
+      domains: { 456: ["example.com"] },
       balancerSites: [site(600, "example.com"), site(601, "other.example.com")],
       nodes: { 600: [node(124)], 601: [node(124)] },
     });
@@ -779,7 +859,8 @@ describe("applySiteFile with a load balancer", () => {
 
   it("changes nothing when the node is the server", async () => {
     const { ctx, calls } = fakeForge({
-      sites: [site(456, "www.example.com", { aliases: ["example.com"] })],
+      sites: [site(456, "www.example.com")],
+      domains: { 456: ["example.com"] },
       balancerSites: [site(600, "www.example.com")],
       nodes: { 600: [node(123)] },
     });

@@ -22,6 +22,7 @@ import {
   listDaemons,
   listDatabaseUsers,
   listDatabases,
+  listDomains,
   listLoadBalancingNodes,
   listScheduledJobs,
   listServers,
@@ -139,8 +140,15 @@ export async function readRemoteState(
     );
   }
 
+  if (site && (file.aliases || file.nginxTemplate !== undefined)) {
+    state.domains = await readDomains(serverId, site, ctx);
+  }
+
   if (file.nginxTemplate !== undefined) {
-    state.nginx = site ? await readNginx(file.nginxTemplate, serverId, site, ctx) : null;
+    state.nginx =
+      site && state.domains
+        ? await readNginx(file.nginxTemplate, serverId, site, state.domains, ctx)
+        : null;
   }
 
   if (file.schedule) {
@@ -179,12 +187,29 @@ export async function readRemoteState(
 }
 
 /**
+ * The names of the domains of a site on Forge, the primary domain first, then the aliases.
+ * The `aliases` of a site are always null in the Forge API: the domains route lists them.
+ */
+export async function readDomains(
+  serverId: string,
+  site: Site,
+  ctx: CliExecutorContext,
+): Promise<string[]> {
+  const domains = (await listDomains({ server_id: serverId, site_id: String(site.id) }, ctx)).data;
+  return [
+    ...domains.filter((domain) => domain.type === "primary"),
+    ...domains.filter((domain) => domain.type !== "primary"),
+  ].map((domain) => domain.name);
+}
+
+/**
  * Read the Nginx configuration of a site on Forge and render the Nginx file for the site.
  */
 export async function readNginx(
   template: string,
   serverId: string,
   site: Site,
+  domains: string[],
   ctx: CliExecutorContext,
 ): Promise<{ remote: string; rendered: string }> {
   const remote = (await getNginxConfig({ server_id: serverId, site_id: String(site.id) }, ctx))
@@ -192,7 +217,7 @@ export async function readNginx(
   const server = needsServer(template)
     ? (await getServer({ server_id: serverId }, ctx)).data
     : null;
-  return { remote, rendered: renderNginx(template, site, server) };
+  return { remote, rendered: renderNginx(template, site, domains, server) };
 }
 
 /**
@@ -385,25 +410,27 @@ async function applyDatabase(
 
 /**
  * Write the rendered Nginx file when it differs from Forge. After a change of the site or its
- * aliases, read the site again: the web directory and the domains are template variables.
+ * aliases, read the site and its domains again: the web directory and the domains are template
+ * variables.
  */
 async function applyNginx(
   template: string,
   plan: Plan,
   serverId: string,
   site: Site,
+  domains: string[],
   ctx: CliExecutorContext,
   options: ApplyOptions,
 ): Promise<void> {
-  const siteChanged = plan.changes.some(
-    (change) => change.action === "update-site" || change.action === "add-alias",
-  );
+  const siteChanged = plan.changes.some((change) => change.action === "update-site");
+  const aliasAdded = plan.changes.some((change) => change.action === "add-alias");
   const planned = plan.changes.some((change) => change.action === "update-nginx");
-  if (!planned && !siteChanged) return;
+  if (!planned && !siteChanged && !aliasAdded) return;
 
   const params = { server_id: serverId, site_id: String(site.id) };
   const current = siteChanged ? (await getSite(params, ctx)).data : site;
-  const { remote, rendered } = await readNginx(template, serverId, current, ctx);
+  const currentDomains = aliasAdded ? await readDomains(serverId, site, ctx) : domains;
+  const { remote, rendered } = await readNginx(template, serverId, current, currentDomains, ctx);
   const diff = unifiedDiff(remote, rendered);
   if (!diff) return;
   options.onChange?.({ action: "update-nginx", diff });
@@ -489,7 +516,7 @@ async function applyChanges(
   }
 
   if (file.nginxTemplate !== undefined) {
-    await applyNginx(file.nginxTemplate, plan, serverId, site, ctx, options);
+    await applyNginx(file.nginxTemplate, plan, serverId, site, state.domains ?? [], ctx, options);
   }
 
   // Create first, then delete: a changed worker runs again before the old one stops.
