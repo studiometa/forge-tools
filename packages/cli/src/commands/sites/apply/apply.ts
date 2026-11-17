@@ -48,7 +48,7 @@ import {
   buildPlan,
   databaseEnvKeys,
 } from "./plan.ts";
-import type { SiteFile } from "./site-file.ts";
+import { type SiteFile, siteDatabases } from "./site-file.ts";
 
 /** Error of `apply` that is not a validation error, e.g. a site that never gets installed. */
 export class ApplyError extends CliError {
@@ -363,9 +363,11 @@ async function applyDatabase(
 ): Promise<{ ids: DatabaseIds; env: Map<string, string> }> {
   const env = new Map<string, string>();
   const ids: DatabaseIds = {};
-  if (!file.database) return { ids, env };
+  const databases = siteDatabases(file);
+  if (databases.length === 0) return { ids, env };
 
-  let databaseId = state.databases?.find((db) => db.name === file.database!.name)?.id;
+  const databaseIds = new Map((state.databases ?? []).map((db) => [db.name, db.id]));
+  const userIds = new Map<string, string>();
   for (const change of plan.changes) {
     if (change.action === "create-database") {
       options.onChange?.(change);
@@ -379,16 +381,20 @@ async function applyDatabase(
           ]),
         options,
       );
-      databaseId = id;
+      databaseIds.set(change.name, id);
     } else if (change.action === "create-database-user") {
       options.onChange?.(change);
       const password = (options.generatePassword ?? generatePassword)();
+      const databaseIdsOfUser = change.databases.flatMap((name) => {
+        const id = databaseIds.get(name);
+        return id === undefined ? [] : [id];
+      });
       const user = await createDatabaseUser(
         {
           server_id: serverId,
           name: change.name,
           password,
-          ...(databaseId === undefined ? {} : { database_ids: [databaseId] }),
+          ...(databaseIdsOfUser.length > 0 ? { database_ids: databaseIdsOfUser } : {}),
         },
         ctx,
       );
@@ -407,14 +413,22 @@ async function applyDatabase(
           ),
         options,
       );
-      ids.database_user_id = String(user.data.id);
-      const keys = databaseEnvKeys(file.database);
-      env.set(keys.name, change.database);
-      env.set(keys.user, change.name);
-      env.set(keys.password, password);
+      userIds.set(change.name, String(user.data.id));
+      // One password per user, in the .env keys of each database of the user.
+      for (const database of databases.filter((entry) => entry.user === change.name)) {
+        const keys = databaseEnvKeys(database);
+        env.set(keys.name, database.name);
+        env.set(keys.user, change.name);
+        env.set(keys.password, password);
+      }
     }
   }
+  // Forge links a new site to one database and one user: the first ones of the file.
+  const [first] = databases;
+  const databaseId = databaseIds.get(first.name);
   if (databaseId !== undefined) ids.database_id = databaseId;
+  const userId = userIds.get(first.user);
+  if (userId !== undefined) ids.database_user_id = userId;
   return { ids, env };
 }
 

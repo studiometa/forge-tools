@@ -17,7 +17,7 @@ import { WWW_REDIRECT_TYPES } from "@studiometa/forge-api";
 import { unifiedDiff } from "../../../utils/drift.ts";
 import { parseEnv } from "../../env/env-diff.ts";
 import { hasVariables, renderCommand } from "./command-template.ts";
-import type { SiteFile } from "./site-file.ts";
+import { type DatabaseDeclaration, type SiteFile, siteDatabases } from "./site-file.ts";
 import {
   type Ownership,
   type SiteRoots,
@@ -114,14 +114,19 @@ export type Change =
       wwwRedirect: NonNullable<SiteFile["wwwRedirect"]>;
     }
   | { action: "create-database"; name: string }
-  | { action: "create-database-user"; name: string; database: string }
+  | {
+      action: "create-database-user";
+      name: string;
+      /** The databases of the site file that the new user gets access to. */
+      databases: string[];
+    }
   | {
       action: "add-env";
       keys: string[];
       /** Keys that get the database name, user and password of a new database user. */
       generated: string[];
-      /** The generated key that holds the password; its value never shows. */
-      password?: string;
+      /** The generated keys that hold a password; their values never show. */
+      passwords?: string[];
       /**
        * The site is new: apply writes the whole .env with these keys only, and drops the keys
        * that Forge copies from the `.env.example` of the repository.
@@ -351,7 +356,7 @@ function planWildcards(file: SiteFile, state: RemoteState, changes: Change[]): v
 }
 
 /** The .env keys of a new database user, from `database.env` or the Laravel names. */
-export function databaseEnvKeys(database: NonNullable<SiteFile["database"]>): {
+export function databaseEnvKeys(database: DatabaseDeclaration): {
   name: string;
   user: string;
   password: string;
@@ -364,39 +369,56 @@ export function databaseEnvKeys(database: NonNullable<SiteFile["database"]>): {
 }
 
 /**
- * Plan the database and its user. Returns the names of the .env keys that get generated values.
+ * Plan the databases and their users: one database per entry, one user per user name, with
+ * access to the databases of its entries. Returns the .env keys that get generated values, and
+ * those that hold a password.
  */
-function planDatabase(
+function planDatabases(
   file: SiteFile,
   state: RemoteState,
   changes: Change[],
   warnings: string[],
-): string[] {
-  if (!file.database) return [];
-  const { name, user } = file.database;
-  const databaseExists = (state.databases ?? []).some((db) => db.name === name);
-  const userExists = (state.databaseUsers ?? []).some((u) => u.name === user);
+): { generated: string[]; passwords: string[] } {
+  const databases = siteDatabases(file);
+  const existingDatabases = new Set((state.databases ?? []).map((db) => db.name));
+  const existingUsers = new Set((state.databaseUsers ?? []).map((user) => user.name));
+  const generated: string[] = [];
+  const passwords: string[] = [];
 
-  if (!databaseExists) {
-    changes.push({ action: "create-database", name });
+  for (const { name } of databases) {
+    if (!existingDatabases.has(name)) changes.push({ action: "create-database", name });
   }
-  if (!userExists) {
-    changes.push({ action: "create-database-user", name: user, database: name });
-    const keys = databaseEnvKeys(file.database);
-    return [keys.name, keys.user, keys.password];
+
+  for (const user of new Set(databases.map((database) => database.user))) {
+    const entries = databases.filter((database) => database.user === user);
+    if (!existingUsers.has(user)) {
+      changes.push({
+        action: "create-database-user",
+        name: user,
+        databases: entries.map((database) => database.name),
+      });
+      for (const entry of entries) {
+        const keys = databaseEnvKeys(entry);
+        generated.push(keys.name, keys.user, keys.password);
+        passwords.push(keys.password);
+      }
+      continue;
+    }
+    for (const { name } of entries) {
+      if (!existingDatabases.has(name)) {
+        warnings.push(
+          `Database user ${user} exists: apply does not give it access to the new database ${name}.`,
+        );
+      }
+    }
   }
-  if (!databaseExists) {
-    warnings.push(
-      `Database user ${user} exists: apply does not give it access to the new database ${name}.`,
-    );
-  }
-  return [];
+  return { generated, passwords };
 }
 
 function planEnv(
   file: SiteFile,
   state: RemoteState,
-  generated: string[],
+  { generated, passwords }: { generated: string[]; passwords: string[] },
   changes: Change[],
   warnings: string[],
 ): void {
@@ -410,13 +432,11 @@ function planEnv(
     }
   }
   if (keys.length > 0 || generated.length > 0) {
-    const password =
-      file.database && generated.length > 0 ? databaseEnvKeys(file.database).password : undefined;
     changes.push({
       action: "add-env",
       keys,
       generated,
-      ...(password ? { password } : {}),
+      ...(passwords.length > 0 ? { passwords } : {}),
       ...(state.site ? {} : { replace: true }),
     });
   }
@@ -645,9 +665,9 @@ export function buildPlan(file: SiteFile, state: RemoteState): Plan {
   planAliases(file, state, changes);
   planWwwRedirect(file, state, changes);
   planWildcards(file, state, changes);
-  const generated = planDatabase(file, state, changes, warnings);
-  if (file.env || generated.length > 0) {
-    planEnv(file, state, generated, changes, warnings);
+  const databaseEnv = planDatabases(file, state, changes, warnings);
+  if (file.env || databaseEnv.generated.length > 0) {
+    planEnv(file, state, databaseEnv, changes, warnings);
   }
   planNginx(file, state, changes);
   planWorkers(file, state, changes, warnings);
@@ -687,11 +707,13 @@ export function describeChange(change: Change): string {
     case "create-database":
       return `+ create database ${change.name}`;
     case "create-database-user":
-      return `+ create database user ${change.name} for ${change.database} (password: ${GENERATED})`;
+      return `+ create database user ${change.name} for ${change.databases.join(", ")} (password: ${GENERATED})`;
     case "add-env": {
       const keys = [
         ...change.keys,
-        ...change.generated.map((key) => (key === change.password ? `${key}=${GENERATED}` : key)),
+        ...change.generated.map((key) =>
+          change.passwords?.includes(key) ? `${key}=${GENERATED}` : key,
+        ),
       ].join(", ");
       return change.replace
         ? `+ write .env with these keys only (replaces the .env that Forge creates from .env.example): ${keys}`

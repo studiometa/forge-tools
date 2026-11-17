@@ -569,12 +569,12 @@ describe("buildPlan", () => {
 
     expect(plan.changes).toEqual([
       { action: "create-database", name: "example" },
-      { action: "create-database-user", name: "example", database: "example" },
+      { action: "create-database-user", name: "example", databases: ["example"] },
       {
         action: "add-env",
         keys: [],
         generated: ["DB_DATABASE", "DB_USERNAME", "DB_PASSWORD"],
-        password: "DB_PASSWORD",
+        passwords: ["DB_PASSWORD"],
       },
     ]);
     expect(formatPlan(plan)).toContain("DB_PASSWORD=<generated>");
@@ -770,18 +770,18 @@ describe("describeChange", () => {
       }),
       describeChange({ action: "add-alias", name: "example.com" }),
       describeChange({ action: "create-database", name: "example" }),
-      describeChange({ action: "create-database-user", name: "example", database: "example" }),
+      describeChange({ action: "create-database-user", name: "example", databases: ["example"] }),
       describeChange({
         action: "add-env",
         keys: ["APP_ENV"],
         generated: ["DB_USERNAME", "DB_PASSWORD"],
-        password: "DB_PASSWORD",
+        passwords: ["DB_PASSWORD"],
       }),
       describeChange({
         action: "add-env",
         keys: ["APP_ENV"],
         generated: ["DB_PASSWORD"],
-        password: "DB_PASSWORD",
+        passwords: ["DB_PASSWORD"],
         replace: true,
       }),
       describeChange({
@@ -850,7 +850,7 @@ describe("buildPlan with database .env keys", () => {
       action: "add-env",
       keys: [],
       generated: ["DB_NAME", "DB_USER", "DB_PASS"],
-      password: "DB_PASS",
+      passwords: ["DB_PASS"],
     });
     expect(formatPlan(plan)).toContain("+ add .env keys: DB_NAME, DB_USER, DB_PASS=<generated>");
   });
@@ -867,7 +867,7 @@ describe("buildPlan with database .env keys", () => {
 
     expect(plan.changes.at(-1)).toMatchObject({
       generated: ["DB_DATABASE", "DB_USERNAME", "DB_PASS"],
-      password: "DB_PASS",
+      passwords: ["DB_PASS"],
     });
   });
 });
@@ -919,6 +919,89 @@ describe("buildPlan with an Nginx file", () => {
       sharedServer({ nginx: { remote: "a", rendered: "b" } }),
     );
     expect(plan.changes).toEqual([]);
+  });
+});
+
+describe("buildPlan with several databases", () => {
+  const stamped = (id: number, name: string) => ({
+    id,
+    name,
+    status: "installed",
+    created_at: "",
+    updated_at: "",
+  });
+  const env = (prefix: string) => ({
+    name: `${prefix}_DATABASE`,
+    user: `${prefix}_USERNAME`,
+    password: `${prefix}_PASSWORD`,
+  });
+
+  it("creates each database and each user once, with access to all its databases", () => {
+    const plan = buildPlan(
+      {
+        server: "web-1",
+        domain: "a.example.com",
+        database: [
+          { name: "app", user: "app", env: env("APP") },
+          { name: "logs", user: "app", env: env("LOGS") },
+          { name: "stats", user: "stats", env: env("STATS") },
+        ],
+      },
+      sharedServer({ databases: [], databaseUsers: [], env: "" }),
+    );
+
+    expect(plan.changes).toEqual([
+      { action: "create-database", name: "app" },
+      { action: "create-database", name: "logs" },
+      { action: "create-database", name: "stats" },
+      { action: "create-database-user", name: "app", databases: ["app", "logs"] },
+      { action: "create-database-user", name: "stats", databases: ["stats"] },
+      {
+        action: "add-env",
+        keys: [],
+        generated: [
+          "APP_DATABASE",
+          "APP_USERNAME",
+          "APP_PASSWORD",
+          "LOGS_DATABASE",
+          "LOGS_USERNAME",
+          "LOGS_PASSWORD",
+          "STATS_DATABASE",
+          "STATS_USERNAME",
+          "STATS_PASSWORD",
+        ],
+        passwords: ["APP_PASSWORD", "LOGS_PASSWORD", "STATS_PASSWORD"],
+      },
+    ]);
+    expect(describeChange(plan.changes[3])).toBe(
+      "+ create database user app for app, logs (password: <generated>)",
+    );
+    expect(describeChange(plan.changes[5])).toBe(
+      "+ add .env keys: APP_DATABASE, APP_USERNAME, APP_PASSWORD=<generated>, LOGS_DATABASE, LOGS_USERNAME, LOGS_PASSWORD=<generated>, STATS_DATABASE, STATS_USERNAME, STATS_PASSWORD=<generated>",
+    );
+  });
+
+  it("never grants an existing user a new database, and never deletes", () => {
+    const plan = buildPlan(
+      {
+        server: "web-1",
+        domain: "a.example.com",
+        database: [
+          { name: "app", user: "app", env: env("APP") },
+          { name: "logs", user: "app", env: env("LOGS") },
+        ],
+      },
+      sharedServer({
+        databases: [stamped(70, "app"), stamped(72, "old")],
+        databaseUsers: [stamped(71, "app"), stamped(73, "old")],
+        env: "",
+      }),
+    );
+
+    expect(plan.changes).toEqual([{ action: "create-database", name: "logs" }]);
+    expect(plan.warnings).toEqual([
+      "Database user app exists: apply does not give it access to the new database logs.",
+    ]);
   });
 });
 

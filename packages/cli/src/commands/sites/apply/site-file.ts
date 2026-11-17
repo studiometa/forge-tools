@@ -92,6 +92,49 @@ export const DatabaseEnvSchema = v.pipe(
   ),
 );
 
+/** A database and its user, created when missing. */
+export const DatabaseSchema = v.strictObject({
+  name: text,
+  user: text,
+  env: v.optional(DatabaseEnvSchema),
+});
+
+/**
+ * Several databases: each one names its .env keys, and two databases never write the same key
+ * or declare the same database.
+ */
+export const DatabaseListSchema = v.pipe(
+  v.array(DatabaseSchema),
+  v.minLength(1),
+  v.rawCheck(({ dataset, addIssue }) => {
+    if (!dataset.typed || dataset.value.length < 2) return;
+    const names = new Map<string, number>();
+    const keys = new Map<string, number>();
+    for (const [index, database] of dataset.value.entries()) {
+      if (!database.env?.name || !database.env.user || !database.env.password) {
+        addIssue({
+          message: `database[${index}].env must set name, user and password when the site file declares several databases`,
+        });
+        continue;
+      }
+      const other = names.get(database.name);
+      if (other !== undefined) {
+        addIssue({ message: `database[${index}] declares database ${database.name} again` });
+      }
+      names.set(database.name, index);
+      for (const key of [database.env.name, database.env.user, database.env.password]) {
+        const owner = keys.get(key);
+        if (owner !== undefined && owner !== index) {
+          addIssue({
+            message: `database[${index}].env writes the .env key ${key}, like database[${owner}]`,
+          });
+        }
+        keys.set(key, index);
+      }
+    }
+  }),
+);
+
 /** The load balancer that sends the traffic of the site to its server. */
 export const LoadBalancerSchema = v.strictObject({
   server: serverRef,
@@ -115,8 +158,9 @@ export const SiteFileSchema = v.strictObject({
       branch: v.optional(text),
     }),
   ),
+  // One database, or several: the issues name the keys of the shape that the file uses.
   database: v.optional(
-    v.strictObject({ name: text, user: text, env: v.optional(DatabaseEnvSchema) }),
+    v.lazy((input) => (Array.isArray(input) ? DatabaseListSchema : DatabaseSchema)),
   ),
   env: v.optional(v.record(envName, v.union([v.string(), v.number(), v.boolean()]))),
   nginx: v.optional(text),
@@ -131,6 +175,13 @@ export type SiteFileData = v.InferOutput<typeof SiteFileSchema>;
 export type SiteFile = SiteFileData & { nginxTemplate?: string };
 export type WorkerDeclaration = v.InferOutput<typeof WorkerSchema>;
 export type ScheduledJobDeclaration = v.InferOutput<typeof ScheduledJobSchema>;
+export type DatabaseDeclaration = v.InferOutput<typeof DatabaseSchema>;
+
+/** The databases of a site file, one or several, in the order of the file. */
+export function siteDatabases(file: Pick<SiteFileData, "database">): DatabaseDeclaration[] {
+  if (!file.database) return [];
+  return Array.isArray(file.database) ? file.database : [file.database];
+}
 
 /**
  * Validate parsed JSON as a site file. Throws a ValidationError that lists every issue.

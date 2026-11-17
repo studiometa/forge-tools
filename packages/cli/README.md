@@ -171,19 +171,19 @@ forge sites apply --file site.json          # Make the site match the file
 }
 ```
 
-| Key                                         | What `apply` does                                                                                                                                                                                                      |
-| ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `server`, `domain`                          | Find the server and the site by exact name (never a partial match, with or without `--exact`). `server` can also be an ID                                                                                              |
-| `type`, `php`, `webDirectory`, `repository` | Create the site when it is missing (`type` is then required) and wait until Forge installs it. On an existing site, update `php`, `webDirectory` and the branch                                                        |
-| `aliases`                                   | Add the missing aliases. Never remove one                                                                                                                                                                              |
-| `wwwRedirect`                               | `to-www`, `from-www` or `none`. Create the site with this redirect. On an existing site, update the redirect of the primary domain when it differs. Aliases always get `none`                                          |
-| `wildcards`                                 | `true` or `false`: "Allow wildcard subdomains" (`*.example.com`). Create the site with this setting. On an existing site, update the primary domain when it differs. Aliases always get `false`                        |
-| `database`                                  | Create the database and the user when they are missing. A new user gets a random password, written only into the site `.env` (`DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`, see below)                                  |
-| `env`                                       | On a new site, write the whole `.env` (see below). On an existing site, add the missing keys. A key with another value on Forge is reported, never overwritten                                                         |
-| `nginx`                                     | Nginx file, relative to the site file, with Forge template variables. Rendered for the site and written when it differs from Forge (see below)                                                                         |
-| `workers`                                   | Forge background processes of the site. Create the missing ones, delete the ones of the site that the file does not declare. The directory defaults to the site root. Commands and directories use the variables below |
-| `schedule`                                  | Forge scheduled jobs of the site (`minutely`, `hourly`, `nightly`, `weekly`, `monthly`, `reboot`, or `custom` with `cron`). Commands use the variables below                                                           |
-| `loadBalancer`                              | Set the nodes of the site on the load balancer to `server` only, on `port` (default `80`), with round robin and weight 1. The site of the load balancer must exist (see below)                                         |
+| Key                                         | What `apply` does                                                                                                                                                                                                                      |
+| ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `server`, `domain`                          | Find the server and the site by exact name (never a partial match, with or without `--exact`). `server` can also be an ID                                                                                                              |
+| `type`, `php`, `webDirectory`, `repository` | Create the site when it is missing (`type` is then required) and wait until Forge installs it. On an existing site, update `php`, `webDirectory` and the branch                                                                        |
+| `aliases`                                   | Add the missing aliases. Never remove one                                                                                                                                                                                              |
+| `wwwRedirect`                               | `to-www`, `from-www` or `none`. Create the site with this redirect. On an existing site, update the redirect of the primary domain when it differs. Aliases always get `none`                                                          |
+| `wildcards`                                 | `true` or `false`: "Allow wildcard subdomains" (`*.example.com`). Create the site with this setting. On an existing site, update the primary domain when it differs. Aliases always get `false`                                        |
+| `database`                                  | Create the database and the user when they are missing. A new user gets a random password, written only into the site `.env` (`DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`, see below). An array declares several databases (see below) |
+| `env`                                       | On a new site, write the whole `.env` (see below). On an existing site, add the missing keys. A key with another value on Forge is reported, never overwritten                                                                         |
+| `nginx`                                     | Nginx file, relative to the site file, with Forge template variables. Rendered for the site and written when it differs from Forge (see below)                                                                                         |
+| `workers`                                   | Forge background processes of the site. Create the missing ones, delete the ones of the site that the file does not declare. The directory defaults to the site root. Commands and directories use the variables below                 |
+| `schedule`                                  | Forge scheduled jobs of the site (`minutely`, `hourly`, `nightly`, `weekly`, `monthly`, `reboot`, or `custom` with `cron`). Commands use the variables below                                                                           |
+| `loadBalancer`                              | Set the nodes of the site on the load balancer to `server` only, on `port` (default `80`), with round robin and weight 1. The site of the load balancer must exist (see below)                                                         |
 
 A site that serves `www.example.com` is named by its apex domain, `"domain": "example.com"`, with `"wwwRedirect": "to-www"`: do not declare `www.example.com` as `domain` with `example.com` as an alias.
 
@@ -199,6 +199,27 @@ For an application that does not read the Laravel names, `database.env` maps the
   "env": { "DB_SERVER": "127.0.0.1" }
 }
 ```
+
+`database` can also be an array, for a site with several databases. Each entry creates its database and its user when they are missing. Two entries can name the same user: `apply` creates it once, with access to the databases of both entries, and writes its generated password into the `password` key of each entry. With several entries there is no Laravel default: each entry sets `env.name`, `env.user` and `env.password`, two entries never write the same `.env` key and never declare the same database, otherwise the file is invalid (exit `3`) before any API call. Forge links a new site to the first database and its user.
+
+```json
+{
+  "database": [
+    {
+      "name": "app",
+      "user": "app",
+      "env": { "name": "DB_DATABASE", "user": "DB_USERNAME", "password": "DB_PASSWORD" }
+    },
+    {
+      "name": "app_logs",
+      "user": "app",
+      "env": { "name": "LOGS_DATABASE", "user": "LOGS_USERNAME", "password": "LOGS_PASSWORD" }
+    }
+  ]
+}
+```
+
+Like a single database, a user that exists keeps its access and its password: `apply` does not give it access to a new database (the plan warns), because the Forge API cannot list the databases of a user, and an update of its `database_ids` could remove the ones it has.
 
 When `apply` creates the site, the site file owns the whole `.env`: once Forge installs the site, `apply` writes a `.env` with the `env` keys and the generated database keys only. When Forge creates the site from a repository, it copies the `.env.example` of the repository into `.env`: `apply` drops these keys and values. The plan shows it as `+ write .env with these keys only (...)`. On an existing site, `apply` only adds the missing keys and never replaces a value. A site file with neither `env` nor `database` does not touch the `.env`.
 
