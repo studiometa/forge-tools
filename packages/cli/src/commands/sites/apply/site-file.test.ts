@@ -14,11 +14,13 @@ import { ValidationError } from "../../../errors.ts";
 import {
   SITE_FILE_SCHEMA_URL,
   DatabaseEnvSchema,
+  DatabaseSchema,
   SiteFileSchema,
   ScheduledJobSchema,
   WorkerSchema,
   parseSiteFile,
   readSiteFile,
+  siteDatabases,
 } from "./site-file.ts";
 
 const example = {
@@ -154,6 +156,80 @@ describe("parseSiteFile", () => {
     ]);
   });
 
+  it("accepts several databases that name their .env keys", () => {
+    const database = [
+      {
+        name: "app",
+        user: "app",
+        env: { name: "DB_DATABASE", user: "DB_USERNAME", password: "DB_PASSWORD" },
+      },
+      {
+        name: "logs",
+        user: "app",
+        env: { name: "LOGS_DATABASE", user: "LOGS_USERNAME", password: "LOGS_PASSWORD" },
+      },
+    ];
+    expect(parseSiteFile({ ...example, database }).database).toEqual(database);
+    expect(siteDatabases({ database })).toEqual(database);
+    expect(siteDatabases({ database: database[0] })).toEqual([database[0]]);
+    expect(siteDatabases({})).toEqual([]);
+  });
+
+  it("refuses several databases without .env keys, with the same key or the same database", () => {
+    const env = (prefix: string) => ({
+      name: `${prefix}_DATABASE`,
+      user: `${prefix}_USERNAME`,
+      password: `${prefix}_PASSWORD`,
+    });
+    expect(
+      issues({
+        ...example,
+        database: [
+          { name: "app", user: "app" },
+          { name: "logs", user: "app", env: { name: "LOGS_DATABASE" } },
+        ],
+      }),
+    ).toEqual([
+      "database: database[0].env must set name, user and password when the site file declares several databases",
+      "database: database[1].env must set name, user and password when the site file declares several databases",
+    ]);
+    expect(
+      issues({
+        ...example,
+        database: [
+          { name: "app", user: "app", env: env("APP") },
+          { name: "logs", user: "app", env: { ...env("LOGS"), password: "APP_PASSWORD" } },
+        ],
+      }),
+    ).toEqual(["database: database[1].env writes the .env key APP_PASSWORD, like database[0]"]);
+    expect(
+      issues({
+        ...example,
+        database: [
+          { name: "app", user: "app", env: env("APP") },
+          { name: "app", user: "other", env: env("OTHER") },
+        ],
+      }),
+    ).toEqual(["database: database[1] declares database app again"]);
+    expect(issues({ ...example, database: [] })).toEqual([expect.stringMatching(/^database: /)]);
+  });
+
+  it("exits with a validation error on several databases without .env keys", () => {
+    expect(() =>
+      parseSiteFile(
+        {
+          server: 1,
+          domain: "example.com",
+          database: [
+            { name: "a", user: "a" },
+            { name: "b", user: "b" },
+          ],
+        },
+        "site file x.json",
+      ),
+    ).toThrow(ValidationError);
+  });
+
   it("names the root when the file is not an object", () => {
     expect(issues("site")).toEqual([expect.stringMatching(/^\(root\): /)]);
   });
@@ -275,13 +351,20 @@ describe("site.schema.json", () => {
     expect(Object.keys(schema.properties.repository.properties).toSorted()).toEqual(
       keys(SiteFileSchema.entries.repository.wrapped),
     );
-    expect(Object.keys(schema.properties.database.properties).toSorted()).toEqual(
-      keys(SiteFileSchema.entries.database.wrapped),
-    );
+    expect(Object.keys(schema.$defs.database.properties).toSorted()).toEqual(keys(DatabaseSchema));
     expect(Object.keys(schema.properties.loadBalancer.properties).toSorted()).toEqual(
       keys(SiteFileSchema.entries.loadBalancer.wrapped),
     );
-    expect(Object.keys(schema.properties.database.properties.env.properties).toSorted()).toEqual(
+    expect(Object.keys(schema.$defs.database.properties.env.properties).toSorted()).toEqual(
+      keys(DatabaseEnvSchema.pipe[0]),
+    );
+  });
+
+  it("requires every .env key of each database when there are several", () => {
+    const list = schema.properties.database.oneOf[1];
+    expect(list.if).toEqual({ minItems: 2 });
+    expect(list.then.items.required).toEqual(["env"]);
+    expect(list.then.items.properties.env.required.toSorted()).toEqual(
       keys(DatabaseEnvSchema.pipe[0]),
     );
   });

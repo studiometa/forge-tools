@@ -232,6 +232,8 @@ export function fakeForge(initial: Partial<FakeForge> = {}) {
     ...initial,
   };
   const calls: Call[] = [];
+  let createdDatabases = 0;
+  let createdUsers = 0;
   const stamp = { status: "installed", created_at: "", updated_at: "" };
 
   const client = {
@@ -337,12 +339,13 @@ export function fakeForge(initial: Partial<FakeForge> = {}) {
         return doc("sites", created);
       }
       if (url === "/orgs/org/servers/123/database/schemas") {
-        const created = { id: 70, name: String(body.name) };
+        // New databases get 70, 72, …; new users 71, 73, …
+        const created = { id: 70 + 2 * createdDatabases++, name: String(body.name) };
         state.databases.push(created);
         return doc("databases", { ...stamp, ...created });
       }
       if (url === "/orgs/org/servers/123/database/users") {
-        const created = { id: 71, name: String(body.name) };
+        const created = { id: 71 + 2 * createdUsers++, name: String(body.name) };
         state.users.push(created);
         return doc("users", { ...stamp, ...created });
       }

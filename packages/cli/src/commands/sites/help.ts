@@ -55,7 +55,9 @@ ${colors.bold("SITE FILE:")}
     database { name, user, env }          Create when missing; a new user gets a random
                                           password, written into the site .env only.
                                           env maps { name, user, password } to .env keys
-                                          (default DB_DATABASE, DB_USERNAME, DB_PASSWORD)
+                                          (default DB_DATABASE, DB_USERNAME, DB_PASSWORD).
+                                          An array declares several databases: each sets
+                                          all its env keys, and no key is written twice
     env                                   Add missing keys, never overwrite a value
     nginx                                 Nginx file, relative to the site file, with Forge
                                           template variables such as {{PATH}}, {{SITE_ID}},

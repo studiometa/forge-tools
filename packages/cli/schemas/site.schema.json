@@ -89,42 +89,32 @@
       }
     },
     "database": {
-      "description": "Database and user, created when missing. A new user gets a random password, written into the site .env only.",
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["name", "user"],
-      "properties": {
-        "name": {
-          "type": "string",
-          "minLength": 1
+      "description": "One database, or several. Each database and each user is created when missing; a user named by several databases gets access to all of them. With several databases, each one sets env.name, env.user and env.password (no Laravel default), and two databases never write the same .env key.",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/database"
         },
-        "user": {
-          "type": "string",
-          "minLength": 1
-        },
-        "env": {
-          "description": ".env keys that get the database name, user and password of a new user. The keys must be different.",
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "name": {
-              "type": "string",
-              "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
-              "default": "DB_DATABASE"
-            },
-            "user": {
-              "type": "string",
-              "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
-              "default": "DB_USERNAME"
-            },
-            "password": {
-              "type": "string",
-              "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
-              "default": "DB_PASSWORD"
+        {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/database"
+          },
+          "if": {
+            "minItems": 2
+          },
+          "then": {
+            "items": {
+              "required": ["env"],
+              "properties": {
+                "env": {
+                  "required": ["name", "user", "password"]
+                }
+              }
             }
           }
         }
-      }
+      ]
     },
     "env": {
       "description": ".env variables to add when missing. Existing values are never overwritten.",
@@ -231,6 +221,46 @@
           "minimum": 1,
           "maximum": 65535,
           "default": 80
+        }
+      }
+    }
+  },
+  "$defs": {
+    "database": {
+      "description": "A database and its user, created when missing. A new user gets a random password, written into the site .env only.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "user"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "user": {
+          "type": "string",
+          "minLength": 1
+        },
+        "env": {
+          "description": ".env keys that get the database name, user and password of a new user. The keys must be different. With several databases, each database sets all three, and two databases never write the same key.",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+              "default": "DB_DATABASE"
+            },
+            "user": {
+              "type": "string",
+              "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+              "default": "DB_USERNAME"
+            },
+            "password": {
+              "type": "string",
+              "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+              "default": "DB_PASSWORD"
+            }
+          }
         }
       }
     }

@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
+import { parseEnv } from "../../env/env-diff.ts";
 import { ValidationError } from "../../../errors.ts";
 import {
   ApplyError,
@@ -474,6 +475,66 @@ describe("applySiteFile", () => {
     expect(JSON.stringify(plan)).not.toContain("s3cr3t");
   });
 
+  it("creates several databases, one user for two of them, and writes each password once per key", async () => {
+    const env = (prefix: string) => ({
+      name: `${prefix}_DATABASE`,
+      user: `${prefix}_USERNAME`,
+      password: `${prefix}_PASSWORD`,
+    });
+    const passwords = ["first", "second"];
+    const { ctx, calls, state } = fakeForge({
+      sites: [sibling],
+      newSiteStatuses: ["installed"],
+    });
+    await applySiteFile(
+      {
+        server: 123,
+        domain: "a.example.com",
+        type: "php",
+        database: [
+          { name: "app", user: "app", env: env("APP") },
+          { name: "logs", user: "app", env: env("LOGS") },
+          { name: "stats", user: "stats", env: env("STATS") },
+        ],
+      },
+      "123",
+      ctx,
+      { generatePassword: () => passwords.shift()!, sleep: async () => {}, pollIntervalMs: 1 },
+    );
+
+    const writes = calls.filter(([method]) => method !== "GET");
+    expect(writes.slice(0, 5)).toEqual([
+      ["POST", "/orgs/org/servers/123/database/schemas", { name: "app" }],
+      ["POST", "/orgs/org/servers/123/database/schemas", { name: "logs" }],
+      ["POST", "/orgs/org/servers/123/database/schemas", { name: "stats" }],
+      [
+        "POST",
+        "/orgs/org/servers/123/database/users",
+        { name: "app", password: "first", database_ids: [70, 72] },
+      ],
+      [
+        "POST",
+        "/orgs/org/servers/123/database/users",
+        { name: "stats", password: "second", database_ids: [74] },
+      ],
+    ]);
+    // Forge links the new site to the first database and its user.
+    expect(writes[5][2]).toMatchObject({ database_id: 70, database_user_id: "71" });
+    expect(parseEnv(state.env)).toEqual(
+      new Map([
+        ["APP_DATABASE", "app"],
+        ["APP_USERNAME", "app"],
+        ["APP_PASSWORD", "first"],
+        ["LOGS_DATABASE", "logs"],
+        ["LOGS_USERNAME", "app"],
+        ["LOGS_PASSWORD", "first"],
+        ["STATS_DATABASE", "stats"],
+        ["STATS_USERNAME", "stats"],
+        ["STATS_PASSWORD", "second"],
+      ]),
+    );
+  });
+
   it("creates a missing site, waits until it is installed, then applies the rest", async () => {
     const sleep = vi.fn(async () => {});
     const { ctx, calls, state } = fakeForge({
@@ -574,7 +635,7 @@ describe("applySiteFile", () => {
       action: "add-env",
       keys: ["DB_HOST", "WP_HOME"],
       generated: ["DB_DATABASE", "DB_USERNAME", "DB_PASSWORD"],
-      password: "DB_PASSWORD",
+      passwords: ["DB_PASSWORD"],
       replace: true,
     });
     expect(changes).toContainEqual(expect.objectContaining({ action: "add-env", replace: true }));
