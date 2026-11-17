@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file. Each pull r
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.7.1 - 2026-11-17
+
+### Added
+
+- **Core**: Add `getDomainNginxConfig()`, which reads the Nginx configuration of a domain with `GET /servers/{server}/sites/{site}/domains/{domain}/nginx` ([#176])
+
+### Fixed
+
+- **CLI**: Fix `wildcards` in `forge sites apply` on a site created before October 2025: Forge keeps "Allow wildcard subdomains" on the site there, and its domains report `false`. `apply` now compares with the site, and warns instead of updating the domain when it differs, because the Forge API cannot change the setting of the site ([#176])
+
+[#176]: https://github.com/studiometa/forge-tools/pull/176
+
 ## 0.7.0 - 2026-11-17
 
 ### Added
