@@ -99,6 +99,19 @@
           "minItems": 1,
           "items": {
             "$ref": "#/$defs/database"
+          },
+          "if": {
+            "minItems": 2
+          },
+          "then": {
+            "items": {
+              "required": ["env"],
+              "properties": {
+                "env": {
+                  "required": ["name", "user", "password"]
+                }
+              }
+            }
           }
         }
       ]

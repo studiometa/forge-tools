@@ -360,6 +360,15 @@ describe("site.schema.json", () => {
     );
   });
 
+  it("requires every .env key of each database when there are several", () => {
+    const list = schema.properties.database.oneOf[1];
+    expect(list.if).toEqual({ minItems: 2 });
+    expect(list.then.items.required).toEqual(["env"]);
+    expect(list.then.items.properties.env.required.toSorted()).toEqual(
+      keys(DatabaseEnvSchema.pipe[0]),
+    );
+  });
+
   it("has the same enums as the valibot schema", () => {
     expect(schema.properties.type.enum).toEqual(SiteFileSchema.entries.type.wrapped.options);
     expect(schema.properties.wwwRedirect.enum).toEqual(
