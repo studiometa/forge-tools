@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file. Each pull r
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.7.0 - 2026-11-17
+
+### Added
+
+- **CLI**: Allow several databases in the site file of `forge sites apply`: `database` can be an array. Each entry creates its database and its user when they are missing, a user named by several entries gets access to all their databases, and each entry sets its own `.env` keys ([#174])
+
+### Changed
+
+- **CLI**: Breaking: in the JSON output of `forge sites apply`, `create-database-user` has `databases` (a list) instead of `database`, and `add-env` has `passwords` (a list) instead of `password` ([#174])
+
+[#174]: https://github.com/studiometa/forge-tools/pull/174
+
 ## 0.6.1 - 2026-11-17
 
 ### Added
