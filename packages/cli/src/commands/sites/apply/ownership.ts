@@ -115,22 +115,14 @@ export function quoteWord(word: string): string {
 
 /**
  * Write a command in one canonical form, so that equivalent spellings compare equal:
- * quotes only where needed, single spaces, and a relative `artisan` (or `./artisan`)
- * replaced by its absolute path in `directory`.
+ * quotes only where needed and single spaces. Only for comparison: the shell does not run
+ * this form as it runs the command.
  *
- * `php artisan queue:work 'database'  --queue="default"` in `/home/forge/example.com/`
- * gives `php /home/forge/example.com/artisan queue:work database --queue=default`.
+ * `php artisan queue:work 'database'  --queue="default"`
+ * gives `php artisan queue:work database --queue=default`.
  */
-export function canonicalCommand(command: string, directory: string | null): string {
-  return splitCommand(command)
-    .map((word) => {
-      if (directory && (word === "artisan" || word === "./artisan")) {
-        return `${normalizePath(directory)}/artisan`;
-      }
-      return word;
-    })
-    .map(quoteWord)
-    .join(" ");
+export function canonicalCommand(command: string): string {
+  return splitCommand(command).map(quoteWord).join(" ");
 }
 
 /**

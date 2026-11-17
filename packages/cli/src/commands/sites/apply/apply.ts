@@ -122,7 +122,7 @@ export async function readRemoteState(
   const sites = (await listSites({ server_id: serverId }, ctx)).data;
   const site = findSite(sites, file.domain);
   const siteId = site ? String(site.id) : undefined;
-  const state: RemoteState = { sites, site };
+  const state: RemoteState = { serverId, sites, site };
 
   if (file.database) {
     state.databases = (await listDatabases({ server_id: serverId }, ctx)).data;

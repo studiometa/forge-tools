@@ -118,21 +118,19 @@ describe("quoteWord", () => {
 });
 
 describe("canonicalCommand", () => {
-  it("gives one form for quoting, spaces and a relative artisan", () => {
+  it("gives one form for quoting and spaces", () => {
     const real =
       "php8.3 /home/forge/a.com/artisan queue:work 'database' --sleep=10 --daemon --timeout=120 --queue='default'";
     const declared =
-      "php8.3  artisan queue:work database --sleep=10 --daemon --timeout=120 --queue=default";
-    expect(canonicalCommand(real, "/home/forge/a.com/")).toBe(
-      canonicalCommand(declared, "/home/forge/a.com"),
-    );
-    expect(canonicalCommand("php ./artisan schedule:run", "/home/forge/a.com")).toBe(
-      "php /home/forge/a.com/artisan schedule:run",
-    );
+      'php8.3  /home/forge/a.com/artisan queue:work database --sleep=10 --daemon --timeout=120 --queue="default"';
+    expect(canonicalCommand(real)).toBe(canonicalCommand(declared));
   });
 
-  it("keeps artisan relative without a directory", () => {
-    expect(canonicalCommand("php artisan x", null)).toBe("php artisan x");
+  it("keeps artisan as written", () => {
+    expect(canonicalCommand("php artisan x")).toBe("php artisan x");
+    expect(canonicalCommand("php artisan x")).not.toBe(
+      canonicalCommand("php /home/forge/a.com/artisan x"),
+    );
   });
 });
 

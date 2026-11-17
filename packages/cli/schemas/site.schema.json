@@ -146,6 +146,7 @@
         "required": ["command"],
         "properties": {
           "command": {
+            "description": "Shell command, sent to Forge as written, with the template variables {{FORGE_PHP}}, {{FORGE_PHP_FPM}}, {{FORGE_SERVER_ID}}, {{FORGE_SITE_BRANCH}}, {{FORGE_SITE_ID}}, {{FORGE_SITE_PATH}} and {{FORGE_SITE_USER}} rendered for the site. An unknown variable is an error.",
             "type": "string",
             "minLength": 1
           },
@@ -155,7 +156,7 @@
             "default": 1
           },
           "directory": {
-            "description": "Directory, absolute or relative to the site root. Default: the site root.",
+            "description": "Directory, absolute or relative to the site root, with the same template variables as the command, e.g. {{FORGE_SITE_PATH}}. Default: the site root.",
             "type": "string",
             "minLength": 1
           }
@@ -171,6 +172,7 @@
         "required": ["command", "frequency"],
         "properties": {
           "command": {
+            "description": "Shell command, sent to Forge as written, with the template variables {{FORGE_PHP}}, {{FORGE_PHP_FPM}}, {{FORGE_SERVER_ID}}, {{FORGE_SITE_BRANCH}}, {{FORGE_SITE_ID}}, {{FORGE_SITE_PATH}} and {{FORGE_SITE_USER}} rendered for the site. An unknown variable is an error.",
             "type": "string",
             "minLength": 1
           },

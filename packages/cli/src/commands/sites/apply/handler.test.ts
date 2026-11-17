@@ -85,6 +85,20 @@ describe("sitesApply", () => {
     expect(forge.calls).toEqual([]);
   });
 
+  it("exits 3 on an unknown variable in a scheduled job, before any call", async () => {
+    siteFile({
+      server: 123,
+      domain: "a.example.com",
+      schedule: [{ command: "{{ PHP }} artisan schedule:run", frequency: "minutely" }],
+    });
+    const { ctx, forge } = context("json", { file: "site.json", check: true });
+
+    await sitesApply(ctx);
+
+    expect(exitSpy).toHaveBeenCalledWith(3);
+    expect(forge.calls).toEqual([]);
+  });
+
   it("prints the Nginx diff with --check and exits 1", async () => {
     vi.mocked(readFileSync).mockImplementation((path) =>
       String(path).endsWith("site.json")
@@ -113,7 +127,7 @@ describe("sitesApply", () => {
     siteFile({
       server: 123,
       domain: "a.example.com",
-      workers: [{ command: "php artisan queue:work" }],
+      workers: [{ command: "php {{ FORGE_SITE_PATH }}/artisan queue:work" }],
     });
     const { ctx, forge } = context("human", { file: "site.json", check: true });
 

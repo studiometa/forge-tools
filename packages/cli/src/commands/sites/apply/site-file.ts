@@ -10,6 +10,7 @@ import { WWW_REDIRECT_TYPES } from "@studiometa/forge-api";
 import * as v from "valibot";
 
 import { ValidationError } from "../../../errors.ts";
+import { assertCommandTemplate } from "./command-template.ts";
 import { assertNginxTemplate } from "./nginx.ts";
 
 /** URL of the JSON Schema of the site file, published with the package. */
@@ -142,7 +143,21 @@ export function parseSiteFile(data: unknown, source = "site file"): SiteFileData
     });
     throw new ValidationError(`Invalid ${source}`, "file", issues);
   }
-  return result.output;
+  const file = result.output;
+  for (const [index, worker] of (file.workers ?? []).entries()) {
+    assertCommandTemplate(worker.command, `workers[${index}].command of ${source}`, "workers");
+    if (worker.directory) {
+      assertCommandTemplate(
+        worker.directory,
+        `workers[${index}].directory of ${source}`,
+        "workers",
+      );
+    }
+  }
+  for (const [index, job] of (file.schedule ?? []).entries()) {
+    assertCommandTemplate(job.command, `schedule[${index}].command of ${source}`, "schedule");
+  }
+  return file;
 }
 
 /**
