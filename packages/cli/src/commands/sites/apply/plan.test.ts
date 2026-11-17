@@ -408,10 +408,10 @@ describe("buildPlan", () => {
 
   it("reads the aliases from the domains of the site, not from its null aliases", () => {
     const plan = buildPlan(
-      { server: "web-1", domain: "www.luxfilmfest.lu", aliases: ["luxfilmfest.staging.ikko.fr"] },
+      { server: "web-1", domain: "www.example.com", aliases: ["example.staging.example.net"] },
       sharedServer({
-        site: site(456, "www.luxfilmfest.lu", { aliases: null }),
-        domains: ["www.luxfilmfest.lu", "LuxFilmFest.staging.ikko.fr"],
+        site: site(456, "www.example.com", { aliases: null }),
+        domains: ["www.example.com", "Example.staging.example.net"],
       }),
     );
 
