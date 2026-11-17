@@ -7,6 +7,7 @@ import {
   isPathInside,
   normalizePath,
   quoteWord,
+  resolveArtisan,
   resolvePath,
   scheduledJobOwnership,
   siteOfPath,
@@ -133,6 +134,24 @@ describe("canonicalCommand", () => {
 
   it("keeps artisan relative without a directory", () => {
     expect(canonicalCommand("php artisan x", null)).toBe("php artisan x");
+  });
+});
+
+describe("resolveArtisan", () => {
+  it("replaces a relative artisan and keeps the rest of the command as written", () => {
+    expect(
+      resolveArtisan(
+        `php  ./artisan backup:run --name="$(date -I)" && artisan x`,
+        "/home/forge/a.com/",
+      ),
+    ).toBe(
+      `php  /home/forge/a.com/artisan backup:run --name="$(date -I)" && /home/forge/a.com/artisan x`,
+    );
+  });
+
+  it("keeps an absolute artisan and words that only contain artisan", () => {
+    const command = "php /home/forge/a.com/artisan x --artisan artisans";
+    expect(resolveArtisan(command, "/home/forge/a.com")).toBe(command);
   });
 });
 

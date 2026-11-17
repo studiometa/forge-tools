@@ -23,6 +23,7 @@ import {
   daemonOwnership,
   isPathInside,
   normalizePath,
+  resolveArtisan,
   resolvePath,
   scheduledJobOwnership,
 } from "./ownership.ts";
@@ -476,13 +477,18 @@ function planSchedule(
   const workDirectory = site ? siteWorkDirectory(site) : plannedWorkDirectory(file);
 
   const declared = file.schedule.map((job) => {
-    const command = canonicalCommand(job.command, workDirectory);
     const frequency = normalizeFrequency(job.frequency);
     return {
-      command,
+      // Forge runs the command in a shell: create it as written, and compare its canonical form.
+      command: resolveArtisan(job.command, workDirectory),
       frequency,
       cron: job.cron,
-      key: [command, "forge", frequency, frequency === "custom" ? job.cron : ""].join("\n"),
+      key: [
+        canonicalCommand(job.command, workDirectory),
+        "forge",
+        frequency,
+        frequency === "custom" ? job.cron : "",
+      ].join("\n"),
     };
   });
 

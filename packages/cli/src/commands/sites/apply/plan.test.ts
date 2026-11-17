@@ -298,6 +298,48 @@ describe("buildPlan", () => {
     ]);
   });
 
+  it("creates a scheduled job with the command of the file, not its canonical form", () => {
+    const command = `${A}/vendor/bin/drush sql:dump --result-file=~/backup/hourly_$(date -Iseconds).sql --gzip && rm -f "${A}/cache_"*`;
+    const plan = buildPlan(
+      {
+        server: "web-1",
+        domain: "a.example.com",
+        schedule: [
+          { command, frequency: "hourly" },
+          { command: "php  artisan inspire --name='a b'", frequency: "hourly" },
+        ],
+      },
+      sharedServer({ jobs: [], siteJobIds: new Set() }),
+    );
+
+    expect(plan.changes).toEqual([
+      { action: "create-job", command, frequency: "hourly" },
+      {
+        action: "create-job",
+        command: `php  ${A}/artisan inspire --name='a b'`,
+        frequency: "hourly",
+      },
+    ]);
+    expect(describeChange(plan.changes[0])).toBe(`+ create scheduled job: ${command} (hourly)`);
+  });
+
+  it("matches a scheduled job by its canonical command", () => {
+    const state = sharedServer({
+      jobs: [job(60, `php ${A}/artisan inspire --name='a b'`, { frequency: "Hourly" })],
+      siteJobIds: new Set([60]),
+    });
+    const plan = buildPlan(
+      {
+        server: "web-1",
+        domain: "a.example.com",
+        schedule: [{ command: 'php  artisan inspire --name="a b"', frequency: "hourly" }],
+      },
+      state,
+    );
+
+    expect(plan.changes).toEqual([]);
+  });
+
   it("compares the cron of custom jobs only", () => {
     const state = sharedServer({
       jobs: [job(50, `php ${A}/artisan backup:run`, { frequency: "Custom", cron: "0 4 * * *" })],

@@ -114,6 +114,20 @@ export function quoteWord(word: string): string {
 }
 
 /**
+ * Replace a relative `artisan` (or `./artisan`) word with its absolute path in `directory`, and
+ * keep the rest of the command as written: quotes, operators and substitutions stay for the shell.
+ *
+ * `php artisan backup:run --name="$(date)"` in `/home/forge/example.com/`
+ * gives `php /home/forge/example.com/artisan backup:run --name="$(date)"`.
+ */
+export function resolveArtisan(command: string, directory: string): string {
+  return command.replaceAll(
+    /(^|\s)(?:\.\/)?artisan(?=\s|$)/g,
+    (_, space: string) => `${space}${normalizePath(directory)}/artisan`,
+  );
+}
+
+/**
  * Write a command in one canonical form, so that equivalent spellings compare equal:
  * quotes only where needed, single spaces, and a relative `artisan` (or `./artisan`)
  * replaced by its absolute path in `directory`.
