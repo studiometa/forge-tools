@@ -963,6 +963,68 @@ describe("buildPlan with a www redirect", () => {
   });
 });
 
+describe("buildPlan with wildcard subdomains", () => {
+  const file: SiteFile = { server: "web-1", domain: "example.com", wildcards: true };
+  const primary = (wildcards: boolean, wwwRedirect = "to-www") =>
+    domain(456, "example.com", "primary", {
+      allow_wildcard_subdomains: wildcards,
+      www_redirect_type: wwwRedirect,
+    });
+
+  it("creates the site with wildcard subdomains", () => {
+    const plan = buildPlan({ ...file, type: "php" }, { serverId: "123", sites: [], site: null });
+    expect(plan.changes).toEqual([
+      {
+        action: "create-site",
+        name: "example.com",
+        settings: expect.objectContaining({ type: "php", allow_wildcard_subdomains: true }),
+      },
+    ]);
+    expect(formatPlan(plan)).toBe(
+      "+ create site example.com (type: php, allow_wildcard_subdomains: true)",
+    );
+  });
+
+  it("changes nothing when the primary domain has the same setting", () => {
+    const plan = buildPlan(file, sharedServer({ primaryDomain: primary(true) }));
+    expect(plan.changes).toEqual([]);
+  });
+
+  it("updates the primary domain when it differs, and keeps its www redirect", () => {
+    const plan = buildPlan(file, sharedServer({ primaryDomain: primary(false) }));
+    expect(plan.changes).toEqual([
+      {
+        action: "update-wildcards",
+        id: 456,
+        domain: "example.com",
+        from: false,
+        to: true,
+        wwwRedirect: "to-www",
+      },
+    ]);
+    expect(formatPlan(plan)).toBe("~ update wildcard subdomains of example.com: false → true");
+  });
+
+  it("turns wildcard subdomains off, with the www redirect of the file", () => {
+    const plan = buildPlan(
+      { ...file, wildcards: false, wwwRedirect: "from-www" },
+      sharedServer({ primaryDomain: primary(true, "none") }),
+    );
+    expect(plan.changes).toEqual([
+      expect.objectContaining({ action: "update-www-redirect", to: "from-www" }),
+      expect.objectContaining({ action: "update-wildcards", to: false, wwwRedirect: "from-www" }),
+    ]);
+  });
+
+  it("does not manage wildcard subdomains when the file has no wildcards", () => {
+    const plan = buildPlan(
+      { server: "web-1", domain: "example.com" },
+      sharedServer({ primaryDomain: primary(true) }),
+    );
+    expect(plan.changes).toEqual([]);
+  });
+});
+
 describe("buildPlan with a load balancer", () => {
   const balanced: SiteFile = {
     server: 123,

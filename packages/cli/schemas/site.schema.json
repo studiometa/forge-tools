@@ -40,6 +40,10 @@
       "description": "Redirect of www on the primary domain: to-www sends example.com to www.example.com, from-www sends www.example.com to example.com.",
       "enum": ["from-www", "to-www", "none"]
     },
+    "wildcards": {
+      "description": "Allow wildcard subdomains (*.example.com) on the primary domain.",
+      "type": "boolean"
+    },
     "type": {
       "description": "Site type, used to create the site.",
       "enum": [

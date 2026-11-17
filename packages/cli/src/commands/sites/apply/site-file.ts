@@ -104,6 +104,7 @@ export const SiteFileSchema = v.strictObject({
   domain: text,
   aliases: v.optional(v.array(text)),
   wwwRedirect: v.optional(v.picklist(WWW_REDIRECT_TYPES)),
+  wildcards: v.optional(v.boolean()),
   type: v.optional(v.picklist(SITE_TYPES)),
   php: v.optional(v.pipe(v.string(), v.regex(/^php\d+$/, "php must look like php83"))),
   webDirectory: v.optional(text),

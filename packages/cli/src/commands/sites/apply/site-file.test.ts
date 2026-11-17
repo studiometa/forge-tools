@@ -74,6 +74,15 @@ describe("parseSiteFile", () => {
     ]);
   });
 
+  it("accepts wildcards as a boolean only", () => {
+    expect(parseSiteFile({ server: 1, domain: "example.com", wildcards: true }).wildcards).toBe(
+      true,
+    );
+    expect(issues({ server: 1, domain: "example.com", wildcards: "yes" })).toEqual([
+      expect.stringMatching(/^wildcards: /),
+    ]);
+  });
+
   it("defaults the number of processes of a worker to 1", () => {
     const file = parseSiteFile({ ...example, workers: [{ command: "php artisan horizon" }] });
     expect(file.workers).toEqual([{ command: "php artisan horizon", processes: 1 }]);

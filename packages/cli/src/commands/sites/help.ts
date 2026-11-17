@@ -50,6 +50,8 @@ ${colors.bold("SITE FILE:")}
     aliases                               Add missing aliases, never remove one
     wwwRedirect                           to-www, from-www or none: the www redirect of
                                           the primary domain
+    wildcards                             true or false: allow wildcard subdomains on
+                                          the primary domain
     database { name, user, env }          Create when missing; a new user gets a random
                                           password, written into the site .env only.
                                           env maps { name, user, password } to .env keys

@@ -12,6 +12,7 @@ import type {
   ScheduledJobAttributes,
   SiteAttributes,
 } from "@studiometa/forge-api";
+import { WWW_REDIRECT_TYPES } from "@studiometa/forge-api";
 
 import { unifiedDiff } from "../../../utils/drift.ts";
 import { parseEnv } from "../../env/env-diff.ts";
@@ -82,6 +83,7 @@ export interface RemoteState {
 export interface SiteSettings {
   type?: string;
   www_redirect_type?: string;
+  allow_wildcard_subdomains?: boolean;
   php_version?: string;
   web_directory?: string;
   source_control_provider?: string;
@@ -100,6 +102,16 @@ export type Change =
       domain: string;
       from: string;
       to: NonNullable<SiteFile["wwwRedirect"]>;
+    }
+  | {
+      action: "update-wildcards";
+      /** ID of the primary domain. */
+      id: number;
+      domain: string;
+      from: boolean;
+      to: boolean;
+      /** The `www` redirect that the update keeps: Forge requires it with each domain update. */
+      wwwRedirect: NonNullable<SiteFile["wwwRedirect"]>;
     }
   | { action: "create-database"; name: string }
   | { action: "create-database-user"; name: string; database: string }
@@ -240,6 +252,7 @@ function planSite(file: SiteFile, site: Site | null, changes: Change[], warnings
       settings: {
         type: file.type,
         www_redirect_type: file.wwwRedirect,
+        allow_wildcard_subdomains: file.wildcards,
         php_version: file.php,
         web_directory: file.webDirectory,
         source_control_provider: file.repository?.provider,
@@ -311,6 +324,29 @@ function planWwwRedirect(file: SiteFile, state: RemoteState, changes: Change[]):
     domain: primary.name,
     from: primary.www_redirect_type,
     to: file.wwwRedirect,
+  });
+}
+
+function planWildcards(file: SiteFile, state: RemoteState, changes: Change[]): void {
+  const primary = state.primaryDomain;
+  if (
+    file.wildcards === undefined ||
+    !primary ||
+    primary.allow_wildcard_subdomains === file.wildcards
+  ) {
+    return;
+  }
+  changes.push({
+    action: "update-wildcards",
+    id: primary.id,
+    domain: primary.name,
+    from: primary.allow_wildcard_subdomains,
+    to: file.wildcards,
+    // The update keeps the redirect of the domain (Forge lists only these three values).
+    wwwRedirect:
+      file.wwwRedirect ??
+      WWW_REDIRECT_TYPES.find((type) => type === primary.www_redirect_type) ??
+      "none",
   });
 }
 
@@ -608,6 +644,7 @@ export function buildPlan(file: SiteFile, state: RemoteState): Plan {
   planSite(file, state.site, changes, warnings);
   planAliases(file, state, changes);
   planWwwRedirect(file, state, changes);
+  planWildcards(file, state, changes);
   const generated = planDatabase(file, state, changes, warnings);
   if (file.env || generated.length > 0) {
     planEnv(file, state, generated, changes, warnings);
@@ -643,6 +680,8 @@ export function describeChange(change: Change): string {
         .join(", ")}`;
     case "add-alias":
       return `+ add alias ${change.name}`;
+    case "update-wildcards":
+      return `~ update wildcard subdomains of ${change.domain}: ${change.from} → ${change.to}`;
     case "update-www-redirect":
       return `~ update www redirect of ${change.domain}: ${change.from} → ${change.to}`;
     case "create-database":

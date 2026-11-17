@@ -146,6 +146,7 @@ forge sites apply --file site.json          # Make the site match the file
   "server": "web-1",
   "domain": "example.com",
   "wwwRedirect": "to-www",
+  "wildcards": false,
   "type": "php",
   "php": "php83",
   "webDirectory": "/public",
@@ -176,6 +177,7 @@ forge sites apply --file site.json          # Make the site match the file
 | `type`, `php`, `webDirectory`, `repository` | Create the site when it is missing (`type` is then required) and wait until Forge installs it. On an existing site, update `php`, `webDirectory` and the branch                                                        |
 | `aliases`                                   | Add the missing aliases. Never remove one                                                                                                                                                                              |
 | `wwwRedirect`                               | `to-www`, `from-www` or `none`. Create the site with this redirect. On an existing site, update the redirect of the primary domain when it differs. Aliases always get `none`                                          |
+| `wildcards`                                 | `true` or `false`: "Allow wildcard subdomains" (`*.example.com`). Create the site with this setting. On an existing site, update the primary domain when it differs. Aliases always get `false`                        |
 | `database`                                  | Create the database and the user when they are missing. A new user gets a random password, written only into the site `.env` (`DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`, see below)                                  |
 | `env`                                       | On a new site, write the whole `.env` (see below). On an existing site, add the missing keys. A key with another value on Forge is reported, never overwritten                                                         |
 | `nginx`                                     | Nginx file, relative to the site file, with Forge template variables. Rendered for the site and written when it differs from Forge (see below)                                                                         |
