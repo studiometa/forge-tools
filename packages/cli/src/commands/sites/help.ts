@@ -64,8 +64,8 @@ ${colors.bold("SITE FILE:")}
                                           Commands (and worker directories) may use
                                           {{FORGE_PHP}}, {{FORGE_PHP_FPM}}, {{FORGE_SERVER_ID}},
                                           {{FORGE_SITE_BRANCH}}, {{FORGE_SITE_ID}},
-                                          {{FORGE_SITE_PATH}}, {{FORGE_SITE_ROOT}} and
-                                          {{FORGE_SITE_USER}}; the rest is sent as written
+                                          {{FORGE_SITE_PATH}} and {{FORGE_SITE_USER}};
+                                          the rest is sent as written
 
   A worker or scheduled job is deleted only when it surely belongs to the site:
   Forge lists it on the site, or its directory (or, without a directory, its command)

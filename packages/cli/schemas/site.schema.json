@@ -146,7 +146,7 @@
         "required": ["command"],
         "properties": {
           "command": {
-            "description": "Shell command, sent to Forge as written, with the template variables {{FORGE_PHP}}, {{FORGE_PHP_FPM}}, {{FORGE_SERVER_ID}}, {{FORGE_SITE_BRANCH}}, {{FORGE_SITE_ID}}, {{FORGE_SITE_PATH}}, {{FORGE_SITE_ROOT}} and {{FORGE_SITE_USER}} rendered for the site. An unknown variable is an error.",
+            "description": "Shell command, sent to Forge as written, with the template variables {{FORGE_PHP}}, {{FORGE_PHP_FPM}}, {{FORGE_SERVER_ID}}, {{FORGE_SITE_BRANCH}}, {{FORGE_SITE_ID}}, {{FORGE_SITE_PATH}} and {{FORGE_SITE_USER}} rendered for the site. An unknown variable is an error.",
             "type": "string",
             "minLength": 1
           },
@@ -172,7 +172,7 @@
         "required": ["command", "frequency"],
         "properties": {
           "command": {
-            "description": "Shell command, sent to Forge as written, with the template variables {{FORGE_PHP}}, {{FORGE_PHP_FPM}}, {{FORGE_SERVER_ID}}, {{FORGE_SITE_BRANCH}}, {{FORGE_SITE_ID}}, {{FORGE_SITE_PATH}}, {{FORGE_SITE_ROOT}} and {{FORGE_SITE_USER}} rendered for the site. An unknown variable is an error.",
+            "description": "Shell command, sent to Forge as written, with the template variables {{FORGE_PHP}}, {{FORGE_PHP_FPM}}, {{FORGE_SERVER_ID}}, {{FORGE_SITE_BRANCH}}, {{FORGE_SITE_ID}}, {{FORGE_SITE_PATH}} and {{FORGE_SITE_USER}} rendered for the site. An unknown variable is an error.",
             "type": "string",
             "minLength": 1
           },

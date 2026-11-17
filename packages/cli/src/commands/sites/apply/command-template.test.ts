@@ -20,7 +20,6 @@ describe("commandValues", () => {
       FORGE_SITE_BRANCH: "main",
       FORGE_SITE_ID: "456",
       FORGE_SITE_PATH: "/home/forge/example.com",
-      FORGE_SITE_ROOT: "/home/forge/example.com",
       FORGE_SITE_USER: "forge",
     });
   });
@@ -36,7 +35,6 @@ describe("commandValues", () => {
       "123",
     );
     expect(values.FORGE_SITE_PATH).toBe("/home/app/app.example.com/current");
-    expect(values.FORGE_SITE_ROOT).toBe("/home/app/app.example.com");
     expect(values.FORGE_SITE_USER).toBe("app");
     expect(values.FORGE_PHP).toBe("php8.4");
   });

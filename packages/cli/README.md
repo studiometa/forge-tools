@@ -227,7 +227,6 @@ The commands of `workers` and `schedule`, and the `directory` of a worker, can u
 | `{{FORGE_PHP_FPM}}`     | PHP-FPM service of the site, e.g. `php8.3-fpm`                                                                               |
 | `{{FORGE_SERVER_ID}}`   | Server ID (`123`)                                                                                                            |
 | `{{FORGE_SITE_ID}}`     | Site ID (`456`)                                                                                                              |
-| `{{FORGE_SITE_ROOT}}`   | Site folder, e.g. `/home/forge/example.com`                                                                                  |
 | `{{FORGE_SITE_PATH}}`   | Deployment path: the site folder, or its `current` folder with zero-downtime deployments (`/home/forge/example.com/current`) |
 | `{{FORGE_SITE_USER}}`   | Site user (`forge`)                                                                                                          |
 | `{{FORGE_SITE_BRANCH}}` | Branch of the site repository (an error when the site has none)                                                              |

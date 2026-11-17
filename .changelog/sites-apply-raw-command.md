@@ -1,6 +1,6 @@
 ### Added
 
-- **CLI**: Add template variables to the commands of `workers` and `schedule`, and to the `directory` of a worker, in the site file of `forge sites apply`: `{{FORGE_PHP}}`, `{{FORGE_PHP_FPM}}`, `{{FORGE_SERVER_ID}}`, `{{FORGE_SITE_BRANCH}}`, `{{FORGE_SITE_ID}}`, `{{FORGE_SITE_PATH}}`, `{{FORGE_SITE_ROOT}}` and `{{FORGE_SITE_USER}}`, with the values of the Forge deploy script. The syntax and the rules are those of the Nginx file: an unknown variable exits `3`
+- **CLI**: Add template variables to the commands of `workers` and `schedule`, and to the `directory` of a worker, in the site file of `forge sites apply`: `{{FORGE_PHP}}`, `{{FORGE_PHP_FPM}}`, `{{FORGE_SERVER_ID}}`, `{{FORGE_SITE_BRANCH}}`, `{{FORGE_SITE_ID}}`, `{{FORGE_SITE_PATH}}` and `{{FORGE_SITE_USER}}`, with the values of the Forge deploy script. The syntax and the rules are those of the Nginx file: an unknown variable exits `3`
 
 ### Changed
 

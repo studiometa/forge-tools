@@ -295,7 +295,7 @@ describe("buildPlan", () => {
           },
           {
             command:
-              "{{ FORGE_SITE_ROOT }} {{ FORGE_SITE_ID }} {{ FORGE_SERVER_ID }} {{ FORGE_SITE_USER }} {{ FORGE_SITE_BRANCH }} {{ FORGE_PHP_FPM }}",
+              "{{ FORGE_SITE_PATH }} {{ FORGE_SITE_ID }} {{ FORGE_SERVER_ID }} {{ FORGE_SITE_USER }} {{ FORGE_SITE_BRANCH }} {{ FORGE_PHP_FPM }}",
             frequency: "custom",
             cron: "0 3 * * *",
           },
@@ -374,7 +374,11 @@ describe("buildPlan", () => {
             directory: "{{ FORGE_SITE_PATH }}",
             processes: 1,
           },
-          { command: "litestream replicate", directory: "{{ FORGE_SITE_ROOT }}/db", processes: 1 },
+          {
+            command: "litestream replicate",
+            directory: "{{ FORGE_SITE_PATH }}/../db",
+            processes: 1,
+          },
         ],
       },
       { serverId: "123", sites: [...sites, zdt], site: zdt, daemons: [], siteDaemonIds: new Set() },

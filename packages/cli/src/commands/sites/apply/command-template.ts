@@ -18,7 +18,6 @@ export const COMMAND_VARIABLES = [
   "FORGE_SITE_BRANCH",
   "FORGE_SITE_ID",
   "FORGE_SITE_PATH",
-  "FORGE_SITE_ROOT",
   "FORGE_SITE_USER",
 ] as const;
 
@@ -42,7 +41,7 @@ export function hasVariables(template: string): boolean {
  * `FORGE_SITE_PATH` is the `current` folder of a site with zero-downtime deployments.
  */
 export function commandValues(site: Site, serverId: string): Record<CommandVariable, string> {
-  const root = siteHome(site);
+  const home = siteHome(site);
   return {
     get FORGE_PHP() {
       return `php${phpSocketVersion(site.php_version)}`;
@@ -62,8 +61,7 @@ export function commandValues(site: Site, serverId: string): Record<CommandVaria
       return branch;
     },
     FORGE_SITE_ID: String(site.id),
-    FORGE_SITE_PATH: site.zero_downtime_deployments ? `${root}/current` : root,
-    FORGE_SITE_ROOT: root,
+    FORGE_SITE_PATH: site.zero_downtime_deployments ? `${home}/current` : home,
     FORGE_SITE_USER: site.user,
   };
 }

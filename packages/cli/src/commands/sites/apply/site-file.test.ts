@@ -221,7 +221,7 @@ describe("readSiteFile", () => {
     expect(file({ workers: [{ command: "{{ FORGE_DEPLOY_COMMIT }}" }] })).toThrow(ValidationError);
     expect(
       file({
-        workers: [{ command: "$FORGE_PHP {{ FORGE_PHP }}", directory: "{{ FORGE_SITE_ROOT }}" }],
+        workers: [{ command: "$FORGE_PHP {{ FORGE_PHP }}", directory: "{{ FORGE_SITE_PATH }}" }],
         schedule: [{ command: "echo ${HOME} $(date)", frequency: "hourly" }],
       }),
     ).not.toThrow();
