@@ -408,6 +408,40 @@ describe("applySiteFile", () => {
     expect(calls.filter(([method]) => method !== "GET")).toEqual([]);
   });
 
+  it("changes nothing on an older site whose wildcard subdomains are a setting of the site", async () => {
+    const { ctx, calls } = fakeForge({
+      sites: [site(456, "example.com", { wildcards: true })],
+      legacySites: [456],
+    });
+    const plan = await applySiteFile(
+      { server: 123, domain: "example.com", wildcards: true },
+      "123",
+      ctx,
+    );
+
+    expect(plan).toEqual({ changes: [], warnings: [] });
+    expect(calls).toContainEqual(["GET", "/orgs/org/servers/123/sites/456/domains/456/nginx"]);
+    expect(calls.filter(([method]) => method !== "GET")).toEqual([]);
+  });
+
+  it("never updates the domain of an older site, and warns", async () => {
+    const { ctx, calls } = fakeForge({
+      sites: [site(456, "example.com")],
+      legacySites: [456],
+    });
+    const plan = await applySiteFile(
+      { server: 123, domain: "example.com", wildcards: true },
+      "123",
+      ctx,
+    );
+
+    expect(plan.changes).toEqual([]);
+    expect(plan.warnings).toEqual([
+      expect.stringMatching(/^Wildcard subdomains are off on Forge, a setting of the site/),
+    ]);
+    expect(calls.filter(([method]) => method !== "GET")).toEqual([]);
+  });
+
   it("updates the site, adds aliases and .env keys without overwriting", async () => {
     const { ctx, calls, state } = fakeForge({
       sites: [site(456, "a.example.com")],
