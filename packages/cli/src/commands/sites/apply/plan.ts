@@ -15,6 +15,7 @@ import type {
 
 import { unifiedDiff } from "../../../utils/drift.ts";
 import { parseEnv } from "../../env/env-diff.ts";
+import { hasVariables, renderCommand } from "./command-template.ts";
 import type { SiteFile } from "./site-file.ts";
 import {
   type Ownership,
@@ -23,7 +24,6 @@ import {
   daemonOwnership,
   isPathInside,
   normalizePath,
-  resolveArtisan,
   resolvePath,
   scheduledJobOwnership,
 } from "./ownership.ts";
@@ -41,6 +41,8 @@ export const GENERATED = "<generated>";
 
 /** What `apply` reads from Forge. A list is undefined when the site file does not manage it. */
 export interface RemoteState {
+  /** ID of the server of the site file. */
+  serverId: string;
   /** All sites of the server. */
   sites: Site[];
   /** The site of the file, or null when it does not exist yet. */
@@ -114,7 +116,14 @@ export type Change =
        */
       replace?: true;
     }
-  | { action: "create-worker"; command: string; directory: string; processes: number }
+  | {
+      action: "create-worker";
+      command: string;
+      directory: string;
+      processes: number;
+      /** The site does not exist yet: the variables of the file are rendered once it exists. */
+      rendersLater?: true;
+    }
   | {
       action: "delete-worker";
       id: number;
@@ -122,7 +131,14 @@ export type Change =
       directory: string | null;
       processes: number;
     }
-  | { action: "create-job"; command: string; frequency: string; cron?: string }
+  | {
+      action: "create-job";
+      command: string;
+      frequency: string;
+      cron?: string;
+      /** The site does not exist yet: the variables of the file are rendered once it exists. */
+      rendersLater?: true;
+    }
   | {
       action: "update-load-balancer";
       site: string;
@@ -151,7 +167,7 @@ export function siteHome(site: Pick<Site, "user" | "name">): string {
   return `/home/${site.user}/${site.name}`;
 }
 
-/** The directory that workers run in and relative `artisan` resolves against. */
+/** The directory that workers run in by default. */
 export function siteWorkDirectory(site: Pick<Site, "user" | "name" | "root_directory">): string {
   return inSiteHome(site, site.root_directory || "/");
 }
@@ -395,16 +411,21 @@ function planWorkers(
   const workDirectory = site ? siteWorkDirectory(site) : plannedWorkDirectory(file);
 
   const declared = file.workers.map((worker) => {
-    const directory = worker.directory
-      ? resolvePath(workDirectory, worker.directory)
-      : workDirectory;
+    const rendersLater =
+      !site && [worker.command, worker.directory ?? ""].some((text) => hasVariables(text));
+    const render = (text: string) => (site ? renderCommand(text, site, state.serverId) : text);
+    const command = render(worker.command);
+    const written = worker.directory === undefined ? undefined : render(worker.directory);
+    let directory = workDirectory;
+    if (written !== undefined) {
+      directory = rendersLater ? written : resolvePath(workDirectory, written);
+    }
     return {
-      command: worker.command,
+      command,
       directory,
       processes: worker.processes,
-      key: [canonicalCommand(worker.command, directory), directory, worker.processes, "forge"].join(
-        "\n",
-      ),
+      rendersLater,
+      key: [canonicalCommand(command), directory, worker.processes, "forge"].join("\n"),
     };
   });
 
@@ -427,11 +448,10 @@ function planWorkers(
     candidates,
     (worker) => worker.key,
     ({ daemon }) => {
-      // A daemon without a directory compares as one in the site root, but its relative
-      // `artisan` stays relative: it does not run in the site root.
+      // A daemon without a directory compares as one in the site root.
       const directory = daemon.directory?.trim() ? normalizePath(daemon.directory) : null;
       return [
-        canonicalCommand(daemon.command, directory),
+        canonicalCommand(daemon.command),
         directory ?? workDirectory,
         daemon.processes,
         daemon.user,
@@ -445,6 +465,7 @@ function planWorkers(
       command: worker.command,
       directory: worker.directory,
       processes: worker.processes,
+      ...(worker.rendersLater ? { rendersLater: true as const } : {}),
     });
   }
 
@@ -474,17 +495,19 @@ function planSchedule(
 ): void {
   if (!file.schedule) return;
   const site = state.site;
-  const workDirectory = site ? siteWorkDirectory(site) : plannedWorkDirectory(file);
 
   const declared = file.schedule.map((job) => {
+    // Forge runs the command in a shell: create it as the file writes it, with only the
+    // variables rendered, and compare its canonical form.
+    const command = site ? renderCommand(job.command, site, state.serverId) : job.command;
     const frequency = normalizeFrequency(job.frequency);
     return {
-      // Forge runs the command in a shell: create it as written, and compare its canonical form.
-      command: resolveArtisan(job.command, workDirectory),
+      command,
       frequency,
       cron: job.cron,
+      rendersLater: !site && hasVariables(job.command),
       key: [
-        canonicalCommand(job.command, workDirectory),
+        canonicalCommand(command),
         "forge",
         frequency,
         frequency === "custom" ? job.cron : "",
@@ -511,7 +534,7 @@ function planSchedule(
     ({ job }) => {
       const frequency = normalizeFrequency(job.frequency);
       return [
-        canonicalCommand(job.command, workDirectory),
+        canonicalCommand(job.command),
         job.user,
         frequency,
         frequency === "custom" ? job.cron : "",
@@ -525,6 +548,7 @@ function planSchedule(
       command: job.command,
       frequency: job.frequency,
       ...(job.frequency === "custom" ? { cron: job.cron } : {}),
+      ...(job.rendersLater ? { rendersLater: true as const } : {}),
     });
   }
 
@@ -596,6 +620,8 @@ export function buildPlan(file: SiteFile, state: RemoteState): Plan {
   return { changes, warnings };
 }
 
+const RENDERS_LATER = ", variables rendered once the site exists";
+
 function quoted(value: string | null | undefined): string {
   return value ?? "(none)";
 }
@@ -637,11 +663,11 @@ export function describeChange(change: Change): string {
         ? "~ write Nginx configuration (rendered once the site exists)"
         : `~ update Nginx configuration:\n${change.diff}`;
     case "create-worker":
-      return `+ create worker: ${change.command} (directory: ${change.directory}, processes: ${change.processes})`;
+      return `+ create worker: ${change.command} (directory: ${change.directory}, processes: ${change.processes}${change.rendersLater ? RENDERS_LATER : ""})`;
     case "delete-worker":
       return `- delete worker ${change.id}: ${change.command} (directory: ${quoted(change.directory)}, processes: ${change.processes})`;
     case "create-job":
-      return `+ create scheduled job: ${change.command} (${change.frequency}${change.cron ? ` ${change.cron}` : ""})`;
+      return `+ create scheduled job: ${change.command} (${change.frequency}${change.cron ? ` ${change.cron}` : ""}${change.rendersLater ? RENDERS_LATER : ""})`;
     case "update-load-balancer": {
       const node = ({ server_id, port }: { server_id: number; port: number }) =>
         `server ${server_id}:${port}`;

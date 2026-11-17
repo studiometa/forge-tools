@@ -210,6 +210,23 @@ describe("readSiteFile", () => {
     );
   });
 
+  it("refuses an unknown variable in a command or a worker directory", () => {
+    const file = (data: object) => () => parseSiteFile({ ...example, ...data }, "site file x.json");
+    expect(
+      file({ schedule: [{ command: "{{ FORGE_PHP }} {{ SITE_PATH }}/x", frequency: "hourly" }] }),
+    ).toThrow("schedule[0].command of site file x.json has unknown variables: {{SITE_PATH}}");
+    expect(file({ workers: [{ command: "x", directory: "{{ PATH }}" }] })).toThrow(
+      "workers[0].directory of site file x.json has unknown variables: {{PATH}}",
+    );
+    expect(file({ workers: [{ command: "{{ FORGE_DEPLOY_COMMIT }}" }] })).toThrow(ValidationError);
+    expect(
+      file({
+        workers: [{ command: "$FORGE_PHP {{ FORGE_PHP }}", directory: "{{ FORGE_SITE_ROOT }}" }],
+        schedule: [{ command: "echo ${HOME} $(date)", frequency: "hourly" }],
+      }),
+    ).not.toThrow();
+  });
+
   it("names the file in validation errors", () => {
     vi.mocked(readFileSync).mockReturnValue("{}");
     expect(() => readSiteFile("site.json")).toThrow("Invalid site file site.json");

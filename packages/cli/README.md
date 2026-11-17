@@ -157,24 +157,31 @@ forge sites apply --file site.json          # Make the site match the file
   "database": { "name": "example", "user": "example" },
   "env": { "APP_ENV": "production" },
   "nginx": "nginx.conf",
-  "workers": [{ "command": "php artisan queue:work database --queue=default", "processes": 4 }],
-  "schedule": [{ "command": "php artisan schedule:run", "frequency": "minutely" }],
+  "workers": [
+    { "command": "{{ FORGE_PHP }} artisan queue:work database --queue=default", "processes": 4 }
+  ],
+  "schedule": [
+    {
+      "command": "{{ FORGE_PHP }} {{ FORGE_SITE_PATH }}/artisan schedule:run",
+      "frequency": "minutely"
+    }
+  ],
   "loadBalancer": { "server": "lb-1", "port": 80 }
 }
 ```
 
-| Key                                         | What `apply` does                                                                                                                                                                      |
-| ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `server`, `domain`                          | Find the server and the site by exact name (never a partial match, with or without `--exact`). `server` can also be an ID                                                              |
-| `type`, `php`, `webDirectory`, `repository` | Create the site when it is missing (`type` is then required) and wait until Forge installs it. On an existing site, update `php`, `webDirectory` and the branch                        |
-| `aliases`                                   | Add the missing aliases. Never remove one                                                                                                                                              |
-| `wwwRedirect`                               | `to-www`, `from-www` or `none`. Create the site with this redirect. On an existing site, update the redirect of the primary domain when it differs. Aliases always get `none`          |
-| `database`                                  | Create the database and the user when they are missing. A new user gets a random password, written only into the site `.env` (`DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`, see below)  |
-| `env`                                       | On a new site, write the whole `.env` (see below). On an existing site, add the missing keys. A key with another value on Forge is reported, never overwritten                         |
-| `nginx`                                     | Nginx file, relative to the site file, with Forge template variables. Rendered for the site and written when it differs from Forge (see below)                                         |
-| `workers`                                   | Forge background processes of the site. Create the missing ones, delete the ones of the site that the file does not declare. The directory defaults to the site root                   |
-| `schedule`                                  | Forge scheduled jobs of the site (`minutely`, `hourly`, `nightly`, `weekly`, `monthly`, `reboot`, or `custom` with `cron`). A relative `artisan` becomes the absolute path of the site |
-| `loadBalancer`                              | Set the nodes of the site on the load balancer to `server` only, on `port` (default `80`), with round robin and weight 1. The site of the load balancer must exist (see below)         |
+| Key                                         | What `apply` does                                                                                                                                                                                                      |
+| ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `server`, `domain`                          | Find the server and the site by exact name (never a partial match, with or without `--exact`). `server` can also be an ID                                                                                              |
+| `type`, `php`, `webDirectory`, `repository` | Create the site when it is missing (`type` is then required) and wait until Forge installs it. On an existing site, update `php`, `webDirectory` and the branch                                                        |
+| `aliases`                                   | Add the missing aliases. Never remove one                                                                                                                                                                              |
+| `wwwRedirect`                               | `to-www`, `from-www` or `none`. Create the site with this redirect. On an existing site, update the redirect of the primary domain when it differs. Aliases always get `none`                                          |
+| `database`                                  | Create the database and the user when they are missing. A new user gets a random password, written only into the site `.env` (`DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`, see below)                                  |
+| `env`                                       | On a new site, write the whole `.env` (see below). On an existing site, add the missing keys. A key with another value on Forge is reported, never overwritten                                                         |
+| `nginx`                                     | Nginx file, relative to the site file, with Forge template variables. Rendered for the site and written when it differs from Forge (see below)                                                                         |
+| `workers`                                   | Forge background processes of the site. Create the missing ones, delete the ones of the site that the file does not declare. The directory defaults to the site root. Commands and directories use the variables below |
+| `schedule`                                  | Forge scheduled jobs of the site (`minutely`, `hourly`, `nightly`, `weekly`, `monthly`, `reboot`, or `custom` with `cron`). Commands use the variables below                                                           |
+| `loadBalancer`                              | Set the nodes of the site on the load balancer to `server` only, on `port` (default `80`), with round robin and weight 1. The site of the load balancer must exist (see below)                                         |
 
 A site that serves `www.example.com` is named by its apex domain, `"domain": "example.com"`, with `"wwwRedirect": "to-www"`: do not declare `www.example.com` as `domain` with `example.com` as an alias.
 
@@ -212,7 +219,22 @@ Forge clones the repository when it creates the site, with the key of the `forge
 forge servers public-key web-1 > server.pub   # The key only; --format json gives { "public_key": "..." }
 ```
 
-A worker or a scheduled job matches the file when its command, directory, processes (or frequency) and user are the same. Commands are compared after normalization: quotes (`'database'` and `database`), repeated spaces and a relative `artisan` (`php artisan` and `php /home/forge/www.example.com/artisan`) do not count as differences. Forge cannot update a worker: a changed worker is created again, then the old one is deleted.
+The commands of `workers` and `schedule`, and the `directory` of a worker, can use variables named after the [environment variables of the Forge deploy script](https://forge.laravel.com/docs/sites/deployments#environment-variables). Only the values that stay the same between deployments are available:
+
+| Variable                | Value                                                                                                                        |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `{{FORGE_PHP}}`         | PHP binary of the site, e.g. `php8.3`                                                                                        |
+| `{{FORGE_PHP_FPM}}`     | PHP-FPM service of the site, e.g. `php8.3-fpm`                                                                               |
+| `{{FORGE_SERVER_ID}}`   | Server ID (`123`)                                                                                                            |
+| `{{FORGE_SITE_ID}}`     | Site ID (`456`)                                                                                                              |
+| `{{FORGE_SITE_ROOT}}`   | Site folder, e.g. `/home/forge/example.com`                                                                                  |
+| `{{FORGE_SITE_PATH}}`   | Deployment path: the site folder, or its `current` folder with zero-downtime deployments (`/home/forge/example.com/current`) |
+| `{{FORGE_SITE_USER}}`   | Site user (`forge`)                                                                                                          |
+| `{{FORGE_SITE_BRANCH}}` | Branch of the site repository (an error when the site has none)                                                              |
+
+The syntax and the rules are the same as in the Nginx file: spaces inside the braces are allowed and an unknown variable is an error (exit `3`). Only the variables are rendered: the rest of the command goes to Forge byte for byte, so `$(date)`, `~`, `$HOME`, `$FORGE_PHP`, quotes, `&&` and globs stay for the shell. A relative `artisan` stays relative: a scheduled job does not run in the site folder, so write `{{ FORGE_SITE_PATH }}/artisan`. On a new site, the plan shows the commands with their variables, `(variables rendered once the site exists)`, and `apply` renders them after Forge installs the site.
+
+A worker or a scheduled job matches the file when its command (rendered), directory, processes (or frequency) and user are the same. Commands are compared after normalization: quotes (`'database'` and `database`) and repeated spaces do not count as differences. Forge cannot update a worker: a changed worker is created again, then the old one is deleted.
 
 `workers` and `schedule` delete what the file does not declare, so `apply` deletes only what surely belongs to the site, because a server often hosts several sites:
 

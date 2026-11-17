@@ -8,21 +8,11 @@ import {
   nginxValues,
   phpSocketVersion,
   renderNginx,
-  templateVariables,
 } from "./nginx.ts";
 import { site } from "./test-fixtures.ts";
 
 const example = site(456, "www.example.com", { aliases: null, php_version: "PHP 8.3" });
 const exampleDomains = ["www.example.com", "example.com"];
-
-describe("templateVariables", () => {
-  it("lists each variable once, with or without spaces in the braces", () => {
-    expect(templateVariables("{{SITE}} {{ SITE }} {{  PROXY_PASS  }} $uri {x}")).toEqual([
-      "SITE",
-      "PROXY_PASS",
-    ]);
-  });
-});
 
 describe("assertNginxTemplate", () => {
   it("accepts every variable of Forge", () => {

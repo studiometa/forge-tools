@@ -26,6 +26,7 @@ const sites = [
 /** A shared server: the site, two siblings with the same prefix, another site, server jobs. */
 function sharedServer(overrides: Partial<RemoteState> = {}): RemoteState {
   return {
+    serverId: "123",
     sites,
     site: sites[0],
     daemons: [
@@ -69,12 +70,17 @@ const file: SiteFile = {
   workers: [
     {
       command:
-        "php8.3 artisan queue:work database --sleep=10  --daemon --timeout=120 --queue=default",
+        "{{ FORGE_PHP }} {{FORGE_SITE_PATH}}/artisan queue:work database --sleep=10  --daemon --timeout=120 --queue=default",
       processes: 4,
     },
     { command: "php artisan queue:work 'database' --queue=mail", processes: 1 },
   ],
-  schedule: [{ command: "php8.3 artisan schedule:run", frequency: "minutely" }],
+  schedule: [
+    {
+      command: "{{ FORGE_PHP }} {{ FORGE_SITE_PATH }}/artisan schedule:run",
+      frequency: "minutely",
+    },
+  ],
 };
 
 function actions(changes: Change[]): string[] {
@@ -176,7 +182,7 @@ describe("buildPlan", () => {
         {
           server: "web-1",
           domain: "a.example.com",
-          workers: [{ command: "php artisan reverb:start", processes: 1 }],
+          workers: [{ command: "php {{ FORGE_SITE_PATH }}/artisan reverb:start", processes: 1 }],
         },
         state,
       ),
@@ -274,70 +280,138 @@ describe("buildPlan", () => {
     expect(plan.changes).toEqual([]);
   });
 
-  it("expands a relative artisan in a new scheduled job", () => {
+  it("renders the variables of a scheduled job and keeps the rest byte for byte", () => {
+    const raw = `${A}/vendor/bin/drush sql:dump --result-file=~/backup/hourly_$(date -Iseconds).sql --gzip && rm -f "${A}/cache_"*`;
     const plan = buildPlan(
       {
         server: "web-1",
         domain: "a.example.com",
         schedule: [
-          { command: "php artisan inspire", frequency: "hourly" },
-          { command: "php artisan backup:run", frequency: "custom", cron: "0 3 * * *" },
+          { command: raw, frequency: "hourly" },
+          {
+            command:
+              "{{FORGE_PHP}}  {{ FORGE_SITE_PATH }}/artisan inspire --name='a b' $FORGE_PHP ~ \"$HOME\"",
+            frequency: "hourly",
+          },
+          {
+            command:
+              "{{ FORGE_SITE_ROOT }} {{ FORGE_SITE_ID }} {{ FORGE_SERVER_ID }} {{ FORGE_SITE_USER }} {{ FORGE_SITE_BRANCH }} {{ FORGE_PHP_FPM }}",
+            frequency: "custom",
+            cron: "0 3 * * *",
+          },
         ],
       },
       sharedServer({ jobs: [], siteJobIds: new Set() }),
     );
 
     expect(plan.changes).toEqual([
-      { action: "create-job", command: `php ${A}/artisan inspire`, frequency: "hourly" },
+      { action: "create-job", command: raw, frequency: "hourly" },
       {
         action: "create-job",
-        command: `php ${A}/artisan backup:run`,
+        command: `php8.3  ${A}/artisan inspire --name='a b' $FORGE_PHP ~ "$HOME"`,
+        frequency: "hourly",
+      },
+      {
+        action: "create-job",
+        command: `${A} 456 123 forge main php8.3-fpm`,
         frequency: "custom",
         cron: "0 3 * * *",
       },
     ]);
+    expect(describeChange(plan.changes[0])).toBe(`+ create scheduled job: ${raw} (hourly)`);
   });
 
-  it("creates a scheduled job with the command of the file, not its canonical form", () => {
-    const command = `${A}/vendor/bin/drush sql:dump --result-file=~/backup/hourly_$(date -Iseconds).sql --gzip && rm -f "${A}/cache_"*`;
+  it("keeps a relative artisan as written", () => {
     const plan = buildPlan(
       {
         server: "web-1",
         domain: "a.example.com",
-        schedule: [
-          { command, frequency: "hourly" },
-          { command: "php  artisan inspire --name='a b'", frequency: "hourly" },
-        ],
+        schedule: [{ command: "php artisan inspire", frequency: "hourly" }],
       },
-      sharedServer({ jobs: [], siteJobIds: new Set() }),
+      sharedServer({ jobs: [job(60, `php ${A}/artisan inspire`, { frequency: "Hourly" })] }),
     );
 
     expect(plan.changes).toEqual([
-      { action: "create-job", command, frequency: "hourly" },
-      {
-        action: "create-job",
-        command: `php  ${A}/artisan inspire --name='a b'`,
-        frequency: "hourly",
-      },
+      { action: "create-job", command: "php artisan inspire", frequency: "hourly" },
+      expect.objectContaining({ action: "delete-job", id: 60 }),
     ]);
-    expect(describeChange(plan.changes[0])).toBe(`+ create scheduled job: ${command} (hourly)`);
   });
 
-  it("matches a scheduled job by its canonical command", () => {
+  it("matches a scheduled job by its rendered command, whatever the quotes and spaces", () => {
     const state = sharedServer({
-      jobs: [job(60, `php ${A}/artisan inspire --name='a b'`, { frequency: "Hourly" })],
+      jobs: [job(60, `php8.3 ${A}/artisan inspire --name='a b'`, { frequency: "Hourly" })],
       siteJobIds: new Set([60]),
     });
     const plan = buildPlan(
       {
         server: "web-1",
         domain: "a.example.com",
-        schedule: [{ command: 'php  artisan inspire --name="a b"', frequency: "hourly" }],
+        schedule: [
+          {
+            command: '{{ FORGE_PHP }}  {{FORGE_SITE_PATH}}/artisan inspire --name="a b"',
+            frequency: "hourly",
+          },
+        ],
       },
       state,
     );
 
     expect(plan.changes).toEqual([]);
+  });
+
+  it("renders the command and the directory of a worker", () => {
+    const zdt = site(460, "z.example.com", {
+      root_directory: "/home/forge/z.example.com/current",
+      zero_downtime_deployments: true,
+    });
+    const plan = buildPlan(
+      {
+        server: "web-1",
+        domain: "z.example.com",
+        workers: [
+          {
+            command: "{{ FORGE_PHP }} artisan horizon --name='$(hostname)'",
+            directory: "{{ FORGE_SITE_PATH }}",
+            processes: 1,
+          },
+          { command: "litestream replicate", directory: "{{ FORGE_SITE_ROOT }}/db", processes: 1 },
+        ],
+      },
+      { serverId: "123", sites: [...sites, zdt], site: zdt, daemons: [], siteDaemonIds: new Set() },
+    );
+
+    expect(plan.changes).toEqual([
+      {
+        action: "create-worker",
+        command: "php8.3 artisan horizon --name='$(hostname)'",
+        directory: "/home/forge/z.example.com/current",
+        processes: 1,
+      },
+      {
+        action: "create-worker",
+        command: "litestream replicate",
+        directory: "/home/forge/z.example.com/db",
+        processes: 1,
+      },
+    ]);
+  });
+
+  it("refuses FORGE_SITE_BRANCH on a site without a branch", () => {
+    const state = sharedServer({
+      site: site(456, "a.example.com", { repository: null }),
+      jobs: [],
+      siteJobIds: new Set(),
+    });
+    expect(() =>
+      buildPlan(
+        {
+          server: "web-1",
+          domain: "a.example.com",
+          schedule: [{ command: "echo {{ FORGE_SITE_BRANCH }}", frequency: "hourly" }],
+        },
+        state,
+      ),
+    ).toThrow("Site a.example.com has no branch for {{FORGE_SITE_BRANCH}}");
   });
 
   it("compares the cron of custom jobs only", () => {
@@ -541,10 +615,26 @@ describe("buildPlan", () => {
           branch: "main",
         },
         env: { APP_ENV: "production" },
-        workers: [{ command: "php artisan queue:work", processes: 1 }],
-        schedule: [{ command: "php artisan schedule:run", frequency: "minutely" }],
+        workers: [
+          { command: "php artisan queue:work", processes: 1 },
+          { command: "php artisan horizon", directory: "{{ FORGE_SITE_PATH }}", processes: 1 },
+        ],
+        schedule: [
+          {
+            command: "{{ FORGE_PHP }} {{ FORGE_SITE_PATH }}/artisan schedule:run",
+            frequency: "minutely",
+          },
+          { command: "date", frequency: "hourly" },
+        ],
       },
-      { sites, site: null, env: null, daemons: [daemon(1, "php artisan queue:work", A)], jobs: [] },
+      {
+        serverId: "123",
+        sites,
+        site: null,
+        env: null,
+        daemons: [daemon(1, "php artisan queue:work", A)],
+        jobs: [],
+      },
     );
 
     expect(plan.changes).toEqual([
@@ -569,11 +659,23 @@ describe("buildPlan", () => {
         processes: 1,
       },
       {
-        action: "create-job",
-        command: "php /home/forge/new.example.com/artisan schedule:run",
-        frequency: "minutely",
+        action: "create-worker",
+        command: "php artisan horizon",
+        directory: "{{ FORGE_SITE_PATH }}",
+        processes: 1,
+        rendersLater: true,
       },
+      {
+        action: "create-job",
+        command: "{{ FORGE_PHP }} {{ FORGE_SITE_PATH }}/artisan schedule:run",
+        frequency: "minutely",
+        rendersLater: true,
+      },
+      { action: "create-job", command: "date", frequency: "hourly" },
     ]);
+    expect(describeChange(plan.changes[5])).toBe(
+      "+ create scheduled job: {{ FORGE_PHP }} {{ FORGE_SITE_PATH }}/artisan schedule:run (minutely, variables rendered once the site exists)",
+    );
   });
 
   it("uses the root directory of a zero-downtime site", () => {
@@ -589,6 +691,7 @@ describe("buildPlan", () => {
         workers: [{ command: "php artisan queue:work", processes: 1 }],
       },
       {
+        serverId: "123",
         sites: [...sites, zdt],
         site: zdt,
         daemons: [daemon(60, "php artisan queue:work", "/home/forge/z.example.com/current/")],
@@ -603,7 +706,7 @@ describe("buildPlan", () => {
 describe("relative directories from Forge", () => {
   it("reads a relative web directory against the site root", () => {
     const relative = site(456, "a.example.com", { root_directory: "/", web_directory: "/public" });
-    const state = { sites: [relative], site: relative };
+    const state = { serverId: "123", sites: [relative], site: relative };
 
     expect(
       buildPlan({ server: "web-1", domain: "a.example.com", webDirectory: "/public" }, state),
@@ -769,7 +872,10 @@ describe("buildPlan with an Nginx file", () => {
   const file: SiteFile = { server: "web-1", domain: "a.example.com", nginxTemplate: "x" };
 
   it("writes the file once a new site exists", () => {
-    const plan = buildPlan({ ...file, type: "php" }, { sites: [], site: null, nginx: null });
+    const plan = buildPlan(
+      { ...file, type: "php" },
+      { serverId: "123", sites: [], site: null, nginx: null },
+    );
     expect(plan.changes).toEqual([
       expect.objectContaining({ action: "create-site" }),
       { action: "update-nginx", diff: null },
@@ -818,7 +924,7 @@ describe("buildPlan with a www redirect", () => {
     domain(456, "example.com", "primary", { www_redirect_type: wwwRedirect });
 
   it("creates the site with the www redirect", () => {
-    const plan = buildPlan({ ...file, type: "php" }, { sites: [], site: null });
+    const plan = buildPlan({ ...file, type: "php" }, { serverId: "123", sites: [], site: null });
     expect(plan.changes).toEqual([
       {
         action: "create-site",
@@ -863,6 +969,7 @@ describe("buildPlan with a load balancer", () => {
 
   function withNodes(nodes: LoadBalancingNode[]): RemoteState {
     return {
+      serverId: "123",
       sites: [site(456, "www.example.com")],
       site: site(456, "www.example.com"),
       loadBalancer: { serverId: "300", site: balancerSite, nodes, target: 123 },

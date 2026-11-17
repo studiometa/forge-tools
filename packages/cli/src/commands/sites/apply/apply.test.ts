@@ -185,8 +185,10 @@ describe("applySiteFile", () => {
       {
         server: 123,
         domain: "a.example.com",
-        workers: [{ command: "php artisan queue:work database", processes: 1 }],
-        schedule: [{ command: "php artisan schedule:run", frequency: "minutely" }],
+        workers: [{ command: "php {{FORGE_SITE_PATH}}/artisan queue:work database", processes: 1 }],
+        schedule: [
+          { command: "php {{ FORGE_SITE_PATH }}/artisan schedule:run", frequency: "minutely" },
+        ],
       },
       "123",
       ctx,
@@ -218,7 +220,13 @@ describe("applySiteFile", () => {
         server: 123,
         domain: "a.example.com",
         workers: [{ command: "php artisan queue:work --queue=new", processes: 2 }],
-        schedule: [{ command: "php artisan schedule:run", frequency: "minutely" }],
+        schedule: [
+          {
+            command:
+              "{{ FORGE_PHP }} {{ FORGE_SITE_PATH }}/artisan schedule:run > ~/cron_$(date -I).log",
+            frequency: "minutely",
+          },
+        ],
       },
       "123",
       ctx,
@@ -241,7 +249,11 @@ describe("applySiteFile", () => {
       [
         "POST",
         "/orgs/org/servers/123/sites/456/scheduled-jobs",
-        { command: `php ${A}/artisan schedule:run`, user: "forge", frequency: "minutely" },
+        {
+          command: `php8.3 ${A}/artisan schedule:run > ~/cron_$(date -I).log`,
+          user: "forge",
+          frequency: "minutely",
+        },
       ],
       ["DELETE", "/orgs/org/servers/123/background-processes/1"],
       ["DELETE", "/orgs/org/servers/123/sites/456/scheduled-jobs/10"],
@@ -424,7 +436,13 @@ describe("applySiteFile", () => {
       },
       database: { name: "example", user: "example" },
       env: { APP_ENV: "production" },
-      workers: [{ command: "php artisan queue:work", processes: 1 }],
+      workers: [
+        {
+          command: "{{ FORGE_PHP }} artisan queue:work --name='site-{{ FORGE_SITE_ID }}'",
+          directory: "{{ FORGE_SITE_PATH }}",
+          processes: 1,
+        },
+      ],
     };
 
     const plan = await applySiteFile(file, "123", ctx, {
@@ -459,7 +477,14 @@ describe("applySiteFile", () => {
     });
     expect(state.env).toBe(
       "APP_ENV=production\nDB_DATABASE=example\nDB_USERNAME=example\nDB_PASSWORD=pw\n",
+    ); // The plan of --check keeps the variables; apply renders them once the site exists.
+    expect(plan.changes).toContainEqual(
+      expect.objectContaining({ action: "create-worker", rendersLater: true }),
     );
+    expect(writes[4][2]).toMatchObject({
+      command: "php8.3 artisan queue:work --name='site-999'",
+      directory: "/home/forge/a.example.com",
+    });
   });
 
   it("replaces the .env that Forge copies from .env.example on a new site", async () => {

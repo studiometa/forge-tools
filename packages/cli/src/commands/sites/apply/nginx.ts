@@ -9,6 +9,7 @@ import type { ServerAttributes } from "@studiometa/forge-api";
 import { ValidationError } from "../../../errors.ts";
 import { isPathInside, normalizePath } from "./ownership.ts";
 import { type Site, siteWorkDirectory } from "./plan.ts";
+import { assertTemplate, renderTemplate, templateVariables } from "./template.ts";
 
 /** The variables of Forge Nginx templates. Forge accepts spaces inside the braces. */
 export const NGINX_VARIABLES = [
@@ -31,26 +32,11 @@ export type NginxVariable = (typeof NGINX_VARIABLES)[number];
 /** The variables that need the server, not only the site. */
 const SERVER_VARIABLES: ReadonlySet<string> = new Set(["SERVER_PUBLIC_IP", "SERVER_PRIVATE_IP"]);
 
-const VARIABLE = /\{\{\s*([^{}]*?)\s*\}\}/g;
-
-/** The names of the variables in a template, each once, in order. */
-export function templateVariables(template: string): string[] {
-  return [...new Set([...template.matchAll(VARIABLE)].map((match) => match[1]))];
-}
-
 /**
  * Exit with a validation error when the template has a variable that Forge does not define.
  */
 export function assertNginxTemplate(template: string, source: string): void {
-  const known: ReadonlySet<string> = new Set(NGINX_VARIABLES);
-  const unknown = templateVariables(template).filter((name) => !known.has(name));
-  if (unknown.length > 0) {
-    throw new ValidationError(
-      `Nginx file ${source} has unknown variables: ${unknown.map((name) => `{{${name}}}`).join(", ")}`,
-      "nginx",
-      [`Supported variables: ${NGINX_VARIABLES.map((name) => `{{${name}}}`).join(", ")}`],
-    );
-  }
+  assertTemplate(template, NGINX_VARIABLES, `Nginx file ${source}`, "nginx");
 }
 
 /** True when rendering the template needs the attributes of the server. */
@@ -114,8 +100,5 @@ export function renderNginx(
   domains: string[],
   server: NginxServer | null = null,
 ): string {
-  const values = nginxValues(site, domains, server);
-  return template.replaceAll(VARIABLE, (match, name: string) =>
-    name in values ? values[name as NginxVariable] : match,
-  );
+  return renderTemplate(template, nginxValues(site, domains, server));
 }
