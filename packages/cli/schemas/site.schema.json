@@ -41,7 +41,7 @@
       "enum": ["from-www", "to-www", "none"]
     },
     "wildcards": {
-      "description": "Allow wildcard subdomains (*.example.com) on the primary domain.",
+      "description": "Allow wildcard subdomains (*.example.com): on the primary domain of a site created since October 2025, on the site for an older site (compared only: the Forge API cannot change it).",
       "type": "boolean"
     },
     "type": {

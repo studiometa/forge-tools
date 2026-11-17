@@ -21,6 +21,15 @@ export interface CreateDomainOptions extends CreateDomainData {
 }
 
 /**
+ * Options for getting the Nginx configuration of a domain.
+ */
+export interface GetDomainNginxConfigOptions {
+  server_id: string;
+  site_id: string;
+  domain_id: string;
+}
+
+/**
  * Options for updating a domain of a site, e.g. its `www` redirect.
  */
 export interface UpdateDomainOptions extends UpdateDomainData {

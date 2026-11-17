@@ -16,6 +16,7 @@ import {
   getDatabase,
   getDatabaseUser,
   getEnv,
+  getDomainNginxConfig,
   getNginxConfig,
   getServer,
   getSite,
@@ -152,6 +153,19 @@ export async function readRemoteState(
     const domains = await readDomains(serverId, site, ctx);
     state.domains = domains.map((domain) => domain.name);
     state.primaryDomain = domains.find((domain) => domain.type === "primary") ?? null;
+    if (file.wildcards !== undefined && state.primaryDomain) {
+      const content = (
+        await getDomainNginxConfig(
+          {
+            server_id: serverId,
+            site_id: String(site.id),
+            domain_id: String(state.primaryDomain.id),
+          },
+          ctx,
+        )
+      ).data;
+      state.primaryDomainHasNginx = content.trim() !== "";
+    }
   }
 
   if (file.nginxTemplate !== undefined) {

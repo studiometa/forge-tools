@@ -87,6 +87,10 @@ export const ROUTES = {
       method: "PATCH",
       path: "/orgs/:org/servers/:server_id/sites/:site_id/domains/:domain_id",
     },
+    nginx: {
+      method: "GET",
+      path: "/orgs/:org/servers/:server_id/sites/:site_id/domains/:domain_id/nginx",
+    },
   },
   certificates: {
     get: {

@@ -51,7 +51,8 @@ ${colors.bold("SITE FILE:")}
     wwwRedirect                           to-www, from-www or none: the www redirect of
                                           the primary domain
     wildcards                             true or false: allow wildcard subdomains on
-                                          the primary domain
+                                          the primary domain (on a site created before
+                                          October 2025: compared with the site, not changed)
     database { name, user, env }          Create when missing; a new user gets a random
                                           password, written into the site .env only.
                                           env maps { name, user, password } to .env keys

@@ -76,9 +76,15 @@ export type {
 } from "./executors/deployments/index.ts";
 
 // Domains
-export { createDomain, listDomains, updateDomain } from "./executors/domains/index.ts";
+export {
+  createDomain,
+  getDomainNginxConfig,
+  listDomains,
+  updateDomain,
+} from "./executors/domains/index.ts";
 export type {
   CreateDomainOptions,
+  GetDomainNginxConfigOptions,
   ListDomainsOptions,
   UpdateDomainOptions,
 } from "./executors/domains/index.ts";

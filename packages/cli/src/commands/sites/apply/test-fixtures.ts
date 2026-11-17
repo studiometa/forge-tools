@@ -190,6 +190,8 @@ export interface FakeForge {
   wwwRedirects: Record<number, string>;
   /** Wildcard subdomains of the primary domain of each site of server 123, by site ID. Default: false. */
   wildcards: Record<number, boolean>;
+  /** Sites created before October 2025: their domains have no Nginx file of their own. */
+  legacySites: number[];
   daemons: Daemon[];
   siteDaemonIds: number[];
   jobs: ScheduledJob[];
@@ -218,6 +220,7 @@ export function fakeForge(initial: Partial<FakeForge> = {}) {
     domains: {},
     wwwRedirects: {},
     wildcards: {},
+    legacySites: [],
     daemons: [],
     siteDaemonIds: [],
     jobs: [],
@@ -261,6 +264,11 @@ export function fakeForge(initial: Partial<FakeForge> = {}) {
       if (path === "/orgs/org/servers/300/sites") return list("sites", state.balancerSites);
       if ((match = /^\/orgs\/org\/servers\/300\/sites\/(\d+)\/load-balancing-nodes$/.exec(path))) {
         return list("loadBalancingNodes", state.nodes[Number(match[1])] ?? []);
+      }
+      if ((match = /^\/orgs\/org\/servers\/123\/sites\/(\d+)\/domains\/\d+\/nginx$/.exec(path))) {
+        const legacy = state.legacySites.includes(Number(match[1]));
+        const content = legacy ? "" : "server_name example.com;";
+        return doc("nginxConfigs", { id: Number(match[1]), content } as never);
       }
       if ((match = /^\/orgs\/org\/servers\/123\/sites\/(\d+)\/domains$/.exec(path))) {
         const id = Number(match[1]);

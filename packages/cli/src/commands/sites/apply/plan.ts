@@ -56,6 +56,11 @@ export interface RemoteState {
   domains?: string[];
   /** The primary domain of the site, read with `domains`; null when Forge lists none. */
   primaryDomain?: Domain | null;
+  /**
+   * True when the primary domain has its own Nginx file, as on a site created since October 2025;
+   * false on an older site, whose domains share the Nginx file of the site. Read with `wildcards`.
+   */
+  primaryDomainHasNginx?: boolean;
   databases?: Database[];
   databaseUsers?: DatabaseUser[];
   /** Content of the site .env; null when the site does not exist. */
@@ -332,15 +337,33 @@ function planWwwRedirect(file: SiteFile, state: RemoteState, changes: Change[]):
   });
 }
 
-function planWildcards(file: SiteFile, state: RemoteState, changes: Change[]): void {
+/**
+ * Plan "Allow wildcard subdomains". Forge keeps it in two places:
+ * - a site created since October 2025: on each domain (`allow_wildcard_subdomains`), which has its
+ *   own Nginx file; the `wildcards` of the site stays false, and an update of the domain changes it
+ * - an older site: on the site (`wildcards`), for its one Nginx file; its domains report false
+ *   and have no Nginx file, and the API cannot change the setting
+ */
+function planWildcards(
+  file: SiteFile,
+  state: RemoteState,
+  changes: Change[],
+  warnings: string[],
+): void {
   const primary = state.primaryDomain;
-  if (
-    file.wildcards === undefined ||
-    !primary ||
-    primary.allow_wildcard_subdomains === file.wildcards
-  ) {
+  if (file.wildcards === undefined || !state.site || !primary) return;
+
+  if (state.site.wildcards === true || state.primaryDomainHasNginx === false) {
+    const current = state.site.wildcards === true;
+    if (current !== file.wildcards) {
+      warnings.push(
+        `Wildcard subdomains are ${current ? "on" : "off"} on Forge, a setting of the site (created before October 2025): apply cannot change it. Change it in Forge.`,
+      );
+    }
     return;
   }
+
+  if (primary.allow_wildcard_subdomains === file.wildcards) return;
   changes.push({
     action: "update-wildcards",
     id: primary.id,
@@ -664,7 +687,7 @@ export function buildPlan(file: SiteFile, state: RemoteState): Plan {
   planSite(file, state.site, changes, warnings);
   planAliases(file, state, changes);
   planWwwRedirect(file, state, changes);
-  planWildcards(file, state, changes);
+  planWildcards(file, state, changes, warnings);
   const databaseEnv = planDatabases(file, state, changes, warnings);
   if (file.env || databaseEnv.generated.length > 0) {
     planEnv(file, state, databaseEnv, changes, warnings);

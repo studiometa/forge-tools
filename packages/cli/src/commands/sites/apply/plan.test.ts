@@ -1099,6 +1099,56 @@ describe("buildPlan with wildcard subdomains", () => {
     ]);
   });
 
+  it("is in sync when an older site has wildcard subdomains on the site, not on the domain", () => {
+    // Forge shows the checkbox on, GET site gives wildcards: true, the domain record gives false.
+    const plan = buildPlan(
+      file,
+      sharedServer({
+        site: site(456, "example.com", { wildcards: true }),
+        primaryDomain: primary(false),
+        primaryDomainHasNginx: false,
+      }),
+    );
+    expect(plan).toEqual({ changes: [], warnings: [] });
+  });
+
+  it("never updates the domain of an older site, and says that apply cannot change it", () => {
+    const on = buildPlan(
+      { ...file, wildcards: false },
+      sharedServer({
+        site: site(456, "example.com", { wildcards: true }),
+        primaryDomain: primary(false),
+        primaryDomainHasNginx: false,
+      }),
+    );
+    const off = buildPlan(
+      file,
+      sharedServer({
+        site: site(456, "example.com", { wildcards: false }),
+        primaryDomain: primary(false),
+        primaryDomainHasNginx: false,
+      }),
+    );
+
+    expect(on.changes).toEqual([]);
+    expect(on.warnings).toEqual([
+      "Wildcard subdomains are on on Forge, a setting of the site (created before October 2025): apply cannot change it. Change it in Forge.",
+    ]);
+    expect(off.changes).toEqual([]);
+    expect(off.warnings).toEqual([
+      "Wildcard subdomains are off on Forge, a setting of the site (created before October 2025): apply cannot change it. Change it in Forge.",
+    ]);
+  });
+
+  it("reads the domain of a site created since October 2025", () => {
+    const state = (wildcards: boolean) =>
+      sharedServer({ primaryDomain: primary(wildcards), primaryDomainHasNginx: true });
+    expect(buildPlan(file, state(true)).changes).toEqual([]);
+    expect(buildPlan(file, state(false)).changes).toEqual([
+      expect.objectContaining({ action: "update-wildcards", from: false, to: true }),
+    ]);
+  });
+
   it("does not manage wildcard subdomains when the file has no wildcards", () => {
     const plan = buildPlan(
       { server: "web-1", domain: "example.com" },
