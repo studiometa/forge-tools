@@ -258,11 +258,11 @@ describe("applySiteFile", () => {
 
   it("adds no alias that the domains of the site have, although the site has null aliases", async () => {
     const { ctx, calls } = fakeForge({
-      sites: [site(3494248, "www.luxfilmfest.lu", { aliases: null })],
-      domains: { 3494248: ["luxfilmfest.staging.ikko.fr"] },
+      sites: [site(789, "www.example.com", { aliases: null })],
+      domains: { 789: ["example.staging.example.net"] },
     });
     const plan = await applySiteFile(
-      { server: 123, domain: "www.luxfilmfest.lu", aliases: ["luxfilmfest.staging.ikko.fr"] },
+      { server: 123, domain: "www.example.com", aliases: ["example.staging.example.net"] },
       "123",
       ctx,
     );
