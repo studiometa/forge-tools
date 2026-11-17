@@ -188,6 +188,8 @@ export interface FakeForge {
   domains: Record<number, string[]>;
   /** The `www` redirect of the primary domain of each site of server 123, by site ID. Default: none. */
   wwwRedirects: Record<number, string>;
+  /** Wildcard subdomains of the primary domain of each site of server 123, by site ID. Default: false. */
+  wildcards: Record<number, boolean>;
   daemons: Daemon[];
   siteDaemonIds: number[];
   jobs: ScheduledJob[];
@@ -215,6 +217,7 @@ export function fakeForge(initial: Partial<FakeForge> = {}) {
     nodes: {},
     domains: {},
     wwwRedirects: {},
+    wildcards: {},
     daemons: [],
     siteDaemonIds: [],
     jobs: [],
@@ -263,6 +266,7 @@ export function fakeForge(initial: Partial<FakeForge> = {}) {
         return list("domainRecords", [
           domain(id, found.name, "primary", {
             www_redirect_type: state.wwwRedirects[id] ?? "none",
+            allow_wildcard_subdomains: state.wildcards[id] ?? false,
           }),
           ...(state.domains[id] ?? []).map((name, index) =>
             domain(id * 100 + index, name, "alias"),
@@ -329,6 +333,7 @@ export function fakeForge(initial: Partial<FakeForge> = {}) {
         const created = site(999, String(body.name), { status: "installing" });
         state.sites.push(created);
         state.wwwRedirects[created.id] = String(body.www_redirect_type);
+        state.wildcards[created.id] = Boolean(body.allow_wildcard_subdomains);
         return doc("sites", created);
       }
       if (url === "/orgs/org/servers/123/database/schemas") {
@@ -386,9 +391,15 @@ export function fakeForge(initial: Partial<FakeForge> = {}) {
         const id = Number(primary[1]);
         const found = state.sites.find((s) => s.id === id)!;
         state.wwwRedirects[id] = String(body.www_redirect_type);
+        if (typeof body.allow_wildcard_subdomains === "boolean") {
+          state.wildcards[id] = body.allow_wildcard_subdomains;
+        }
         return doc(
           "domainRecords",
-          domain(id, found.name, "primary", { www_redirect_type: state.wwwRedirects[id] }),
+          domain(id, found.name, "primary", {
+            www_redirect_type: state.wwwRedirects[id],
+            allow_wildcard_subdomains: state.wildcards[id] ?? false,
+          }),
         );
       }
       throw new Error(`Unexpected PATCH ${url}`);

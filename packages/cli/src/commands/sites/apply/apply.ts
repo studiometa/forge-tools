@@ -142,7 +142,13 @@ export async function readRemoteState(
     );
   }
 
-  if (site && (file.aliases || file.wwwRedirect || file.nginxTemplate !== undefined)) {
+  if (
+    site &&
+    (file.aliases ||
+      file.wwwRedirect ||
+      file.wildcards !== undefined ||
+      file.nginxTemplate !== undefined)
+  ) {
     const domains = await readDomains(serverId, site, ctx);
     state.domains = domains.map((domain) => domain.name);
     state.primaryDomain = domains.find((domain) => domain.type === "primary") ?? null;
@@ -495,6 +501,18 @@ async function applyChanges(
           ctx,
         );
         break;
+      case "update-wildcards":
+        options.onChange?.(change);
+        await updateDomain(
+          {
+            ...params,
+            domain_id: String(change.id),
+            www_redirect_type: change.wwwRedirect,
+            allow_wildcard_subdomains: change.to,
+          },
+          ctx,
+        );
+        break;
       case "add-env":
         for (const key of change.keys) env.set(key, String(file.env?.[key]));
         break;
@@ -625,7 +643,7 @@ export async function applySiteFile(
         name: file.domain,
         domain_mode: "custom",
         www_redirect_type: settings.www_redirect_type ?? "none",
-        allow_wildcard_subdomains: false,
+        allow_wildcard_subdomains: settings.allow_wildcard_subdomains ?? false,
         ...(settings.php_version ? { php_version: settings.php_version } : {}),
         ...(settings.web_directory ? { web_directory: settings.web_directory } : {}),
         ...(settings.source_control_provider

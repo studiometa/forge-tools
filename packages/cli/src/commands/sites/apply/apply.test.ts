@@ -349,6 +349,64 @@ describe("applySiteFile", () => {
     expect(state.wwwRedirects[456]).toBe("to-www");
   });
 
+  it("creates the site with the wildcard subdomains of the file", async () => {
+    const { ctx, calls } = fakeForge();
+    await applySiteFile(
+      { server: 123, domain: "example.com", type: "php", wildcards: true },
+      "123",
+      ctx,
+    );
+
+    expect(calls.filter(([method]) => method !== "GET")).toEqual([
+      [
+        "POST",
+        "/orgs/org/servers/123/sites",
+        expect.objectContaining({ name: "example.com", allow_wildcard_subdomains: true }),
+      ],
+    ]);
+  });
+
+  it("updates the wildcard subdomains of the primary domain when they differ", async () => {
+    const { ctx, calls, state } = fakeForge({
+      sites: [site(456, "example.com")],
+      wwwRedirects: { 456: "to-www" },
+    });
+    const plan = await applySiteFile(
+      { server: 123, domain: "example.com", wildcards: true },
+      "123",
+      ctx,
+    );
+
+    expect(plan.changes).toEqual([
+      expect.objectContaining({ action: "update-wildcards", from: false, to: true }),
+    ]);
+    expect(calls.filter(([method]) => method !== "GET")).toEqual([
+      [
+        "PATCH",
+        "/orgs/org/servers/123/sites/456/domains/456",
+        { www_redirect_type: "to-www", allow_wildcard_subdomains: true },
+      ],
+    ]);
+    expect(state.wildcards[456]).toBe(true);
+    expect(state.wwwRedirects[456]).toBe("to-www");
+  });
+
+  it("changes nothing when the primary domain has the wildcard subdomains of the file", async () => {
+    const { ctx, calls } = fakeForge({
+      sites: [site(456, "example.com")],
+      wildcards: { 456: true },
+    });
+    const plan = await applySiteFile(
+      { server: 123, domain: "example.com", wildcards: true },
+      "123",
+      ctx,
+    );
+
+    expect(plan.changes).toEqual([]);
+    expect(calls).toContainEqual(["GET", "/orgs/org/servers/123/sites/456/domains"]);
+    expect(calls.filter(([method]) => method !== "GET")).toEqual([]);
+  });
+
   it("updates the site, adds aliases and .env keys without overwriting", async () => {
     const { ctx, calls, state } = fakeForge({
       sites: [site(456, "a.example.com")],
