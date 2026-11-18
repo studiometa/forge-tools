@@ -55,8 +55,6 @@ const ORG = "test-org";
  * Spec operations that the SDK does not call, on purpose. Keys are `METHOD path`.
  */
 const SKIPPED: Record<string, string> = {
-  // The load balancer branch (`forge load-balancer apply`) adds the site of a load balancer.
-  "POST /orgs/{organization}/servers/{server}/sites/balancer": "owned by the load balancer branch",
   // Same answer as `GET .../certificates/active`, which `certificates.active()` calls.
   "GET /orgs/{organization}/servers/{server}/sites/{site}/domains/{domainRecord}/certificate":
     "alias of certificates/active",
@@ -577,6 +575,11 @@ const CASES: Case[] = [
   ["sites.server.all", (f) => server(f).sites.all().toArray()],
   ["sites.server.get", (f) => server(f).sites.get(2)],
   ["sites.server.create", (f) => server(f).sites.create({ type: "php", name: "example.com" })],
+  [
+    "sites.server.createLoadBalancer",
+    (f) =>
+      server(f).sites.createLoadBalancer({ domain: "example.com", balancing: [{ server_id: 3 }] }),
+  ],
   ["sites.server.update", (f) => server(f).sites.update(2, { directory: "/public" })],
   ["sites.server.delete", (f) => server(f).sites.delete(2)],
 

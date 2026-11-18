@@ -116,6 +116,16 @@ describe("SitesCollection", () => {
     expect(calls[0].body).toEqual({ domain: "example.com", project_type: "php" });
   });
 
+  it("should create a site on a load balancer", async () => {
+    const { client, calls } = createTrackingClient();
+    const collection = new SitesCollection(client, ORG, 123);
+
+    await collection.createLoadBalancer({ domain: "example.com", balancing: [{ server_id: 2 }] });
+    expect(calls[0].method).toBe("POST");
+    expect(calls[0].url).toContain(`/orgs/${ORG}/servers/123/sites/balancer`);
+    expect(calls[0].body).toEqual({ domain: "example.com", balancing: [{ server_id: 2 }] });
+  });
+
   it("should update a site", async () => {
     const { client, calls } = createTrackingClient();
     const collection = new SitesCollection(client, ORG, 123);

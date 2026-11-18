@@ -136,6 +136,7 @@ if (result.total === 1) {
 forge.server(id).sites.list()           // List all sites
 forge.server(id).sites.get(siteId)      // Get a site
 forge.server(id).sites.create({ domain: 'example.com', project_type: 'php' })
+forge.server(id).sites.createLoadBalancer({ domain: 'example.com', balancing: [{ server_id: 2 }] })
 forge.server(id).sites.update(siteId, { ... })
 forge.server(id).sites.delete(siteId)
 forge.server(id).sites.resolve('example') // Find sites by domain name
