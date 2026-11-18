@@ -5,6 +5,67 @@ All notable changes to this project will be documented in this file. Each pull r
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.8.0 - 2026-11-18
+
+### Added
+
+- **API**: Add `UpdateServerDataSchema`, the new optional fields of the spec (`slug` of a server, `deployment_retention` of a site, `active` of a certificate, `exit_code` and `error_output` of a command, `database_ids` and `include_new_databases` of a backup configuration) and the new request fields (`enable` of a certificate, `source_control_provider_id` of a site, `backup_configuration_ids` of a database) ([#178])
+- **Core**: Add `listCertificates` (the certificates of a domain, or of every domain of a site) and `updateServer` ([#178])
+- **SDK**: Add `certificates.list()`, `certificates.active()`, `servers.update()` and `server(id).update()` ([#178])
+- **MCP**: Add the `list` action to `certificates` and the `update` action to `servers` ([#178])
+- **CLI**: Add `forge certificates list` and `forge servers update <server> [--name] [--ip-address] [--private-ip] [--timezone] [--tag]` ([#178])
+- **CLI**: Add `forge load-balancer apply --file <load-balancer.json> [--check] [--force]`: create the site of a load balancer, set its nodes from the environments of the project, add its aliases and set its `www` redirect, from `config/forge/load-balancer.json` (JSON Schema `schemas/load-balancer.schema.json`). `--force` sends the nodes and the method even when the nodes match, to change only the method ([#177])
+- **SDK**: Add `forge.server(id).sites.createLoadBalancer()` to create a site on a load balancer (`POST /servers/{server}/sites/balancer`) ([#177])
+- **Core**: Add `createLoadBalancerSite` to create a site on a load balancer (`POST /servers/{server}/sites/balancer`) ([#177])
+- **API**: Add the Valibot schemas and types of every other resource and request of the Forge OpenAPI spec (events, logs, outputs, deploy keys and hooks, webhooks, domain DNS records, heartbeats, Composer and npm credentials, integrations, server keys, recipe runs, Forge recipes, team members and invitations, roles, permissions, providers, server credentials, VPCs), and a test that compares each schema with the spec ([#179])
+- **API**: Send a `FormData` body as a multipart form ([#179])
+- **SDK**: Cover every operation of the Forge API, with a test that fails when a spec operation has no SDK method: organizations, organization sites and events, archived servers, server events, deployments, network, key and logs, PHP installs and default versions, database synchronization and root password, database user updates, backup instances and restores, daemon updates and actions, service stop and PHP reload, domains, site git, healthcheck, logs, deploy key, load balancing nodes, Composer and npm credentials, heartbeats, integrations, deployment webhooks, deployment state, deploy hook and push to deploy, redirect rules export, import and reorder, security rule and storage provider updates, recipe updates and runs, Forge recipes, teams, members and invitations, roles, permissions, providers and server credentials ([#179])
+- **SDK**: Add filters, sort, page size and includes to each `list()` and `all()`, typed from the spec ([#179])
+- **Core**: Add `listEvents`, `getEvent`, `getEventOutput`, `getServerNetwork`, `updateServerNetwork`, `getSiteDeployKey`, `createSiteDeployKey`, `deleteSiteDeployKey`, `updateSiteGit`, `exportRedirectRules`, `importRedirectRules`, `reorderRedirectRules` and `deactivateCertificate`; `listDeployments` lists the deployments of a server without `site_id` ([#179])
+- **MCP**: Add the `events`, `network`, `deploy-key` and `git` resources, the `deactivate` action to `certificates`, and the `export`, `import` and `reorder` actions to `redirect-rules`; `deployments` `list` works without `site_id` ([#179])
+- **CLI**: Add `forge events`, `forge network`, `forge deploy-key` and `forge git update`, `forge redirect-rules export|import|reorder`, and `forge certificates create|delete|deactivate`; `forge deployments list` works without `--site` ([#179])
+
+### Changed
+
+- **Core**: Breaking: certificate executors use the routes of a domain with several certificates (`/domains/{domain}/certificates`): `getCertificate` gets the active certificate without `id`, and `deleteCertificate` and `activateCertificate` take the certificate `id` ([#178])
+- **SDK**: Breaking: `certificates.get(domainId, certificateId)`, `certificates.delete(domainId, certificateId)` and `certificates.activate(domainId, certificateId)` take the certificate ID; `certificates.active(domainId)` gets the active certificate ([#178])
+- **MCP**: Breaking: `certificates` `get` without `id` gets the active certificate of `domain_id`; `delete` and `activate` require `domain_id` and the certificate `id` ([#178])
+- **CLI**: Breaking: `forge certificates get [id]` and `forge certificates activate <id>` take the certificate ID as argument and require `--domain` ([#178])
+- **API**: Breaking: `CreateServerData` sends `credential_id`, `custom.ssh_port` and `custom.nat_ssh_port` as numbers and `custom.behind_nat` as a boolean, `CreateSiteData` requires `name` and sends `database_user_id` as a number, `CreateScheduledJobData.grace_period` and `CreateRecipeData.team_id` are numbers, as the Forge OpenAPI spec says ([#178])
+- Update `docs/forge-openapi-v2.json` from the Forge API (279 operations) ([#178])
+- **SDK**: Breaking: `sites.update()` takes `UpdateSiteData` instead of `Partial<CreateSiteData>`, `RunRecipeOptions` is `RunRecipeData` (with `email`), and each `*ListOptions` is a `ListOptions` type ([#179])
+- **API**: Breaking: `CreateFirewallRuleData.type` is `"allow" | "deny"` ([#179])
+- **MCP**: Breaking: `monitors` `create` requires `notify` and accepts only the spec types and operators; `scheduled-jobs` `create` accepts only the spec frequencies ([#179])
+- **CLI**: Breaking: `forge monitors create` requires `--notify`, accepts only the spec types and operators, and sends `--minutes` only when given ([#179])
+
+### Removed
+
+- **CLI**: Breaking: remove `loadBalancer` from the site file of `forge sites apply`; a site file with this key is now invalid. Use `forge load-balancer apply` and a load balancer file instead ([#177])
+
+### Fixed
+
+- **Core**: Fix the certificate routes, which Forge moved from `/domains/{domain}/certificate` to `/domains/{domain}/certificates/{certificate}` ([#178])
+- **SDK**: Fix the certificate routes, which Forge moved from `/domains/{domain}/certificate` to `/domains/{domain}/certificates/{certificate}` ([#178])
+- **Core**: Fix the activation of a certificate, which sent the action `activate` instead of `enable` ([#178])
+- **SDK**: Fix the activation of a certificate, which sent the action `activate` instead of `enable` ([#178])
+- **API**: Accept a `null` `deployment_url` and `php_version` of a site, `status` of a deployment status, `content` of a deployment script, PHP limits and `finished_at` of a backup (now a timestamp) ([#178])
+- **CLI**: Send the credential ID and SSH port of `forge servers create` as numbers ([#178])
+- **MCP**: Refuse a `domain_id` that is not an ID ([#178])
+- **SDK**: Fix `deployments.output()`, which called `/deployments/{id}/output` instead of `/deployments/{id}/log` ([#179])
+- **SDK**: Fix `env.get()` and `nginx.get()`, which returned the JSON:API document instead of the content ([#179])
+- **SDK**: Send no body to start a deployment, as the spec says ([#179])
+- **SDK**: Return an empty string instead of `"null"` for a PHP limit that is not set ([#179])
+- **Core**: Read the site again after `updateSite`, as Forge answers the update with 202 and no body ([#179])
+- **Core**: Accept a null Nginx configuration of a site or a domain ([#179])
+- **Core**: Send no body when triggering a deployment ([#179])
+- **MCP**: Send the required `type` (default `allow`) and a string `port` when creating a firewall rule ([#179])
+- **MCP**: Send the required `user` and `frequency` when creating a scheduled job, and `name`, `user` and `processes` when creating a daemon ([#179])
+- **MCP**: Accept numbers for the threshold and minutes of a monitor ([#179])
+
+[#177]: https://github.com/studiometa/forge-tools/pull/177
+[#178]: https://github.com/studiometa/forge-tools/pull/178
+[#179]: https://github.com/studiometa/forge-tools/pull/179
+
 ## 0.7.1 - 2026-11-17
 
 ### Added
