@@ -103,10 +103,12 @@ export type {
 
 // Load balancing
 export {
+  createLoadBalancerSite,
   listLoadBalancingNodes,
   updateLoadBalancingNodes,
 } from "./executors/load-balancing/index.ts";
 export type {
+  CreateLoadBalancerSiteOptions,
   ListLoadBalancingNodesOptions,
   UpdateLoadBalancingNodesOptions,
 } from "./executors/load-balancing/index.ts";

@@ -19,6 +19,7 @@ import {
   CreateDomainDataSchema,
   UpdateDomainDataSchema,
   UpdateLoadBalancingNodesDataSchema,
+  CreateLoadBalancerSiteDataSchema,
   CreateFirewallRuleDataSchema,
   CreateSshKeyDataSchema,
   CreateSecurityRuleDataSchema,
@@ -232,4 +233,15 @@ testSchema(
   UpdateLoadBalancingNodesDataSchema,
   { balancer_method: "round_robin", balancing: [{ server_id: 123, port: 80, weight: 1 }] },
   { balancer_method: "round_robin", balancing: [] },
+);
+
+testSchema(
+  "CreateLoadBalancerSiteDataSchema",
+  CreateLoadBalancerSiteDataSchema,
+  {
+    domain: "example.com",
+    balancer_method: "least_conn",
+    balancing: [{ server_id: 123, port: 80, weight: 2, backup: true, down: false }],
+  },
+  { domain: "example.com", balancing: [] },
 );

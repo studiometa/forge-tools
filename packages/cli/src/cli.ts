@@ -20,6 +20,7 @@ import {
   showFirewallRulesHelp,
 } from "./commands/firewall-rules/index.ts";
 import { handleGitCommand, showGitHelp } from "./commands/git/index.ts";
+import { handleLoadBalancerCommand, showLoadBalancerHelp } from "./commands/load-balancer/index.ts";
 import { handleMonitorsCommand, showMonitorsHelp } from "./commands/monitors/index.ts";
 import { handleNetworkCommand, showNetworkHelp } from "./commands/network/index.ts";
 import { handleNginxCommand, showNginxHelp } from "./commands/nginx/index.ts";
@@ -90,6 +91,9 @@ ${colors.bold("COMMANDS:")}
     list, ls            List sites (requires --server)
     get <id>            Get site details (requires --server)
     apply               Make a site match a site file (--file, --check)
+
+  load-balancer       Manage the site of a load balancer
+    apply               Make the site of a load balancer match a file (--file, --check)
 
   deployments, d      Manage deployments
     list, ls            List deployments (requires --server, optional --site)
@@ -363,6 +367,14 @@ async function main(): Promise<void> {
           process.exit(0);
         }
         await handleSitesCommand(subcommand ?? "list", positional, options);
+        break;
+
+      case "load-balancer":
+        if (wantsHelp) {
+          showLoadBalancerHelp(subcommand);
+          process.exit(0);
+        }
+        await handleLoadBalancerCommand(subcommand ?? "apply", positional, options);
         break;
 
       case "deployments":

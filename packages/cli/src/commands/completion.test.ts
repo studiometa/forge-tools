@@ -165,6 +165,7 @@ describe("handleCompletionCommand", () => {
       const script = stdoutWriteSpy.mock.calls[0]![0] as string;
       expect(script).toContain("servers");
       expect(script).toContain("sites");
+      expect(script).toContain("load-balancer");
       expect(script).toContain("deployments");
       expect(script).toContain("databases");
       expect(script).toContain("database-users");
@@ -248,6 +249,7 @@ describe("handleCompletionCommand", () => {
       const script = stdoutWriteSpy.mock.calls[0]![0] as string;
       expect(script).toContain("servers");
       expect(script).toContain("sites");
+      expect(script).toContain("load-balancer");
       expect(script).toContain("deployments");
       expect(script).toContain("databases");
       expect(script).toContain("database-users");
@@ -294,6 +296,7 @@ describe("handleCompletionCommand", () => {
       const script = stdoutWriteSpy.mock.calls[0]![0] as string;
       expect(script).toContain("servers");
       expect(script).toContain("sites");
+      expect(script).toContain("load-balancer");
       expect(script).toContain("deployments");
       expect(script).toContain("databases");
       expect(script).toContain("database-users");

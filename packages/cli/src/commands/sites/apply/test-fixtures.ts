@@ -5,7 +5,8 @@
 import { vi } from "vitest";
 
 import type { CliExecutorContext } from "../../../context.ts";
-import type { Daemon, Domain, LoadBalancingNode, ScheduledJob, Site } from "./plan.ts";
+import type { LoadBalancingNode } from "../../load-balancer/apply/plan.ts";
+import type { Daemon, Domain, ScheduledJob, Site } from "./plan.ts";
 
 export function site(id: number, name: string, overrides: Partial<Site> = {}): Site {
   return {
@@ -184,6 +185,10 @@ export interface FakeForge {
   balancerSites: Site[];
   /** Nodes of each site of the load balancer, by site ID. */
   nodes: Record<number, LoadBalancingNode[]>;
+  /** Aliases of each site of the load balancer, by site ID. */
+  balancerDomains: Record<number, string[]>;
+  /** Sites of server 124. */
+  otherSites: Site[];
   /** Aliases of each site of server 123, by site ID. The name of the site is its primary domain. */
   domains: Record<number, string[]>;
   /** The `www` redirect of the primary domain of each site of server 123, by site ID. Default: none. */
@@ -217,6 +222,8 @@ export function fakeForge(initial: Partial<FakeForge> = {}) {
     sites: [],
     balancerSites: [],
     nodes: {},
+    balancerDomains: {},
+    otherSites: [],
     domains: {},
     wwwRedirects: {},
     wildcards: {},
@@ -262,6 +269,17 @@ export function fakeForge(initial: Partial<FakeForge> = {}) {
       }
       if (path === "/orgs/org/servers/123/sites") return list("sites", state.sites);
       if (path === "/orgs/org/servers/300/sites") return list("sites", state.balancerSites);
+      if (path === "/orgs/org/servers/124/sites") return list("sites", state.otherSites);
+      if ((match = /^\/orgs\/org\/servers\/300\/sites\/(\d+)\/domains$/.exec(path))) {
+        const id = Number(match[1]);
+        const found = state.balancerSites.find((s) => s.id === id)!;
+        return list("domainRecords", [
+          domain(id, found.name, "primary"),
+          ...(state.balancerDomains[id] ?? []).map((name, index) =>
+            domain(id * 100 + index, name, "alias"),
+          ),
+        ]);
+      }
       if ((match = /^\/orgs\/org\/servers\/300\/sites\/(\d+)\/load-balancing-nodes$/.exec(path))) {
         return list("loadBalancingNodes", state.nodes[Number(match[1])] ?? []);
       }
@@ -287,7 +305,9 @@ export function fakeForge(initial: Partial<FakeForge> = {}) {
         return doc("nginxConfigs", { id: Number(match[1]), content: state.nginx } as never);
       }
       if ((match = /^\/orgs\/org\/sites\/(\d+)$/.exec(path))) {
-        const found = state.sites.find((s) => s.id === Number(match![1]))!;
+        const found = [...state.sites, ...state.balancerSites].find(
+          (s) => s.id === Number(match![1]),
+        )!;
         const status = state.newSiteStatuses.shift() ?? "installed";
         found.status = status;
         return doc("sites", found);
@@ -356,6 +376,19 @@ export function fakeForge(initial: Partial<FakeForge> = {}) {
         const created = { id: 71 + 2 * createdUsers++, name: String(body.name) };
         state.users.push(created);
         return doc("users", { ...stamp, ...created });
+      }
+      if (url === "/orgs/org/servers/300/sites/balancer") {
+        const created = site(900, String(body.domain), { status: "installing" });
+        state.balancerSites.push(created);
+        const nodes = body.balancing as LoadBalancingNode[];
+        state.nodes[900] = nodes.map((item) => node(item.server_id, item));
+        return doc("sites", created);
+      }
+      const balancerDomains = /^\/orgs\/org\/servers\/300\/sites\/(\d+)\/domains$/.exec(url);
+      if (balancerDomains) {
+        const id = Number(balancerDomains[1]);
+        state.balancerDomains[id] = [...(state.balancerDomains[id] ?? []), String(body.name)];
+        return doc("domainRecords", domain(80, String(body.name), "alias"));
       }
       const domains = /^\/orgs\/org\/servers\/123\/sites\/(\d+)\/domains$/.exec(url);
       if (domains) {

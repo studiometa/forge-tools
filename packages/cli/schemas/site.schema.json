@@ -195,34 +195,6 @@
           }
         }
       }
-    },
-    "loadBalancer": {
-      "description": "Load balancer of the site: apply sets its nodes to the server of the site file only, with round robin and weight 1. The site of the load balancer must exist: its name is the domain or one of the aliases. Create it in Forge (New site on the load balancer): the Forge API cannot. Its certificate is not managed.",
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["server"],
-      "properties": {
-        "server": {
-          "description": "Load balancer name (exact match) or ID.",
-          "oneOf": [
-            {
-              "type": "string",
-              "minLength": 1
-            },
-            {
-              "type": "integer",
-              "minimum": 1
-            }
-          ]
-        },
-        "port": {
-          "description": "Port of the site on its server. Default: 80.",
-          "type": "integer",
-          "minimum": 1,
-          "maximum": 65535,
-          "default": 80
-        }
-      }
     }
   },
   "$defs": {
