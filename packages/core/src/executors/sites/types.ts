@@ -2,7 +2,7 @@
  * Option types for site executors.
  */
 
-import type { CreateSiteData, UpdateSiteData } from "@studiometa/forge-api";
+import type { CreateSiteData, UpdateGitData, UpdateSiteData } from "@studiometa/forge-api";
 
 /**
  * Options for listing sites on a server.
@@ -34,6 +34,22 @@ export interface CreateSiteOptions extends CreateSiteData {
  * Options for updating a site.
  */
 export interface UpdateSiteOptions extends UpdateSiteData {
+  server_id: string;
+  site_id: string;
+}
+
+/**
+ * Options for changing the repository that a site deploys from.
+ */
+export interface UpdateSiteGitOptions extends UpdateGitData {
+  server_id: string;
+  site_id: string;
+}
+
+/**
+ * Options for getting, creating or deleting the deploy key of a site.
+ */
+export interface SiteDeployKeyOptions {
   server_id: string;
   site_id: string;
 }

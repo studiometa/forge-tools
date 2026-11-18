@@ -29,6 +29,7 @@ import {
   formatStorageProviderList,
   formatCertificate,
   formatCertificateList,
+  formatEventList,
   formatCommand,
   formatCommandList,
   formatCreated,
@@ -1402,5 +1403,18 @@ describe("formatStorageProviderList", () => {
     expect(result).toContain("Region: —");
     expect(result).toContain("Bucket: —");
     expect(result).toContain("In use: no");
+  });
+});
+
+describe("formatEventList", () => {
+  it("should say when there are no events", () => {
+    expect(formatEventList([])).toBe("No events found.");
+  });
+
+  it("should leave out the user of an event without one", () => {
+    const result = formatEventList([
+      { id: 1, description: "Rebooting", ran_as: null, created_at: "2024", updated_at: "2024" },
+    ]);
+    expect(result).toBe("1 event(s):\n• #1 — Rebooting — 2024");
   });
 });

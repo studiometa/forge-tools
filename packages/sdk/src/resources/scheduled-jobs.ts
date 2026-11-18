@@ -2,22 +2,24 @@ import type {
   CreateScheduledJobData,
   HttpClient,
   JsonApiDocument,
-  JsonApiListDocument,
   ScheduledJobAttributes,
+  OutputAttributes,
 } from "@studiometa/forge-api";
 
-import { unwrapDocument, unwrapListDocument } from "@studiometa/forge-api";
+import { unwrapDocument } from "@studiometa/forge-api";
+
+import type { AllOptions, ListOptions } from "../list-options.ts";
 
 import { BaseCollection } from "./base.ts";
-import { AsyncPaginatedIterator } from "../pagination.ts";
+import type { AsyncPaginatedIterator } from "../pagination.ts";
 
 /**
  * Options for listing scheduled jobs.
  */
-export interface ScheduledJobListOptions {
-  /** Cursor for pagination (from previous response's next_cursor). */
-  cursor?: string;
-}
+export type ScheduledJobListOptions = ListOptions<
+  "status" | "user",
+  "created_at" | "updated_at" | "status"
+>;
 
 /**
  * Collection of scheduled jobs (cron jobs) on a server.
@@ -35,12 +37,16 @@ export class ScheduledJobsCollection extends BaseCollection {
     client: HttpClient,
     orgSlug: string,
     private readonly serverId: number,
+    private readonly siteId?: number,
   ) {
     super(client, orgSlug);
   }
 
   private get basePath(): string {
-    return `/orgs/${this.orgSlug}/servers/${this.serverId}/scheduled-jobs`;
+    const server = `/orgs/${this.orgSlug}/servers/${this.serverId}`;
+    return this.siteId === undefined
+      ? `${server}/scheduled-jobs`
+      : `${server}/sites/${this.siteId}/scheduled-jobs`;
   }
 
   /**
@@ -57,11 +63,7 @@ export class ScheduledJobsCollection extends BaseCollection {
   async list(
     options: ScheduledJobListOptions = {},
   ): Promise<Array<ScheduledJobAttributes & { id: number }>> {
-    const query = options.cursor !== undefined ? `?page[cursor]=${options.cursor}` : "";
-    const response = await this.client.get<JsonApiListDocument<ScheduledJobAttributes>>(
-      `${this.basePath}${query}`,
-    );
-    return unwrapListDocument(response);
+    return this.listPage<ScheduledJobAttributes>(this.basePath, options);
   }
 
   /**
@@ -77,17 +79,10 @@ export class ScheduledJobsCollection extends BaseCollection {
    * const jobs = await forge.server(123).scheduledJobs.all().toArray();
    * ```
    */
-  all(): AsyncPaginatedIterator<ScheduledJobAttributes & { id: number }> {
-    return new AsyncPaginatedIterator<ScheduledJobAttributes & { id: number }>(async (cursor) => {
-      const query = cursor !== null ? `?page[cursor]=${cursor}` : "";
-      const response = await this.client.get<JsonApiListDocument<ScheduledJobAttributes>>(
-        `${this.basePath}${query}`,
-      );
-      return {
-        items: unwrapListDocument(response),
-        nextCursor: response.meta.next_cursor ?? null,
-      };
-    });
+  all(
+    options: AllOptions<ScheduledJobListOptions> = {},
+  ): AsyncPaginatedIterator<ScheduledJobAttributes & { id: number }> {
+    return this.iterate<ScheduledJobAttributes>(this.basePath, options);
   }
 
   /**
@@ -135,5 +130,17 @@ export class ScheduledJobsCollection extends BaseCollection {
    */
   async delete(jobId: number): Promise<void> {
     await this.client.delete(`${this.basePath}/${jobId}`);
+  }
+
+  /**
+   * Get the output of the last run of a scheduled job.
+   *
+   * @example
+   * ```ts
+   * const output = await forge.server(123).scheduledJobs.output(456);
+   * ```
+   */
+  async output(jobId: number): Promise<string> {
+    return (await this.getResource<OutputAttributes>(`${this.basePath}/${jobId}/output`)).output;
   }
 }

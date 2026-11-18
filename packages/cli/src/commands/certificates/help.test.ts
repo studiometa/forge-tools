@@ -30,6 +30,13 @@ describe("showCertificatesHelp", () => {
     expect(consoleLogSpy).toHaveBeenCalledTimes(2);
   });
 
+  it.each(["create", "delete", "deactivate"])("should show %s help", (subcommand) => {
+    showCertificatesHelp(subcommand);
+    expect(consoleLogSpy).toHaveBeenCalledWith(
+      expect.stringContaining(`certificates ${subcommand}`),
+    );
+  });
+
   it("should show activate help", () => {
     showCertificatesHelp("activate");
     expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining("activate"));

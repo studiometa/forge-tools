@@ -2,11 +2,12 @@ import type {
   CreateDatabaseData,
   HttpClient,
   JsonApiDocument,
-  JsonApiListDocument,
   DatabaseAttributes,
 } from "@studiometa/forge-api";
 
-import { unwrapDocument, unwrapListDocument } from "@studiometa/forge-api";
+import { unwrapDocument } from "@studiometa/forge-api";
+
+import type { AllOptions, ListOptions } from "../list-options.ts";
 
 import { BaseCollection } from "./base.ts";
 import { AsyncPaginatedIterator } from "../pagination.ts";
@@ -14,10 +15,10 @@ import { AsyncPaginatedIterator } from "../pagination.ts";
 /**
  * Options for listing databases.
  */
-export interface DatabaseListOptions {
-  /** Cursor for pagination (from previous response's next_cursor). */
-  cursor?: string;
-}
+export type DatabaseListOptions = ListOptions<
+  "name" | "status",
+  "name" | "created_at" | "updated_at"
+>;
 
 /**
  * Collection of databases on a server.
@@ -57,11 +58,7 @@ export class DatabasesCollection extends BaseCollection {
   async list(
     options: DatabaseListOptions = {},
   ): Promise<Array<DatabaseAttributes & { id: number }>> {
-    const query = options.cursor !== undefined ? `?page[cursor]=${options.cursor}` : "";
-    const response = await this.client.get<JsonApiListDocument<DatabaseAttributes>>(
-      `${this.basePath}${query}`,
-    );
-    return unwrapListDocument(response);
+    return this.listPage<DatabaseAttributes>(this.basePath, options);
   }
 
   /**
@@ -77,17 +74,10 @@ export class DatabasesCollection extends BaseCollection {
    * const dbs = await forge.server(123).databases.all().toArray();
    * ```
    */
-  all(): AsyncPaginatedIterator<DatabaseAttributes & { id: number }> {
-    return new AsyncPaginatedIterator<DatabaseAttributes & { id: number }>(async (cursor) => {
-      const query = cursor !== null ? `?page[cursor]=${cursor}` : "";
-      const response = await this.client.get<JsonApiListDocument<DatabaseAttributes>>(
-        `${this.basePath}${query}`,
-      );
-      return {
-        items: unwrapListDocument(response),
-        nextCursor: response.meta.next_cursor ?? null,
-      };
-    });
+  all(
+    options: AllOptions<DatabaseListOptions> = {},
+  ): AsyncPaginatedIterator<DatabaseAttributes & { id: number }> {
+    return this.iterate<DatabaseAttributes>(this.basePath, options);
   }
 
   /**
@@ -135,5 +125,31 @@ export class DatabasesCollection extends BaseCollection {
    */
   async delete(databaseId: number): Promise<void> {
     await this.client.delete(`${this.basePath}/${databaseId}`);
+  }
+
+  /**
+   * Synchronize the databases of the server: add to Forge the databases created outside it.
+   *
+   * @example
+   * ```ts
+   * await forge.server(123).databases.synchronize();
+   * ```
+   */
+  async synchronize(): Promise<void> {
+    await this.client.post(`${this.basePath}/synchronizations`);
+  }
+
+  /**
+   * Update the password of the root database user of the server.
+   *
+   * @example
+   * ```ts
+   * await forge.server(123).databases.updatePassword('secret');
+   * ```
+   */
+  async updatePassword(password: string): Promise<void> {
+    await this.client.put(`/orgs/${this.orgSlug}/servers/${this.serverId}/database/password`, {
+      password,
+    });
   }
 }

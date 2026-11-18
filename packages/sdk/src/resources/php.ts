@@ -1,15 +1,18 @@
 import type {
   HttpClient,
   JsonApiDocument,
-  JsonApiListDocument,
   PhpConfigAttributes,
   PhpMaxExecutionTimeAttributes,
   PhpMaxUploadSizeAttributes,
   PhpOpcacheAttributes,
   PhpVersionAttributes,
+  CreatePhpVersionData,
+  UpdatePhpDefaultVersionData,
 } from "@studiometa/forge-api";
 
-import { unwrapDocument, unwrapListDocument } from "@studiometa/forge-api";
+import { unwrapDocument } from "@studiometa/forge-api";
+
+import type { ListOptions } from "../list-options.ts";
 
 import { BaseCollection } from "./base.ts";
 
@@ -26,10 +29,10 @@ export type PhpConfigType = (typeof PHP_CONFIG_TYPES)[number];
 /**
  * Options for listing PHP versions.
  */
-export interface PhpVersionListOptions {
-  /** Cursor for pagination (from previous response's next_cursor). */
-  cursor?: string;
-}
+export type PhpVersionListOptions = ListOptions<
+  "status" | "version",
+  "created_at" | "updated_at" | "status" | "version"
+>;
 
 /**
  * Options for reading or writing a PHP configuration file.
@@ -96,11 +99,7 @@ export class PhpResource extends BaseCollection {
   async list(
     options: PhpVersionListOptions = {},
   ): Promise<Array<PhpVersionAttributes & { id: number }>> {
-    const query = options.cursor !== undefined ? `?page[cursor]=${options.cursor}` : "";
-    const response = await this.client.get<JsonApiListDocument<PhpVersionAttributes>>(
-      `${this.basePath}/versions${query}`,
-    );
-    return unwrapListDocument(response);
+    return this.listPage<PhpVersionAttributes>(`${this.basePath}/versions`, options);
   }
 
   /**
@@ -162,6 +161,90 @@ export class PhpResource extends BaseCollection {
   }
 
   /**
+   * Install a PHP version on the server.
+   *
+   * @example
+   * ```ts
+   * await forge.server(123).php.install({ version: 'php84', site_default: true });
+   * ```
+   */
+  async install(data: CreatePhpVersionData): Promise<void> {
+    await this.client.post(`${this.basePath}/versions`, data);
+  }
+
+  /**
+   * Update an installed PHP version to its latest patch release.
+   *
+   * @example
+   * ```ts
+   * await forge.server(123).php.upgrade(12);
+   * ```
+   */
+  async upgrade(versionId: number): Promise<void> {
+    await this.client.put(`${this.basePath}/versions/${versionId}`);
+  }
+
+  /**
+   * Uninstall a PHP version from the server.
+   *
+   * @example
+   * ```ts
+   * await forge.server(123).php.uninstall(12);
+   * ```
+   */
+  async uninstall(versionId: number): Promise<void> {
+    await this.client.delete(`${this.basePath}/versions/${versionId}`);
+  }
+
+  /**
+   * Get the PHP version of the `php` command line of the server.
+   *
+   * @example
+   * ```ts
+   * const version = await forge.server(123).php.cliVersion();
+   * ```
+   */
+  async cliVersion(): Promise<PhpVersionAttributes & { id: number }> {
+    return this.getResource<PhpVersionAttributes>(`${this.basePath}/cli-version`);
+  }
+
+  /**
+   * Set the PHP version of the `php` command line of the server.
+   *
+   * @example
+   * ```ts
+   * await forge.server(123).php.setCliVersion('8.4');
+   * ```
+   */
+  async setCliVersion(version: UpdatePhpDefaultVersionData["php_version"]): Promise<void> {
+    await this.client.put(`${this.basePath}/cli-version`, { php_version: version });
+  }
+
+  /**
+   * Get the default PHP version of new sites of the server.
+   *
+   * @example
+   * ```ts
+   * const version = await forge.server(123).php.siteVersion();
+   * ```
+   */
+  async siteVersion(): Promise<PhpVersionAttributes & { id: number }> {
+    return this.getResource<PhpVersionAttributes>(`${this.basePath}/site-version`);
+  }
+
+  /**
+   * Set the default PHP version of new sites of the server.
+   *
+   * @example
+   * ```ts
+   * await forge.server(123).php.setSiteVersion('8.4');
+   * ```
+   */
+  async setSiteVersion(version: UpdatePhpDefaultVersionData["php_version"]): Promise<void> {
+    await this.client.put(`${this.basePath}/site-version`, { php_version: version });
+  }
+
+  /**
    * Get the PHP max upload size, in megabytes.
    *
    * @example
@@ -173,7 +256,7 @@ export class PhpResource extends BaseCollection {
     const response = await this.client.get<JsonApiDocument<PhpMaxUploadSizeAttributes>>(
       `${this.basePath}/max-upload-size`,
     );
-    return String(unwrapDocument(response).max_upload_size);
+    return String(unwrapDocument(response).max_upload_size ?? "");
   }
 
   /**
@@ -200,7 +283,7 @@ export class PhpResource extends BaseCollection {
     const response = await this.client.get<JsonApiDocument<PhpMaxExecutionTimeAttributes>>(
       `${this.basePath}/max-execution-time`,
     );
-    return String(unwrapDocument(response).max_execution_time);
+    return String(unwrapDocument(response).max_execution_time ?? "");
   }
 
   /**

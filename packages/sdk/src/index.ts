@@ -54,7 +54,82 @@ export {
   SiteResource,
   SitesCollection,
 } from "./resources/sites.ts";
-export type { SiteListOptions } from "./resources/sites.ts";
+export type { SiteListOptions, UpdateEnvironmentOptions } from "./resources/sites.ts";
+export { listQuery } from "./list-options.ts";
+export type { AllOptions, ListOptions } from "./list-options.ts";
+export { BackupInstancesCollection } from "./resources/backups.ts";
+export type { BackupListOptions } from "./resources/backups.ts";
+export type { DaemonAction } from "./resources/daemons.ts";
+export type { UpdateDeploymentScriptOptions } from "./resources/deployments.ts";
+export {
+  ComposerCredentialsCollection,
+  NpmCredentialsCollection,
+} from "./resources/credentials.ts";
+export { DomainsCollection } from "./resources/domains.ts";
+export type { DomainListOptions } from "./resources/domains.ts";
+export { EventsCollection, ServerEventsCollection } from "./resources/events.ts";
+export type { EventListOptions } from "./resources/events.ts";
+export { ForgeRecipesCollection } from "./resources/forge-recipes.ts";
+export type { ForgeRecipeListOptions } from "./resources/forge-recipes.ts";
+export { HeartbeatsCollection } from "./resources/heartbeats.ts";
+export type { HeartbeatListOptions } from "./resources/heartbeats.ts";
+export {
+  EnableOnlyIntegrationResource,
+  IntegrationResource,
+  IntegrationsResource,
+} from "./resources/integrations.ts";
+export { OrganizationSitesCollection } from "./resources/organization-sites.ts";
+export type { OrganizationSiteListOptions, SiteInclude } from "./resources/organization-sites.ts";
+export { OrganizationsCollection } from "./resources/organizations.ts";
+export type { OrganizationListOptions } from "./resources/organizations.ts";
+export {
+  ProviderRegionResource,
+  ProviderResource,
+  ProvidersCollection,
+} from "./resources/providers.ts";
+export type { ProviderListOptions } from "./resources/providers.ts";
+export { RecipeRunsCollection } from "./resources/recipes.ts";
+export type { RecipeRunListOptions } from "./resources/recipes.ts";
+export type { RedirectRuleImportMode } from "./resources/redirect-rules.ts";
+export {
+  PermissionsCollection,
+  PredefinedRolesCollection,
+  RolesCollection,
+} from "./resources/roles.ts";
+export type { PermissionListOptions, RoleListOptions } from "./resources/roles.ts";
+export { ServerCredentialsCollection, VpcsCollection } from "./resources/server-credentials.ts";
+export type { ServerCredentialListOptions, Vpc } from "./resources/server-credentials.ts";
+export { ServerDeploymentsCollection } from "./resources/server-deployments.ts";
+export type { ServerDeploymentListOptions } from "./resources/server-deployments.ts";
+export {
+  ServerKeyResource,
+  ServerLogsResource,
+  ServerNetworkResource,
+} from "./resources/server-settings.ts";
+export { ServerArchivesCollection } from "./resources/servers.ts";
+export type {
+  ArchivedServerListOptions,
+  DeleteServerOptions,
+  ServerAction,
+} from "./resources/servers.ts";
+export { STOPPABLE_SERVICES } from "./resources/services.ts";
+export type { StoppableService } from "./resources/services.ts";
+export {
+  SiteDeployKeyResource,
+  SiteHealthcheckResource,
+  SiteLoadBalancingResource,
+  SiteLogsResource,
+} from "./resources/site-settings.ts";
+export type { LoadBalancingNodeListOptions, SiteLogType } from "./resources/site-settings.ts";
+export {
+  TeamInvitesCollection,
+  TeamMembersCollection,
+  TeamRecipesCollection,
+  TeamServerCredentialsCollection,
+} from "./resources/teams.ts";
+export type { TeamInvitationListOptions, TeamItemListOptions } from "./resources/teams.ts";
+export { WebhooksCollection } from "./resources/webhooks.ts";
+export type { WebhookListOptions } from "./resources/webhooks.ts";
 
 // Re-export JSON:API types and helpers from forge-api
 export type {

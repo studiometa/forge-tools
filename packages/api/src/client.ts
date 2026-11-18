@@ -81,14 +81,16 @@ export class HttpClient {
         Accept: "application/json",
       };
 
-      if (body !== undefined) {
+      // A form (file upload) sets its own multipart content type with its boundary.
+      const isForm = body instanceof FormData;
+      if (body !== undefined && !isForm) {
         headers["Content-Type"] = "application/json";
       }
 
       const response = await this.fetch(url, {
         method,
         headers,
-        body: body !== undefined ? JSON.stringify(body) : undefined,
+        body: isForm ? body : body !== undefined ? JSON.stringify(body) : undefined,
       });
 
       this.rateLimiter.updateFromHeaders(response.headers);

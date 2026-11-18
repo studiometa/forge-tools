@@ -3,11 +3,12 @@
  */
 
 /**
- * Options for listing deployments for a site.
+ * Options for listing the latest deployments of a site, or of every site of the server
+ * without `site_id`.
  */
 export interface ListDeploymentsOptions {
   server_id: string;
-  site_id: string;
+  site_id?: string;
 }
 
 /**

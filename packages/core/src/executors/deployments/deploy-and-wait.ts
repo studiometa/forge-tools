@@ -38,7 +38,7 @@ export async function deploySiteAndWait(
     ROUTES.deployments.create,
     ctx,
     { server_id, site_id },
-    { body: {}, schema: jsonApiDocumentSchema(DeploymentAttributesSchema) },
+    { schema: jsonApiDocumentSchema(DeploymentAttributesSchema) },
   );
   const deployment = unwrapDocument(createResponse);
   const deploymentId = deployment.id;

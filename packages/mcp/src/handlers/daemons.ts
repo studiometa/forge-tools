@@ -20,7 +20,14 @@ export const handleDaemons = createResourceHandler({
     list: v.object({ server_id: v.string() }),
     get: v.object({ server_id: v.string(), id: v.string() }),
     log: v.object({ server_id: v.string(), id: v.string() }),
-    create: v.object({ server_id: v.string(), command: v.string() }),
+    create: v.object({
+      server_id: v.string(),
+      command: v.string(),
+      name: v.optional(v.string()),
+      user: v.optional(v.picklist(["root", "forge"])),
+      directory: v.optional(v.string()),
+      processes: v.optional(v.number()),
+    }),
     update: v.object({
       server_id: v.string(),
       id: v.string(),
@@ -38,6 +45,19 @@ export const handleDaemons = createResourceHandler({
     delete: deleteDaemon,
     restart: restartDaemon,
     log: getDaemonLog,
+  },
+  mapOptions: (action, args) => {
+    const { resource: _r, action: _a, compact: _c, ...rest } = args;
+    if (action !== "create") return rest;
+    // Forge requires a name, a user and a number of processes.
+    return {
+      server_id: args.server_id,
+      command: args.command,
+      name: args.name ?? args.command,
+      user: args.user ?? "forge",
+      processes: args.processes ?? 1,
+      ...(args.directory ? { directory: args.directory } : {}),
+    };
   },
   hints: (_data, id, args) => getDaemonHints(String(args.server_id), id),
   formatResult: (action, data, args) => {

@@ -15,4 +15,13 @@ describe("getNginxConfig", () => {
     const result = await getNginxConfig({ server_id: "1", site_id: "2" }, ctx);
     expect(result.data).toContain("listen 80");
   });
+
+  it("should give an empty configuration when Forge sends no content", async () => {
+    const ctx = createTestExecutorContext({
+      client: { get: async () => mockDocument(1, "nginxConfigs", { content: null }) } as never,
+      organizationSlug: "test-org",
+    });
+    const result = await getNginxConfig({ server_id: "1", site_id: "2" }, ctx);
+    expect(result.data).toBe("");
+  });
 });

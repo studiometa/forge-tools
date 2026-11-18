@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { mockListDocument } from "../../test-helpers.ts";
 import { createTestExecutorContext } from "../../context.ts";
@@ -42,6 +42,18 @@ describe("listDeployments", () => {
     const result = await listDeployments({ server_id: "123", site_id: "456" }, ctx);
 
     expect(result.data).toHaveLength(2);
+  });
+
+  it("should list the deployments of every site of a server without site_id", async () => {
+    const get = vi.fn(async () => mockListDocument("deployments", []));
+    const ctx = createTestExecutorContext({
+      client: { get } as never,
+      organizationSlug: "test-org",
+    });
+
+    await listDeployments({ server_id: "123" }, ctx);
+
+    expect(get).toHaveBeenCalledWith("/orgs/test-org/servers/123/deployments?sort=-created_at");
   });
 
   it("should handle empty deployment list", async () => {

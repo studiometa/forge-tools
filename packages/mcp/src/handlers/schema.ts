@@ -67,7 +67,7 @@ const RESOURCE_SCHEMAS: Record<string, ResourceSchemaData> = {
     actions: ["list", "deploy", "get", "update"],
     scope: "site",
     required: {
-      list: ["server_id", "site_id"],
+      list: ["server_id"],
       deploy: ["server_id", "site_id"],
       get: ["server_id", "site_id", "id"],
       update: ["server_id", "site_id", "content"],
@@ -92,8 +92,38 @@ const RESOURCE_SCHEMAS: Record<string, ResourceSchemaData> = {
     },
   },
 
+  events: {
+    actions: ["list", "get", "log"],
+    scope: "global",
+    required: { list: [], get: ["server_id", "id"], log: ["server_id", "id"] },
+  },
+
+  network: {
+    actions: ["get", "update"],
+    scope: "server",
+    required: { get: ["server_id"], update: ["server_id", "servers"] },
+  },
+
+  "deploy-key": {
+    actions: ["get", "create", "delete"],
+    scope: "site",
+    required: {
+      get: ["server_id", "site_id"],
+      create: ["server_id", "site_id"],
+      delete: ["server_id", "site_id"],
+    },
+  },
+
+  git: {
+    actions: ["update"],
+    scope: "site",
+    required: {
+      update: ["server_id", "site_id", "source_control_provider", "repository", "branch"],
+    },
+  },
+
   certificates: {
-    actions: ["list", "get", "create", "delete", "activate"],
+    actions: ["list", "get", "create", "delete", "activate", "deactivate"],
     scope: "domain",
     required: {
       list: ["server_id", "site_id"],
@@ -101,6 +131,7 @@ const RESOURCE_SCHEMAS: Record<string, ResourceSchemaData> = {
       create: ["server_id", "site_id", "domain_id", "type"],
       delete: ["server_id", "site_id", "domain_id", "id"],
       activate: ["server_id", "site_id", "domain_id", "id"],
+      deactivate: ["server_id", "site_id", "domain_id", "id"],
     },
     create: {
       type: { required: true, type: "string — letsencrypt, csr, existing, clone" },
@@ -136,7 +167,7 @@ const RESOURCE_SCHEMAS: Record<string, ResourceSchemaData> = {
     create: {
       name: { required: true, type: "string — database user name" },
       password: { required: true, type: "string — user password" },
-      databases: { required: false, type: "array — database IDs to grant access to" },
+      database_ids: { required: false, type: "array — database IDs to grant access to" },
     },
   },
 
@@ -153,7 +184,8 @@ const RESOURCE_SCHEMAS: Record<string, ResourceSchemaData> = {
     },
     create: {
       command: { required: true, type: "string — e.g. php artisan queue:work" },
-      user: { required: false, type: "string — default: forge" },
+      name: { required: false, type: "string — default: the command" },
+      user: { required: false, type: "string — forge (default) or root" },
       directory: { required: false, type: "string — working directory" },
       processes: { required: false, type: "number — default: 1" },
     },
@@ -184,12 +216,12 @@ const RESOURCE_SCHEMAS: Record<string, ResourceSchemaData> = {
     required: {
       list: ["server_id"],
       get: ["server_id", "id"],
-      create: ["server_id", "name", "port"],
+      create: ["server_id", "name"],
       delete: ["server_id", "id"],
     },
     create: {
       name: { required: true, type: "string" },
-      port: { required: true, type: "number|string — e.g. 80, 443, 8000-9000" },
+      port: { required: false, type: "number|string — e.g. 80, 443, 8000-9000" },
       type: { required: false, type: "string — allow (default) or deny" },
       ip_address: { required: false, type: "string — restrict to IP" },
     },
@@ -207,7 +239,7 @@ const RESOURCE_SCHEMAS: Record<string, ResourceSchemaData> = {
     create: {
       name: { required: true, type: "string — key label" },
       key: { required: true, type: "string — public key content" },
-      username: { required: false, type: "string — user to add key to" },
+      user: { required: false, type: "string — server user to add the key to" },
     },
   },
 
@@ -228,13 +260,16 @@ const RESOURCE_SCHEMAS: Record<string, ResourceSchemaData> = {
   },
 
   "redirect-rules": {
-    actions: ["list", "get", "create", "delete"],
+    actions: ["list", "get", "create", "delete", "export", "import", "reorder"],
     scope: "site",
     required: {
       list: ["server_id", "site_id"],
       get: ["server_id", "site_id", "id"],
       create: ["server_id", "site_id", "from", "to"],
       delete: ["server_id", "site_id", "id"],
+      export: ["server_id", "site_id"],
+      import: ["server_id", "site_id", "content", "mode"],
+      reorder: ["server_id", "site_id", "redirects"],
     },
     create: {
       from: { required: true, type: "string — source path" },
@@ -249,14 +284,15 @@ const RESOURCE_SCHEMAS: Record<string, ResourceSchemaData> = {
     required: {
       list: ["server_id"],
       get: ["server_id", "id"],
-      create: ["server_id", "type", "operator", "threshold", "minutes"],
+      create: ["server_id", "type", "operator", "threshold", "notify"],
       delete: ["server_id", "id"],
     },
     create: {
-      type: { required: true, type: "string — disk, cpu, memory, etc." },
+      type: { required: true, type: "string — cpu_load, disk, free_memory, used_memory" },
       operator: { required: true, type: "string — gte, lte" },
       threshold: { required: true, type: "number — e.g. 80" },
-      minutes: { required: true, type: "number — check interval in minutes" },
+      minutes: { required: false, type: "number — check interval in minutes" },
+      notify: { required: true, type: "string — email notified on alert" },
     },
   },
 
@@ -350,13 +386,10 @@ const RESOURCE_SCHEMAS: Record<string, ResourceSchemaData> = {
       user: { required: false, type: "string — execution user (default: forge)" },
       frequency: {
         required: false,
-        type: "string — minutely, hourly, nightly, weekly, monthly, custom",
+        type: "string — minutely, hourly, nightly, weekly, monthly, reboot, custom (default: custom with cron, nightly without)",
       },
-      minute: { required: false, type: "string — cron minute field (custom frequency)" },
-      hour: { required: false, type: "string — cron hour field" },
-      day: { required: false, type: "string — cron day field" },
-      month: { required: false, type: "string — cron month field" },
-      weekday: { required: false, type: "string — cron weekday field" },
+      cron: { required: false, type: "string — cron expression (custom frequency)" },
+      name: { required: false, type: "string — job name" },
     },
   },
 

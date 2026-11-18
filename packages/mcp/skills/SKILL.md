@@ -24,7 +24,7 @@ Before your first interaction with any resource, call `action="help"` with that 
 
 Safe, read-only queries. Use for listing, getting details, resolving names, fetching context snapshots, help, and schema.
 
-**Actions**: `list`, `get`, `resolve`, `context`, `help`, `schema`
+**Actions**: `list`, `get`, `resolve`, `context`, `help`, `schema`, `log`, `export`
 
 ```
 forge(resource, action, [parameters...])
@@ -34,7 +34,7 @@ forge(resource, action, [parameters...])
 
 Mutating operations that modify server state. Always requires confirmation.
 
-**Actions**: `create`, `update`, `delete`, `deploy`, `reboot`, `restart`, `activate`, `run`
+**Actions**: `create`, `update`, `delete`, `deploy`, `reboot`, `restart`, `activate`, `deactivate`, `run`, `import`, `reorder`
 
 ```
 forge_write(resource, action, [parameters...])
@@ -42,31 +42,35 @@ forge_write(resource, action, [parameters...])
 
 ### Resources & Actions
 
-| Resource            | Read Actions (`forge`)              | Write Actions (`forge_write`)          | Scope  |
-| ------------------- | ----------------------------------- | -------------------------------------- | ------ |
-| `servers`           | `list`, `get`, `resolve`, `context` | `create`, `update`, `delete`, `reboot` | global |
-| `sites`             | `list`, `get`, `resolve`, `context` | `create`, `delete`                     | server |
-| `deployments`       | `list`                              | `deploy`, `update`                     | site   |
-| `env`               | `get`                               | `update`                               | site   |
-| `nginx`             | `get`                               | `update`                               | site   |
-| `certificates`      | `list`, `get`                       | `create`, `delete`, `activate`         | domain |
-| `databases`         | `list`, `get`                       | `create`, `delete`                     | server |
-| `database-users`    | `list`, `get`                       | `create`, `delete`                     | server |
-| `daemons`           | `list`, `get`                       | `create`, `delete`, `restart`          | server |
-| `firewall-rules`    | `list`, `get`                       | `create`, `delete`                     | server |
-| `ssh-keys`          | `list`, `get`                       | `create`, `delete`                     | server |
-| `security-rules`    | `list`, `get`                       | `create`, `delete`                     | site   |
-| `redirect-rules`    | `list`, `get`                       | `create`, `delete`                     | site   |
-| `monitors`          | `list`, `get`                       | `create`, `delete`                     | server |
-| `nginx-templates`   | `list`, `get`                       | `create`, `update`, `delete`           | server |
-| `recipes`           | `list`, `get`                       | `create`, `delete`, `run`              | global |
-| `scheduled-jobs`    | `list`, `get`                       | `create`, `delete`                     | server |
-| `backups`           | `list`, `get`                       | `create`, `update`, `delete`           | server |
-| `storage-providers` | `list`, `get`                       | `create`, `delete`                     | global |
-| `commands`          | `list`, `get`                       | `create`                               | site   |
-| `php`               | `list`, `get`                       | `update`                               | server |
-| `user`              | `get`                               | —                                      | global |
-| `batch`             | `run`                               | —                                      | global |
+| Resource            | Read Actions (`forge`)              | Write Actions (`forge_write`)                | Scope  |
+| ------------------- | ----------------------------------- | -------------------------------------------- | ------ |
+| `servers`           | `list`, `get`, `resolve`, `context` | `create`, `update`, `delete`, `reboot`       | global |
+| `sites`             | `list`, `get`, `resolve`, `context` | `create`, `delete`                           | server |
+| `deployments`       | `list`                              | `deploy`, `update`                           | site   |
+| `events`            | `list`, `get`, `log`                | —                                            | global |
+| `network`           | `get`                               | `update`                                     | server |
+| `deploy-key`        | `get`                               | `create`, `delete`                           | site   |
+| `git`               | —                                   | `update`                                     | site   |
+| `env`               | `get`                               | `update`                                     | site   |
+| `nginx`             | `get`                               | `update`                                     | site   |
+| `certificates`      | `list`, `get`                       | `create`, `delete`, `activate`, `deactivate` | domain |
+| `databases`         | `list`, `get`                       | `create`, `delete`                           | server |
+| `database-users`    | `list`, `get`                       | `create`, `delete`                           | server |
+| `daemons`           | `list`, `get`                       | `create`, `delete`, `restart`                | server |
+| `firewall-rules`    | `list`, `get`                       | `create`, `delete`                           | server |
+| `ssh-keys`          | `list`, `get`                       | `create`, `delete`                           | server |
+| `security-rules`    | `list`, `get`                       | `create`, `delete`                           | site   |
+| `redirect-rules`    | `list`, `get`, `export`             | `create`, `delete`, `import`, `reorder`      | site   |
+| `monitors`          | `list`, `get`                       | `create`, `delete`                           | server |
+| `nginx-templates`   | `list`, `get`                       | `create`, `update`, `delete`                 | server |
+| `recipes`           | `list`, `get`                       | `create`, `delete`, `run`                    | global |
+| `scheduled-jobs`    | `list`, `get`                       | `create`, `delete`                           | server |
+| `backups`           | `list`, `get`                       | `create`, `update`, `delete`                 | server |
+| `storage-providers` | `list`, `get`                       | `create`, `delete`                           | global |
+| `commands`          | `list`, `get`                       | `create`                                     | site   |
+| `php`               | `list`, `get`                       | `update`                                     | server |
+| `user`              | `get`                               | —                                            | global |
+| `batch`             | `run`                               | —                                            | global |
 
 ### Scope Guide
 

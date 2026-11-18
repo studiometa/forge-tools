@@ -6,6 +6,9 @@ vi.mock("./handlers.ts", () => ({
   certificatesList: vi.fn().mockResolvedValue(),
   certificatesGet: vi.fn().mockResolvedValue(),
   certificatesActivate: vi.fn().mockResolvedValue(),
+  certificatesCreate: vi.fn().mockResolvedValue(),
+  certificatesDelete: vi.fn().mockResolvedValue(),
+  certificatesDeactivate: vi.fn().mockResolvedValue(),
 }));
 
 vi.mock("../../context.ts", () => ({
@@ -51,6 +54,16 @@ describe("handleCertificatesCommand routing", () => {
     const h = await import("./handlers.ts");
     await handleCertificatesCommand("activate", [], {});
     expect(h.certificatesActivate).toHaveBeenCalled();
+  });
+
+  it("should route create, delete and deactivate", async () => {
+    const h = await import("./handlers.ts");
+    await handleCertificatesCommand("create", [], {});
+    await handleCertificatesCommand("delete", ["1"], {});
+    await handleCertificatesCommand("deactivate", ["1"], {});
+    expect(h.certificatesCreate).toHaveBeenCalled();
+    expect(h.certificatesDelete).toHaveBeenCalledWith(["1"], expect.anything());
+    expect(h.certificatesDeactivate).toHaveBeenCalledWith(["1"], expect.anything());
   });
 
   it("should exit for unknown subcommand", async () => {

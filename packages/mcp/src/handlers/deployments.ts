@@ -29,24 +29,28 @@ export async function handleDeployments(
   ctx: HandlerContext,
 ): Promise<ToolResult> {
   if (!args.server_id) return errorResult("Missing required field: server_id");
-  if (!args.site_id) return errorResult("Missing required field: site_id");
+  // Without site_id, list gives the deployments of every site of the server.
+  if (!args.site_id && action !== "list") return errorResult("Missing required field: site_id");
 
   // Validate IDs to prevent path traversal
   if (!sanitizeId(args.server_id)) {
     return errorResult(`Invalid server_id: "${args.server_id}". IDs must be alphanumeric.`);
   }
-  if (!sanitizeId(args.site_id)) {
+  if (args.site_id && !sanitizeId(args.site_id)) {
     return errorResult(`Invalid site_id: "${args.site_id}". IDs must be alphanumeric.`);
   }
   if (args.id && !sanitizeId(args.id)) {
     return errorResult(`Invalid id: "${args.id}". IDs must be alphanumeric.`);
   }
 
-  const opts = { server_id: args.server_id, site_id: args.site_id };
+  const opts = { server_id: args.server_id, site_id: args.site_id ?? "" };
 
   switch (action) {
     case "list": {
-      const result = await listDeployments(opts, ctx.executorContext);
+      const result = await listDeployments(
+        args.site_id ? opts : { server_id: args.server_id },
+        ctx.executorContext,
+      );
       if (ctx.compact) {
         return jsonResult(formatDeploymentList(result.data));
       }
@@ -55,7 +59,7 @@ export async function handleDeployments(
 
     case "deploy": {
       const deployResult = await deploySiteAndWait(opts, ctx.executorContext);
-      return jsonResult(formatDeployAction(args.site_id, args.server_id, deployResult.data));
+      return jsonResult(formatDeployAction(opts.site_id, args.server_id, deployResult.data));
     }
 
     case "get": {
@@ -76,7 +80,7 @@ export async function handleDeployments(
         { ...opts, content: args.content as string },
         ctx.executorContext,
       );
-      return jsonResult(formatDeploymentScriptUpdated(args.site_id, args.server_id));
+      return jsonResult(formatDeploymentScriptUpdated(opts.site_id, args.server_id));
     }
 
     default:

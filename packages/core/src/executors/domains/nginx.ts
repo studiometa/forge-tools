@@ -1,5 +1,5 @@
 import {
-  EnvironmentAttributesSchema,
+  NginxConfigAttributesSchema,
   jsonApiDocumentSchema,
   unwrapDocument,
 } from "@studiometa/forge-api";
@@ -21,10 +21,10 @@ export async function getDomainNginxConfig(
     ROUTES.domains.nginx,
     ctx,
     { server_id, site_id, domain_id },
-    { schema: jsonApiDocumentSchema(EnvironmentAttributesSchema) },
+    { schema: jsonApiDocumentSchema(NginxConfigAttributesSchema) },
   );
 
   return {
-    data: unwrapDocument(response).content,
+    data: unwrapDocument(response).content ?? "",
   };
 }

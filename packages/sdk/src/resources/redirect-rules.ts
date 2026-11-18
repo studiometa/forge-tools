@@ -2,22 +2,26 @@ import type {
   CreateRedirectRuleData,
   HttpClient,
   JsonApiDocument,
-  JsonApiListDocument,
   RedirectRuleAttributes,
 } from "@studiometa/forge-api";
 
-import { unwrapDocument, unwrapListDocument } from "@studiometa/forge-api";
+import { unwrapDocument } from "@studiometa/forge-api";
+
+import type { AllOptions, ListOptions } from "../list-options.ts";
 
 import { BaseCollection } from "./base.ts";
 import { AsyncPaginatedIterator } from "../pagination.ts";
 
+/** How an import applies its rules: after the current rules, or instead of them. */
+export type RedirectRuleImportMode = "append" | "replace";
+
 /**
  * Options for listing redirect rules.
  */
-export interface RedirectRuleListOptions {
-  /** Cursor for pagination (from previous response's next_cursor). */
-  cursor?: string;
-}
+export type RedirectRuleListOptions = ListOptions<
+  "from" | "to" | "type" | "status",
+  "created_at" | "updated_at"
+>;
 
 /**
  * Collection of redirect rules on a site.
@@ -58,11 +62,7 @@ export class RedirectRulesCollection extends BaseCollection {
   async list(
     options: RedirectRuleListOptions = {},
   ): Promise<Array<RedirectRuleAttributes & { id: number }>> {
-    const query = options.cursor !== undefined ? `?page[cursor]=${options.cursor}` : "";
-    const response = await this.client.get<JsonApiListDocument<RedirectRuleAttributes>>(
-      `${this.basePath}${query}`,
-    );
-    return unwrapListDocument(response);
+    return this.listPage<RedirectRuleAttributes>(this.basePath, options);
   }
 
   /**
@@ -78,17 +78,10 @@ export class RedirectRulesCollection extends BaseCollection {
    * const rules = await forge.server(123).site(456).redirectRules.all().toArray();
    * ```
    */
-  all(): AsyncPaginatedIterator<RedirectRuleAttributes & { id: number }> {
-    return new AsyncPaginatedIterator<RedirectRuleAttributes & { id: number }>(async (cursor) => {
-      const query = cursor !== null ? `?page[cursor]=${cursor}` : "";
-      const response = await this.client.get<JsonApiListDocument<RedirectRuleAttributes>>(
-        `${this.basePath}${query}`,
-      );
-      return {
-        items: unwrapListDocument(response),
-        nextCursor: response.meta.next_cursor ?? null,
-      };
-    });
+  all(
+    options: AllOptions<RedirectRuleListOptions> = {},
+  ): AsyncPaginatedIterator<RedirectRuleAttributes & { id: number }> {
+    return this.iterate<RedirectRuleAttributes>(this.basePath, options);
   }
 
   /**
@@ -134,5 +127,50 @@ export class RedirectRulesCollection extends BaseCollection {
    */
   async delete(ruleId: number): Promise<void> {
     await this.client.delete(`${this.basePath}/${ruleId}`);
+  }
+
+  /**
+   * Export the redirect rules of the site as CSV, with a `from,to,type` header row.
+   *
+   * @example
+   * ```ts
+   * const csv = await forge.server(123).site(456).redirectRules.export();
+   * ```
+   */
+  async export(): Promise<string> {
+    return this.client.get<string>(`${this.basePath}/export`);
+  }
+
+  /**
+   * Import redirect rules from CSV, with a `from,to,type` header row. Returns the number of
+   * imported rules.
+   *
+   * @example
+   * ```ts
+   * await forge.server(123).site(456).redirectRules.import('from,to,type\n/a,/b,301\n');
+   * ```
+   */
+  async import(csv: string | Blob, mode: RedirectRuleImportMode = "append"): Promise<number> {
+    const form = new FormData();
+    form.append(
+      "file",
+      typeof csv === "string" ? new Blob([csv], { type: "text/csv" }) : csv,
+      "redirects.csv",
+    );
+    form.append("mode", mode);
+    const response = await this.client.post<{ imported: number }>(`${this.basePath}/import`, form);
+    return response?.imported ?? 0;
+  }
+
+  /**
+   * Set the order of the redirect rules of the site.
+   *
+   * @example
+   * ```ts
+   * await forge.server(123).site(456).redirectRules.reorder([3, 1, 2]);
+   * ```
+   */
+  async reorder(ruleIds: number[]): Promise<void> {
+    await this.client.put(`${this.basePath}/reorder`, { redirects: ruleIds });
   }
 }

@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { mockDocument, mockListDocument } from "@studiometa/forge-core";
 
@@ -103,5 +103,58 @@ describe("handleRedirectRules", () => {
       createMockContext(),
     );
     expect(result.isError).toBe(true);
+  });
+});
+
+describe("handleRedirectRules — export, import, reorder", () => {
+  const site = { resource: "redirect-rules", server_id: "1", site_id: "10" };
+
+  function context(client: Record<string, unknown>): HandlerContext {
+    return { executorContext: { organizationSlug: "o", client: client as never }, compact: true };
+  }
+
+  it("should export the rules as CSV", async () => {
+    const get = vi.fn(async () => "from,to,type\n/a,/b,redirect\n");
+    const result = await handleRedirectRules(
+      "export",
+      { ...site, action: "export" },
+      context({ get }),
+    );
+    expect(get).toHaveBeenCalledWith("/orgs/o/servers/1/sites/10/redirect-rules/export");
+    expect(result.content[0].text).toBe("from,to,type\n/a,/b,redirect\n");
+  });
+
+  it("should import the CSV of content with a mode", async () => {
+    const post = vi.fn(async (_url: string, _form: FormData) => ({ imported: 2 }));
+    const result = await handleRedirectRules(
+      "import",
+      { ...site, action: "import", content: "from,to,type\n", mode: "append" },
+      context({ post }),
+    );
+    expect(post.mock.calls[0][0]).toBe("/orgs/o/servers/1/sites/10/redirect-rules/import");
+    expect(post.mock.calls[0][1].get("mode")).toBe("append");
+    expect(result.content[0].text).toBe("2 redirect rule(s) imported.");
+  });
+
+  it("should refuse an unknown import mode", async () => {
+    const result = await handleRedirectRules(
+      "import",
+      { ...site, action: "import", content: "x", mode: "merge" },
+      context({}),
+    );
+    expect(result.isError).toBe(true);
+  });
+
+  it("should reorder the rules", async () => {
+    const put = vi.fn(async () => {});
+    const result = await handleRedirectRules(
+      "reorder",
+      { ...site, action: "reorder", redirects: [2, 1] },
+      context({ put }),
+    );
+    expect(put).toHaveBeenCalledWith("/orgs/o/servers/1/sites/10/redirect-rules/reorder", {
+      redirects: [2, 1],
+    });
+    expect(result.content[0].text).toBe("Redirect rules of site 10 reordered.");
   });
 });

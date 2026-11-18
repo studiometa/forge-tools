@@ -36,4 +36,18 @@ describe("getDomainNginxConfig on an older site", () => {
     );
     expect(result.data).toBe("");
   });
+
+  it("gives an empty content when Forge sends no content", async () => {
+    const ctx = createTestExecutorContext({
+      client: {
+        get: async () => mockDocument(1, "nginxConfigurations", { content: null }),
+      } as never,
+      organizationSlug: "test-org",
+    });
+    const result = await getDomainNginxConfig(
+      { server_id: "1", site_id: "2", domain_id: "3" },
+      ctx,
+    );
+    expect(result.data).toBe("");
+  });
 });

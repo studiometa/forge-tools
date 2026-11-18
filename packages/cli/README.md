@@ -41,33 +41,37 @@ forge config delete
 forge <command> [subcommand] [options]
 ```
 
-| Command             | Alias   | Description                                          |
-| ------------------- | ------- | ---------------------------------------------------- |
-| `config`            |         | Manage CLI configuration (`set`, `get`, `delete`)    |
-| `servers`           | `s`     | List, get, create, update, reboot servers            |
-| `sites`             |         | List, get sites; apply a site file                   |
-| `deployments`       | `d`     | List deployments, trigger deploys, deploy script     |
-| `databases`         | `db`    | List, get databases on a server                      |
-| `database-users`    |         | List, get, create, delete database users on a server |
-| `daemons`           |         | List, get, restart daemons on a server               |
-| `backups`           |         | List, get, create, update, delete database backups   |
-| `storage-providers` |         | List, get, create, delete backup storage providers   |
-| `commands`          |         | List, get, create commands on a server               |
-| `scheduled-jobs`    |         | List, get, create, delete scheduled jobs on a server |
-| `monitors`          |         | List, get, create, delete monitors on a server       |
-| `env`               |         | Get, update environment variables for a site         |
-| `nginx`             |         | Get, update Nginx configuration for a site           |
-| `nginx-templates`   |         | List, get, create, update, delete Nginx templates    |
-| `php`               |         | PHP versions, config files, limits and OPcache       |
-| `certificates`      | `certs` | List, get, activate SSL certificates for a site      |
-| `firewall-rules`    | `fw`    | List, get firewall rules on a server                 |
-| `ssh`               |         | Open an SSH session to a server                      |
-| `ssh-keys`          |         | List, get, sync SSH keys on servers                  |
-| `security-rules`    |         | List, get, create, delete security rules for a site  |
-| `redirect-rules`    |         | List, get, create, delete redirect rules for a site  |
-| `recipes`           |         | List, get, run recipes                               |
-| `user`              |         | Get the authenticated user's profile                 |
-| `completion`        |         | Install shell completion (bash, zsh, fish)           |
+| Command             | Alias   | Description                                                          |
+| ------------------- | ------- | -------------------------------------------------------------------- |
+| `config`            |         | Manage CLI configuration (`set`, `get`, `delete`)                    |
+| `servers`           | `s`     | List, get, create, update, reboot servers                            |
+| `sites`             |         | List, get sites; apply a site file                                   |
+| `deployments`       | `d`     | List deployments, trigger deploys, deploy script                     |
+| `databases`         | `db`    | List, get databases on a server                                      |
+| `database-users`    |         | List, get, create, delete database users on a server                 |
+| `daemons`           |         | List, get, restart daemons on a server                               |
+| `backups`           |         | List, get, create, update, delete database backups                   |
+| `storage-providers` |         | List, get, create, delete backup storage providers                   |
+| `commands`          |         | List, get, create commands on a server                               |
+| `scheduled-jobs`    |         | List, get, create, delete scheduled jobs on a server                 |
+| `monitors`          |         | List, get, create, delete monitors on a server                       |
+| `env`               |         | Get, update environment variables for a site                         |
+| `nginx`             |         | Get, update Nginx configuration for a site                           |
+| `nginx-templates`   |         | List, get, create, update, delete Nginx templates                    |
+| `php`               |         | PHP versions, config files, limits and OPcache                       |
+| `certificates`      | `certs` | List, get, create, delete, activate, deactivate SSL certificates     |
+| `firewall-rules`    | `fw`    | List, get firewall rules on a server                                 |
+| `ssh`               |         | Open an SSH session to a server                                      |
+| `ssh-keys`          |         | List, get, sync SSH keys on servers                                  |
+| `security-rules`    |         | List, get, create, delete security rules for a site                  |
+| `redirect-rules`    |         | List, get, create, delete, export, import, reorder redirect rules    |
+| `events`            |         | List, get events of the organization or a server, print their output |
+| `network`           |         | Get, update the network of a server                                  |
+| `deploy-key`        |         | Get, create, delete the deploy key of a site                         |
+| `git`               |         | Update the repository and branch of a site                           |
+| `recipes`           |         | List, get, run recipes                                               |
+| `user`              |         | Get the authenticated user's profile                                 |
+| `completion`        |         | Install shell completion (bash, zsh, fish)                           |
 
 Run `forge <command> --help` for detailed usage of each command.
 
@@ -284,7 +288,7 @@ forge sites apply --file config/forge/production/site.json
 ### `deployments` (`d`) — Manage deployments
 
 ```bash
-forge deployments list --server <id> --site <id>                          # List deployments
+forge deployments list --server <id> [--site <id>]                        # List deployments (every site of the server without --site)
 forge deployments deploy --server <id> --site <id>                        # Trigger a deployment
 forge deployments deploy --server <id> --site <id> --script-file deploy.sh  # Upload the script, then deploy
 forge deployments logs [id] --server <id> --site <id>                     # Show deployment output (latest if no id)
@@ -379,8 +383,13 @@ forge php disable-opcache --server <id>                                         
 ```bash
 forge certificates list --server <id> --site <id> [--domain <id>]                 # List certificates
 forge certificates get [cert_id] --server <id> --site <id> --domain <id>          # Get a certificate
+forge certificates create --server <id> --site <id> --domain <id> --type letsencrypt  # Request a certificate
+forge certificates delete <cert_id> --server <id> --site <id> --domain <id>       # Delete a certificate
 forge certificates activate <cert_id> --server <id> --site <id> --domain <id>     # Activate a certificate
+forge certificates deactivate <cert_id> --server <id> --site <id> --domain <id>   # Deactivate a certificate
 ```
+
+`create` takes `--type letsencrypt` (default; `--verification-method http-01|dns-01`, `--key-type ecdsa|rsa`), `--type existing` (`--key-file`, `--certificate-file`), `--type csr` (`--csr-domain`, `--sans`, `--country`, `--state`, `--city`, `--organization`, `--department`) or `--type clone` (`--certificate-id`). `--enable` activates an existing or cloned certificate once installed.
 
 Each domain of a site has its certificates, and one of them is active. `list` without `--domain` lists the certificates of every domain of the site. `get` without a certificate ID gets the active certificate of the domain. `--domain` takes the ID of a domain record of the site.
 
@@ -467,6 +476,44 @@ forge backups create --server web-1 --storage-provider Backups \
 forge recipes list                                          # List all recipes
 forge recipes get <id>                                      # Get recipe details
 forge recipes run <id> --servers 123,456                    # Run recipe on servers
+```
+
+### `redirect-rules` — Manage redirect rules
+
+```bash
+forge redirect-rules list --server <id> --site <id>                          # List redirect rules
+forge redirect-rules create --server <id> --site <id> --from /a --to /b      # Create a redirect rule
+forge redirect-rules export --server <id> --site <id> [--output rules.csv]   # Export the rules as CSV
+forge redirect-rules import --server <id> --site <id> --file rules.csv [--mode append|replace]
+forge redirect-rules reorder --server <id> --site <id> --ids 3,1,2           # Set the order of the rules
+```
+
+The CSV has a `from,to,type` header row. `import` adds the rules (`append`, default) or replaces the rules of the site (`replace`). `reorder` takes every rule ID of the site, in order.
+
+### `events` — Read the events of the servers
+
+```bash
+forge events list [--server <id>] [--initiated-by <user_id>] [--ran-as <user>]  # Latest events, newest first
+forge events get <id> --server <id>                                            # Get an event
+forge events output <id> --server <id>                                         # Print the output of an event
+```
+
+### `network` — Manage the network of a server
+
+```bash
+forge network get --server <id>                       # List the servers in the network
+forge network update --server <id> --servers 2,3      # Set the network (IDs or names)
+```
+
+The servers in the network of a server can reach it on its private IP address. `update` replaces the network.
+
+### `deploy-key` and `git` — Manage the repository of a site
+
+```bash
+forge deploy-key get --server <id> --site <id>         # Print the deploy key of the site
+forge deploy-key create --server <id> --site <id>      # Create a deploy key and print it
+forge deploy-key delete --server <id> --site <id>      # Delete the deploy key
+forge git update --server <id> --site <id> --repository acme/app --branch main [--provider github]
 ```
 
 ### `completion` — Shell completion

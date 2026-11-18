@@ -3,8 +3,12 @@ import { describe, expect, it } from "vitest";
 import { ACTIONS, RESOURCES } from "./constants.ts";
 
 describe("constants", () => {
-  it("should export RESOURCES array with all 24 implemented resources", () => {
-    expect(RESOURCES).toHaveLength(24);
+  it("should export RESOURCES array with all 28 implemented resources", () => {
+    expect(RESOURCES).toHaveLength(28);
+    expect(RESOURCES).toContain("events");
+    expect(RESOURCES).toContain("network");
+    expect(RESOURCES).toContain("deploy-key");
+    expect(RESOURCES).toContain("git");
     expect(RESOURCES).toContain("servers");
     expect(RESOURCES).toContain("sites");
     expect(RESOURCES).toContain("deployments");
@@ -40,5 +44,9 @@ describe("constants", () => {
     expect(ACTIONS).toContain("deploy");
     expect(ACTIONS).toContain("reboot");
     expect(ACTIONS).toContain("help");
+    expect(ACTIONS).toContain("deactivate");
+    expect(ACTIONS).toContain("export");
+    expect(ACTIONS).toContain("import");
+    expect(ACTIONS).toContain("reorder");
   });
 });

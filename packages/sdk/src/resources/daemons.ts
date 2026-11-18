@@ -2,23 +2,25 @@ import type {
   CreateDaemonData,
   HttpClient,
   JsonApiDocument,
-  JsonApiListDocument,
   BackgroundProcessAttributes,
   BackgroundProcessLogAttributes,
+  UpdateDaemonData,
 } from "@studiometa/forge-api";
 
-import { unwrapDocument, unwrapListDocument } from "@studiometa/forge-api";
+import { unwrapDocument } from "@studiometa/forge-api";
+
+import type { AllOptions, ListOptions } from "../list-options.ts";
 
 import { BaseCollection } from "./base.ts";
 import { AsyncPaginatedIterator } from "../pagination.ts";
 
+/** The actions that the API runs on a daemon. */
+export type DaemonAction = "restart" | "stop" | "start" | "empty-log";
+
 /**
  * Options for listing daemons.
  */
-export interface DaemonListOptions {
-  /** Cursor for pagination (from previous response's next_cursor). */
-  cursor?: string;
-}
+export type DaemonListOptions = ListOptions<"user" | "site_id" | "directory", "user">;
 
 /**
  * Collection of daemons (background processes) on a server.
@@ -58,11 +60,7 @@ export class DaemonsCollection extends BaseCollection {
   async list(
     options: DaemonListOptions = {},
   ): Promise<Array<BackgroundProcessAttributes & { id: number }>> {
-    const query = options.cursor !== undefined ? `?page[cursor]=${options.cursor}` : "";
-    const response = await this.client.get<JsonApiListDocument<BackgroundProcessAttributes>>(
-      `${this.basePath}${query}`,
-    );
-    return unwrapListDocument(response);
+    return this.listPage<BackgroundProcessAttributes>(this.basePath, options);
   }
 
   /**
@@ -78,19 +76,10 @@ export class DaemonsCollection extends BaseCollection {
    * const daemons = await forge.server(123).daemons.all().toArray();
    * ```
    */
-  all(): AsyncPaginatedIterator<BackgroundProcessAttributes & { id: number }> {
-    return new AsyncPaginatedIterator<BackgroundProcessAttributes & { id: number }>(
-      async (cursor) => {
-        const query = cursor !== null ? `?page[cursor]=${cursor}` : "";
-        const response = await this.client.get<JsonApiListDocument<BackgroundProcessAttributes>>(
-          `${this.basePath}${query}`,
-        );
-        return {
-          items: unwrapListDocument(response),
-          nextCursor: response.meta.next_cursor ?? null,
-        };
-      },
-    );
+  all(
+    options: AllOptions<DaemonListOptions> = {},
+  ): AsyncPaginatedIterator<BackgroundProcessAttributes & { id: number }> {
+    return this.iterate<BackgroundProcessAttributes>(this.basePath, options);
   }
 
   /**
@@ -163,6 +152,30 @@ export class DaemonsCollection extends BaseCollection {
    * ```
    */
   async restart(daemonId: number): Promise<void> {
-    await this.client.post(`${this.basePath}/${daemonId}/actions`, { action: "restart" });
+    await this.action(daemonId, "restart");
+  }
+
+  /**
+   * Update the name or the Supervisor configuration of a daemon.
+   *
+   * @example
+   * ```ts
+   * await forge.server(123).daemons.update(456, { name: 'queue' });
+   * ```
+   */
+  async update(daemonId: number, data: UpdateDaemonData): Promise<void> {
+    await this.client.put(`${this.basePath}/${daemonId}`, data);
+  }
+
+  /**
+   * Run an action on a daemon: `restart`, `stop`, `start` or `empty-log`.
+   *
+   * @example
+   * ```ts
+   * await forge.server(123).daemons.action(456, 'stop');
+   * ```
+   */
+  async action(daemonId: number, action: DaemonAction): Promise<void> {
+    await this.client.post(`${this.basePath}/${daemonId}/actions`, { action });
   }
 }

@@ -1,7 +1,7 @@
 import {
   unwrapDocument,
   jsonApiDocumentSchema,
-  EnvironmentAttributesSchema,
+  NginxConfigAttributesSchema,
 } from "@studiometa/forge-api";
 import type { ExecutorContext, ExecutorResult } from "../../context.ts";
 import { ROUTES, request } from "../../routes.ts";
@@ -19,11 +19,11 @@ export async function getNginxConfig(
     ROUTES.nginx.get,
     ctx,
     { server_id: options.server_id, site_id: options.site_id },
-    { schema: jsonApiDocumentSchema(EnvironmentAttributesSchema) },
+    { schema: jsonApiDocumentSchema(NginxConfigAttributesSchema) },
   );
   const result = unwrapDocument(response);
 
   return {
-    data: result.content,
+    data: result.content ?? "",
   };
 }

@@ -11,13 +11,17 @@ import {
   handleDatabaseUsersCommand,
   showDatabaseUsersHelp,
 } from "./commands/database-users/index.ts";
+import { handleDeployKeyCommand, showDeployKeyHelp } from "./commands/deploy-key/index.ts";
 import { handleDeploymentsCommand, showDeploymentsHelp } from "./commands/deployments/index.ts";
 import { handleEnvCommand, showEnvHelp } from "./commands/env/index.ts";
+import { handleEventsCommand, showEventsHelp } from "./commands/events/index.ts";
 import {
   handleFirewallRulesCommand,
   showFirewallRulesHelp,
 } from "./commands/firewall-rules/index.ts";
+import { handleGitCommand, showGitHelp } from "./commands/git/index.ts";
 import { handleMonitorsCommand, showMonitorsHelp } from "./commands/monitors/index.ts";
+import { handleNetworkCommand, showNetworkHelp } from "./commands/network/index.ts";
 import { handleNginxCommand, showNginxHelp } from "./commands/nginx/index.ts";
 import {
   handleNginxTemplatesCommand,
@@ -73,17 +77,34 @@ ${colors.bold("COMMANDS:")}
     update <id>         Update a server (--name, --ip-address, --private-ip, --timezone, --tag)
     reboot <id>         Reboot a server
 
+  network             Manage the network of a server (servers reachable on their private IP)
+    get                 List the servers in the network (requires --server)
+    update              Set the network (requires --server --servers <id,id,...>)
+
+  events              Read the actions that Forge ran on the servers
+    list, ls            List the latest events (optional --server, --initiated-by, --ran-as)
+    get <id>            Get an event (requires --server)
+    output <id>         Print the output of an event (requires --server)
+
   sites               Manage sites
     list, ls            List sites (requires --server)
     get <id>            Get site details (requires --server)
     apply               Make a site match a site file (--file, --check)
 
   deployments, d      Manage deployments
-    list, ls            List deployments (requires --server --site)
+    list, ls            List deployments (requires --server, optional --site)
     deploy              Trigger a deployment (requires --server --site)
     logs [id]           Show deployment output (requires --server --site)
     script              Show the deployment script (requires --server --site)
     update-script       Update the deployment script (requires --server --site --file|--content) [--check]
+
+  deploy-key          Manage the deploy key of a site
+    get                 Print the deploy key (requires --server --site)
+    create              Create a deploy key and print it (requires --server --site)
+    delete              Delete the deploy key (requires --server --site)
+
+  git                 Manage the repository of a site
+    update              Change the repository and branch (requires --server --site --repository --branch)
 
   databases, db       Manage databases
     list, ls            List databases (requires --server)
@@ -111,7 +132,10 @@ ${colors.bold("COMMANDS:")}
   certificates, certs Manage SSL certificates (several per domain, one active)
     list, ls            List certificates (requires --server --site, optional --domain)
     get [id]            Get a certificate, the active one without an ID (requires --server --site --domain)
+    create              Create a certificate (requires --server --site --domain --type)
+    delete <id>         Delete a certificate (requires --server --site --domain)
     activate <id>       Activate a certificate (requires --server --site --domain)
+    deactivate <id>     Deactivate a certificate (requires --server --site --domain)
 
   firewall-rules, fw  Manage firewall rules
     list, ls            List firewall rules (requires --server)
@@ -173,7 +197,7 @@ ${colors.bold("COMMANDS:")}
   monitors            Manage server monitors
     list, ls            List monitors (requires --server)
     get <id>            Get monitor details (requires --server)
-    create              Create a monitor (requires --server --type --operator --threshold --minutes)
+    create              Create a monitor (requires --server --type --operator --threshold --notify)
     delete <id>         Delete a monitor (requires --server)
 
   nginx-templates     Manage Nginx templates
@@ -194,6 +218,9 @@ ${colors.bold("COMMANDS:")}
     get <id>            Get redirect rule details (requires --server --site)
     create              Create a redirect rule (requires --server --site --from --to)
     delete <id>         Delete a redirect rule (requires --server --site)
+    export              Export the redirect rules as CSV (requires --server --site) [--output]
+    import              Import redirect rules from CSV (requires --server --site --file) [--mode]
+    reorder             Set the order of the redirect rules (requires --server --site --ids)
 
   recipes             Manage recipes
     list, ls            List all recipes
@@ -296,6 +323,38 @@ async function main(): Promise<void> {
           process.exit(0);
         }
         await handleServersCommand(subcommand ?? "list", positional, options);
+        break;
+
+      case "network":
+        if (wantsHelp) {
+          showNetworkHelp(subcommand);
+          process.exit(0);
+        }
+        await handleNetworkCommand(subcommand ?? "get", positional, options);
+        break;
+
+      case "events":
+        if (wantsHelp) {
+          showEventsHelp(subcommand);
+          process.exit(0);
+        }
+        await handleEventsCommand(subcommand ?? "list", positional, options);
+        break;
+
+      case "deploy-key":
+        if (wantsHelp) {
+          showDeployKeyHelp(subcommand);
+          process.exit(0);
+        }
+        await handleDeployKeyCommand(subcommand ?? "get", positional, options);
+        break;
+
+      case "git":
+        if (wantsHelp || !subcommand) {
+          showGitHelp();
+          process.exit(0);
+        }
+        await handleGitCommand(subcommand, positional, options);
         break;
 
       case "sites":

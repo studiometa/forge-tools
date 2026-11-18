@@ -294,7 +294,7 @@ export type CreateScheduledJobData = v.InferOutput<typeof CreateScheduledJobData
 
 export const CreateFirewallRuleDataSchema = v.object({
   name: v.string(),
-  type: v.string(),
+  type: v.picklist(["allow", "deny"]),
   port: v.optional(v.nullable(v.string())),
   ip_address: v.optional(v.string()),
 });
@@ -413,3 +413,456 @@ export const UpdateRecipeDataSchema = v.object({
 });
 
 export type UpdateRecipeData = v.InferOutput<typeof UpdateRecipeDataSchema>;
+
+// ── Servers: archives, network, PHP ──────────────────
+
+export const ArchiveServerDataSchema = v.object({
+  server_id: v.number(),
+});
+
+export type ArchiveServerData = v.InferOutput<typeof ArchiveServerDataSchema>;
+
+export const UpdateServerNetworkDataSchema = v.object({
+  servers: v.array(v.number()),
+});
+
+export type UpdateServerNetworkData = v.InferOutput<typeof UpdateServerNetworkDataSchema>;
+
+export const CreatePhpVersionDataSchema = v.object({
+  version: v.picklist([
+    "php5",
+    "php56-old",
+    "php56",
+    "php70",
+    "php71",
+    "php72",
+    "php73",
+    "php74",
+    "php80",
+    "php81",
+    "php82",
+    "php83",
+    "php84",
+    "php85",
+  ]),
+  cli_default: v.optional(v.boolean()),
+  site_default: v.optional(v.boolean()),
+});
+
+export type CreatePhpVersionData = v.InferOutput<typeof CreatePhpVersionDataSchema>;
+
+export const UpdatePhpDefaultVersionDataSchema = v.object({
+  php_version: v.picklist([
+    "5.6",
+    "7.0",
+    "7.1",
+    "7.2",
+    "7.3",
+    "7.4",
+    "8.0",
+    "8.1",
+    "8.2",
+    "8.3",
+    "8.4",
+    "8.5",
+  ]),
+});
+
+export type UpdatePhpDefaultVersionData = v.InferOutput<typeof UpdatePhpDefaultVersionDataSchema>;
+
+export const UpdatePhpSettingsDataSchema = v.object({
+  max_upload_size: v.optional(v.nullable(v.number())),
+  max_execution_time: v.optional(v.nullable(v.number())),
+  memory_limit: v.optional(v.nullable(v.number())),
+  opcache: v.optional(v.nullable(v.boolean())),
+});
+
+export type UpdatePhpSettingsData = v.InferOutput<typeof UpdatePhpSettingsDataSchema>;
+
+export const UpdatePhpPoolDataSchema = v.object({
+  config: v.string(),
+  user: v.optional(v.nullable(v.string())),
+});
+
+export type UpdatePhpPoolData = v.InferOutput<typeof UpdatePhpPoolDataSchema>;
+
+export const UpdateDatabasePasswordDataSchema = v.object({
+  password: v.string(),
+});
+
+export type UpdateDatabasePasswordData = v.InferOutput<typeof UpdateDatabasePasswordDataSchema>;
+
+export const RestoreBackupDataSchema = v.object({
+  database_id: v.number(),
+});
+
+export type RestoreBackupData = v.InferOutput<typeof RestoreBackupDataSchema>;
+
+// ── Sites: git, domains, integrations, settings ──────
+
+export const UpdateGitDataSchema = v.object({
+  source_control_provider: v.picklist(["github", "gitlab", "bitbucket", "gitlab-custom", "custom"]),
+  source_control_provider_id: v.optional(v.number()),
+  repository: v.string(),
+  branch: v.string(),
+  per_account_public_key: v.optional(v.string()),
+  per_account_private_key: v.optional(v.string()),
+});
+
+export type UpdateGitData = v.InferOutput<typeof UpdateGitDataSchema>;
+
+export const DomainActionDataSchema = v.object({
+  action: v.picklist(["enable", "disable", "mark-as-primary"]),
+  update_wordpress_urls: v.optional(v.boolean()),
+});
+
+export type DomainActionData = v.InferOutput<typeof DomainActionDataSchema>;
+
+export const EnableMaintenanceModeDataSchema = v.object({
+  secret: v.optional(v.nullable(v.string())),
+  status: v.picklist([304, 307, 410, 503]),
+  redirect: v.optional(v.nullable(v.string())),
+});
+
+export type EnableMaintenanceModeData = v.InferOutput<typeof EnableMaintenanceModeDataSchema>;
+
+export const EnableOctaneDataSchema = v.object({
+  port: v.string(),
+  server: v.picklist(["swoole", "roadrunner", "frankenphp"]),
+});
+
+export type EnableOctaneData = v.InferOutput<typeof EnableOctaneDataSchema>;
+
+export const EnableReverbDataSchema = v.object({
+  host: v.string(),
+  port: v.string(),
+  connections: v.number(),
+});
+
+export type EnableReverbData = v.InferOutput<typeof EnableReverbDataSchema>;
+
+export const UpdateHealthcheckEndpointDataSchema = v.object({
+  healthcheck_endpoint: v.optional(v.nullable(v.string())),
+});
+
+export type UpdateHealthcheckEndpointData = v.InferOutput<
+  typeof UpdateHealthcheckEndpointDataSchema
+>;
+
+export const CreateHeartbeatDataSchema = v.object({
+  name: v.string(),
+  grace_period: v.picklist([1, 2, 5, 10, 30, 60]),
+  frequency: v.picklist([1, 5, 10, 30, 60, 1440, 10080, 312480, -1]),
+  custom_frequency: v.optional(v.string()),
+});
+
+export type CreateHeartbeatData = v.InferOutput<typeof CreateHeartbeatDataSchema>;
+
+export const UpdateHeartbeatDataSchema = v.object({
+  name: v.string(),
+  grace_period: v.picklist([1, 2, 5, 10, 30, 60]),
+  frequency: v.picklist([1, 5, 10, 30, 60, 1440, 10080, 312480, -1]),
+  custom_frequency: v.optional(v.string()),
+});
+
+export type UpdateHeartbeatData = v.InferOutput<typeof UpdateHeartbeatDataSchema>;
+
+export const CreateComposerCredentialDataSchema = v.object({
+  repository: v.string(),
+  username: v.string(),
+  password: v.string(),
+});
+
+export type CreateComposerCredentialData = v.InferOutput<typeof CreateComposerCredentialDataSchema>;
+
+export const UpdateComposerCredentialDataSchema = v.object({
+  repository: v.string(),
+  username: v.string(),
+  password: v.string(),
+});
+
+export type UpdateComposerCredentialData = v.InferOutput<typeof UpdateComposerCredentialDataSchema>;
+
+export const CreateNpmCredentialDataSchema = v.object({
+  registry: v.string(),
+  token: v.string(),
+  scopes: v.optional(v.nullable(v.array(v.string()))),
+});
+
+export type CreateNpmCredentialData = v.InferOutput<typeof CreateNpmCredentialDataSchema>;
+
+export const UpdateNpmCredentialDataSchema = v.object({
+  registry: v.string(),
+  token: v.string(),
+  scopes: v.optional(v.nullable(v.array(v.string()))),
+});
+
+export type UpdateNpmCredentialData = v.InferOutput<typeof UpdateNpmCredentialDataSchema>;
+
+export const CreateDeploymentWebhookDataSchema = v.object({
+  url: v.string(),
+});
+
+export type CreateDeploymentWebhookData = v.InferOutput<typeof CreateDeploymentWebhookDataSchema>;
+
+export const ReorderRedirectRulesDataSchema = v.object({
+  redirects: v.array(v.number()),
+});
+
+export type ReorderRedirectRulesData = v.InferOutput<typeof ReorderRedirectRulesDataSchema>;
+
+// ── Recipes, teams, roles, credentials ───────────────
+
+export const RunRecipeDataSchema = v.object({
+  servers: v.array(v.number()),
+  email: v.optional(v.boolean()),
+});
+
+export type RunRecipeData = v.InferOutput<typeof RunRecipeDataSchema>;
+
+export const ShareRecipeDataSchema = v.object({
+  recipe_id: v.number(),
+});
+
+export type ShareRecipeData = v.InferOutput<typeof ShareRecipeDataSchema>;
+
+export const ShareServerDataSchema = v.object({
+  server_id: v.number(),
+});
+
+export type ShareServerData = v.InferOutput<typeof ShareServerDataSchema>;
+
+export const ShareCredentialDataSchema = v.object({
+  credential_id: v.number(),
+});
+
+export type ShareCredentialData = v.InferOutput<typeof ShareCredentialDataSchema>;
+
+export const CreateTeamDataSchema = v.object({
+  name: v.string(),
+  users: v.optional(
+    v.array(
+      v.object({
+        id: v.number(),
+        role: v.optional(
+          v.object({
+            id: v.number(),
+          }),
+        ),
+      }),
+    ),
+  ),
+  invites: v.optional(
+    v.array(
+      v.object({
+        email: v.string(),
+        role: v.optional(
+          v.object({
+            id: v.number(),
+          }),
+        ),
+      }),
+    ),
+  ),
+});
+
+export type CreateTeamData = v.InferOutput<typeof CreateTeamDataSchema>;
+
+export const UpdateTeamDataSchema = v.object({
+  name: v.string(),
+  users: v.optional(
+    v.array(
+      v.object({
+        id: v.number(),
+        role: v.optional(
+          v.object({
+            id: v.number(),
+          }),
+        ),
+      }),
+    ),
+  ),
+});
+
+export type UpdateTeamData = v.InferOutput<typeof UpdateTeamDataSchema>;
+
+export const UpdateTeamMemberDataSchema = v.object({
+  role_id: v.number(),
+});
+
+export type UpdateTeamMemberData = v.InferOutput<typeof UpdateTeamMemberDataSchema>;
+
+export const CreateTeamInviteDataSchema = v.object({
+  role_id: v.number(),
+  email: v.string(),
+});
+
+export type CreateTeamInviteData = v.InferOutput<typeof CreateTeamInviteDataSchema>;
+
+export const CreateRoleDataSchema = v.object({
+  name: v.string(),
+  permissions: v.optional(
+    v.array(
+      v.picklist([
+        "organization:view",
+        "organization:manage",
+        "organization:delete",
+        "server:view",
+        "server:create",
+        "server:delete",
+        "server:archive",
+        "server:transfer",
+        "server:manage-meta",
+        "server:manage-packages",
+        "server:manage-php",
+        "server:manage-logs",
+        "server:manage-network",
+        "server:manage-nginx-templates",
+        "server:manage-services",
+        "server:manage-password",
+        "server:create-keys",
+        "server:delete-keys",
+        "server:create-monitors",
+        "server:delete-monitors",
+        "server:create-databases",
+        "server:delete-databases",
+        "server:create-backups",
+        "server:delete-backups",
+        "server:create-daemons",
+        "server:delete-daemons",
+        "server:create-schedulers",
+        "server:delete-schedulers",
+        "server:web-terminal",
+        "site:create",
+        "site:delete",
+        "site:meta",
+        "site:manage-commands",
+        "site:manage-deploys",
+        "site:manage-nginx",
+        "site:manage-project",
+        "site:manage-environment",
+        "site:manage-notifications",
+        "site:manage-queues",
+        "site:manage-redirects",
+        "site:manage-security",
+        "site:manage-ssl",
+        "site:manage-integrations",
+        "site:manage-heartbeats",
+        "credential:view",
+        "credential:manage",
+        "team:view",
+        "team:create",
+        "team:delete",
+        "recipe:view",
+        "recipe:manage",
+        "billing:manage",
+        "storage:manage",
+        "integrations:manage",
+        "user:view",
+        "resources:view",
+        "resources:create-databases",
+        "resources:delete-databases",
+        "resources:manage-databases",
+        "resources:create-buckets",
+        "resources:delete-buckets",
+        "resources:manage-buckets",
+      ]),
+    ),
+  ),
+});
+
+export type CreateRoleData = v.InferOutput<typeof CreateRoleDataSchema>;
+
+export const UpdateRoleDataSchema = v.object({
+  name: v.string(),
+  permissions: v.optional(
+    v.array(
+      v.picklist([
+        "organization:view",
+        "organization:manage",
+        "organization:delete",
+        "server:view",
+        "server:create",
+        "server:delete",
+        "server:archive",
+        "server:transfer",
+        "server:manage-meta",
+        "server:manage-packages",
+        "server:manage-php",
+        "server:manage-logs",
+        "server:manage-network",
+        "server:manage-nginx-templates",
+        "server:manage-services",
+        "server:manage-password",
+        "server:create-keys",
+        "server:delete-keys",
+        "server:create-monitors",
+        "server:delete-monitors",
+        "server:create-databases",
+        "server:delete-databases",
+        "server:create-backups",
+        "server:delete-backups",
+        "server:create-daemons",
+        "server:delete-daemons",
+        "server:create-schedulers",
+        "server:delete-schedulers",
+        "server:web-terminal",
+        "site:create",
+        "site:delete",
+        "site:meta",
+        "site:manage-commands",
+        "site:manage-deploys",
+        "site:manage-nginx",
+        "site:manage-project",
+        "site:manage-environment",
+        "site:manage-notifications",
+        "site:manage-queues",
+        "site:manage-redirects",
+        "site:manage-security",
+        "site:manage-ssl",
+        "site:manage-integrations",
+        "site:manage-heartbeats",
+        "credential:view",
+        "credential:manage",
+        "team:view",
+        "team:create",
+        "team:delete",
+        "recipe:view",
+        "recipe:manage",
+        "billing:manage",
+        "storage:manage",
+        "integrations:manage",
+        "user:view",
+        "resources:view",
+        "resources:create-databases",
+        "resources:delete-databases",
+        "resources:manage-databases",
+        "resources:create-buckets",
+        "resources:delete-buckets",
+        "resources:manage-buckets",
+      ]),
+    ),
+  ),
+});
+
+export type UpdateRoleData = v.InferOutput<typeof UpdateRoleDataSchema>;
+
+export const CreateVpcDataSchema = v.object({
+  name: v.string(),
+});
+
+export type CreateVpcData = v.InferOutput<typeof CreateVpcDataSchema>;
+
+export const UpdateStorageProviderDataSchema = v.object({
+  name: v.string(),
+  provider: v.picklist(["s3", "spaces", "hetzner", "ovh", "scaleway", "custom"]),
+  region: v.optional(v.string()),
+  bucket: v.optional(v.nullable(v.string())),
+  endpoint: v.optional(v.string()),
+  access_key: v.optional(v.nullable(v.string())),
+  secret_key: v.optional(v.nullable(v.string())),
+  use_ec2_assumed_role: v.optional(v.boolean()),
+  directory: v.optional(v.nullable(v.string())),
+});
+
+export type UpdateStorageProviderData = v.InferOutput<typeof UpdateStorageProviderDataSchema>;

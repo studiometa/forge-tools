@@ -250,6 +250,19 @@ describe("routeToHandler — resource routing coverage", () => {
     });
   }
 
+  it.each([
+    ["forge", "network", "get"],
+    ["forge", "events", "get"],
+    ["forge", "deploy-key", "get"],
+    ["forge_write", "git", "update"],
+    ["forge", "certificates", "get"],
+  ])("should route %s %s %s to its handler", async (tool, resource, action) => {
+    // Without the required fields, the handler of the resource refuses the input.
+    const result = await executeToolWithCredentials(tool, { resource, action }, creds);
+    expect(result.isError).toBe(true);
+    expect(result.content[0].text).toContain("Invalid input");
+  });
+
   it("should route user get action", async () => {
     const result = await executeToolWithCredentials(
       "forge",

@@ -2,11 +2,12 @@ import type {
   CreateNginxTemplateData,
   HttpClient,
   JsonApiDocument,
-  JsonApiListDocument,
   NginxTemplateAttributes,
 } from "@studiometa/forge-api";
 
-import { unwrapDocument, unwrapListDocument } from "@studiometa/forge-api";
+import { unwrapDocument } from "@studiometa/forge-api";
+
+import type { AllOptions, ListOptions } from "../list-options.ts";
 
 import { BaseCollection } from "./base.ts";
 import { AsyncPaginatedIterator } from "../pagination.ts";
@@ -14,10 +15,7 @@ import { AsyncPaginatedIterator } from "../pagination.ts";
 /**
  * Options for listing Nginx templates.
  */
-export interface NginxTemplateListOptions {
-  /** Cursor for pagination (from previous response's next_cursor). */
-  cursor?: string;
-}
+export type NginxTemplateListOptions = ListOptions<"name", "created_at" | "updated_at" | "name">;
 
 /**
  * Collection of Nginx templates on a server.
@@ -57,11 +55,7 @@ export class NginxTemplatesCollection extends BaseCollection {
   async list(
     options: NginxTemplateListOptions = {},
   ): Promise<Array<NginxTemplateAttributes & { id: number }>> {
-    const query = options.cursor !== undefined ? `?page[cursor]=${options.cursor}` : "";
-    const response = await this.client.get<JsonApiListDocument<NginxTemplateAttributes>>(
-      `${this.basePath}${query}`,
-    );
-    return unwrapListDocument(response);
+    return this.listPage<NginxTemplateAttributes>(this.basePath, options);
   }
 
   /**
@@ -77,17 +71,10 @@ export class NginxTemplatesCollection extends BaseCollection {
    * const templates = await forge.server(123).nginxTemplates.all().toArray();
    * ```
    */
-  all(): AsyncPaginatedIterator<NginxTemplateAttributes & { id: number }> {
-    return new AsyncPaginatedIterator<NginxTemplateAttributes & { id: number }>(async (cursor) => {
-      const query = cursor !== null ? `?page[cursor]=${cursor}` : "";
-      const response = await this.client.get<JsonApiListDocument<NginxTemplateAttributes>>(
-        `${this.basePath}${query}`,
-      );
-      return {
-        items: unwrapListDocument(response),
-        nextCursor: response.meta.next_cursor ?? null,
-      };
-    });
+  all(
+    options: AllOptions<NginxTemplateListOptions> = {},
+  ): AsyncPaginatedIterator<NginxTemplateAttributes & { id: number }> {
+    return this.iterate<NginxTemplateAttributes>(this.basePath, options);
   }
 
   /**

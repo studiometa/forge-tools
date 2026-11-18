@@ -18,6 +18,12 @@ export const RESTARTABLE_SERVICES = [
 
 export type RestartableService = (typeof RESTARTABLE_SERVICES)[number];
 
+/** The services that the API can stop. */
+export const STOPPABLE_SERVICES = ["nginx", "mysql", "postgres"] as const;
+
+/** A service that the API can stop. */
+export type StoppableService = (typeof STOPPABLE_SERVICES)[number];
+
 /**
  * A single service availability row.
  *
@@ -129,5 +135,34 @@ export class ServicesCollection extends BaseCollection {
       action: "reboot",
       ...(options.version ? { version: options.version } : {}),
     });
+  }
+
+  /**
+   * Stop a service on the server: `nginx`, `mysql` or `postgres`.
+   *
+   * @example
+   * ```ts
+   * await forge.server(123).services.stop('nginx');
+   * ```
+   */
+  async stop(service: StoppableService): Promise<void> {
+    if (!(STOPPABLE_SERVICES as readonly string[]).includes(service)) {
+      throw new Error(
+        `Invalid service "${service}". Services that can stop: ${STOPPABLE_SERVICES.join(", ")}.`,
+      );
+    }
+    await this.client.post(`${this.basePath}/services/${service}/actions`, { action: "stop" });
+  }
+
+  /**
+   * Reload a PHP-FPM version without a restart.
+   *
+   * @example
+   * ```ts
+   * await forge.server(123).services.reloadPhp('php84');
+   * ```
+   */
+  async reloadPhp(version: string): Promise<void> {
+    await this.client.post(`${this.basePath}/services/php/actions`, { action: "reload", version });
   }
 }

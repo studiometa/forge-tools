@@ -6,6 +6,17 @@ import { ServersCollection, ServerResource } from "./resources/servers.ts";
 import { RecipesCollection } from "./resources/recipes.ts";
 import { StorageProvidersCollection } from "./resources/storage-providers.ts";
 import { TeamsCollection, TeamResource } from "./resources/teams.ts";
+import { OrganizationsCollection } from "./resources/organizations.ts";
+import { OrganizationSitesCollection } from "./resources/organization-sites.ts";
+import { EventsCollection } from "./resources/events.ts";
+import { ForgeRecipesCollection } from "./resources/forge-recipes.ts";
+import {
+  PermissionsCollection,
+  PredefinedRolesCollection,
+  RolesCollection,
+} from "./resources/roles.ts";
+import { ProviderResource, ProvidersCollection } from "./resources/providers.ts";
+import { ServerCredentialsCollection } from "./resources/server-credentials.ts";
 
 /**
  * Laravel Forge TypeScript SDK.
@@ -48,8 +59,35 @@ export class Forge {
   /** Storage provider operations (list, get, create, delete), used by database backups. */
   readonly storageProviders: StorageProvidersCollection;
 
-  /** Team operations (list). Use `forge.team(id)` for the servers of a team. */
+  /** Team operations. Use `forge.team(id)` for the servers, members and invitations of a team. */
   readonly teams: TeamsCollection;
+
+  /** The organizations of the user. */
+  readonly organizations: OrganizationsCollection;
+
+  /** The sites of every server of the organization. */
+  readonly sites: OrganizationSitesCollection;
+
+  /** The recent events of the organization. */
+  readonly events: EventsCollection;
+
+  /** The recipes that Forge provides. */
+  readonly forgeRecipes: ForgeRecipesCollection;
+
+  /** The custom roles of the organization. */
+  readonly roles: RolesCollection;
+
+  /** The roles that Forge defines. */
+  readonly predefinedRoles: PredefinedRolesCollection;
+
+  /** The permissions that a role can grant. */
+  readonly permissions: PermissionsCollection;
+
+  /** The server providers. Use `forge.provider(slug)` for their regions and sizes. */
+  readonly providers: ProvidersCollection;
+
+  /** The server provider credentials of the organization. */
+  readonly serverCredentials: ServerCredentialsCollection;
 
   /**
    * Create a new Forge SDK instance.
@@ -79,6 +117,29 @@ export class Forge {
     this.recipes = new RecipesCollection(this.client, organizationSlug);
     this.storageProviders = new StorageProvidersCollection(this.client, organizationSlug);
     this.teams = new TeamsCollection(this.client, organizationSlug);
+    this.organizations = new OrganizationsCollection(this.client, organizationSlug);
+    this.sites = new OrganizationSitesCollection(this.client, organizationSlug);
+    this.events = new EventsCollection(this.client, organizationSlug);
+    this.forgeRecipes = new ForgeRecipesCollection(this.client, organizationSlug);
+    this.roles = new RolesCollection(this.client, organizationSlug);
+    this.predefinedRoles = new PredefinedRolesCollection(this.client, organizationSlug);
+    this.permissions = new PermissionsCollection(this.client, organizationSlug);
+    this.providers = new ProvidersCollection(this.client, organizationSlug);
+    this.serverCredentials = new ServerCredentialsCollection(this.client, organizationSlug);
+  }
+
+  /**
+   * Access a server provider by slug, with its regions and sizes.
+   *
+   * @param provider The provider slug, e.g. `hetzner` or `ocean2`.
+   *
+   * @example
+   * ```ts
+   * const sizes = await forge.provider('hetzner').region('fsn1').sizes();
+   * ```
+   */
+  provider(provider: string): ProviderResource {
+    return new ProviderResource(this.client, this.organizationSlug, provider);
   }
 
   /**

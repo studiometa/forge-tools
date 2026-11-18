@@ -1,14 +1,16 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { mockDocument } from "../../test-helpers.ts";
 import { createTestExecutorContext } from "../../context.ts";
 import { updateSite } from "./update.ts";
 
 describe("updateSite", () => {
-  it("should update a site", async () => {
+  it("should update a site, then read it, as Forge answers 202 without a body", async () => {
+    const put = vi.fn(async () => {});
     const ctx = createTestExecutorContext({
       client: {
-        put: async () =>
+        put,
+        get: async () =>
           mockDocument(99, "sites", {
             name: "example.com",
             aliases: [],
@@ -50,6 +52,10 @@ describe("updateSite", () => {
       ctx,
     );
 
+    expect(put).toHaveBeenCalledWith("/orgs/test-org/servers/123/sites/99", {
+      php_version: "php84",
+      push_to_deploy: true,
+    });
     expect(result.data.id).toBe(99);
     expect(result.data.php_version).toBe("php84");
     expect(result.data.quick_deploy).toBe(true);

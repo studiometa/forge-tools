@@ -7,6 +7,9 @@ vi.mock("./handlers.ts", () => ({
   redirectRulesGet: vi.fn().mockResolvedValue(),
   redirectRulesCreate: vi.fn().mockResolvedValue(),
   redirectRulesDelete: vi.fn().mockResolvedValue(),
+  redirectRulesExport: vi.fn().mockResolvedValue(),
+  redirectRulesImport: vi.fn().mockResolvedValue(),
+  redirectRulesReorder: vi.fn().mockResolvedValue(),
 }));
 
 vi.mock("../../context.ts", () => ({
@@ -63,6 +66,16 @@ describe("handleRedirectRulesCommand routing", () => {
     const h = await import("./handlers.ts");
     await handleRedirectRulesCommand("delete", ["1"], {});
     expect(h.redirectRulesDelete).toHaveBeenCalledWith(["1"], expect.anything());
+  });
+
+  it("should route export, import and reorder", async () => {
+    const h = await import("./handlers.ts");
+    await handleRedirectRulesCommand("export", [], {});
+    await handleRedirectRulesCommand("import", [], {});
+    await handleRedirectRulesCommand("reorder", [], {});
+    expect(h.redirectRulesExport).toHaveBeenCalled();
+    expect(h.redirectRulesImport).toHaveBeenCalled();
+    expect(h.redirectRulesReorder).toHaveBeenCalled();
   });
 
   it("should exit for unknown subcommand", async () => {

@@ -2,11 +2,13 @@ import type {
   CreateDatabaseUserData,
   HttpClient,
   JsonApiDocument,
-  JsonApiListDocument,
   DatabaseUserAttributes,
+  UpdateDatabaseUserData,
 } from "@studiometa/forge-api";
 
-import { unwrapDocument, unwrapListDocument } from "@studiometa/forge-api";
+import { unwrapDocument } from "@studiometa/forge-api";
+
+import type { AllOptions, ListOptions } from "../list-options.ts";
 
 import { BaseCollection } from "./base.ts";
 import { AsyncPaginatedIterator } from "../pagination.ts";
@@ -14,10 +16,10 @@ import { AsyncPaginatedIterator } from "../pagination.ts";
 /**
  * Options for listing database users.
  */
-export interface DatabaseUserListOptions {
-  /** Cursor for pagination (from previous response's next_cursor). */
-  cursor?: string;
-}
+export type DatabaseUserListOptions = ListOptions<
+  "name" | "status",
+  "name" | "created_at" | "updated_at"
+>;
 
 /**
  * Collection of database users on a server.
@@ -57,11 +59,7 @@ export class DatabaseUsersCollection extends BaseCollection {
   async list(
     options: DatabaseUserListOptions = {},
   ): Promise<Array<DatabaseUserAttributes & { id: number }>> {
-    const query = options.cursor !== undefined ? `?page[cursor]=${options.cursor}` : "";
-    const response = await this.client.get<JsonApiListDocument<DatabaseUserAttributes>>(
-      `${this.basePath}${query}`,
-    );
-    return unwrapListDocument(response);
+    return this.listPage<DatabaseUserAttributes>(this.basePath, options);
   }
 
   /**
@@ -77,17 +75,10 @@ export class DatabaseUsersCollection extends BaseCollection {
    * const users = await forge.server(123).databaseUsers.all().toArray();
    * ```
    */
-  all(): AsyncPaginatedIterator<DatabaseUserAttributes & { id: number }> {
-    return new AsyncPaginatedIterator<DatabaseUserAttributes & { id: number }>(async (cursor) => {
-      const query = cursor !== null ? `?page[cursor]=${cursor}` : "";
-      const response = await this.client.get<JsonApiListDocument<DatabaseUserAttributes>>(
-        `${this.basePath}${query}`,
-      );
-      return {
-        items: unwrapListDocument(response),
-        nextCursor: response.meta.next_cursor ?? null,
-      };
-    });
+  all(
+    options: AllOptions<DatabaseUserListOptions> = {},
+  ): AsyncPaginatedIterator<DatabaseUserAttributes & { id: number }> {
+    return this.iterate<DatabaseUserAttributes>(this.basePath, options);
   }
 
   /**
@@ -135,5 +126,17 @@ export class DatabaseUsersCollection extends BaseCollection {
    */
   async delete(userId: number): Promise<void> {
     await this.client.delete(`${this.basePath}/${userId}`);
+  }
+
+  /**
+   * Update a database user: its password or the databases that it can access.
+   *
+   * @example
+   * ```ts
+   * await forge.server(123).databaseUsers.update(456, { database_ids: [7, 8] });
+   * ```
+   */
+  async update(userId: number, data: UpdateDatabaseUserData): Promise<void> {
+    await this.client.put(`${this.basePath}/${userId}`, data);
   }
 }

@@ -78,7 +78,7 @@ describe("DeploymentsCollection", () => {
     await collection.list({ cursor: "abc123" });
     expect(calls[0].url).toContain("/deployments?");
     expect(calls[0].url).toContain("sort=-created_at");
-    expect(calls[0].url).toContain("page%5Bcursor%5D=abc123");
+    expect(calls[0].url).toContain("page[cursor]=abc123");
   });
 
   it("should get a deployment", async () => {

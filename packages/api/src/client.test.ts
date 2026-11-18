@@ -165,6 +165,18 @@ describe("HttpClient", () => {
       );
     });
 
+    it("should send a form as is, without a JSON content type", async () => {
+      const { fetch, calls } = createSequenceFetch([{ body: { imported: 2 } }]);
+      const client = new HttpClient({ ...defaultOptions, fetch });
+      const form = new FormData();
+      form.append("mode", "append");
+
+      await client.post("/redirect-rules/import", form);
+
+      expect(calls[0].init?.body).toBe(form);
+      expect(calls[0].init?.headers).not.toHaveProperty("Content-Type");
+    });
+
     it("should make POST request without body", async () => {
       const { fetch, calls } = createSequenceFetch([{ body: {} }]);
       const client = new HttpClient({ ...defaultOptions, fetch });

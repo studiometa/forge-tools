@@ -118,9 +118,9 @@ const RESOURCE_HELP: Record<string, ResourceHelp> = {
 
   deployments: {
     description: "Manage site deployments — trigger, monitor, and configure deploy scripts",
-    scope: "site (requires server_id + site_id)",
+    scope: "site (requires server_id + site_id; list accepts only server_id)",
     actions: {
-      list: "List recent deployments for a site",
+      list: "List recent deployments for a site, or for every site of the server without site_id",
       deploy: "Trigger a new deployment",
       get: "Get deployment output (requires deployment_id in 'id' field)",
       update: "Update the deployment script (provide 'content' field)",
@@ -217,6 +217,7 @@ const RESOURCE_HELP: Record<string, ResourceHelp> = {
       create: "Create/request a new certificate for a domain",
       delete: "Delete the certificate with id",
       activate: "Activate the certificate with id",
+      deactivate: "Deactivate the certificate with id",
     },
     examples: [
       {
@@ -253,6 +254,75 @@ const RESOURCE_HELP: Record<string, ResourceHelp> = {
           site_id: "456",
           domain_id: "789",
           id: "12",
+        },
+      },
+    ],
+  },
+
+  events: {
+    description:
+      "Read the latest events (actions that Forge ran) of the organization, or of a server",
+    scope: "global for list (server_id optional); server for get and log",
+    actions: {
+      list: "List the latest events, newest first (server_id, initiated_by, ran_as optional)",
+      get: "Get an event of a server (server_id + id)",
+      log: "Get the output of an event of a server (server_id + id)",
+    },
+    examples: [
+      {
+        description: "Latest events of the organization",
+        params: { resource: "events", action: "list" },
+      },
+      {
+        description: "Output of an event",
+        params: { resource: "events", action: "log", server_id: "123", id: "789" },
+      },
+    ],
+  },
+
+  network: {
+    description: "The network of a server: the servers it can reach on their private IP",
+    scope: "server (requires server_id)",
+    actions: {
+      get: "List the servers in the network",
+      update: "Set the network: servers (server IDs) replaces the current list",
+    },
+    examples: [
+      {
+        description: "Set the network",
+        params: { resource: "network", action: "update", server_id: "123", servers: [456, 789] },
+      },
+    ],
+  },
+
+  "deploy-key": {
+    description: "The deploy key of a site: the public key that the git host must accept",
+    scope: "site (requires server_id + site_id)",
+    actions: {
+      get: "Get the deploy key",
+      create: "Create a deploy key, or return the one the site has",
+      delete: "Delete the deploy key",
+    },
+  },
+
+  git: {
+    description: "The repository that a site deploys from",
+    scope: "site (requires server_id + site_id)",
+    actions: {
+      update:
+        "Change the source control provider (github, gitlab, bitbucket, gitlab-custom, custom), repository and branch",
+    },
+    examples: [
+      {
+        description: "Deploy another branch",
+        params: {
+          resource: "git",
+          action: "update",
+          server_id: "123",
+          site_id: "456",
+          source_control_provider: "github",
+          repository: "acme/app",
+          branch: "release",
         },
       },
     ],
@@ -581,6 +651,10 @@ const RESOURCE_HELP: Record<string, ResourceHelp> = {
       get: "Get rule details",
       create: "Create a redirect rule",
       delete: "Delete a redirect rule",
+      export: "Export the redirect rules as CSV (from,to,type header row)",
+      import:
+        "Import redirect rules from the CSV in content; mode append adds them, replace replaces the rules of the site",
+      reorder: "Set the order of the rules: redirects lists every rule ID, in order",
     },
     fields: {
       from: "Source path (regex supported)",

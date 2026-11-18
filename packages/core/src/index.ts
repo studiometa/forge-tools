@@ -21,18 +21,22 @@ export {
   createServer,
   deleteServer,
   getServer,
+  getServerNetwork,
   listServers,
   rebootServer,
   resolveServers,
   updateServer,
+  updateServerNetwork,
 } from "./executors/servers/index.ts";
 export type {
   CreateServerOptions,
   DeleteServerOptions,
   GetServerOptions,
+  GetServerNetworkOptions,
   ListServersOptions,
   RebootServerOptions,
   UpdateServerOptions,
+  UpdateServerNetworkOptions,
   ResolveServersOptions,
   ResolveMatch,
   ResolveResult,
@@ -41,7 +45,11 @@ export type {
 // Sites
 export {
   createSite,
+  createSiteDeployKey,
   deleteSite,
+  deleteSiteDeployKey,
+  getSiteDeployKey,
+  updateSiteGit,
   getSite,
   listSites,
   resolveSites,
@@ -52,6 +60,8 @@ export type {
   DeleteSiteOptions,
   GetSiteOptions,
   ListSitesOptions,
+  SiteDeployKeyOptions,
+  UpdateSiteGitOptions,
   UpdateSiteOptions,
   ResolveSitesOptions,
   ResolveSiteMatch,
@@ -105,6 +115,7 @@ export type {
 export {
   activateCertificate,
   createCertificate,
+  deactivateCertificate,
   deleteCertificate,
   getCertificate,
   listCertificates,
@@ -112,6 +123,7 @@ export {
 export type {
   ActivateCertificateOptions,
   CreateCertificateOptions,
+  DeactivateCertificateOptions,
   DeleteCertificateOptions,
   GetCertificateOptions,
   ListCertificatesOptions,
@@ -210,15 +222,26 @@ export type {
 export {
   createRedirectRule,
   deleteRedirectRule,
+  exportRedirectRules,
   getRedirectRule,
+  importRedirectRules,
   listRedirectRules,
+  reorderRedirectRules,
 } from "./executors/redirect-rules/index.ts";
 export type {
   CreateRedirectRuleOptions,
   DeleteRedirectRuleOptions,
+  ExportRedirectRulesOptions,
   GetRedirectRuleOptions,
+  ImportRedirectRulesOptions,
   ListRedirectRulesOptions,
+  RedirectImportMode,
+  ReorderRedirectRulesOptions,
 } from "./executors/redirect-rules/index.ts";
+
+// Events
+export { getEvent, getEventOutput, listEvents } from "./executors/events/index.ts";
+export type { GetEventOptions, ListEventsOptions } from "./executors/events/index.ts";
 
 // Monitors
 export {

@@ -1,30 +1,32 @@
 import type {
   CreateRecipeData,
   JsonApiDocument,
-  JsonApiListDocument,
   RecipeAttributes,
+  UpdateRecipeData,
+  RecipeLogAttributes,
+  RunRecipeData,
+  HttpClient,
 } from "@studiometa/forge-api";
 
-import { unwrapDocument, unwrapListDocument } from "@studiometa/forge-api";
+import { unwrapDocument } from "@studiometa/forge-api";
+
+import type { AllOptions, ListOptions } from "../list-options.ts";
 
 import { BaseCollection } from "./base.ts";
-import { AsyncPaginatedIterator } from "../pagination.ts";
+import type { AsyncPaginatedIterator } from "../pagination.ts";
 
 /**
  * Options for listing recipes.
  */
-export interface RecipeListOptions {
-  /** Cursor for pagination (from previous response's next_cursor). */
-  cursor?: string;
-}
+export type RecipeListOptions = ListOptions;
 
 /**
- * Options for running a recipe.
+ * Options for running a recipe: the servers to run it on, and whether to email its output.
  */
-export interface RunRecipeOptions {
-  /** Server IDs to run the recipe on. */
-  servers: number[];
-}
+export type RunRecipeOptions = RunRecipeData;
+
+/** Options for listing the runs of a recipe. */
+export type RecipeRunListOptions = ListOptions;
 
 /**
  * Collection of recipes.
@@ -55,11 +57,7 @@ export class RecipesCollection extends BaseCollection {
    * ```
    */
   async list(options: RecipeListOptions = {}): Promise<Array<RecipeAttributes & { id: number }>> {
-    const query = options.cursor !== undefined ? `?page[cursor]=${options.cursor}` : "";
-    const response = await this.client.get<JsonApiListDocument<RecipeAttributes>>(
-      `${this.basePath}${query}`,
-    );
-    return unwrapListDocument(response);
+    return this.listPage<RecipeAttributes>(this.basePath, options);
   }
 
   /**
@@ -75,17 +73,10 @@ export class RecipesCollection extends BaseCollection {
    * const recipes = await forge.recipes.all().toArray();
    * ```
    */
-  all(): AsyncPaginatedIterator<RecipeAttributes & { id: number }> {
-    return new AsyncPaginatedIterator<RecipeAttributes & { id: number }>(async (cursor) => {
-      const query = cursor !== null ? `?page[cursor]=${cursor}` : "";
-      const response = await this.client.get<JsonApiListDocument<RecipeAttributes>>(
-        `${this.basePath}${query}`,
-      );
-      return {
-        items: unwrapListDocument(response),
-        nextCursor: response.meta.next_cursor ?? null,
-      };
-    });
+  all(
+    options: AllOptions<RecipeListOptions> = {},
+  ): AsyncPaginatedIterator<RecipeAttributes & { id: number }> {
+    return this.iterate<RecipeAttributes>(this.basePath, options);
   }
 
   /**
@@ -142,5 +133,93 @@ export class RecipesCollection extends BaseCollection {
    */
   async run(recipeId: number, options: RunRecipeOptions): Promise<void> {
     await this.client.post(`${this.basePath}/${recipeId}/runs`, options);
+  }
+
+  /**
+   * Update a recipe.
+   *
+   * @example
+   * ```ts
+   * await forge.recipes.update(3, { script: 'apt-get update' });
+   * ```
+   */
+  async update(
+    recipeId: number,
+    data: UpdateRecipeData,
+  ): Promise<RecipeAttributes & { id: number }> {
+    return this.putResource<RecipeAttributes>(`${this.basePath}/${recipeId}`, data);
+  }
+
+  /**
+   * The runs of a recipe, with their output.
+   *
+   * @example
+   * ```ts
+   * const runs = await forge.recipes.runs(3).list();
+   * ```
+   */
+  runs(recipeId: number): RecipeRunsCollection {
+    return new RecipeRunsCollection(this.client, this.orgSlug, `${this.basePath}/${recipeId}/runs`);
+  }
+}
+
+/**
+ * The runs of a recipe.
+ *
+ * Access via `forge.recipes.runs(recipeId)`.
+ *
+ * @example
+ * ```ts
+ * const run = await forge.recipes.runs(3).get(12);
+ * ```
+ */
+export class RecipeRunsCollection extends BaseCollection {
+  /** @internal */
+  constructor(
+    client: HttpClient,
+    orgSlug: string,
+    private readonly basePath: string,
+  ) {
+    super(client, orgSlug);
+  }
+
+  /**
+   * List the runs of the recipe.
+   *
+   * @example
+   * ```ts
+   * const runs = await forge.recipes.runs(3).list();
+   * ```
+   */
+  async list(
+    options: RecipeRunListOptions = {},
+  ): Promise<Array<RecipeLogAttributes & { id: number }>> {
+    return this.listPage<RecipeLogAttributes>(this.basePath, options);
+  }
+
+  /**
+   * Iterate over all the runs of the recipe.
+   *
+   * @example
+   * ```ts
+   * const runs = await forge.recipes.runs(3).all().toArray();
+   * ```
+   */
+  all(
+    options: AllOptions<RecipeRunListOptions> = {},
+  ): AsyncPaginatedIterator<RecipeLogAttributes & { id: number }> {
+    return this.iterate<RecipeLogAttributes>(this.basePath, options);
+  }
+
+  /**
+   * Get a run of the recipe, with its output.
+   *
+   * @example
+   * ```ts
+   * const run = await forge.recipes.runs(3).get(12);
+   * ```
+   */
+  async get(runId: number): Promise<RecipeLogAttributes & { id: number }> {
+    return this.getResource<RecipeLogAttributes>(`${this.basePath}/${runId}`);
   }
 }

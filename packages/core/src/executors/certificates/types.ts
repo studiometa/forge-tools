@@ -55,3 +55,8 @@ export interface ActivateCertificateOptions {
   domain_id: string;
   id: string;
 }
+
+/**
+ * Options for deactivating a certificate of a domain.
+ */
+export type DeactivateCertificateOptions = ActivateCertificateOptions;

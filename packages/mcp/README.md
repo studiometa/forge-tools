@@ -72,7 +72,7 @@ When enabled, the `forge_write` tool is not registered at all — only `forge`, 
 
 Safe, read-only queries. Annotated `readOnlyHint: true` so MCP clients can auto-approve.
 
-**Actions**: `list`, `get`, `resolve`, `context`, `help`, `schema`
+**Actions**: `list`, `get`, `resolve`, `context`, `help`, `schema`, `log`, `export`
 
 ```json
 { "resource": "servers", "action": "list" }
@@ -89,7 +89,7 @@ Safe, read-only queries. Annotated `readOnlyHint: true` so MCP clients can auto-
 
 Mutating operations. Annotated `destructiveHint: true` so MCP clients always prompt for confirmation.
 
-**Actions**: `create`, `update`, `delete`, `deploy`, `reboot`, `restart`, `activate`, `run`
+**Actions**: `create`, `update`, `delete`, `deploy`, `reboot`, `restart`, `activate`, `deactivate`, `run`, `import`, `reorder`
 
 ```json
 { "resource": "deployments", "action": "deploy", "server_id": "123", "site_id": "456" }
@@ -100,31 +100,35 @@ Mutating operations. Annotated `destructiveHint: true` so MCP clients always pro
 
 ### Resources & Actions
 
-| Resource          | Read Actions                | Write Actions                  | Required Fields                                                    |
-| ----------------- | --------------------------- | ------------------------------ | ------------------------------------------------------------------ |
-| servers           | list, get, resolve, context | create, update, delete, reboot | id (for get/update/delete/reboot)                                  |
-| sites             | list, get, resolve, context | create, delete                 | server_id                                                          |
-| deployments       | list, get                   | deploy, update                 | server_id, site_id                                                 |
-| env               | get                         | update                         | server_id, site_id                                                 |
-| nginx             | get                         | update                         | server_id, site_id                                                 |
-| certificates      | list, get                   | create, delete, activate       | server_id, site_id, domain_id (not for list), id (delete/activate) |
-| databases         | list, get                   | create, delete                 | server_id                                                          |
-| database-users    | list, get                   | create, delete                 | server_id                                                          |
-| daemons           | list, get                   | create, delete, restart        | server_id                                                          |
-| firewall-rules    | list, get                   | create, delete                 | server_id                                                          |
-| ssh-keys          | list, get                   | create, delete                 | server_id                                                          |
-| security-rules    | list, get                   | create, delete                 | server_id, site_id                                                 |
-| redirect-rules    | list, get                   | create, delete                 | server_id, site_id                                                 |
-| monitors          | list, get                   | create, delete                 | server_id                                                          |
-| nginx-templates   | list, get                   | create, update, delete         | server_id                                                          |
-| scheduled-jobs    | list, get                   | create, delete                 | server_id                                                          |
-| backups           | list, get                   | create, update, delete         | server_id                                                          |
-| storage-providers | list, get                   | create, delete                 | id (for get/delete)                                                |
-| commands          | list, get                   | create                         | server_id, site_id                                                 |
-| php               | list, get                   | update                         | server_id (+ setting)                                              |
-| recipes           | list, get                   | create, delete, run            | id (for get/delete/run)                                            |
-| user              | get                         | —                              | —                                                                  |
-| batch             | run                         | —                              | operations array                                                   |
+| Resource          | Read Actions                | Write Actions                        | Required Fields                                                    |
+| ----------------- | --------------------------- | ------------------------------------ | ------------------------------------------------------------------ |
+| servers           | list, get, resolve, context | create, update, delete, reboot       | id (for get/update/delete/reboot)                                  |
+| sites             | list, get, resolve, context | create, delete                       | server_id                                                          |
+| deployments       | list, get                   | deploy, update                       | server_id, site_id (list: site_id optional)                        |
+| events            | list, get, log              | —                                    | server_id for get/log (list: optional)                             |
+| network           | get                         | update                               | server_id (+ servers for update)                                   |
+| deploy-key        | get                         | create, delete                       | server_id, site_id                                                 |
+| git               | —                           | update                               | server_id, site_id, source_control_provider, repository, branch    |
+| env               | get                         | update                               | server_id, site_id                                                 |
+| nginx             | get                         | update                               | server_id, site_id                                                 |
+| certificates      | list, get                   | create, delete, activate, deactivate | server_id, site_id, domain_id (not for list), id (delete/activate) |
+| databases         | list, get                   | create, delete                       | server_id                                                          |
+| database-users    | list, get                   | create, delete                       | server_id                                                          |
+| daemons           | list, get                   | create, delete, restart              | server_id                                                          |
+| firewall-rules    | list, get                   | create, delete                       | server_id                                                          |
+| ssh-keys          | list, get                   | create, delete                       | server_id                                                          |
+| security-rules    | list, get                   | create, delete                       | server_id, site_id                                                 |
+| redirect-rules    | list, get, export           | create, delete, import, reorder      | server_id, site_id                                                 |
+| monitors          | list, get                   | create, delete                       | server_id                                                          |
+| nginx-templates   | list, get                   | create, update, delete               | server_id                                                          |
+| scheduled-jobs    | list, get                   | create, delete                       | server_id                                                          |
+| backups           | list, get                   | create, update, delete               | server_id                                                          |
+| storage-providers | list, get                   | create, delete                       | id (for get/delete)                                                |
+| commands          | list, get                   | create                               | server_id, site_id                                                 |
+| php               | list, get                   | update                               | server_id (+ setting)                                              |
+| recipes           | list, get                   | create, delete, run                  | id (for get/delete/run)                                            |
+| user              | get                         | —                                    | —                                                                  |
+| batch             | run                         | —                                    | operations array                                                   |
 
 ### Auto-Resolve: Names Instead of IDs
 

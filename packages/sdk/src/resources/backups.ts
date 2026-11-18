@@ -2,22 +2,28 @@ import type {
   CreateBackupConfigData,
   HttpClient,
   JsonApiDocument,
-  JsonApiListDocument,
   BackupConfigAttributes,
+  UpdateBackupConfigData,
+  BackupAttributes,
 } from "@studiometa/forge-api";
 
-import { unwrapDocument, unwrapListDocument } from "@studiometa/forge-api";
+import { unwrapDocument } from "@studiometa/forge-api";
+
+import type { AllOptions, ListOptions } from "../list-options.ts";
 
 import { BaseCollection } from "./base.ts";
-import { AsyncPaginatedIterator } from "../pagination.ts";
+import type { AsyncPaginatedIterator } from "../pagination.ts";
+
+/** Options for listing the backups of a backup configuration. */
+export type BackupListOptions = ListOptions<"status", "created_at" | "updated_at">;
 
 /**
  * Options for listing backup configurations.
  */
-export interface BackupConfigListOptions {
-  /** Cursor for pagination (from previous response's next_cursor). */
-  cursor?: string;
-}
+export type BackupConfigListOptions = ListOptions<
+  "name" | "status",
+  "name" | "created_at" | "updated_at"
+>;
 
 /**
  * Collection of backup configurations on a server.
@@ -57,11 +63,7 @@ export class BackupsCollection extends BaseCollection {
   async list(
     options: BackupConfigListOptions = {},
   ): Promise<Array<BackupConfigAttributes & { id: number }>> {
-    const query = options.cursor !== undefined ? `?page[cursor]=${options.cursor}` : "";
-    const response = await this.client.get<JsonApiListDocument<BackupConfigAttributes>>(
-      `${this.basePath}${query}`,
-    );
-    return unwrapListDocument(response);
+    return this.listPage<BackupConfigAttributes>(this.basePath, options);
   }
 
   /**
@@ -77,17 +79,10 @@ export class BackupsCollection extends BaseCollection {
    * const backups = await forge.server(123).backups.all().toArray();
    * ```
    */
-  all(): AsyncPaginatedIterator<BackupConfigAttributes & { id: number }> {
-    return new AsyncPaginatedIterator<BackupConfigAttributes & { id: number }>(async (cursor) => {
-      const query = cursor !== null ? `?page[cursor]=${cursor}` : "";
-      const response = await this.client.get<JsonApiListDocument<BackupConfigAttributes>>(
-        `${this.basePath}${query}`,
-      );
-      return {
-        items: unwrapListDocument(response),
-        nextCursor: response.meta.next_cursor ?? null,
-      };
-    });
+  all(
+    options: AllOptions<BackupConfigListOptions> = {},
+  ): AsyncPaginatedIterator<BackupConfigAttributes & { id: number }> {
+    return this.iterate<BackupConfigAttributes>(this.basePath, options);
   }
 
   /**
@@ -135,5 +130,129 @@ export class BackupsCollection extends BaseCollection {
    */
   async delete(backupId: number): Promise<void> {
     await this.client.delete(`${this.basePath}/${backupId}`);
+  }
+
+  /**
+   * Update a backup configuration.
+   *
+   * @example
+   * ```ts
+   * await forge.server(123).backups.update(456, { ...config, retention: 14 });
+   * ```
+   */
+  async update(backupId: number, data: UpdateBackupConfigData): Promise<void> {
+    await this.client.put(`${this.basePath}/${backupId}`, data);
+  }
+
+  /**
+   * The backups made by a backup configuration.
+   *
+   * @example
+   * ```ts
+   * const backups = await forge.server(123).backups.instances(456).list();
+   * ```
+   */
+  instances(backupId: number): BackupInstancesCollection {
+    return new BackupInstancesCollection(this.client, this.orgSlug, `${this.basePath}/${backupId}`);
+  }
+}
+
+/**
+ * The backups made by a backup configuration.
+ *
+ * Access via `forge.server(id).backups.instances(configId)`.
+ *
+ * @example
+ * ```ts
+ * await forge.server(123).backups.instances(456).restore(789, 12);
+ * ```
+ */
+export class BackupInstancesCollection extends BaseCollection {
+  /** @internal */
+  constructor(
+    client: HttpClient,
+    orgSlug: string,
+    private readonly configPath: string,
+  ) {
+    super(client, orgSlug);
+  }
+
+  /** @internal */
+  private get basePath(): string {
+    return `${this.configPath}/instances`;
+  }
+
+  /**
+   * List the backups.
+   *
+   * @example
+   * ```ts
+   * const backups = await forge.server(123).backups.instances(456).list();
+   * ```
+   */
+  async list(options: BackupListOptions = {}): Promise<Array<BackupAttributes & { id: number }>> {
+    return this.listPage<BackupAttributes>(this.basePath, options);
+  }
+
+  /**
+   * Iterate over all the backups.
+   *
+   * @example
+   * ```ts
+   * const backups = await forge.server(123).backups.instances(456).all().toArray();
+   * ```
+   */
+  all(
+    options: AllOptions<BackupListOptions> = {},
+  ): AsyncPaginatedIterator<BackupAttributes & { id: number }> {
+    return this.iterate<BackupAttributes>(this.basePath, options);
+  }
+
+  /**
+   * Get a backup.
+   *
+   * @example
+   * ```ts
+   * const backup = await forge.server(123).backups.instances(456).get(789);
+   * ```
+   */
+  async get(instanceId: number): Promise<BackupAttributes & { id: number }> {
+    return this.getResource<BackupAttributes>(`${this.basePath}/${instanceId}`);
+  }
+
+  /**
+   * Make a backup now.
+   *
+   * @example
+   * ```ts
+   * await forge.server(123).backups.instances(456).create();
+   * ```
+   */
+  async create(): Promise<void> {
+    await this.client.post(this.basePath);
+  }
+
+  /**
+   * Delete a backup.
+   *
+   * @example
+   * ```ts
+   * await forge.server(123).backups.instances(456).delete(789);
+   * ```
+   */
+  async delete(instanceId: number): Promise<void> {
+    await this.client.delete(`${this.basePath}/${instanceId}`);
+  }
+
+  /**
+   * Restore a backup into a database.
+   *
+   * @example
+   * ```ts
+   * await forge.server(123).backups.instances(456).restore(789, 12);
+   * ```
+   */
+  async restore(instanceId: number, databaseId: number): Promise<void> {
+    await this.client.post(`${this.basePath}/${instanceId}/restores`, { database_id: databaseId });
   }
 }
