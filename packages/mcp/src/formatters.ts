@@ -16,6 +16,8 @@ import type {
   DatabaseAttributes,
   DatabaseUserAttributes,
   DeploymentAttributes,
+  DeployKeyAttributes,
+  EventAttributes,
   FirewallRuleAttributes,
   MonitorAttributes,
   NginxTemplateAttributes,
@@ -613,4 +615,44 @@ export function formatDeleted(resource: string, id: string): string {
  */
 export function formatCreated(resource: string, name: string, id: number | string): string {
   return `${resource} created: ${name} (ID: ${id})`;
+}
+
+// ── Events ───────────────────────────────────────────
+
+/**
+ * Format a list of events, newest first.
+ */
+export function formatEventList(events: (EventAttributes & { id: number })[]): string {
+  if (events.length === 0) return "No events found.";
+  const lines = events.map(
+    (e) => `• #${e.id} — ${e.description}${e.ran_as ? ` (as ${e.ran_as})` : ""} — ${e.created_at}`,
+  );
+  return `${events.length} event(s):\n${lines.join("\n")}`;
+}
+
+/**
+ * Format a single event.
+ */
+export function formatEvent(event: EventAttributes & { id: number }): string {
+  return [
+    `Event #${event.id}: ${event.description}`,
+    `Ran as: ${event.ran_as ?? "—"}`,
+    `Created: ${event.created_at}`,
+  ].join("\n");
+}
+
+/**
+ * Format the output of an event.
+ */
+export function formatEventOutput(eventId: string, output: string): string {
+  return `Output of event #${eventId}:\n${output}`;
+}
+
+// ── Deploy keys ──────────────────────────────────────
+
+/**
+ * Format the deploy key of a site.
+ */
+export function formatDeployKey(key: DeployKeyAttributes & { id: number }): string {
+  return key.key ? `Deploy key:\n${key.key}` : "The site has no deploy key.";
 }

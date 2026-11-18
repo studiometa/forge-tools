@@ -18,7 +18,7 @@ _forge_completions() {
   prev="\${COMP_WORDS[COMP_CWORD-1]}"
 
   # Main commands
-  commands="config servers s sites deployments d databases db database-users daemons env nginx certificates certs firewall-rules fw ssh ssh-keys backups storage-providers commands scheduled-jobs services php user monitors nginx-templates security-rules redirect-rules recipes completion help"
+  commands="config servers s sites deployments d databases db database-users daemons env nginx certificates certs firewall-rules fw ssh ssh-keys backups storage-providers commands scheduled-jobs services php user monitors nginx-templates security-rules redirect-rules recipes events network deploy-key git completion help"
 
   # Subcommands for each command
   local config_cmds="set get delete"
@@ -30,7 +30,7 @@ _forge_completions() {
   local daemons_cmds="list ls get restart logs log"
   local env_cmds="get update"
   local nginx_cmds="get update"
-  local certificates_cmds="list ls get activate"
+  local certificates_cmds="list ls get create delete activate deactivate"
   local firewall_rules_cmds="list ls get"
   local ssh_keys_cmds="list ls get sync"
   local backups_cmds="list ls get create update delete"
@@ -43,12 +43,16 @@ _forge_completions() {
   local monitors_cmds="list ls get create delete"
   local nginx_templates_cmds="list ls get create update delete"
   local security_rules_cmds="list ls get create delete"
-  local redirect_rules_cmds="list ls get create delete"
+  local redirect_rules_cmds="list ls get create delete export import reorder"
   local recipes_cmds="list ls get run"
+  local events_cmds="list ls get output"
+  local network_cmds="get update"
+  local deploy_key_cmds="get create delete"
+  local git_cmds="update"
   local completion_cmds="bash zsh fish"
 
   # Global options
-  options="--token --server --site --exact -f --format --no-color -h --help -v --version --name --command --content --from --to --provider --frequency --cron --type --operator --threshold --minutes --key --port --ip-address --user --private --dry-run --script --servers --domain --password --credential-id --region --size --project-type --directory --file --script-file --check --all-servers --prune --ubuntu-version --php-version --database --private-ip --ssh-port --tag --storage-provider --databases --retention --time --day --bucket --notification-email --include-new-databases --endpoint --access-key --secret-key-file --assume-role"
+  options="--token --server --site --exact -f --format --no-color -h --help -v --version --name --command --content --from --to --provider --frequency --cron --type --operator --threshold --minutes --key --port --ip-address --user --private --dry-run --script --servers --domain --password --credential-id --region --size --project-type --directory --file --script-file --check --all-servers --prune --ubuntu-version --php-version --database --private-ip --ssh-port --tag --storage-provider --databases --retention --time --day --bucket --notification-email --include-new-databases --endpoint --access-key --secret-key-file --assume-role --initiated-by --ran-as --ids --mode --output --repository --branch --verification-method --key-type --key-file --certificate-file --csr-domain --sans --country --state --city --organization --department --certificate-id --enable --notify"
 
   # Format options
   local formats="json human table"
@@ -134,6 +138,18 @@ _forge_completions() {
         recipes)
           COMPREPLY=( $(compgen -W "\${recipes_cmds}" -- "\${cur}") )
           ;;
+        events)
+          COMPREPLY=( $(compgen -W "\${events_cmds}" -- "\${cur}") )
+          ;;
+        network)
+          COMPREPLY=( $(compgen -W "\${network_cmds}" -- "\${cur}") )
+          ;;
+        deploy-key)
+          COMPREPLY=( $(compgen -W "\${deploy_key_cmds}" -- "\${cur}") )
+          ;;
+        git)
+          COMPREPLY=( $(compgen -W "\${git_cmds}" -- "\${cur}") )
+          ;;
         completion)
           COMPREPLY=( $(compgen -W "\${completion_cmds}" -- "\${cur}") )
           ;;
@@ -213,6 +229,10 @@ _forge() {
         'security-rules:Manage site security rules'
         'redirect-rules:Manage site redirect rules'
         'recipes:Manage recipes'
+        'events:Read the events of the servers'
+        'network:Manage the network of a server'
+        'deploy-key:Manage the deploy key of a site'
+        'git:Manage the repository of a site'
         'completion:Generate shell completion script'
         'help:Show help'
       )
@@ -319,7 +339,10 @@ _forge() {
             'list:List certificates'
             'ls:List certificates (alias)'
             'get:Get a certificate (the active one without an ID)'
+            'create:Create a certificate'
+            'delete:Delete a certificate'
             'activate:Activate a certificate'
+            'deactivate:Deactivate a certificate'
           )
           _describe 'certificates command' certificates_cmds
           ;;
@@ -461,8 +484,45 @@ _forge() {
             'get:Get redirect rule details'
             'create:Create a redirect rule'
             'delete:Delete a redirect rule'
+            'export:Export the redirect rules as CSV'
+            'import:Import redirect rules from CSV'
+            'reorder:Set the order of the redirect rules'
           )
           _describe 'redirect-rules command' redirect_rules_cmds
+          ;;
+        events)
+          local -a events_cmds
+          events_cmds=(
+            'list:List the latest events'
+            'ls:List the latest events (alias)'
+            'get:Get an event'
+            'output:Print the output of an event'
+          )
+          _describe 'events command' events_cmds
+          ;;
+        network)
+          local -a network_cmds
+          network_cmds=(
+            'get:List the servers in the network'
+            'update:Set the network'
+          )
+          _describe 'network command' network_cmds
+          ;;
+        deploy-key)
+          local -a deploy_key_cmds
+          deploy_key_cmds=(
+            'get:Print the deploy key'
+            'create:Create a deploy key'
+            'delete:Delete the deploy key'
+          )
+          _describe 'deploy-key command' deploy_key_cmds
+          ;;
+        git)
+          local -a git_cmds
+          git_cmds=(
+            'update:Change the repository and branch'
+          )
+          _describe 'git command' git_cmds
           ;;
         recipes)
           local -a recipes_cmds
@@ -586,6 +646,10 @@ complete -c forge -f -n "__fish_use_subcommand" -a "nginx-templates" -d "Manage 
 complete -c forge -f -n "__fish_use_subcommand" -a "security-rules" -d "Manage site security rules"
 complete -c forge -f -n "__fish_use_subcommand" -a "redirect-rules" -d "Manage site redirect rules"
 complete -c forge -f -n "__fish_use_subcommand" -a "recipes" -d "Manage recipes"
+complete -c forge -f -n "__fish_use_subcommand" -a "events" -d "Read the events of the servers"
+complete -c forge -f -n "__fish_use_subcommand" -a "network" -d "Manage the network of a server"
+complete -c forge -f -n "__fish_use_subcommand" -a "deploy-key" -d "Manage the deploy key of a site"
+complete -c forge -f -n "__fish_use_subcommand" -a "git" -d "Manage the repository of a site"
 complete -c forge -f -n "__fish_use_subcommand" -a "completion" -d "Generate shell completion script"
 complete -c forge -f -n "__fish_use_subcommand" -a "help" -d "Show help"
 
@@ -650,7 +714,10 @@ complete -c forge -f -n "__fish_seen_subcommand_from nginx" -a "update" -d "Upda
 complete -c forge -f -n "__fish_seen_subcommand_from certificates certs" -a "list" -d "List certificates"
 complete -c forge -f -n "__fish_seen_subcommand_from certificates certs" -a "ls" -d "List certificates (alias)"
 complete -c forge -f -n "__fish_seen_subcommand_from certificates certs" -a "get" -d "Get a certificate (the active one without an ID)"
+complete -c forge -f -n "__fish_seen_subcommand_from certificates certs" -a "create" -d "Create a certificate"
+complete -c forge -f -n "__fish_seen_subcommand_from certificates certs" -a "delete" -d "Delete a certificate"
 complete -c forge -f -n "__fish_seen_subcommand_from certificates certs" -a "activate" -d "Activate a certificate"
+complete -c forge -f -n "__fish_seen_subcommand_from certificates certs" -a "deactivate" -d "Deactivate a certificate"
 
 # firewall-rules subcommands
 complete -c forge -f -n "__fish_seen_subcommand_from firewall-rules fw" -a "list" -d "List firewall rules"
@@ -740,6 +807,27 @@ complete -c forge -f -n "__fish_seen_subcommand_from redirect-rules" -a "ls" -d 
 complete -c forge -f -n "__fish_seen_subcommand_from redirect-rules" -a "get" -d "Get redirect rule details"
 complete -c forge -f -n "__fish_seen_subcommand_from redirect-rules" -a "create" -d "Create a redirect rule"
 complete -c forge -f -n "__fish_seen_subcommand_from redirect-rules" -a "delete" -d "Delete a redirect rule"
+complete -c forge -f -n "__fish_seen_subcommand_from redirect-rules" -a "export" -d "Export the redirect rules as CSV"
+complete -c forge -f -n "__fish_seen_subcommand_from redirect-rules" -a "import" -d "Import redirect rules from CSV"
+complete -c forge -f -n "__fish_seen_subcommand_from redirect-rules" -a "reorder" -d "Set the order of the redirect rules"
+
+# events subcommands
+complete -c forge -f -n "__fish_seen_subcommand_from events" -a "list" -d "List the latest events"
+complete -c forge -f -n "__fish_seen_subcommand_from events" -a "ls" -d "List the latest events (alias)"
+complete -c forge -f -n "__fish_seen_subcommand_from events" -a "get" -d "Get an event"
+complete -c forge -f -n "__fish_seen_subcommand_from events" -a "output" -d "Print the output of an event"
+
+# network subcommands
+complete -c forge -f -n "__fish_seen_subcommand_from network" -a "get" -d "List the servers in the network"
+complete -c forge -f -n "__fish_seen_subcommand_from network" -a "update" -d "Set the network"
+
+# deploy-key subcommands
+complete -c forge -f -n "__fish_seen_subcommand_from deploy-key" -a "get" -d "Print the deploy key"
+complete -c forge -f -n "__fish_seen_subcommand_from deploy-key" -a "create" -d "Create a deploy key"
+complete -c forge -f -n "__fish_seen_subcommand_from deploy-key" -a "delete" -d "Delete the deploy key"
+
+# git subcommands
+complete -c forge -f -n "__fish_seen_subcommand_from git" -a "update" -d "Change the repository and branch"
 
 # recipes subcommands
 complete -c forge -f -n "__fish_seen_subcommand_from recipes" -a "list" -d "List all recipes"

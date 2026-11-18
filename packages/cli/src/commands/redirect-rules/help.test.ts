@@ -38,6 +38,13 @@ describe("showRedirectRulesHelp", () => {
     expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining("redirect-rules create"));
   });
 
+  it.each(["export", "import", "reorder"])("should show %s help", (subcommand) => {
+    showRedirectRulesHelp(subcommand);
+    expect(consoleLogSpy).toHaveBeenCalledWith(
+      expect.stringContaining(`redirect-rules ${subcommand}`),
+    );
+  });
+
   it("should show delete help", () => {
     showRedirectRulesHelp("delete");
     expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining("redirect-rules delete"));

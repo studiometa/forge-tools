@@ -22,15 +22,7 @@ export async function deploymentsList(ctx: CommandContext): Promise<void> {
   if (!server) {
     exitWithValidationError(
       "server_id",
-      "forge deployments list --server <server_id> --site <site_id>",
-      ctx.formatter,
-    );
-  }
-
-  if (!site) {
-    exitWithValidationError(
-      "site_id",
-      "forge deployments list --server <server_id> --site <site_id>",
+      "forge deployments list --server <server_id> [--site <site_id>]",
       ctx.formatter,
     );
   }
@@ -39,8 +31,11 @@ export async function deploymentsList(ctx: CommandContext): Promise<void> {
     const token = ctx.getToken();
     const execCtx = ctx.createExecutorContext(token);
     const server_id = await resolveServerId(server, execCtx);
-    const site_id = await resolveSiteId(site, server_id, execCtx);
-    const result = await listDeployments({ server_id, site_id }, execCtx);
+    // Without --site, the deployments of every site of the server.
+    const result = await listDeployments(
+      site ? { server_id, site_id: await resolveSiteId(site, server_id, execCtx) } : { server_id },
+      execCtx,
+    );
     ctx.formatter.outputList(
       result.data,
       ["id", "status", "commit", "started_at"],

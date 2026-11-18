@@ -76,7 +76,7 @@ describe("handleScheduledJobs", () => {
         action: "create",
         server_id: "1",
         command: "php artisan inspire",
-        frequency: "daily",
+        frequency: "nightly",
       },
       createMockContext(),
     );

@@ -77,15 +77,21 @@ describe("deploymentsList", () => {
     expect(processExitSpy).toHaveBeenCalledWith(3);
   });
 
-  it("should exit with error when no site_id", async () => {
+  it("should list the deployments of every site of the server without --site", async () => {
+    const { listDeployments } = await import("@studiometa/forge-core");
+    vi.mocked(listDeployments).mockResolvedValue({ data: [mockDeployment] });
+
     const ctx = createTestContext({
       token: "test",
       mockClient: {} as never,
       options: { format: "json", server: "10" },
     });
 
-    await deploymentsList(ctx).catch(() => {});
-    expect(processExitSpy).toHaveBeenCalledWith(3);
+    await deploymentsList(ctx);
+    expect(vi.mocked(listDeployments)).toHaveBeenLastCalledWith(
+      { server_id: "10" },
+      expect.anything(),
+    );
   });
 });
 

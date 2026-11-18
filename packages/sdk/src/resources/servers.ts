@@ -2,14 +2,13 @@ import type {
   CreateServerData,
   HttpClient,
   JsonApiDocument,
-  JsonApiListDocument,
   ServerAttributes,
   UpdateServerData,
 } from "@studiometa/forge-api";
 
-import { unwrapDocument, unwrapListDocument } from "@studiometa/forge-api";
+import { unwrapDocument } from "@studiometa/forge-api";
 
-import { AsyncPaginatedIterator } from "../pagination.ts";
+import type { AsyncPaginatedIterator } from "../pagination.ts";
 import { matchByName } from "../utils/name-matcher.ts";
 import { SitesCollection, SiteResource } from "./sites.ts";
 import { DatabasesCollection } from "./databases.ts";
@@ -23,6 +22,11 @@ import { SshKeysCollection } from "./ssh-keys.ts";
 import { NginxTemplatesCollection } from "./nginx-templates.ts";
 import { ServicesCollection } from "./services.ts";
 import { PhpResource } from "./php.ts";
+import { ServerEventsCollection } from "./events.ts";
+import { ServerDeploymentsCollection } from "./server-deployments.ts";
+import { ServerKeyResource, ServerLogsResource, ServerNetworkResource } from "./server-settings.ts";
+import type { AllOptions, ListOptions } from "../list-options.ts";
+
 import { BaseCollection } from "./base.ts";
 
 /**
@@ -31,6 +35,26 @@ import { BaseCollection } from "./base.ts";
 export interface ResolveMatch {
   id: number;
   name: string;
+}
+
+/**
+ * Options for deleting a server.
+ */
+export interface DeleteServerOptions {
+  /** Remove the server from Forge only, and keep it at the server provider. */
+  preserveAtProvider?: boolean;
+}
+
+/** The actions that the API runs on a server. */
+export type ServerAction = "reboot" | "power-cycle";
+
+/** Options for listing the archived servers. */
+export type ArchivedServerListOptions = ListOptions<never, "created_at" | "updated_at">;
+
+function deleteQuery(options: DeleteServerOptions): string {
+  return options.preserveAtProvider === undefined
+    ? ""
+    : `?preserve_at_provider=${String(options.preserveAtProvider)}`;
 }
 
 /**
@@ -45,10 +69,17 @@ export interface ResolveResult {
 /**
  * Options for listing servers.
  */
-export interface ServerListOptions {
-  /** Cursor for pagination (from previous response's next_cursor). */
-  cursor?: string;
-}
+export type ServerListOptions = ListOptions<
+  | "ip_address"
+  | "name"
+  | "region"
+  | "size"
+  | "provider"
+  | "ubuntu_version"
+  | "php_version"
+  | "database_type",
+  "name" | "provider" | "ubuntu_version" | "region" | "php_version" | "created_at" | "updated_at"
+>;
 
 /**
  * Collection of servers.
@@ -86,11 +117,7 @@ export class ServersCollection extends BaseCollection {
    * ```
    */
   async list(options: ServerListOptions = {}): Promise<Array<ServerAttributes & { id: number }>> {
-    const query = options.cursor !== undefined ? `?page[cursor]=${options.cursor}` : "";
-    const response = await this.client.get<JsonApiListDocument<ServerAttributes>>(
-      `${this.basePath}${query}`,
-    );
-    return unwrapListDocument(response);
+    return this.listPage<ServerAttributes>(this.basePath, options);
   }
 
   /**
@@ -106,17 +133,10 @@ export class ServersCollection extends BaseCollection {
    * const servers = await forge.servers.all().toArray();
    * ```
    */
-  all(): AsyncPaginatedIterator<ServerAttributes & { id: number }> {
-    return new AsyncPaginatedIterator<ServerAttributes & { id: number }>(async (cursor) => {
-      const query = cursor !== null ? `?page[cursor]=${cursor}` : "";
-      const response = await this.client.get<JsonApiListDocument<ServerAttributes>>(
-        `${this.basePath}${query}`,
-      );
-      return {
-        items: unwrapListDocument(response),
-        nextCursor: response.meta.next_cursor ?? null,
-      };
-    });
+  all(
+    options: AllOptions<ServerListOptions> = {},
+  ): AsyncPaginatedIterator<ServerAttributes & { id: number }> {
+    return this.iterate<ServerAttributes>(this.basePath, options);
   }
 
   /**
@@ -174,15 +194,16 @@ export class ServersCollection extends BaseCollection {
   }
 
   /**
-   * Delete a server.
+   * Delete a server, at the server provider too unless `preserveAtProvider` is true.
    *
    * @example
    * ```ts
    * await forge.servers.delete(123);
+   * await forge.servers.delete(123, { preserveAtProvider: true });
    * ```
    */
-  async delete(serverId: number): Promise<void> {
-    await this.client.delete(`${this.basePath}/${serverId}`);
+  async delete(serverId: number, options: DeleteServerOptions = {}): Promise<void> {
+    await this.client.delete(`${this.basePath}/${serverId}${deleteQuery(options)}`);
   }
 
   /**
@@ -195,6 +216,11 @@ export class ServersCollection extends BaseCollection {
    */
   async reboot(serverId: number): Promise<void> {
     await this.client.post(`${this.basePath}/${serverId}/actions`, { action: "reboot" });
+  }
+
+  /** The archived servers of the organization. */
+  get archives(): ServerArchivesCollection {
+    return new ServerArchivesCollection(this.client, this.orgSlug);
   }
 
   /**
@@ -281,6 +307,21 @@ export class ServerResource extends BaseCollection {
   /** PHP versions, configuration files, limits and OPcache on this server. */
   readonly php: PhpResource;
 
+  /** Events of this server. */
+  readonly events: ServerEventsCollection;
+
+  /** Deployments of every site of this server. */
+  readonly deployments: ServerDeploymentsCollection;
+
+  /** The private network of this server. */
+  readonly network: ServerNetworkResource;
+
+  /** The SSH key that Forge uses to connect to this server. */
+  readonly key: ServerKeyResource;
+
+  /** The logs of this server. */
+  readonly logs: ServerLogsResource;
+
   /** @internal */
   constructor(
     client: HttpClient,
@@ -300,6 +341,11 @@ export class ServerResource extends BaseCollection {
     this.nginxTemplates = new NginxTemplatesCollection(client, orgSlug, serverId);
     this.services = new ServicesCollection(client, orgSlug, serverId);
     this.php = new PhpResource(client, orgSlug, serverId);
+    this.events = new ServerEventsCollection(client, orgSlug, serverId);
+    this.deployments = new ServerDeploymentsCollection(client, orgSlug, serverId);
+    this.network = new ServerNetworkResource(client, orgSlug, serverId);
+    this.key = new ServerKeyResource(client, orgSlug, serverId);
+    this.logs = new ServerLogsResource(client, orgSlug, serverId);
   }
 
   /**
@@ -342,9 +388,19 @@ export class ServerResource extends BaseCollection {
    * ```
    */
   async reboot(): Promise<void> {
-    await this.client.post(`/orgs/${this.orgSlug}/servers/${this.serverId}/actions`, {
-      action: "reboot",
-    });
+    await this.action("reboot");
+  }
+
+  /**
+   * Run an action on this server: `reboot`, or `power-cycle` to restart it at the provider.
+   *
+   * @example
+   * ```ts
+   * await forge.server(123).action('power-cycle');
+   * ```
+   */
+  async action(action: ServerAction): Promise<void> {
+    await this.client.post(`/orgs/${this.orgSlug}/servers/${this.serverId}/actions`, { action });
   }
 
   /**
@@ -364,14 +420,85 @@ export class ServerResource extends BaseCollection {
   }
 
   /**
-   * Delete this server.
+   * Delete this server, at the server provider too unless `preserveAtProvider` is true.
    *
    * @example
    * ```ts
    * await forge.server(123).delete();
    * ```
    */
-  async delete(): Promise<void> {
-    await this.client.delete(`/orgs/${this.orgSlug}/servers/${this.serverId}`);
+  async delete(options: DeleteServerOptions = {}): Promise<void> {
+    await this.client.delete(
+      `/orgs/${this.orgSlug}/servers/${this.serverId}${deleteQuery(options)}`,
+    );
+  }
+}
+
+/**
+ * The archived servers of the organization.
+ *
+ * Access via `forge.servers.archives`.
+ *
+ * @example
+ * ```ts
+ * await forge.servers.archives.archive(123);
+ * ```
+ */
+export class ServerArchivesCollection extends BaseCollection {
+  /** @internal */
+  private get basePath(): string {
+    return `/orgs/${this.orgSlug}/servers/archives`;
+  }
+
+  /**
+   * List the archived servers.
+   *
+   * @example
+   * ```ts
+   * const servers = await forge.servers.archives.list();
+   * ```
+   */
+  async list(
+    options: ArchivedServerListOptions = {},
+  ): Promise<Array<ServerAttributes & { id: number }>> {
+    return this.listPage<ServerAttributes>(this.basePath, options);
+  }
+
+  /**
+   * Iterate over all the archived servers.
+   *
+   * @example
+   * ```ts
+   * const servers = await forge.servers.archives.all().toArray();
+   * ```
+   */
+  all(
+    options: AllOptions<ArchivedServerListOptions> = {},
+  ): AsyncPaginatedIterator<ServerAttributes & { id: number }> {
+    return this.iterate<ServerAttributes>(this.basePath, options);
+  }
+
+  /**
+   * Archive a server.
+   *
+   * @example
+   * ```ts
+   * await forge.servers.archives.archive(123);
+   * ```
+   */
+  async archive(serverId: number): Promise<void> {
+    await this.client.post(this.basePath, { server_id: serverId });
+  }
+
+  /**
+   * Restore an archived server.
+   *
+   * @example
+   * ```ts
+   * await forge.servers.archives.unarchive(123);
+   * ```
+   */
+  async unarchive(serverId: number): Promise<void> {
+    await this.client.delete(`${this.basePath}/${serverId}`);
   }
 }

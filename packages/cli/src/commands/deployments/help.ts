@@ -3,14 +3,14 @@ import { colors } from "../../utils/colors.ts";
 export function showDeploymentsHelp(subcommand?: string): void {
   if (subcommand === "list" || subcommand === "ls") {
     console.log(`
-${colors.bold("forge deployments list")} - List deployments for a site
+${colors.bold("forge deployments list")} - List the latest deployments of a site or of a server
 
 ${colors.bold("USAGE:")}
-  forge deployments list --server <server_id> --site <site_id> [options]
+  forge deployments list --server <server_id> [--site <site_id>] [options]
 
 ${colors.bold("OPTIONS:")}
   --server <id>       Server ID (required)
-  --site <id>         Site ID (required)
+  --site <id>         Site ID (without it: the deployments of every site of the server)
   -f, --format <fmt>  Output format: json, human, table
 `);
   } else if (subcommand === "logs" || subcommand === "log") {

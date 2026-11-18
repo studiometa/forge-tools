@@ -21,11 +21,15 @@ import { handleCommands } from "./commands.ts";
 import { handleDaemons } from "./daemons.ts";
 import { handleDatabases } from "./databases.ts";
 import { handleDatabaseUsers } from "./database-users.ts";
+import { handleDeployKey } from "./deploy-key.ts";
 import { handleDeployments } from "./deployments.ts";
 import { handleEnv } from "./env.ts";
+import { handleEvents } from "./events.ts";
 import { handleFirewallRules } from "./firewall-rules.ts";
+import { handleGit } from "./git.ts";
 import { handleHelp, handleHelpOverview } from "./help.ts";
 import { handleMonitors } from "./monitors.ts";
+import { handleNetwork } from "./network.ts";
 import { handleNginxConfig } from "./nginx-config.ts";
 import { handleNginxTemplates } from "./nginx-templates.ts";
 import { handlePhp } from "./php.ts";
@@ -71,6 +75,10 @@ function routeToHandler(
   switch (resource) {
     case "servers":
       return handleServers(action, args, ctx);
+    case "network":
+      return handleNetwork(action, args, ctx);
+    case "events":
+      return handleEvents(action, args, ctx);
     case "sites":
       return handleSites(action, args, ctx);
     case "deployments":
@@ -81,6 +89,10 @@ function routeToHandler(
       return handleNginxConfig(action, args, ctx);
     case "certificates":
       return handleCertificates(action, args, ctx);
+    case "deploy-key":
+      return handleDeployKey(action, args, ctx);
+    case "git":
+      return handleGit(action, args, ctx);
     case "databases":
       return handleDatabases(action, args, ctx);
     case "database-users":

@@ -137,4 +137,18 @@ export class CertificatesCollection extends BaseCollection {
       action: "enable",
     });
   }
+
+  /**
+   * Deactivate a certificate of a domain.
+   *
+   * @example
+   * ```ts
+   * await forge.server(123).site(456).certificates.deactivate(789, 12);
+   * ```
+   */
+  async deactivate(domainId: number, certificateId: number): Promise<void> {
+    await this.client.post(`${this.domainPath(domainId)}/${certificateId}/actions`, {
+      action: "disable",
+    });
+  }
 }

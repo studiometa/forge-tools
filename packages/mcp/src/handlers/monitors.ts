@@ -12,10 +12,11 @@ export const handleMonitors = createResourceHandler({
     get: v.object({ server_id: v.string(), id: v.string() }),
     create: v.object({
       server_id: v.string(),
-      type: v.string(),
-      operator: v.string(),
-      threshold: v.string(),
-      minutes: v.string(),
+      type: v.picklist(["cpu_load", "disk", "free_memory", "used_memory"]),
+      operator: v.picklist(["gte", "lte"]),
+      threshold: v.union([v.number(), v.string()]),
+      minutes: v.optional(v.union([v.number(), v.string()])),
+      notify: v.string(),
     }),
     delete: v.object({ server_id: v.string(), id: v.string() }),
   },
@@ -24,6 +25,19 @@ export const handleMonitors = createResourceHandler({
     get: getMonitor,
     create: createMonitor,
     delete: deleteMonitor,
+  },
+  mapOptions: (action, args) => {
+    const { resource: _r, action: _a, compact: _c, ...rest } = args;
+    if (action !== "create") return rest;
+    // The spec takes numbers: the input schema also accepts them as strings.
+    return {
+      server_id: args.server_id,
+      type: args.type,
+      operator: args.operator,
+      threshold: Number(args.threshold),
+      ...(args.minutes === undefined ? {} : { minutes: Number(args.minutes) }),
+      notify: args.notify,
+    };
   },
   formatResult: (action, data, args) => {
     switch (action) {

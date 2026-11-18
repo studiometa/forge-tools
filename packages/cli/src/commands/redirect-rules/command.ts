@@ -2,8 +2,11 @@ import { createCommandRouter } from "../../utils/command-router.ts";
 import {
   redirectRulesCreate,
   redirectRulesDelete,
+  redirectRulesExport,
   redirectRulesGet,
+  redirectRulesImport,
   redirectRulesList,
+  redirectRulesReorder,
 } from "./handlers.ts";
 
 export const handleRedirectRulesCommand = createCommandRouter({
@@ -14,6 +17,9 @@ export const handleRedirectRulesCommand = createCommandRouter({
     get: [redirectRulesGet, "args"],
     create: redirectRulesCreate,
     delete: [redirectRulesDelete, "args"],
+    export: redirectRulesExport,
+    import: redirectRulesImport,
+    reorder: redirectRulesReorder,
   },
-  writeSubcommands: ["create", "delete"],
+  writeSubcommands: ["create", "delete", "import", "reorder"],
 });

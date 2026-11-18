@@ -75,9 +75,10 @@ describe("handleMonitors", () => {
         action: "create",
         server_id: "1",
         type: "disk",
-        operator: ">",
+        operator: "gte",
         threshold: "90",
         minutes: "1",
+        notify: "ops@example.com",
       },
       createMockContext(),
     );

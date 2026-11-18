@@ -2,11 +2,13 @@ import type {
   CreateSecurityRuleData,
   HttpClient,
   JsonApiDocument,
-  JsonApiListDocument,
   SecurityRuleAttributes,
+  UpdateSecurityRuleData,
 } from "@studiometa/forge-api";
 
-import { unwrapDocument, unwrapListDocument } from "@studiometa/forge-api";
+import { unwrapDocument } from "@studiometa/forge-api";
+
+import type { AllOptions, ListOptions } from "../list-options.ts";
 
 import { BaseCollection } from "./base.ts";
 import { AsyncPaginatedIterator } from "../pagination.ts";
@@ -14,10 +16,10 @@ import { AsyncPaginatedIterator } from "../pagination.ts";
 /**
  * Options for listing security rules.
  */
-export interface SecurityRuleListOptions {
-  /** Cursor for pagination (from previous response's next_cursor). */
-  cursor?: string;
-}
+export type SecurityRuleListOptions = ListOptions<
+  "path" | "status",
+  "path" | "status" | "created_at" | "updated_at"
+>;
 
 /**
  * Collection of security rules on a site.
@@ -58,11 +60,7 @@ export class SecurityRulesCollection extends BaseCollection {
   async list(
     options: SecurityRuleListOptions = {},
   ): Promise<Array<SecurityRuleAttributes & { id: number }>> {
-    const query = options.cursor !== undefined ? `?page[cursor]=${options.cursor}` : "";
-    const response = await this.client.get<JsonApiListDocument<SecurityRuleAttributes>>(
-      `${this.basePath}${query}`,
-    );
-    return unwrapListDocument(response);
+    return this.listPage<SecurityRuleAttributes>(this.basePath, options);
   }
 
   /**
@@ -78,17 +76,10 @@ export class SecurityRulesCollection extends BaseCollection {
    * const rules = await forge.server(123).site(456).securityRules.all().toArray();
    * ```
    */
-  all(): AsyncPaginatedIterator<SecurityRuleAttributes & { id: number }> {
-    return new AsyncPaginatedIterator<SecurityRuleAttributes & { id: number }>(async (cursor) => {
-      const query = cursor !== null ? `?page[cursor]=${cursor}` : "";
-      const response = await this.client.get<JsonApiListDocument<SecurityRuleAttributes>>(
-        `${this.basePath}${query}`,
-      );
-      return {
-        items: unwrapListDocument(response),
-        nextCursor: response.meta.next_cursor ?? null,
-      };
-    });
+  all(
+    options: AllOptions<SecurityRuleListOptions> = {},
+  ): AsyncPaginatedIterator<SecurityRuleAttributes & { id: number }> {
+    return this.iterate<SecurityRuleAttributes>(this.basePath, options);
   }
 
   /**
@@ -136,5 +127,17 @@ export class SecurityRulesCollection extends BaseCollection {
    */
   async delete(ruleId: number): Promise<void> {
     await this.client.delete(`${this.basePath}/${ruleId}`);
+  }
+
+  /**
+   * Update a security rule.
+   *
+   * @example
+   * ```ts
+   * await forge.server(123).site(456).securityRules.update(789, { name: 'Admin' });
+   * ```
+   */
+  async update(ruleId: number, data: UpdateSecurityRuleData): Promise<void> {
+    await this.client.put(`${this.basePath}/${ruleId}`, data);
   }
 }

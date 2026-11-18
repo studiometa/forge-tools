@@ -122,7 +122,7 @@ describe("TOOLS", () => {
 });
 
 describe("READ_ACTIONS", () => {
-  it("should contain list, get, resolve, help, schema, context, log", () => {
+  it("should contain list, get, resolve, help, schema, context, log, export", () => {
     expect([...READ_ACTIONS]).toEqual([
       "list",
       "get",
@@ -131,12 +131,13 @@ describe("READ_ACTIONS", () => {
       "schema",
       "context",
       "log",
+      "export",
     ]);
   });
 });
 
 describe("WRITE_ACTIONS", () => {
-  it("should contain create, update, delete, deploy, reboot, restart, activate, run", () => {
+  it("should contain the write actions", () => {
     expect([...WRITE_ACTIONS]).toEqual([
       "create",
       "update",
@@ -145,7 +146,10 @@ describe("WRITE_ACTIONS", () => {
       "reboot",
       "restart",
       "activate",
+      "deactivate",
       "run",
+      "import",
+      "reorder",
     ]);
   });
 });

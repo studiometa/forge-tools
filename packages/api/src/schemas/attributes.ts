@@ -460,3 +460,303 @@ export const PhpOpcacheAttributesSchema = v.object({
 });
 
 export type PhpOpcacheAttributes = v.InferOutput<typeof PhpOpcacheAttributesSchema>;
+
+// ── Logs and outputs ─────────────────────────────────
+
+/** The content of a log: a server log, or the Nginx or application log of a site. */
+export const LogAttributesSchema = v.object({
+  content: v.string(),
+});
+
+export type LogAttributes = v.InferOutput<typeof LogAttributesSchema>;
+
+/** The output of a command, a scheduled job or an event. */
+export const OutputAttributesSchema = v.object({
+  output: v.string(),
+});
+
+export type OutputAttributes = v.InferOutput<typeof OutputAttributesSchema>;
+
+// ── Events ───────────────────────────────────────────
+
+export const EventAttributesSchema = v.object({
+  description: v.string(),
+  ran_as: v.nullable(v.string()),
+  created_at: v.string(),
+  updated_at: v.string(),
+});
+
+export type EventAttributes = v.InferOutput<typeof EventAttributesSchema>;
+
+// ── Deployment hooks, webhooks and keys ──────────────
+
+export const DeployHookAttributesSchema = v.object({
+  url: v.string(),
+});
+
+export type DeployHookAttributes = v.InferOutput<typeof DeployHookAttributesSchema>;
+
+export const DeploymentWebhookAttributesSchema = v.object({
+  url: v.string(),
+  created_at: v.string(),
+  updated_at: v.string(),
+});
+
+export type DeploymentWebhookAttributes = v.InferOutput<typeof DeploymentWebhookAttributesSchema>;
+
+export const DeployKeyAttributesSchema = v.object({
+  key: v.nullable(v.string()),
+});
+
+export type DeployKeyAttributes = v.InferOutput<typeof DeployKeyAttributesSchema>;
+
+// ── Domains ─────────────────────────────────────────
+
+export const DomainRecordConfigurationAttributesSchema = v.object({
+  type: v.string(),
+  name: v.string(),
+  value: v.string(),
+  ttl: v.nullable(v.number()),
+});
+
+export type DomainRecordConfigurationAttributes = v.InferOutput<
+  typeof DomainRecordConfigurationAttributesSchema
+>;
+
+export const NginxConfigAttributesSchema = v.object({
+  content: v.nullable(v.string()),
+});
+
+export type NginxConfigAttributes = v.InferOutput<typeof NginxConfigAttributesSchema>;
+
+// ── Site settings ────────────────────────────────────
+
+export const HealthcheckEndpointAttributesSchema = v.object({
+  healthcheck_endpoint: v.nullable(v.string()),
+});
+
+export type HealthcheckEndpointAttributes = v.InferOutput<
+  typeof HealthcheckEndpointAttributesSchema
+>;
+
+export const HeartbeatAttributesSchema = v.object({
+  name: v.string(),
+  status: v.nullable(v.string()),
+  grace_period: v.number(),
+  frequency: v.number(),
+  custom_frequency: v.nullable(v.string()),
+  ping_url: v.nullable(v.string()),
+});
+
+export type HeartbeatAttributes = v.InferOutput<typeof HeartbeatAttributesSchema>;
+
+export const ComposerCredentialAttributesSchema = v.object({
+  repository: v.string(),
+  username: v.string(),
+  password: v.string(),
+});
+
+export type ComposerCredentialAttributes = v.InferOutput<typeof ComposerCredentialAttributesSchema>;
+
+export const NpmCredentialAttributesSchema = v.object({
+  registry: v.string(),
+  token: v.string(),
+  scopes: v.array(v.string()),
+});
+
+export type NpmCredentialAttributes = v.InferOutput<typeof NpmCredentialAttributesSchema>;
+
+// ── Integrations ─────────────────────────────────────
+
+// The spec types `enabled` as a string for some integrations and as a boolean for others: accept both.
+export const HorizonIntegrationAttributesSchema = v.object({
+  enabled: v.union([v.boolean(), v.string()]),
+  horizon_installed: v.boolean(),
+});
+
+export type HorizonIntegrationAttributes = v.InferOutput<typeof HorizonIntegrationAttributesSchema>;
+
+export const InertiaIntegrationAttributesSchema = v.object({
+  enabled: v.union([v.boolean(), v.string()]),
+  inertia_installed: v.boolean(),
+});
+
+export type InertiaIntegrationAttributes = v.InferOutput<typeof InertiaIntegrationAttributesSchema>;
+
+export const LaravelMaintenanceIntegrationAttributesSchema = v.object({
+  enabled: v.union([v.boolean(), v.string()]),
+  status: v.nullable(v.string()),
+  laravel_installed: v.boolean(),
+});
+
+export type LaravelMaintenanceIntegrationAttributes = v.InferOutput<
+  typeof LaravelMaintenanceIntegrationAttributesSchema
+>;
+
+export const LaravelSchedulerIntegrationAttributesSchema = v.object({
+  enabled: v.union([v.boolean(), v.string()]),
+  laravel_installed: v.boolean(),
+});
+
+export type LaravelSchedulerIntegrationAttributes = v.InferOutput<
+  typeof LaravelSchedulerIntegrationAttributesSchema
+>;
+
+export const OctaneIntegrationAttributesSchema = v.object({
+  enabled: v.union([v.boolean(), v.string()]),
+  octane_installed: v.boolean(),
+  port: v.nullable(v.number()),
+});
+
+export type OctaneIntegrationAttributes = v.InferOutput<typeof OctaneIntegrationAttributesSchema>;
+
+export const PulseIntegrationAttributesSchema = v.object({
+  enabled: v.union([v.boolean(), v.string()]),
+  pulse_installed: v.boolean(),
+});
+
+export type PulseIntegrationAttributes = v.InferOutput<typeof PulseIntegrationAttributesSchema>;
+
+export const ReverbIntegrationAttributesSchema = v.object({
+  enabled: v.union([v.boolean(), v.string()]),
+  reverb_installed: v.boolean(),
+  host: v.nullable(v.string()),
+  port: v.nullable(v.number()),
+  connections: v.nullable(v.number()),
+});
+
+export type ReverbIntegrationAttributes = v.InferOutput<typeof ReverbIntegrationAttributesSchema>;
+
+// ── Server keys ──────────────────────────────────────
+
+export const ServerKeyAttributesSchema = v.object({
+  public_key: v.string(),
+  fingerprint: v.string(),
+});
+
+export type ServerKeyAttributes = v.InferOutput<typeof ServerKeyAttributesSchema>;
+
+// ── Recipes ──────────────────────────────────────────
+
+export const RecipeLogAttributesSchema = v.object({
+  server_id: v.number(),
+  executed_by: v.nullable(v.number()),
+  recipe_id: v.number(),
+  status: v.string(),
+  output: v.nullable(v.string()),
+  started_at: v.nullable(v.string()),
+  finished_at: v.nullable(v.string()),
+});
+
+export type RecipeLogAttributes = v.InferOutput<typeof RecipeLogAttributesSchema>;
+
+export const ForgeRecipeAttributesSchema = v.object({
+  name: v.string(),
+  user: v.string(),
+  info: v.string(),
+  script: v.string(),
+  created_at: v.nullable(v.string()),
+  updated_at: v.nullable(v.string()),
+});
+
+export type ForgeRecipeAttributes = v.InferOutput<typeof ForgeRecipeAttributesSchema>;
+
+// ── Teams and roles ──────────────────────────────────
+
+export const MembershipAttributesSchema = v.object({
+  name: v.string(),
+  email: v.string(),
+  created_at: v.nullable(v.string()),
+  updated_at: v.nullable(v.string()),
+});
+
+export type MembershipAttributes = v.InferOutput<typeof MembershipAttributesSchema>;
+
+export const TeamInvitationAttributesSchema = v.object({
+  email: v.string(),
+  created_at: v.nullable(v.string()),
+  updated_at: v.nullable(v.string()),
+});
+
+export type TeamInvitationAttributes = v.InferOutput<typeof TeamInvitationAttributesSchema>;
+
+export const RoleAttributesSchema = v.object({
+  name: v.string(),
+  created_at: v.nullable(v.string()),
+  updated_at: v.nullable(v.string()),
+});
+
+export type RoleAttributes = v.InferOutput<typeof RoleAttributesSchema>;
+
+export const PermissionAttributesSchema = v.object({
+  name: v.string(),
+});
+
+export type PermissionAttributes = v.InferOutput<typeof PermissionAttributesSchema>;
+
+// ── Providers and credentials ────────────────────────
+
+export const ProviderAttributesSchema = v.object({
+  name: v.string(),
+  slug: v.string(),
+  simple_name: v.nullable(v.string()),
+  currency: v.string(),
+  currency_symbol: v.string(),
+  default_size_code: v.nullable(v.string()),
+  default_region_code: v.nullable(v.string()),
+});
+
+export type ProviderAttributes = v.InferOutput<typeof ProviderAttributesSchema>;
+
+export const ProviderRegionAttributesSchema = v.object({
+  name: v.string(),
+  code: v.string(),
+  alternate_code: v.nullable(v.string()),
+});
+
+export type ProviderRegionAttributes = v.InferOutput<typeof ProviderRegionAttributesSchema>;
+
+export const ProviderSizeAttributesSchema = v.object({
+  name: v.string(),
+  code: v.string(),
+  series: v.string(),
+  category: v.string(),
+  cpus: v.number(),
+  disk_type: v.string(),
+  architecture: v.string(),
+  ram: v.number(),
+  disk: v.number(),
+});
+
+export type ProviderSizeAttributes = v.InferOutput<typeof ProviderSizeAttributesSchema>;
+
+export const ProviderRegionSizeAttributesSchema = v.object({
+  name: v.string(),
+});
+
+export type ProviderRegionSizeAttributes = v.InferOutput<typeof ProviderRegionSizeAttributesSchema>;
+
+export const ServerCredentialAttributesSchema = v.object({
+  name: v.string(),
+  provider: v.string(),
+  in_use: v.boolean(),
+  created_at: v.nullable(v.string()),
+  updated_at: v.nullable(v.string()),
+});
+
+export type ServerCredentialAttributes = v.InferOutput<typeof ServerCredentialAttributesSchema>;
+
+export const VpcAttributesSchema = v.object({
+  name: v.string(),
+  cidrBlock: v.string(),
+  subnets: v.array(
+    v.object({
+      id: v.string(),
+      name: v.string(),
+      cidrBlock: v.string(),
+    }),
+  ),
+  region: v.string(),
+});
+
+export type VpcAttributes = v.InferOutput<typeof VpcAttributesSchema>;

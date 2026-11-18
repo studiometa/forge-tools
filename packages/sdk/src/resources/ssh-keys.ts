@@ -2,11 +2,12 @@ import type {
   CreateSshKeyData,
   HttpClient,
   JsonApiDocument,
-  JsonApiListDocument,
   SshKeyAttributes,
 } from "@studiometa/forge-api";
 
-import { unwrapDocument, unwrapListDocument } from "@studiometa/forge-api";
+import { unwrapDocument } from "@studiometa/forge-api";
+
+import type { AllOptions, ListOptions } from "../list-options.ts";
 
 import { BaseCollection } from "./base.ts";
 import { AsyncPaginatedIterator } from "../pagination.ts";
@@ -14,10 +15,7 @@ import { AsyncPaginatedIterator } from "../pagination.ts";
 /**
  * Options for listing SSH keys.
  */
-export interface SshKeyListOptions {
-  /** Cursor for pagination (from previous response's next_cursor). */
-  cursor?: string;
-}
+export type SshKeyListOptions = ListOptions<"name" | "user">;
 
 /**
  * Collection of SSH keys on a server.
@@ -55,11 +53,7 @@ export class SshKeysCollection extends BaseCollection {
    * ```
    */
   async list(options: SshKeyListOptions = {}): Promise<Array<SshKeyAttributes & { id: number }>> {
-    const query = options.cursor !== undefined ? `?page[cursor]=${options.cursor}` : "";
-    const response = await this.client.get<JsonApiListDocument<SshKeyAttributes>>(
-      `${this.basePath}${query}`,
-    );
-    return unwrapListDocument(response);
+    return this.listPage<SshKeyAttributes>(this.basePath, options);
   }
 
   /**
@@ -75,17 +69,10 @@ export class SshKeysCollection extends BaseCollection {
    * const keys = await forge.server(123).sshKeys.all().toArray();
    * ```
    */
-  all(): AsyncPaginatedIterator<SshKeyAttributes & { id: number }> {
-    return new AsyncPaginatedIterator<SshKeyAttributes & { id: number }>(async (cursor) => {
-      const query = cursor !== null ? `?page[cursor]=${cursor}` : "";
-      const response = await this.client.get<JsonApiListDocument<SshKeyAttributes>>(
-        `${this.basePath}${query}`,
-      );
-      return {
-        items: unwrapListDocument(response),
-        nextCursor: response.meta.next_cursor ?? null,
-      };
-    });
+  all(
+    options: AllOptions<SshKeyListOptions> = {},
+  ): AsyncPaginatedIterator<SshKeyAttributes & { id: number }> {
+    return this.iterate<SshKeyAttributes>(this.basePath, options);
   }
 
   /**

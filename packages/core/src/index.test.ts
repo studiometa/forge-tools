@@ -44,6 +44,19 @@ describe("@studiometa/forge-core", () => {
     expect(core.deleteCertificate).toBeTypeOf("function");
     expect(core.activateCertificate).toBeTypeOf("function");
     expect(core.listCertificates).toBeTypeOf("function");
+    expect(core.deactivateCertificate).toBeTypeOf("function");
+    expect(core.listEvents).toBeTypeOf("function");
+    expect(core.getEvent).toBeTypeOf("function");
+    expect(core.getEventOutput).toBeTypeOf("function");
+    expect(core.getServerNetwork).toBeTypeOf("function");
+    expect(core.updateServerNetwork).toBeTypeOf("function");
+    expect(core.getSiteDeployKey).toBeTypeOf("function");
+    expect(core.createSiteDeployKey).toBeTypeOf("function");
+    expect(core.deleteSiteDeployKey).toBeTypeOf("function");
+    expect(core.updateSiteGit).toBeTypeOf("function");
+    expect(core.exportRedirectRules).toBeTypeOf("function");
+    expect(core.importRedirectRules).toBeTypeOf("function");
+    expect(core.reorderRedirectRules).toBeTypeOf("function");
   });
 
   it("should export database executors", () => {

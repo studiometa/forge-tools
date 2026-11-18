@@ -2,11 +2,13 @@ import type {
   CreateCommandData,
   HttpClient,
   JsonApiDocument,
-  JsonApiListDocument,
   CommandAttributes,
+  OutputAttributes,
 } from "@studiometa/forge-api";
 
-import { unwrapDocument, unwrapListDocument } from "@studiometa/forge-api";
+import { unwrapDocument } from "@studiometa/forge-api";
+
+import type { AllOptions, ListOptions } from "../list-options.ts";
 
 import { BaseCollection } from "./base.ts";
 import { AsyncPaginatedIterator } from "../pagination.ts";
@@ -14,10 +16,10 @@ import { AsyncPaginatedIterator } from "../pagination.ts";
 /**
  * Options for listing site commands.
  */
-export interface CommandListOptions {
-  /** Cursor for pagination (from previous response's next_cursor). */
-  cursor?: string;
-}
+export type CommandListOptions = ListOptions<
+  "user_id" | "status" | "command",
+  "status" | "created_at" | "updated_at"
+>;
 
 /**
  * Collection of commands run on a site.
@@ -56,11 +58,7 @@ export class CommandsCollection extends BaseCollection {
    * ```
    */
   async list(options: CommandListOptions = {}): Promise<Array<CommandAttributes & { id: number }>> {
-    const query = options.cursor !== undefined ? `?page[cursor]=${options.cursor}` : "";
-    const response = await this.client.get<JsonApiListDocument<CommandAttributes>>(
-      `${this.basePath}${query}`,
-    );
-    return unwrapListDocument(response);
+    return this.listPage<CommandAttributes>(this.basePath, options);
   }
 
   /**
@@ -76,17 +74,10 @@ export class CommandsCollection extends BaseCollection {
    * const commands = await forge.server(123).site(456).commands.all().toArray();
    * ```
    */
-  all(): AsyncPaginatedIterator<CommandAttributes & { id: number }> {
-    return new AsyncPaginatedIterator<CommandAttributes & { id: number }>(async (cursor) => {
-      const query = cursor !== null ? `?page[cursor]=${cursor}` : "";
-      const response = await this.client.get<JsonApiListDocument<CommandAttributes>>(
-        `${this.basePath}${query}`,
-      );
-      return {
-        items: unwrapListDocument(response),
-        nextCursor: response.meta.next_cursor ?? null,
-      };
-    });
+  all(
+    options: AllOptions<CommandListOptions> = {},
+  ): AsyncPaginatedIterator<CommandAttributes & { id: number }> {
+    return this.iterate<CommandAttributes>(this.basePath, options);
   }
 
   /**
@@ -119,5 +110,30 @@ export class CommandsCollection extends BaseCollection {
    */
   async create(data: CreateCommandData): Promise<void> {
     await this.client.post(this.basePath, data);
+  }
+
+  /**
+   * Delete a command from the history of the site.
+   *
+   * @example
+   * ```ts
+   * await forge.server(123).site(456).commands.delete(789);
+   * ```
+   */
+  async delete(commandId: number): Promise<void> {
+    await this.client.delete(`${this.basePath}/${commandId}`);
+  }
+
+  /**
+   * Get the output of a command.
+   *
+   * @example
+   * ```ts
+   * const output = await forge.server(123).site(456).commands.output(789);
+   * ```
+   */
+  async output(commandId: number): Promise<string> {
+    return (await this.getResource<OutputAttributes>(`${this.basePath}/${commandId}/output`))
+      .output;
   }
 }

@@ -24,14 +24,15 @@ ${colors.bold("USAGE:")}
 ${colors.bold("forge monitors create")} - Create a new monitor
 
 ${colors.bold("USAGE:")}
-  forge monitors create --server <server_id> --type <type> --operator <operator> --threshold <threshold> --minutes <minutes> [options]
+  forge monitors create --server <server_id> --type <type> --operator <operator> --threshold <threshold> --notify <email> [options]
 
 ${colors.bold("OPTIONS:")}
   --server <id>         Server ID (required)
-  --type <type>         Monitor type (required)
-  --operator <op>       Comparison operator (required)
+  --type <type>         cpu_load, disk, free_memory or used_memory (required)
+  --operator <op>       gte or lte (required)
   --threshold <num>     Alert threshold value (required)
-  --minutes <num>       Duration in minutes (required)
+  --notify <email>      Email address to notify on alert (required)
+  --minutes <num>       Duration in minutes
   -f, --format <fmt>    Output format: json, human, table
 `);
   } else if (subcommand === "delete") {

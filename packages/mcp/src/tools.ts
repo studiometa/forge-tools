@@ -5,7 +5,16 @@ import { RESOURCES } from "@studiometa/forge-core";
 /**
  * Read-only actions — safe operations that don't modify server state.
  */
-export const READ_ACTIONS = ["list", "get", "resolve", "help", "schema", "context", "log"] as const;
+export const READ_ACTIONS = [
+  "list",
+  "get",
+  "resolve",
+  "help",
+  "schema",
+  "context",
+  "log",
+  "export",
+] as const;
 
 /**
  * Write actions — operations that modify server state.
@@ -19,7 +28,10 @@ export const WRITE_ACTIONS = [
   "reboot",
   "restart",
   "activate",
+  "deactivate",
   "run",
+  "import",
+  "reorder",
 ] as const;
 
 export type ReadAction = (typeof READ_ACTIONS)[number];
@@ -147,6 +159,15 @@ const FORGE_READ_TOOL: Tool = {
         enum: [...READ_ACTIONS],
         description: 'Read action to perform. Use "help" for resource documentation.',
       },
+      // Event filters
+      initiated_by: {
+        type: "string" as const,
+        description: "Events list: only the events that this user ID started",
+      },
+      ran_as: {
+        type: "string" as const,
+        description: "Events list: only the events that ran as this server user (e.g. forge)",
+      },
       // PHP fields
       setting: {
         type: "string" as const,
@@ -254,7 +275,7 @@ const FORGE_WRITE_TOOL: Tool = {
       content: {
         type: "string" as const,
         description:
-          "Content body for env variables, nginx config, deployment script or PHP config updates",
+          "Content body for env variables, nginx config, deployment script, PHP config updates or the CSV of a redirect rules import",
       },
       // Daemon fields
       command: {
@@ -305,6 +326,26 @@ const FORGE_WRITE_TOOL: Tool = {
         type: "string" as const,
         description: "Destination URL for redirect rules (e.g. /new-page)",
       },
+      mode: {
+        type: "string" as const,
+        description:
+          "Redirect rules import: append adds the rules of the CSV, replace replaces the rules of the site",
+      },
+      redirects: {
+        type: "array" as const,
+        description: "Redirect rules reorder: every redirect rule ID of the site, in order",
+        items: { type: "number" as const },
+      },
+      // Git fields
+      source_control_provider: {
+        type: "string" as const,
+        description: "Git update: github, gitlab, bitbucket, gitlab-custom or custom",
+      },
+      repository: {
+        type: "string" as const,
+        description: "Git update: repository, e.g. acme/app",
+      },
+      branch: { type: "string" as const, description: "Git update: branch to deploy" },
       // Security rule fields
       credentials: {
         type: "array" as const,
@@ -312,16 +353,20 @@ const FORGE_WRITE_TOOL: Tool = {
         items: { type: "object" as const },
       },
       // Monitor fields
+      notify: {
+        type: "string" as const,
+        description: "Monitors: email address notified when the monitor alerts",
+      },
       operator: {
         type: "string" as const,
         description: "Comparison operator for monitors (e.g. gte, lte)",
       },
       threshold: {
-        type: "number" as const,
+        type: ["number", "string"] as unknown as string,
         description: "Threshold value that triggers the monitor alert",
       },
       minutes: {
-        type: "number" as const,
+        type: ["number", "string"] as unknown as string,
         description: "Check interval in minutes for monitors (e.g. 5)",
       },
       // Scheduled job fields
@@ -364,7 +409,14 @@ const FORGE_WRITE_TOOL: Tool = {
         type: "string" as const,
         description: "Daily or weekly backups: HH:MM on the hour or half hour (e.g. 02:00)",
       },
-      cron: { type: "string" as const, description: "Custom backups: cron expression" },
+      cron: {
+        type: "string" as const,
+        description: "Custom backups and scheduled jobs: cron expression",
+      },
+      processes: {
+        type: "number" as const,
+        description: "Daemons: number of processes to run (default 1)",
+      },
       notification_email: {
         type: "string" as const,
         description: "Backups: email notified when a backup fails",
@@ -373,7 +425,8 @@ const FORGE_WRITE_TOOL: Tool = {
       script: { type: "string" as const, description: "Bash script content for recipes" },
       servers: {
         type: "array" as const,
-        description: "Server IDs to run a recipe on (e.g. [123, 456])",
+        description:
+          "Server IDs to run a recipe on (e.g. [123, 456]), or the servers of a network (network update)",
         items: { type: "number" as const },
       },
       // Service fields

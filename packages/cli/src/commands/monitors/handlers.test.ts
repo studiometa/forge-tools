@@ -135,15 +135,23 @@ describe("monitorsCreate", () => {
         format: "json",
         server: "10",
         type: "cpu_load",
-        operator: ">=",
+        operator: "gte",
         threshold: "80",
         minutes: "5",
+        notify: "ops@example.com",
       },
     });
 
     await monitorsCreate(ctx);
     expect(vi.mocked(createMonitor)).toHaveBeenCalledWith(
-      expect.objectContaining({ type: "cpu_load", operator: ">=" }),
+      {
+        server_id: "10",
+        type: "cpu_load",
+        operator: "gte",
+        threshold: 80,
+        minutes: 5,
+        notify: "ops@example.com",
+      },
       expect.anything(),
     );
   });
@@ -242,19 +250,37 @@ describe("monitorsCreate — default threshold/minutes to 0", () => {
   });
   afterEach(() => vi.restoreAllMocks());
 
-  it("should default threshold and minutes to 0 when not provided", async () => {
+  it("should default threshold to 0 and leave out minutes when not provided", async () => {
     const { createMonitor } = await import("@studiometa/forge-core");
     vi.mocked(createMonitor).mockResolvedValue({ data: mockMonitor });
     const ctx = createTestContext({
       token: "test",
       mockClient: {} as never,
-      options: { format: "json", server: "10", type: "cpu_load", operator: ">=" },
+      options: { format: "json", server: "10", type: "disk", operator: "lte", notify: "a@b.c" },
     });
     await monitorsCreate(ctx);
-    expect(vi.mocked(createMonitor)).toHaveBeenCalledWith(
-      expect.objectContaining({ threshold: 0, minutes: 0 }),
-      expect.anything(),
-    );
+    expect(vi.mocked(createMonitor).mock.lastCall?.[0]).toEqual({
+      server_id: "10",
+      type: "disk",
+      operator: "lte",
+      threshold: 0,
+      notify: "a@b.c",
+    });
+  });
+
+  it.each([
+    { type: "cpu", operator: "gte", notify: "a@b.c" },
+    { type: "disk", operator: ">=", notify: "a@b.c" },
+    { type: "disk", operator: "gte" },
+  ])("should refuse invalid options %o", async (options) => {
+    const exit = vi.spyOn(process, "exit").mockImplementation(() => undefined as never);
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "json", server: "10", ...options },
+    });
+    await monitorsCreate(ctx).catch(() => {});
+    expect(exit).toHaveBeenCalledWith(3);
   });
 });
 

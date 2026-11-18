@@ -1,24 +1,35 @@
 import type {
   HttpClient,
   JsonApiDocument,
-  JsonApiListDocument,
   DeploymentAttributes,
   DeploymentOutputAttributes,
   DeploymentScriptAttributes,
+  DeploymentStatusAttributes,
+  DeployHookAttributes,
 } from "@studiometa/forge-api";
 
-import { unwrapDocument, unwrapListDocument } from "@studiometa/forge-api";
+import { unwrapDocument } from "@studiometa/forge-api";
+
+import type { AllOptions, ListOptions } from "../list-options.ts";
 
 import { BaseCollection } from "./base.ts";
-import { AsyncPaginatedIterator } from "../pagination.ts";
+import type { AsyncPaginatedIterator } from "../pagination.ts";
+
+/**
+ * Options for updating the deployment script.
+ */
+export interface UpdateDeploymentScriptOptions {
+  /** Load the environment variables of the site in the script. */
+  autoSource?: boolean;
+}
 
 /**
  * Options for listing deployments.
  */
-export interface DeploymentListOptions {
-  /** Cursor for pagination (from previous response's next_cursor). */
-  cursor?: string;
-}
+export type DeploymentListOptions = ListOptions<
+  "commit_hash" | "commit_message" | "commit_author",
+  "created_at"
+>;
 
 /**
  * Collection of deployments for a site.
@@ -59,14 +70,10 @@ export class DeploymentsCollection extends BaseCollection {
   async list(
     options: DeploymentListOptions = {},
   ): Promise<Array<DeploymentAttributes & { id: number }>> {
-    const params = new URLSearchParams({ sort: "-created_at" });
-    if (options.cursor !== undefined) {
-      params.set("page[cursor]", options.cursor);
-    }
-    const response = await this.client.get<JsonApiListDocument<DeploymentAttributes>>(
-      `${this.basePath}?${params.toString()}`,
-    );
-    return unwrapListDocument(response);
+    return this.listPage<DeploymentAttributes>(this.basePath, {
+      sort: ["-created_at"],
+      ...options,
+    });
   }
 
   /**
@@ -82,17 +89,10 @@ export class DeploymentsCollection extends BaseCollection {
    * const deployments = await forge.server(123).site(456).deployments.all().toArray();
    * ```
    */
-  all(): AsyncPaginatedIterator<DeploymentAttributes & { id: number }> {
-    return new AsyncPaginatedIterator<DeploymentAttributes & { id: number }>(async (cursor) => {
-      const params = "?sort=-created_at" + (cursor !== null ? `&page[cursor]=${cursor}` : "");
-      const response = await this.client.get<JsonApiListDocument<DeploymentAttributes>>(
-        `${this.basePath}${params}`,
-      );
-      return {
-        items: unwrapListDocument(response),
-        nextCursor: response.meta.next_cursor ?? null,
-      };
-    });
+  all(
+    options: AllOptions<DeploymentListOptions> = {},
+  ): AsyncPaginatedIterator<DeploymentAttributes & { id: number }> {
+    return this.iterate<DeploymentAttributes>(this.basePath, { sort: ["-created_at"], ...options });
   }
 
   /**
@@ -120,7 +120,7 @@ export class DeploymentsCollection extends BaseCollection {
    */
   async output(deploymentId: number): Promise<string> {
     const response = await this.client.get<JsonApiDocument<DeploymentOutputAttributes>>(
-      `${this.basePath}/${deploymentId}/output`,
+      `${this.basePath}/${deploymentId}/log`,
     );
     return unwrapDocument(response).output;
   }
@@ -135,7 +135,7 @@ export class DeploymentsCollection extends BaseCollection {
    */
   async script(): Promise<string> {
     const response = await this.client.get<JsonApiDocument<DeploymentScriptAttributes>>(
-      `/orgs/${this.orgSlug}/servers/${this.serverId}/sites/${this.siteId}/deployments/script`,
+      `${this.basePath}/script`,
     );
     return unwrapDocument(response).content ?? "";
   }
@@ -148,10 +148,82 @@ export class DeploymentsCollection extends BaseCollection {
    * await forge.server(123).site(456).deployments.updateScript('npm run build && ...');
    * ```
    */
-  async updateScript(content: string): Promise<void> {
-    await this.client.put(
-      `/orgs/${this.orgSlug}/servers/${this.serverId}/sites/${this.siteId}/deployments/script`,
-      { content },
-    );
+  async updateScript(content: string, options: UpdateDeploymentScriptOptions = {}): Promise<void> {
+    await this.client.put(`${this.basePath}/script`, {
+      content,
+      ...(options.autoSource === undefined ? {} : { auto_source: options.autoSource }),
+    });
+  }
+
+  /**
+   * Get the deployment state of the site: whether a deployment runs.
+   *
+   * @example
+   * ```ts
+   * const { status } = await forge.server(123).site(456).deployments.status();
+   * ```
+   */
+  async status(): Promise<DeploymentStatusAttributes & { id: number }> {
+    return this.getResource<DeploymentStatusAttributes>(`${this.basePath}/status`);
+  }
+
+  /**
+   * Reset the deployment state of the site, after a deployment that did not end.
+   *
+   * @example
+   * ```ts
+   * await forge.server(123).site(456).deployments.resetStatus();
+   * ```
+   */
+  async resetStatus(): Promise<void> {
+    await this.client.delete(`${this.basePath}/status`);
+  }
+
+  /**
+   * Get the deployment hook: the URL that starts a deployment of the site.
+   *
+   * @example
+   * ```ts
+   * const { url } = await forge.server(123).site(456).deployments.deployHook();
+   * ```
+   */
+  async deployHook(): Promise<DeployHookAttributes & { id: number }> {
+    return this.getResource<DeployHookAttributes>(`${this.basePath}/deploy-hook`);
+  }
+
+  /**
+   * Generate a new token for the deployment hook, and return its URL.
+   *
+   * @example
+   * ```ts
+   * const { url } = await forge.server(123).site(456).deployments.regenerateDeployHook();
+   * ```
+   */
+  async regenerateDeployHook(): Promise<DeployHookAttributes & { id: number }> {
+    return this.putResource<DeployHookAttributes>(`${this.basePath}/deploy-hook`);
+  }
+
+  /**
+   * Deploy the site on each push to its branch.
+   *
+   * @example
+   * ```ts
+   * await forge.server(123).site(456).deployments.enablePushToDeploy();
+   * ```
+   */
+  async enablePushToDeploy(): Promise<void> {
+    await this.client.post(`${this.basePath}/push-to-deploy`);
+  }
+
+  /**
+   * Stop deploying the site on each push to its branch.
+   *
+   * @example
+   * ```ts
+   * await forge.server(123).site(456).deployments.disablePushToDeploy();
+   * ```
+   */
+  async disablePushToDeploy(): Promise<void> {
+    await this.client.delete(`${this.basePath}/push-to-deploy`);
   }
 }

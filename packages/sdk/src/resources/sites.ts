@@ -2,13 +2,16 @@ import type {
   CreateSiteData,
   HttpClient,
   JsonApiDocument,
-  JsonApiListDocument,
   SiteAttributes,
+  UpdateSiteData,
+  UpdateGitData,
+  EnvironmentAttributes,
+  NginxConfigAttributes,
 } from "@studiometa/forge-api";
 
-import { unwrapDocument, unwrapListDocument } from "@studiometa/forge-api";
+import { unwrapDocument } from "@studiometa/forge-api";
 
-import { AsyncPaginatedIterator } from "../pagination.ts";
+import type { AsyncPaginatedIterator } from "../pagination.ts";
 import { matchByName } from "../utils/name-matcher.ts";
 import type { ResolveResult } from "./servers.ts";
 import { DeploymentsCollection } from "./deployments.ts";
@@ -16,15 +19,56 @@ import { CertificatesCollection } from "./certificates.ts";
 import { CommandsCollection } from "./commands.ts";
 import { SecurityRulesCollection } from "./security-rules.ts";
 import { RedirectRulesCollection } from "./redirect-rules.ts";
+import { ScheduledJobsCollection } from "./scheduled-jobs.ts";
+import { DomainsCollection } from "./domains.ts";
+import { ComposerCredentialsCollection, NpmCredentialsCollection } from "./credentials.ts";
+import { HeartbeatsCollection } from "./heartbeats.ts";
+import { IntegrationsResource } from "./integrations.ts";
+import { WebhooksCollection } from "./webhooks.ts";
+import {
+  SiteDeployKeyResource,
+  SiteHealthcheckResource,
+  SiteLoadBalancingResource,
+  SiteLogsResource,
+} from "./site-settings.ts";
+import type { AllOptions, ListOptions } from "../list-options.ts";
+
 import { BaseCollection } from "./base.ts";
+
+/**
+ * Options for updating the environment file of a site.
+ */
+export interface UpdateEnvironmentOptions {
+  /** Run `php artisan config:cache` after the update. */
+  cache?: boolean;
+  /** Restart the queue workers after the update. */
+  queues?: boolean;
+  /** Encrypt the file with this key (`php artisan env:encrypt`). */
+  encryptionKey?: string | null;
+}
 
 /**
  * Options for listing sites.
  */
-export interface SiteListOptions {
-  /** Cursor for pagination (from previous response's next_cursor). */
-  cursor?: string;
-}
+export type SiteListOptions = ListOptions<
+  "name",
+  "name" | "created_at" | "updated_at",
+  | "server"
+  | "serverCount"
+  | "serverExists"
+  | "tags"
+  | "tagsCount"
+  | "tagsExists"
+  | "latestDeployment"
+  | "latestDeploymentCount"
+  | "latestDeploymentExists"
+  | "securityRules"
+  | "securityRulesCount"
+  | "securityRulesExists"
+  | "redirectRules"
+  | "redirectRulesCount"
+  | "redirectRulesExists"
+>;
 
 /**
  * Collection of sites on a server.
@@ -62,11 +106,7 @@ export class SitesCollection extends BaseCollection {
    * ```
    */
   async list(options: SiteListOptions = {}): Promise<Array<SiteAttributes & { id: number }>> {
-    const query = options.cursor !== undefined ? `?page[cursor]=${options.cursor}` : "";
-    const response = await this.client.get<JsonApiListDocument<SiteAttributes>>(
-      `${this.basePath}${query}`,
-    );
-    return unwrapListDocument(response);
+    return this.listPage<SiteAttributes>(this.basePath, options);
   }
 
   /**
@@ -82,17 +122,10 @@ export class SitesCollection extends BaseCollection {
    * const sites = await forge.server(123).sites.all().toArray();
    * ```
    */
-  all(): AsyncPaginatedIterator<SiteAttributes & { id: number }> {
-    return new AsyncPaginatedIterator<SiteAttributes & { id: number }>(async (cursor) => {
-      const query = cursor !== null ? `?page[cursor]=${cursor}` : "";
-      const response = await this.client.get<JsonApiListDocument<SiteAttributes>>(
-        `${this.basePath}${query}`,
-      );
-      return {
-        items: unwrapListDocument(response),
-        nextCursor: response.meta.next_cursor ?? null,
-      };
-    });
+  all(
+    options: AllOptions<SiteListOptions> = {},
+  ): AsyncPaginatedIterator<SiteAttributes & { id: number }> {
+    return this.iterate<SiteAttributes>(this.basePath, options);
   }
 
   /**
@@ -137,7 +170,7 @@ export class SitesCollection extends BaseCollection {
    * await forge.server(123).sites.update(456, { directory: '/public' });
    * ```
    */
-  async update(siteId: number, data: Partial<CreateSiteData>): Promise<void> {
+  async update(siteId: number, data: UpdateSiteData): Promise<void> {
     await this.client.put(`${this.basePath}/${siteId}`, data);
   }
 
@@ -217,6 +250,39 @@ export class SiteResource extends BaseCollection {
   /** Redirect rules for this site. */
   readonly redirectRules: RedirectRulesCollection;
 
+  /** Scheduled jobs of this site. */
+  readonly scheduledJobs: ScheduledJobsCollection;
+
+  /** Domains of this site. */
+  readonly domains: DomainsCollection;
+
+  /** Healthcheck endpoint of this site. */
+  readonly healthcheck: SiteHealthcheckResource;
+
+  /** Nginx and application logs of this site. */
+  readonly logs: SiteLogsResource;
+
+  /** Deploy key of this site. */
+  readonly deployKey: SiteDeployKeyResource;
+
+  /** Nodes of this site, on a load balancer. */
+  readonly loadBalancing: SiteLoadBalancingResource;
+
+  /** Credentials of the private Composer repositories of this site. */
+  readonly composerCredentials: ComposerCredentialsCollection;
+
+  /** Credentials of the private npm registries of this site. */
+  readonly npmCredentials: NpmCredentialsCollection;
+
+  /** Heartbeats of this site. */
+  readonly heartbeats: HeartbeatsCollection;
+
+  /** Laravel integrations of this site (Horizon, Octane, Reverb, Pulse...). */
+  readonly integrations: IntegrationsResource;
+
+  /** Deployment webhooks of this site. */
+  readonly webhooks: WebhooksCollection;
+
   /** @internal */
   constructor(
     client: HttpClient,
@@ -232,6 +298,17 @@ export class SiteResource extends BaseCollection {
     this.commands = new CommandsCollection(client, orgSlug, serverId, siteId);
     this.securityRules = new SecurityRulesCollection(client, orgSlug, serverId, siteId);
     this.redirectRules = new RedirectRulesCollection(client, orgSlug, serverId, siteId);
+    this.scheduledJobs = new ScheduledJobsCollection(client, orgSlug, serverId, siteId);
+    this.domains = new DomainsCollection(client, orgSlug, serverId, siteId);
+    this.healthcheck = new SiteHealthcheckResource(client, orgSlug, serverId, siteId);
+    this.logs = new SiteLogsResource(client, orgSlug, serverId, siteId);
+    this.deployKey = new SiteDeployKeyResource(client, orgSlug, serverId, siteId);
+    this.loadBalancing = new SiteLoadBalancingResource(client, orgSlug, serverId, siteId);
+    this.composerCredentials = new ComposerCredentialsCollection(client, orgSlug, serverId, siteId);
+    this.npmCredentials = new NpmCredentialsCollection(client, orgSlug, serverId, siteId);
+    this.heartbeats = new HeartbeatsCollection(client, orgSlug, serverId, siteId);
+    this.integrations = new IntegrationsResource(client, orgSlug, serverId, siteId);
+    this.webhooks = new WebhooksCollection(client, orgSlug, serverId, siteId);
   }
 
   private get basePath(): string {
@@ -262,7 +339,7 @@ export class SiteResource extends BaseCollection {
    * ```
    */
   async deploy(): Promise<void> {
-    await this.client.post(`${this.basePath}/deployments`, {});
+    await this.client.post(`${this.basePath}/deployments`);
   }
 
   /**
@@ -275,6 +352,22 @@ export class SiteResource extends BaseCollection {
    */
   async delete(): Promise<void> {
     await this.client.delete(this.basePath);
+  }
+
+  /**
+   * Change the source control provider, repository or branch that the site deploys from.
+   *
+   * @example
+   * ```ts
+   * await forge.server(123).site(456).updateGit({
+   *   source_control_provider: 'github',
+   *   repository: 'acme/website',
+   *   branch: 'main',
+   * });
+   * ```
+   */
+  async updateGit(data: UpdateGitData): Promise<SiteAttributes & { id: number }> {
+    return this.putResource<SiteAttributes>(`${this.basePath}/git`, data);
   }
 }
 
@@ -308,16 +401,22 @@ export class SiteEnvResource extends BaseCollection {
    * @returns The .env file content as a string.
    */
   async get(): Promise<string> {
-    return this.client.get<string>(this.basePath);
+    return (await this.getResource<EnvironmentAttributes>(this.basePath)).content;
   }
 
   /**
    * Update the environment file content.
    *
    * @param content The full .env file content.
+   * @param options Cache the config, restart the queues, or encrypt the file with a key.
    */
-  async update(content: string): Promise<void> {
-    await this.client.put(this.basePath, { environment: content });
+  async update(content: string, options: UpdateEnvironmentOptions = {}): Promise<void> {
+    await this.client.put(this.basePath, {
+      environment: content,
+      ...(options.cache === undefined ? {} : { cache: options.cache }),
+      ...(options.queues === undefined ? {} : { queues: options.queues }),
+      ...(options.encryptionKey === undefined ? {} : { encryption_key: options.encryptionKey }),
+    });
   }
 }
 
@@ -351,7 +450,7 @@ export class SiteNginxResource extends BaseCollection {
    * @returns The Nginx config content as a string.
    */
   async get(): Promise<string> {
-    return this.client.get<string>(this.basePath);
+    return (await this.getResource<NginxConfigAttributes>(this.basePath)).content ?? "";
   }
 
   /**

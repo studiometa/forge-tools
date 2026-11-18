@@ -64,36 +64,42 @@ export async function monitorsGet(args: string[], ctx: CommandContext): Promise<
   }, ctx.formatter);
 }
 
+const MONITOR_TYPES = new Set(["cpu_load", "disk", "free_memory", "used_memory"]);
+
+const CREATE_USAGE =
+  "forge monitors create --server <server_id> --type cpu_load|disk|free_memory|used_memory --operator gte|lte --threshold <threshold> --notify <email> [--minutes <minutes>]";
+
 export async function monitorsCreate(ctx: CommandContext): Promise<void> {
   const server = String(ctx.options.server ?? "");
   const type = String(ctx.options.type ?? "");
   const operator = String(ctx.options.operator ?? "");
   const threshold = Number(ctx.options.threshold ?? 0);
   const notify = String(ctx.options.notify ?? "");
-  const minutes = Number(ctx.options.minutes ?? 0);
+  const minutes = ctx.options.minutes === undefined ? undefined : Number(ctx.options.minutes);
 
   if (!server) {
-    exitWithValidationError(
-      "server_id",
-      "forge monitors create --server <server_id> --type <type> --operator <operator> --threshold <threshold> --minutes <minutes>",
-      ctx.formatter,
-    );
+    exitWithValidationError("server_id", CREATE_USAGE, ctx.formatter);
   }
 
   if (!type) {
-    exitWithValidationError(
-      "type",
-      "forge monitors create --server <server_id> --type <type> --operator <operator> --threshold <threshold> --minutes <minutes>",
-      ctx.formatter,
-    );
+    exitWithValidationError("type", CREATE_USAGE, ctx.formatter);
   }
 
   if (!operator) {
-    exitWithValidationError(
-      "operator",
-      "forge monitors create --server <server_id> --type <type> --operator <operator> --threshold <threshold> --minutes <minutes>",
-      ctx.formatter,
-    );
+    exitWithValidationError("operator", CREATE_USAGE, ctx.formatter);
+  }
+
+  if (!MONITOR_TYPES.has(type)) {
+    exitWithValidationError("type", CREATE_USAGE, ctx.formatter);
+  }
+
+  if (!["gte", "lte"].includes(operator)) {
+    exitWithValidationError("operator", CREATE_USAGE, ctx.formatter);
+  }
+
+  // Forge requires the email address to notify.
+  if (!notify) {
+    exitWithValidationError("notify", CREATE_USAGE, ctx.formatter);
   }
 
   await runCommand(async () => {
@@ -101,7 +107,14 @@ export async function monitorsCreate(ctx: CommandContext): Promise<void> {
     const execCtx = ctx.createExecutorContext(token);
     const server_id = await resolveServerId(server, execCtx);
     const result = await createMonitor(
-      { server_id, type, operator, threshold, notify, minutes },
+      {
+        server_id,
+        type,
+        operator,
+        threshold,
+        notify,
+        ...(minutes === undefined ? {} : { minutes }),
+      },
       execCtx,
     );
     ctx.formatter.outputOne(result.data, [

@@ -66,10 +66,23 @@ describe("handleDeployments", () => {
     expect(result.content[0].text).toContain("server_id");
   });
 
-  it("should require site_id", async () => {
+  it("should list the deployments of every site of a server without site_id", async () => {
+    const ctx = createMockContext();
+    const get = vi.spyOn(ctx.executorContext.client, "get");
     const result = await handleDeployments(
       "list",
       { resource: "deployments", action: "list", server_id: "123" },
+      ctx,
+    );
+    expect(result.isError).toBeUndefined();
+    expect(get).toHaveBeenCalledWith("/orgs/test-org/servers/123/deployments?sort=-created_at");
+    expect(result.content[0].text).toContain("1 deployment(s)");
+  });
+
+  it("should require site_id for the other actions", async () => {
+    const result = await handleDeployments(
+      "deploy",
+      { resource: "deployments", action: "deploy", server_id: "123" },
       createMockContext(),
     );
     expect(result.isError).toBe(true);

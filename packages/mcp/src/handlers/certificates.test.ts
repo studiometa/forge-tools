@@ -133,9 +133,23 @@ describe("handleCertificates", () => {
     expect(result.content[0].text).toContain("Certificate 7 of domain 100 activated.");
   });
 
-  it("should require an id to delete or activate a certificate", async () => {
+  it("should deactivate a certificate", async () => {
+    const { ctx, post } = createMockContext();
+    const result = await handleCertificates(
+      "deactivate",
+      { resource: "certificates", action: "deactivate", ...domain, id: "7" },
+      ctx,
+    );
+    expect(post).toHaveBeenCalledWith(
+      "/orgs/test-org/servers/1/sites/10/domains/100/certificates/7/actions",
+      { action: "disable" },
+    );
+    expect(result.content[0].text).toContain("Certificate 7 of domain 100 deactivated.");
+  });
+
+  it("should require an id to delete, activate or deactivate a certificate", async () => {
     const { ctx } = createMockContext();
-    for (const action of ["delete", "activate"]) {
+    for (const action of ["delete", "activate", "deactivate"]) {
       const result = await handleCertificates(
         action,
         { resource: "certificates", action, ...domain },

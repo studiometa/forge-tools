@@ -38,6 +38,20 @@ await forge.server(123).site(456).env.update("APP_ENV=production\nAPP_DEBUG=fals
 
 ## API Reference
 
+The SDK covers every operation of the [Forge API](https://forge.laravel.com/api/docs). A test checks each method against the OpenAPI spec (`docs/forge-openapi-v2.json`): its route, query parameters and request body.
+
+### Lists: pagination, filters and sort
+
+Each `list()` returns one page, and each `all()` iterates over all pages. Both take the filters, sort fields and includes of the API, typed per resource:
+
+```typescript
+await forge.servers.list({ filter: { name: "web" }, sort: ["-created_at"], pageSize: 50 });
+await forge.servers.list({ cursor: "next-cursor" }); // A given page
+for await (const event of forge.events.all({ include: ["site"] })) {
+  console.log(event.description);
+}
+```
+
 ### Servers
 
 ```typescript
@@ -47,17 +61,52 @@ forge.servers.get(id)                   // Get a server
 forge.servers.create({ ... })           // Create a server
 forge.servers.update(id, { name })      // Update name, IP addresses, timezone or tags
 forge.servers.delete(id)                // Delete a server
+forge.servers.delete(id, { preserveAtProvider: true }) // Remove it from Forge only
 forge.servers.reboot(id)                // Reboot a server
 forge.servers.resolve('prod')           // Find servers by name
+forge.servers.archives.list()           // Archived servers
+forge.servers.archives.archive(id)      // Archive a server
+forge.servers.archives.unarchive(id)    // Restore an archived server
 
 // Resource with nested access
 forge.server(id).get()                  // Get server details
 forge.server(id).reboot()               // Reboot server
 forge.server(id).update({ timezone })   // Update server
+forge.server(id).action('power-cycle')  // Reboot or power cycle
 forge.server(id).delete()               // Delete server
 forge.server(id).sites.list()           // List sites on server
 forge.server(id).databases.list()       // List databases
 forge.server(id).daemons.list()         // List daemons
+forge.server(id).events.list()          // Events, with get(eventId) and output(eventId)
+forge.server(id).deployments.list()     // Deployments of every site of the server
+forge.server(id).network.list()         // Servers in its private network
+forge.server(id).network.update([2, 3]) // Replace its private network
+forge.server(id).key.get()              // Public key that Forge connects with
+forge.server(id).key.regenerate()       // New key pair
+forge.server(id).logs.get('nginx_error') // A server log, by key
+forge.server(id).logs.clear('nginx_error')
+forge.server(id).services.restart('nginx') // nginx, php, mysql, postgres, redis, supervisor
+forge.server(id).services.stop('mysql') // nginx, mysql, postgres
+forge.server(id).services.reloadPhp('php84')
+forge.server(id).firewallRules.list()   // Also monitors, sshKeys, nginxTemplates, scheduledJobs
+```
+
+### Organization
+
+```typescript
+forge.organizations.list(); // Organizations of the user
+forge.organizations.get(); // The organization of the SDK
+forge.sites.list({ filter: { name } }); // Sites of every server of the organization
+forge.sites.get(siteId);
+forge.events.list(); // Recent events of the organization
+forge.serverCredentials.list(); // Server provider credentials
+forge.serverCredentials.vpcs(credentialId, "fsn1").create("production");
+forge.providers.list(); // Server providers
+forge.provider("hetzner").regions();
+forge.provider("hetzner").region("fsn1").sizes();
+forge.roles.create({ name: "Deployer", permissions: ["site:manage-deploys"] });
+forge.predefinedRoles.list();
+forge.permissions.list();
 ```
 
 #### `servers.resolve(query)`
@@ -151,7 +200,41 @@ forge.server(id).site(siteId).deployments.list(); // List deployments
 forge.server(id).site(siteId).deployments.get(depId); // Get deployment
 forge.server(id).site(siteId).deployments.output(depId); // Get output
 forge.server(id).site(siteId).deployments.script(); // Get deploy script
-forge.server(id).site(siteId).deployments.updateScript("npm run build");
+forge.server(id).site(siteId).deployments.updateScript("npm run build", { autoSource: true });
+forge.server(id).site(siteId).deployments.status(); // Deployment state
+forge.server(id).site(siteId).deployments.resetStatus();
+forge.server(id).site(siteId).deployments.deployHook(); // URL that starts a deployment
+forge.server(id).site(siteId).deployments.regenerateDeployHook();
+forge.server(id).site(siteId).deployments.enablePushToDeploy();
+forge.server(id).site(siteId).deployments.disablePushToDeploy();
+forge.server(id).site(siteId).webhooks.create("https://example.com/deployed");
+```
+
+### Site settings
+
+```typescript
+const site = forge.server(id).site(siteId);
+site.updateGit({ source_control_provider: "github", repository: "acme/web", branch: "main" });
+site.env.update("APP_ENV=production", { cache: true, queues: true });
+site.domains.list(); // Also get, create, update, delete, configurations, action, nginx
+site.domains.action(domainId, { action: "mark-as-primary" });
+site.healthcheck.update("https://example.com/up");
+site.logs.get("application"); // "nginx-access", "nginx-error" or "application"
+site.deployKey.create(); // Returns the public key
+site.composerCredentials.create({ repository, username, password });
+site.npmCredentials.create({ registry, token, scopes: ["@acme"] });
+site.heartbeats.create({ name: "Backups", grace_period: 5, frequency: 1440 });
+site.integrations.horizon.enable(); // horizon, octane, reverb, inertia, pulse, maintenance, scheduler
+site.integrations.maintenance.enable({ status: 503 });
+site.loadBalancing.update({
+  balancer_method: "round_robin",
+  balancing: [{ server_id, weight: 1 }],
+});
+site.scheduledJobs.list(); // Scheduled jobs of the site
+site.redirectRules.export(); // CSV
+site.redirectRules.import(csv, "replace"); // Returns the number of imported rules
+site.redirectRules.reorder([3, 1, 2]);
+site.commands.output(commandId);
 ```
 
 ### Certificates
@@ -169,6 +252,8 @@ forge.server(id).site(siteId).certificates.get(domainId, certId);
 forge.server(id).site(siteId).certificates.create(domainId, { type: "letsencrypt" });
 // Activate a certificate
 forge.server(id).site(siteId).certificates.activate(domainId, certId);
+// Deactivate a certificate
+forge.server(id).site(siteId).certificates.deactivate(domainId, certId);
 // Delete a certificate
 forge.server(id).site(siteId).certificates.delete(domainId, certId);
 ```
@@ -180,6 +265,12 @@ forge.server(id).databases.list();
 forge.server(id).databases.get(dbId);
 forge.server(id).databases.create({ name: "myapp", user: "admin", password: "secret" });
 forge.server(id).databases.delete(dbId);
+forge.server(id).databases.synchronize(); // Add the databases created outside Forge
+forge.server(id).databases.updatePassword("secret"); // Root password
+forge.server(id).databaseUsers.update(userId, { database_ids: [1, 2] });
+forge.server(id).backups.instances(configId).list(); // Backups of a configuration
+forge.server(id).backups.instances(configId).create(); // Back up now
+forge.server(id).backups.instances(configId).restore(backupId, databaseId);
 ```
 
 ### Daemons (Background Processes)
@@ -188,7 +279,9 @@ forge.server(id).databases.delete(dbId);
 forge.server(id).daemons.list();
 forge.server(id).daemons.get(daemonId);
 forge.server(id).daemons.create({ command: "php artisan queue:work", user: "forge" });
+forge.server(id).daemons.update(daemonId, { name: "queue" });
 forge.server(id).daemons.restart(daemonId);
+forge.server(id).daemons.action(daemonId, "stop"); // "restart", "stop", "start" or "empty-log"
 forge.server(id).daemons.delete(daemonId);
 ```
 
@@ -199,6 +292,11 @@ Version methods take the PHP version ID from `php.list()`.
 ```typescript
 forge.server(id).php.list(); // Installed PHP versions
 forge.server(id).php.get(versionId);
+forge.server(id).php.install({ version: "php84", site_default: true });
+forge.server(id).php.upgrade(versionId); // Latest patch release
+forge.server(id).php.uninstall(versionId);
+forge.server(id).php.cliVersion(); // Also siteVersion()
+forge.server(id).php.setCliVersion("8.4"); // Also setSiteVersion()
 forge.server(id).php.config(versionId, "fpm"); // "cli", "fpm" or "pool"
 forge.server(id).php.config(versionId, "pool", { user: "forge" });
 forge.server(id).php.updateConfig(versionId, "fpm", "memory_limit = 512M\n...");
@@ -227,16 +325,32 @@ forge.storageProviders.create({
   access_key: "AKIA...",
   secret_key: process.env.S3_SECRET_KEY,
 });
+forge.storageProviders.update(providerId, { name: "Backups", provider: "custom" });
 forge.storageProviders.delete(providerId);
+```
+
+### Recipes
+
+```typescript
+forge.recipes.list(); // Also get, create, update, delete
+forge.recipes.run(recipeId, { servers: [123], email: true });
+forge.recipes.runs(recipeId).list(); // Runs, with get(runId) for the output
+forge.forgeRecipes.list(); // Recipes of Forge
+forge.forgeRecipes.run(recipeId, { servers: [123] });
 ```
 
 ### Teams
 
-Share servers with the organization's teams. Team methods take the team ID from `teams.list()`.
+Share servers, recipes and credentials with the organization's teams. Team methods take the team ID from `teams.list()`.
 
 ```typescript
 forge.teams.list();
 forge.teams.all(); // Async iterator over all pages
+forge.teams.create({ name: "Developers" }); // Also get, update, delete
+forge.team(teamId).members.list(); // Also get, update(userId, roleId), remove
+forge.team(teamId).invites.create({ email: "jane@example.com", role_id: 3 });
+forge.team(teamId).recipes.add(recipeId);
+forge.team(teamId).serverCredentials.add(credentialId);
 forge.team(teamId).servers.list(); // Servers shared with the team
 forge.team(teamId).servers.all();
 forge.team(teamId).servers.add(serverId);

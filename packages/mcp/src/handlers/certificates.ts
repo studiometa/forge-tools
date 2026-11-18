@@ -2,6 +2,7 @@ import * as v from "valibot";
 import {
   activateCertificate,
   createCertificate,
+  deactivateCertificate,
   deleteCertificate,
   getCertificate,
   listCertificates,
@@ -15,7 +16,7 @@ const domainArgs = { server_id: v.string(), site_id: v.string(), domain_id: v.st
 
 export const handleCertificates = createResourceHandler({
   resource: "certificates",
-  actions: ["list", "get", "create", "delete", "activate"],
+  actions: ["list", "get", "create", "delete", "activate", "deactivate"],
   inputSchemas: {
     list: v.object({
       server_id: v.string(),
@@ -26,6 +27,7 @@ export const handleCertificates = createResourceHandler({
     create: v.object({ ...domainArgs, type: v.string() }),
     delete: v.object({ ...domainArgs, id: v.string() }),
     activate: v.object({ ...domainArgs, id: v.string() }),
+    deactivate: v.object({ ...domainArgs, id: v.string() }),
   },
   executors: {
     list: listCertificates,
@@ -33,6 +35,7 @@ export const handleCertificates = createResourceHandler({
     create: createCertificate,
     delete: deleteCertificate,
     activate: activateCertificate,
+    deactivate: deactivateCertificate,
   },
   hints: (data, _id, args) =>
     getCertificateHints(
@@ -52,6 +55,8 @@ export const handleCertificates = createResourceHandler({
         return `Certificate ${String(args.id)} of domain ${String(args.domain_id)} deleted.`;
       case "activate":
         return `Certificate ${String(args.id)} of domain ${String(args.domain_id)} activated.`;
+      case "deactivate":
+        return `Certificate ${String(args.id)} of domain ${String(args.domain_id)} deactivated.`;
       /* v8 ignore next */
       default:
         return "Done.";

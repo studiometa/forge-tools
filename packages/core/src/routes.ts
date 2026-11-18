@@ -26,6 +26,8 @@ export const ROUTES = {
     create: { method: "POST", path: "/orgs/:org/servers" },
     delete: { method: "DELETE", path: "/orgs/:org/servers/:server_id" },
     update: { method: "PUT", path: "/orgs/:org/servers/:server_id" },
+    getNetwork: { method: "GET", path: "/orgs/:org/servers/:server_id/network" },
+    updateNetwork: { method: "PUT", path: "/orgs/:org/servers/:server_id/network" },
     reboot: { method: "POST", path: "/orgs/:org/servers/:server_id/actions" },
   },
   sites: {
@@ -34,6 +36,19 @@ export const ROUTES = {
     create: { method: "POST", path: "/orgs/:org/servers/:server_id/sites" },
     update: { method: "PUT", path: "/orgs/:org/servers/:server_id/sites/:site_id" },
     delete: { method: "DELETE", path: "/orgs/:org/servers/:server_id/sites/:site_id" },
+    updateGit: { method: "PUT", path: "/orgs/:org/servers/:server_id/sites/:site_id/git" },
+    getDeployKey: {
+      method: "GET",
+      path: "/orgs/:org/servers/:server_id/sites/:site_id/deploy-key",
+    },
+    createDeployKey: {
+      method: "POST",
+      path: "/orgs/:org/servers/:server_id/sites/:site_id/deploy-key",
+    },
+    deleteDeployKey: {
+      method: "DELETE",
+      path: "/orgs/:org/servers/:server_id/sites/:site_id/deploy-key",
+    },
   },
   databases: {
     list: { method: "GET", path: "/orgs/:org/servers/:server_id/database/schemas" },
@@ -62,6 +77,7 @@ export const ROUTES = {
   },
   deployments: {
     list: { method: "GET", path: "/orgs/:org/servers/:server_id/sites/:site_id/deployments" },
+    listForServer: { method: "GET", path: "/orgs/:org/servers/:server_id/deployments" },
     get: { method: "GET", path: "/orgs/:org/servers/:server_id/sites/:site_id/deployments/:id" },
     create: { method: "POST", path: "/orgs/:org/servers/:server_id/sites/:site_id/deployments" },
     getLog: {
@@ -177,6 +193,18 @@ export const ROUTES = {
     list: { method: "GET", path: "/orgs/:org/servers/:server_id/sites/:site_id/redirect-rules" },
     get: { method: "GET", path: "/orgs/:org/servers/:server_id/sites/:site_id/redirect-rules/:id" },
     create: { method: "POST", path: "/orgs/:org/servers/:server_id/sites/:site_id/redirect-rules" },
+    export: {
+      method: "GET",
+      path: "/orgs/:org/servers/:server_id/sites/:site_id/redirect-rules/export",
+    },
+    import: {
+      method: "POST",
+      path: "/orgs/:org/servers/:server_id/sites/:site_id/redirect-rules/import",
+    },
+    reorder: {
+      method: "PUT",
+      path: "/orgs/:org/servers/:server_id/sites/:site_id/redirect-rules/reorder",
+    },
     delete: {
       method: "DELETE",
       path: "/orgs/:org/servers/:server_id/sites/:site_id/redirect-rules/:id",
@@ -279,6 +307,12 @@ export const ROUTES = {
     getOpcache: { method: "GET", path: "/orgs/:org/servers/:server_id/php/opcache" },
     enableOpcache: { method: "POST", path: "/orgs/:org/servers/:server_id/php/opcache" },
     disableOpcache: { method: "DELETE", path: "/orgs/:org/servers/:server_id/php/opcache" },
+  },
+  events: {
+    list: { method: "GET", path: "/orgs/:org/events" },
+    listForServer: { method: "GET", path: "/orgs/:org/servers/:server_id/events" },
+    get: { method: "GET", path: "/orgs/:org/servers/:server_id/events/:id" },
+    getOutput: { method: "GET", path: "/orgs/:org/servers/:server_id/events/:id/output" },
   },
   user: {
     get: { method: "GET", path: "/user" },

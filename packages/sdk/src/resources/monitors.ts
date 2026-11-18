@@ -2,11 +2,12 @@ import type {
   CreateMonitorData,
   HttpClient,
   JsonApiDocument,
-  JsonApiListDocument,
   MonitorAttributes,
 } from "@studiometa/forge-api";
 
-import { unwrapDocument, unwrapListDocument } from "@studiometa/forge-api";
+import { unwrapDocument } from "@studiometa/forge-api";
+
+import type { AllOptions, ListOptions } from "../list-options.ts";
 
 import { BaseCollection } from "./base.ts";
 import { AsyncPaginatedIterator } from "../pagination.ts";
@@ -14,10 +15,10 @@ import { AsyncPaginatedIterator } from "../pagination.ts";
 /**
  * Options for listing monitors.
  */
-export interface MonitorListOptions {
-  /** Cursor for pagination (from previous response's next_cursor). */
-  cursor?: string;
-}
+export type MonitorListOptions = ListOptions<
+  "status" | "state" | "type" | "notify",
+  "state" | "status" | "created_at" | "updated_at"
+>;
 
 /**
  * Collection of server monitors.
@@ -55,11 +56,7 @@ export class MonitorsCollection extends BaseCollection {
    * ```
    */
   async list(options: MonitorListOptions = {}): Promise<Array<MonitorAttributes & { id: number }>> {
-    const query = options.cursor !== undefined ? `?page[cursor]=${options.cursor}` : "";
-    const response = await this.client.get<JsonApiListDocument<MonitorAttributes>>(
-      `${this.basePath}${query}`,
-    );
-    return unwrapListDocument(response);
+    return this.listPage<MonitorAttributes>(this.basePath, options);
   }
 
   /**
@@ -75,17 +72,10 @@ export class MonitorsCollection extends BaseCollection {
    * const monitors = await forge.server(123).monitors.all().toArray();
    * ```
    */
-  all(): AsyncPaginatedIterator<MonitorAttributes & { id: number }> {
-    return new AsyncPaginatedIterator<MonitorAttributes & { id: number }>(async (cursor) => {
-      const query = cursor !== null ? `?page[cursor]=${cursor}` : "";
-      const response = await this.client.get<JsonApiListDocument<MonitorAttributes>>(
-        `${this.basePath}${query}`,
-      );
-      return {
-        items: unwrapListDocument(response),
-        nextCursor: response.meta.next_cursor ?? null,
-      };
-    });
+  all(
+    options: AllOptions<MonitorListOptions> = {},
+  ): AsyncPaginatedIterator<MonitorAttributes & { id: number }> {
+    return this.iterate<MonitorAttributes>(this.basePath, options);
   }
 
   /**
