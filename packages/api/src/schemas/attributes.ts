@@ -45,6 +45,7 @@ export const ServerAttributesSchema = v.object({
   timezone: v.string(),
   local_public_key: v.nullable(v.string()),
   is_ready: v.nullable(v.boolean()),
+  slug: v.optional(v.string()),
 });
 
 export type ServerAttributes = v.InferOutput<typeof ServerAttributesSchema>;
@@ -70,9 +71,9 @@ export const SiteAttributesSchema = v.object({
   repository: v.nullable(SiteRepositorySchema),
   quick_deploy: v.nullable(v.boolean()),
   deployment_status: v.nullable(v.string()),
-  deployment_url: v.string(),
+  deployment_url: v.nullable(v.string()),
   deployment_script: v.nullable(v.string()),
-  php_version: v.string(),
+  php_version: v.nullable(v.string()),
   app_type: v.string(),
   url: v.string(),
   https: v.boolean(),
@@ -84,6 +85,7 @@ export const SiteAttributesSchema = v.object({
   zero_downtime_deployments: v.boolean(),
   maintenance_mode: v.nullable(v.record(v.string(), v.unknown())),
   healthcheck_url: v.nullable(v.string()),
+  deployment_retention: v.optional(v.nullable(v.number())),
   created_at: v.nullable(v.string()),
   updated_at: v.nullable(v.string()),
 });
@@ -141,7 +143,7 @@ export const DeploymentAttributesSchema = v.object({
 export type DeploymentAttributes = v.InferOutput<typeof DeploymentAttributesSchema>;
 
 export const DeploymentStatusAttributesSchema = v.object({
-  status: v.string(),
+  status: v.nullable(v.string()),
   started_at: v.string(),
 });
 
@@ -154,8 +156,7 @@ export const DeploymentOutputAttributesSchema = v.object({
 export type DeploymentOutputAttributes = v.InferOutput<typeof DeploymentOutputAttributesSchema>;
 
 export const DeploymentScriptAttributesSchema = v.object({
-  content: v.string(),
-  // The OpenAPI spec says string, but the API returns a boolean.
+  content: v.nullable(v.string()),
   auto_source: v.boolean(),
 });
 
@@ -211,6 +212,7 @@ export const CertificateAttributesSchema = v.object({
   preferred_chain: v.nullable(v.string()),
   request_status: v.string(),
   status: v.string(),
+  active: v.optional(v.boolean()),
   created_at: v.string(),
   updated_at: v.string(),
 });
@@ -331,6 +333,8 @@ export const CommandAttributesSchema = v.object({
   command: v.string(),
   status: v.string(),
   duration: v.string(),
+  exit_code: v.optional(v.nullable(v.number())),
+  error_output: v.optional(v.nullable(v.string())),
   user_id: v.number(),
   created_at: v.string(),
   updated_at: v.string(),
@@ -355,6 +359,8 @@ export const BackupConfigAttributesSchema = v.object({
   cron_schedule: v.nullable(v.string()),
   retention: v.number(),
   notify_email: v.nullable(v.string()),
+  database_ids: v.optional(v.array(v.number())),
+  include_new_databases: v.optional(v.boolean()),
 });
 
 export type BackupConfigAttributes = v.InferOutput<typeof BackupConfigAttributesSchema>;
@@ -363,7 +369,8 @@ export const BackupAttributesSchema = v.object({
   status: v.string(),
   is_partial: v.string(),
   size: v.number(),
-  finished_at: v.string(),
+  // The spec types it as a timestamp (integer) since 2026-11; older answers gave a string.
+  finished_at: v.nullable(v.union([v.number(), v.string()])),
 });
 
 export type BackupAttributes = v.InferOutput<typeof BackupAttributesSchema>;
@@ -433,15 +440,15 @@ export const PhpConfigAttributesSchema = v.object({
 
 export type PhpConfigAttributes = v.InferOutput<typeof PhpConfigAttributesSchema>;
 
-// The spec types both limits as strings: accept numbers too, so a numeric value does not fail validation.
+// The spec types both limits as nullable integers: accept strings too, as the API gave them before.
 export const PhpMaxUploadSizeAttributesSchema = v.object({
-  max_upload_size: v.union([v.string(), v.number()]),
+  max_upload_size: v.nullable(v.union([v.number(), v.string()])),
 });
 
 export type PhpMaxUploadSizeAttributes = v.InferOutput<typeof PhpMaxUploadSizeAttributesSchema>;
 
 export const PhpMaxExecutionTimeAttributesSchema = v.object({
-  max_execution_time: v.union([v.string(), v.number()]),
+  max_execution_time: v.nullable(v.union([v.number(), v.string()])),
 });
 
 export type PhpMaxExecutionTimeAttributes = v.InferOutput<

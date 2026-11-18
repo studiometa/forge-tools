@@ -122,6 +122,24 @@ describe("ServersCollection", () => {
     expect(server.id).toBe(3);
   });
 
+  it("should update a server", async () => {
+    const { client, calls } = createTrackingClient();
+    const collection = new ServersCollection(client, ORG);
+
+    await collection.update(1, { name: "web-2" });
+    expect(calls[0].method).toBe("PUT");
+    expect(calls[0].url).toContain(`/orgs/${ORG}/servers/1`);
+    expect(calls[0].body).toEqual({ name: "web-2" });
+  });
+
+  it("should return the updated server", async () => {
+    const client = createClient(mockDocument("1", { name: "web-2" }));
+    const collection = new ServersCollection(client, ORG);
+
+    const server = await collection.update(1, { name: "web-2" });
+    expect(server).toMatchObject({ id: 1, name: "web-2" });
+  });
+
   it("should delete a server", async () => {
     const { client, calls } = createTrackingClient();
     const collection = new ServersCollection(client, ORG);
@@ -289,6 +307,14 @@ describe("ServerResource", () => {
     await resource.reboot();
     expect(calls[0].url).toContain(`/orgs/${ORG}/servers/123/actions`);
     expect(calls[0].body).toEqual({ action: "reboot" });
+  });
+
+  it("should update server", async () => {
+    const client = createClient(mockDocument("123", { name: "web-1", timezone: "Europe/Paris" }));
+    const resource = new ServerResource(client, ORG, 123);
+
+    const server = await resource.update({ timezone: "Europe/Paris" });
+    expect(server).toMatchObject({ id: 123, timezone: "Europe/Paris" });
   });
 
   it("should delete server", async () => {

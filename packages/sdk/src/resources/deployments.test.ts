@@ -129,6 +129,23 @@ describe("DeploymentsCollection", () => {
     expect(calls[0]).toContain(`/orgs/${ORG}/servers/123/sites/456/deployments/script`);
   });
 
+  it("should return an empty deployment script when the site has none", async () => {
+    const client = new HttpClient({
+      token: "test",
+      fetch: async () =>
+        ({
+          ok: true,
+          status: 200,
+          headers: new Headers({ "content-type": "application/json" }),
+          json: async () => mockDocument("1", { content: null, auto_source: false }),
+          text: async () => "{}",
+        }) as Response,
+    });
+    const collection = new DeploymentsCollection(client, ORG, 123, 456);
+
+    expect(await collection.script()).toBe("");
+  });
+
   it("should update deployment script", async () => {
     const { client, calls } = createTrackingClient();
     const collection = new DeploymentsCollection(client, ORG, 123, 456);

@@ -9,6 +9,7 @@ import {
   serversCreate,
   serversReboot,
   serversPublicKey,
+  serversUpdate,
 } from "./handlers.ts";
 
 vi.mock("@studiometa/forge-core", () => ({
@@ -16,6 +17,7 @@ vi.mock("@studiometa/forge-core", () => ({
   getServer: vi.fn(),
   createServer: vi.fn(),
   rebootServer: vi.fn(),
+  updateServer: vi.fn(),
 }));
 
 const mockServer: ServerAttributes & { id: number } = {
@@ -203,6 +205,94 @@ describe("serversGet", () => {
   });
 });
 
+describe("serversUpdate", () => {
+  let processExitSpy: ReturnType<typeof vi.spyOn>;
+
+  beforeEach(() => {
+    processExitSpy = vi.spyOn(process, "exit").mockImplementation(() => undefined as never);
+    vi.spyOn(console, "log").mockImplementation(() => {});
+    vi.spyOn(console, "error").mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("should send each given option", async () => {
+    const { updateServer } = await import("@studiometa/forge-core");
+    vi.mocked(updateServer).mockResolvedValue({ data: { ...mockServer, name: "web-2" } });
+
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: {
+        format: "human",
+        name: "web-2",
+        "ip-address": "1.2.3.4",
+        "private-ip": "10.0.0.2",
+        timezone: "Europe/Paris",
+        tag: "prod",
+      },
+    });
+
+    await serversUpdate(["1"], ctx);
+    expect(updateServer).toHaveBeenCalledWith(
+      {
+        server_id: "1",
+        name: "web-2",
+        ip_address: "1.2.3.4",
+        private_ip_address: "10.0.0.2",
+        timezone: "Europe/Paris",
+        tags: ["prod"],
+      },
+      expect.anything(),
+    );
+    expect(vi.mocked(console.log)).toHaveBeenCalledWith(
+      expect.stringContaining("Server web-2 updated (ID 1)."),
+    );
+  });
+
+  it("should output the server as JSON", async () => {
+    const { updateServer } = await import("@studiometa/forge-core");
+    vi.mocked(updateServer).mockResolvedValue({ data: mockServer });
+
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "json", tag: ["prod", "web"] },
+    });
+
+    await serversUpdate(["1"], ctx);
+    expect(updateServer).toHaveBeenCalledWith(
+      { server_id: "1", tags: ["prod", "web"] },
+      expect.anything(),
+    );
+    expect(vi.mocked(console.log)).toHaveBeenCalledWith(expect.stringContaining('"my-server"'));
+  });
+
+  it("should exit with validation error when no server_id", async () => {
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "human", name: "web-2" },
+    });
+
+    await serversUpdate([], ctx).catch(() => {});
+    expect(processExitSpy).toHaveBeenCalledWith(3);
+  });
+
+  it("should exit with validation error when no option is given", async () => {
+    const ctx = createTestContext({
+      token: "test",
+      mockClient: {} as never,
+      options: { format: "human" },
+    });
+
+    await serversUpdate(["1"], ctx).catch(() => {});
+    expect(processExitSpy).toHaveBeenCalledWith(3);
+  });
+});
+
 describe("serversReboot", () => {
   let processExitSpy: ReturnType<typeof vi.spyOn>;
 
@@ -315,7 +405,7 @@ describe("serversCreate", () => {
         type: "app",
         ubuntu_version: "26.04",
         php_version: "php84",
-        custom: { ip_address: "1.2.3.4", ssh_port: "22" },
+        custom: { ip_address: "1.2.3.4", ssh_port: 22 },
       },
       expect.anything(),
     );
@@ -355,7 +445,7 @@ describe("serversCreate", () => {
         php_version: "php83",
         database_type: "mariadb1011",
         tags: ["prod", "web"],
-        custom: { ip_address: "1.2.3.4", private_ip_address: "10.0.0.1", ssh_port: "2222" },
+        custom: { ip_address: "1.2.3.4", private_ip_address: "10.0.0.1", ssh_port: 2222 },
       },
       expect.anything(),
     );
@@ -389,7 +479,7 @@ describe("serversCreate", () => {
         type: "app",
         ubuntu_version: "26.04",
         php_version: "php84",
-        credential_id: "42",
+        credential_id: 42,
         tags: ["prod"],
         hetzner: { region_id: "fsn1", size_id: "cpx31" },
       },

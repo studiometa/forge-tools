@@ -46,8 +46,9 @@ describe("buildUrl", () => {
       server_id: "1",
       site_id: "2",
       domain_id: "3",
+      id: "4",
     });
-    expect(url).toBe("/orgs/test-org/servers/1/sites/2/domains/3/certificate");
+    expect(url).toBe("/orgs/test-org/servers/1/sites/2/domains/3/certificates/4");
   });
 });
 

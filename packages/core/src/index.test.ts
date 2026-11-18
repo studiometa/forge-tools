@@ -18,6 +18,7 @@ describe("@studiometa/forge-core", () => {
     expect(core.listServers).toBeTypeOf("function");
     expect(core.getServer).toBeTypeOf("function");
     expect(core.createServer).toBeTypeOf("function");
+    expect(core.updateServer).toBeTypeOf("function");
     expect(core.deleteServer).toBeTypeOf("function");
     expect(core.rebootServer).toBeTypeOf("function");
   });
@@ -42,6 +43,7 @@ describe("@studiometa/forge-core", () => {
     expect(core.createCertificate).toBeTypeOf("function");
     expect(core.deleteCertificate).toBeTypeOf("function");
     expect(core.activateCertificate).toBeTypeOf("function");
+    expect(core.listCertificates).toBeTypeOf("function");
   });
 
   it("should export database executors", () => {

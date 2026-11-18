@@ -213,13 +213,24 @@ export function formatDeploymentScriptUpdated(siteId: string, serverId: string):
 // ── Certificates ─────────────────────────────────────
 
 /**
- * Format a list of certificates.
+ * Format a list of certificates. The active certificate of a domain is marked.
  */
+export function formatCertificateList(
+  certs: Array<CertificateAttributes & { id: number }>,
+): string {
+  if (certs.length === 0) return "No certificates found.";
+  const lines = certs.map(
+    (c) => `• #${c.id} ${c.type} — ${c.status}${c.active ? " (active)" : ""}`,
+  );
+  return `${certs.length} certificate(s):\n${lines.join("\n")}`;
+}
+
 /**
- * Format a single certificate (v2: one certificate per domain).
+ * Format a single certificate.
  */
 export function formatCertificate(cert: CertificateAttributes & { id: number }): string {
-  return `Certificate (ID: ${cert.id})\nType: ${cert.type}\nStatus: ${cert.status}\nRequest: ${cert.request_status}`;
+  const active = cert.active === undefined ? "" : `\nActive: ${cert.active ? "yes" : "no"}`;
+  return `Certificate (ID: ${cert.id})\nType: ${cert.type}\nStatus: ${cert.status}\nRequest: ${cert.request_status}${active}`;
 }
 
 // ── Daemons ──────────────────────────────────────────

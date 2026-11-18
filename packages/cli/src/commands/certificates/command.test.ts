@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { handleCertificatesCommand } from "./command.ts";
 
 vi.mock("./handlers.ts", () => ({
+  certificatesList: vi.fn().mockResolvedValue(),
   certificatesGet: vi.fn().mockResolvedValue(),
   certificatesActivate: vi.fn().mockResolvedValue(),
 }));
@@ -31,6 +32,13 @@ describe("handleCertificatesCommand routing", () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+  });
+
+  it("should route list and ls", async () => {
+    const h = await import("./handlers.ts");
+    await handleCertificatesCommand("list", [], {});
+    await handleCertificatesCommand("ls", [], {});
+    expect(h.certificatesList).toHaveBeenCalledTimes(2);
   });
 
   it("should route get with args", async () => {

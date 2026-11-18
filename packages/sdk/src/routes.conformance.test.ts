@@ -116,6 +116,7 @@ const site = (forge: Forge) => forge.server(1).site(2);
 const WRITE_CASES: WriteCase[] = [
   // Organization
   ["servers.create", (f) => f.servers.create({ name: "web-1" } as never)],
+  ["servers.update", (f) => f.servers.update(1, { name: "web-2" })],
   ["servers.delete", (f) => f.servers.delete(1)],
   ["servers.reboot", (f) => f.servers.reboot(1)],
   ["recipes.create", (f) => f.recipes.create({ name: "r", script: "ls" } as never)],
@@ -128,6 +129,7 @@ const WRITE_CASES: WriteCase[] = [
 
   // Server
   ["server.reboot", (f) => server(f).reboot()],
+  ["server.update", (f) => server(f).update({ name: "web-2" })],
   ["server.delete", (f) => server(f).delete()],
   ["backups.create", (f) => server(f).backups.create({} as never)],
   ["backups.delete", (f) => server(f).backups.delete(3)],
@@ -165,8 +167,8 @@ const WRITE_CASES: WriteCase[] = [
   ["site.env.update", (f) => site(f).env.update("APP_ENV=production")],
   ["site.nginx.update", (f) => site(f).nginx.update("server {}")],
   ["certificates.create", (f) => site(f).certificates.create(3, { type: "letsencrypt" } as never)],
-  ["certificates.delete", (f) => site(f).certificates.delete(3)],
-  ["certificates.activate", (f) => site(f).certificates.activate(3)],
+  ["certificates.delete", (f) => site(f).certificates.delete(3, 4)],
+  ["certificates.activate", (f) => site(f).certificates.activate(3, 4)],
   ["commands.create", (f) => site(f).commands.create({ command: "php artisan migrate" })],
   ["deployments.updateScript", (f) => site(f).deployments.updateScript("git pull")],
   ["redirectRules.create", (f) => site(f).redirectRules.create({ from: "/a", to: "/b" } as never)],

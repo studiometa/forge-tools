@@ -25,6 +25,7 @@ export const ROUTES = {
     get: { method: "GET", path: "/orgs/:org/servers/:server_id" },
     create: { method: "POST", path: "/orgs/:org/servers" },
     delete: { method: "DELETE", path: "/orgs/:org/servers/:server_id" },
+    update: { method: "PUT", path: "/orgs/:org/servers/:server_id" },
     reboot: { method: "POST", path: "/orgs/:org/servers/:server_id/actions" },
   },
   sites: {
@@ -93,21 +94,33 @@ export const ROUTES = {
     },
   },
   certificates: {
+    listForSite: {
+      method: "GET",
+      path: "/orgs/:org/servers/:server_id/sites/:site_id/certificates",
+    },
+    list: {
+      method: "GET",
+      path: "/orgs/:org/servers/:server_id/sites/:site_id/domains/:domain_id/certificates",
+    },
+    getActive: {
+      method: "GET",
+      path: "/orgs/:org/servers/:server_id/sites/:site_id/domains/:domain_id/certificates/active",
+    },
     get: {
       method: "GET",
-      path: "/orgs/:org/servers/:server_id/sites/:site_id/domains/:domain_id/certificate",
+      path: "/orgs/:org/servers/:server_id/sites/:site_id/domains/:domain_id/certificates/:id",
     },
     create: {
       method: "POST",
-      path: "/orgs/:org/servers/:server_id/sites/:site_id/domains/:domain_id/certificate",
+      path: "/orgs/:org/servers/:server_id/sites/:site_id/domains/:domain_id/certificates",
     },
     delete: {
       method: "DELETE",
-      path: "/orgs/:org/servers/:server_id/sites/:site_id/domains/:domain_id/certificate",
+      path: "/orgs/:org/servers/:server_id/sites/:site_id/domains/:domain_id/certificates/:id",
     },
-    activate: {
+    action: {
       method: "POST",
-      path: "/orgs/:org/servers/:server_id/sites/:site_id/domains/:domain_id/certificate/actions",
+      path: "/orgs/:org/servers/:server_id/sites/:site_id/domains/:domain_id/certificates/:id/actions",
     },
   },
   env: {

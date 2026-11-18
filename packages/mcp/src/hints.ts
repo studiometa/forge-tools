@@ -75,13 +75,12 @@ export function getSiteHints(serverId: string, siteId: string): ContextualHints 
       },
       {
         resource: "certificates",
-        description: "Get certificate for a domain (requires domain_id)",
+        description: "List the certificates of the site",
         example: {
           resource: "certificates",
-          action: "get",
+          action: "list",
           server_id: serverId,
           site_id: siteId,
-          domain_id: "<domain_id>",
         },
       },
       {
@@ -188,6 +187,7 @@ export function getCertificateHints(
   serverId: string,
   siteId: string,
   domainId: string,
+  certificateId: string,
 ): ContextualHints {
   return {
     related_resources: [
@@ -201,6 +201,17 @@ export function getCertificateHints(
           id: siteId,
         },
       },
+      {
+        resource: "certificates",
+        description: "List the certificates of this domain",
+        example: {
+          resource: "certificates",
+          action: "list",
+          server_id: serverId,
+          site_id: siteId,
+          domain_id: domainId,
+        },
+      },
     ],
     common_actions: [
       {
@@ -211,6 +222,7 @@ export function getCertificateHints(
           server_id: serverId,
           site_id: siteId,
           domain_id: domainId,
+          id: certificateId,
         },
       },
       {
@@ -221,6 +233,7 @@ export function getCertificateHints(
           server_id: serverId,
           site_id: siteId,
           domain_id: domainId,
+          id: certificateId,
         },
       },
     ],

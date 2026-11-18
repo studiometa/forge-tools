@@ -122,6 +122,7 @@ export type {
 // Create data schemas + types
 export {
   CreateServerDataSchema,
+  UpdateServerDataSchema,
   CreateSiteDataSchema,
   UpdateSiteDataSchema,
   CreateCertificateDataSchema,
@@ -154,6 +155,7 @@ export {
 
 export type {
   CreateServerData,
+  UpdateServerData,
   CreateSiteData,
   UpdateSiteData,
   CreateCertificateData,

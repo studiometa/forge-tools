@@ -26,6 +26,8 @@ const RESOURCE_HELP: Record<string, ResourceHelp> = {
       list: "List all servers in your Forge account",
       get: "Get a single server by ID with full details",
       create: "Provision a new server (requires provider, type, region, name)",
+      update:
+        "Update a server by ID: name, ip_address, private_ip_address, timezone or tags (tags replace the current ones)",
       delete: "Delete a server by ID (irreversible)",
       reboot: "Reboot a server by ID",
       context:
@@ -206,17 +208,23 @@ const RESOURCE_HELP: Record<string, ResourceHelp> = {
 
   certificates: {
     description:
-      "Manage SSL/TLS certificates per domain — Let's Encrypt, CSR, existing, or cloned (v2: one cert per domain)",
-    scope: "domain (requires server_id + site_id + domain_id)",
+      "Manage SSL/TLS certificates per domain — Let's Encrypt, CSR, existing, or cloned. A domain has several certificates, one of them active",
+    scope:
+      "domain (requires server_id + site_id + domain_id; list accepts only server_id + site_id)",
     actions: {
-      get: "Get certificate for a domain",
+      list: "List the certificates of a domain, or of every domain of the site without domain_id",
+      get: "Get the active certificate of a domain, or the certificate with id",
       create: "Create/request a new certificate for a domain",
-      delete: "Delete a domain certificate",
-      activate: "Activate a domain certificate",
+      delete: "Delete the certificate with id",
+      activate: "Activate the certificate with id",
     },
     examples: [
       {
-        description: "Get certificate for a domain",
+        description: "List the certificates of a site",
+        params: { resource: "certificates", action: "list", server_id: "123", site_id: "456" },
+      },
+      {
+        description: "Get the active certificate of a domain",
         params: {
           resource: "certificates",
           action: "get",
@@ -244,6 +252,7 @@ const RESOURCE_HELP: Record<string, ResourceHelp> = {
           server_id: "123",
           site_id: "456",
           domain_id: "789",
+          id: "12",
         },
       },
     ],

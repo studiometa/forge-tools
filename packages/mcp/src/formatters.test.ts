@@ -28,6 +28,7 @@ import {
   formatStorageProvider,
   formatStorageProviderList,
   formatCertificate,
+  formatCertificateList,
   formatCommand,
   formatCommandList,
   formatCreated,
@@ -585,6 +586,52 @@ describe("formatCertificate", () => {
     expect(result).toContain("Type: letsencrypt");
     expect(result).toContain("Status: installed");
     expect(result).toContain("Request: complete");
+    expect(result).not.toContain("Active");
+  });
+
+  it("should say whether the certificate is active", () => {
+    const cert = {
+      id: 1,
+      type: "letsencrypt",
+      verification_method: null,
+      key_type: null,
+      preferred_chain: null,
+      status: "installed",
+      request_status: "created",
+      active: true,
+      created_at: "2024-01-01",
+      updated_at: "2024-01-01",
+    };
+
+    expect(formatCertificate(cert)).toContain("Active: yes");
+    expect(formatCertificate({ ...cert, active: false })).toContain("Active: no");
+  });
+});
+
+describe("formatCertificateList", () => {
+  it("should list certificates and mark the active one", () => {
+    const base = {
+      verification_method: null,
+      key_type: null,
+      preferred_chain: null,
+      status: "installed",
+      request_status: "created",
+      created_at: "2024-01-01",
+      updated_at: "2024-01-01",
+    };
+
+    const result = formatCertificateList([
+      { ...base, id: 1, type: "letsencrypt", active: true },
+      { ...base, id: 2, type: "existing", active: false },
+    ]);
+
+    expect(result).toContain("2 certificate(s)");
+    expect(result).toContain("• #1 letsencrypt — installed (active)");
+    expect(result).toMatch(/• #2 existing — installed$/);
+  });
+
+  it("should say when there are no certificates", () => {
+    expect(formatCertificateList([])).toBe("No certificates found.");
   });
 });
 

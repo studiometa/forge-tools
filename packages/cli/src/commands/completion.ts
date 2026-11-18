@@ -22,7 +22,7 @@ _forge_completions() {
 
   # Subcommands for each command
   local config_cmds="set get delete"
-  local servers_cmds="list ls get public-key create reboot"
+  local servers_cmds="list ls get public-key create update reboot"
   local sites_cmds="list ls get apply"
   local deployments_cmds="list ls deploy logs log script update-script"
   local databases_cmds="list ls get"
@@ -30,7 +30,7 @@ _forge_completions() {
   local daemons_cmds="list ls get restart logs log"
   local env_cmds="get update"
   local nginx_cmds="get update"
-  local certificates_cmds="get activate"
+  local certificates_cmds="list ls get activate"
   local firewall_rules_cmds="list ls get"
   local ssh_keys_cmds="list ls get sync"
   local backups_cmds="list ls get create update delete"
@@ -237,6 +237,7 @@ _forge() {
             'get:Get server details'
             'public-key:Print the public key of the forge user'
             'create:Create a server'
+            'update:Update a server'
             'reboot:Reboot a server'
           )
           _describe 'servers command' servers_cmds
@@ -315,7 +316,9 @@ _forge() {
         certificates|certs)
           local -a certificates_cmds
           certificates_cmds=(
-            'get:Get certificate for a domain'
+            'list:List certificates'
+            'ls:List certificates (alias)'
+            'get:Get a certificate (the active one without an ID)'
             'activate:Activate a certificate'
           )
           _describe 'certificates command' certificates_cmds
@@ -597,6 +600,7 @@ complete -c forge -f -n "__fish_seen_subcommand_from servers s" -a "ls" -d "List
 complete -c forge -f -n "__fish_seen_subcommand_from servers s" -a "get" -d "Get server details"
 complete -c forge -f -n "__fish_seen_subcommand_from servers s" -a "public-key" -d "Print the public key of the forge user"
 complete -c forge -f -n "__fish_seen_subcommand_from servers s" -a "create" -d "Create a server"
+complete -c forge -f -n "__fish_seen_subcommand_from servers s" -a "update" -d "Update a server"
 complete -c forge -f -n "__fish_seen_subcommand_from servers s" -a "reboot" -d "Reboot a server"
 
 # sites subcommands
@@ -643,8 +647,9 @@ complete -c forge -f -n "__fish_seen_subcommand_from nginx" -a "get" -d "Get ngi
 complete -c forge -f -n "__fish_seen_subcommand_from nginx" -a "update" -d "Update nginx config"
 
 # certificates subcommands
-complete -c forge -f -n "__fish_seen_subcommand_from certificates certs" -a "get" -d "Get certificate for a domain"
-complete -c forge -f -n "__fish_seen_subcommand_from certificates certs" -a "get" -d "Get certificate details"
+complete -c forge -f -n "__fish_seen_subcommand_from certificates certs" -a "list" -d "List certificates"
+complete -c forge -f -n "__fish_seen_subcommand_from certificates certs" -a "ls" -d "List certificates (alias)"
+complete -c forge -f -n "__fish_seen_subcommand_from certificates certs" -a "get" -d "Get a certificate (the active one without an ID)"
 complete -c forge -f -n "__fish_seen_subcommand_from certificates certs" -a "activate" -d "Activate a certificate"
 
 # firewall-rules subcommands

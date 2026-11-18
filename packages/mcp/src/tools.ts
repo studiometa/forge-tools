@@ -91,6 +91,10 @@ const SHARED_INPUT_PROPERTIES = {
     type: "string" as const,
     description: "Site ID or domain name (auto-resolved via partial match, requires server_id)",
   },
+  domain_id: {
+    type: "string" as const,
+    description: "Domain record ID of a site (certificates)",
+  },
   organizationSlug: {
     type: "string" as const,
     description:
@@ -270,7 +274,22 @@ const FORGE_WRITE_TOOL: Tool = {
       },
       ip_address: {
         type: "string" as const,
-        description: "IP address to allow/block (firewall rules, e.g. 192.168.1.1)",
+        description:
+          "IP address to allow/block (firewall rules, e.g. 192.168.1.1), or the public IP address of a server (servers update)",
+      },
+      // Server fields
+      private_ip_address: {
+        type: "string" as const,
+        description: "Private IP address of a server (servers update)",
+      },
+      timezone: {
+        type: "string" as const,
+        description: "Timezone of a server (servers update, e.g. Europe/Paris)",
+      },
+      tags: {
+        type: "array" as const,
+        description: "Tags of a server (servers update)",
+        items: { type: "string" as const },
       },
       // SSH key fields
       key: {

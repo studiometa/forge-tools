@@ -8,6 +8,7 @@ vi.mock("./handlers.ts", () => ({
   serversCreate: vi.fn().mockResolvedValue(),
   serversReboot: vi.fn().mockResolvedValue(),
   serversPublicKey: vi.fn().mockResolvedValue(),
+  serversUpdate: vi.fn().mockResolvedValue(),
 }));
 
 vi.mock("../../context.ts", () => ({
@@ -72,6 +73,12 @@ describe("handleServersCommand routing", () => {
     const handlers = await import("./handlers.ts");
     await handleServersCommand("create", [], { name: "my-server" });
     expect(handlers.serversCreate).toHaveBeenCalled();
+  });
+
+  it("should route update subcommand with args", async () => {
+    const handlers = await import("./handlers.ts");
+    await handleServersCommand("update", ["123"], { name: "web-2" });
+    expect(handlers.serversUpdate).toHaveBeenCalledWith(["123"], expect.anything());
   });
 
   it("should route reboot subcommand with args", async () => {

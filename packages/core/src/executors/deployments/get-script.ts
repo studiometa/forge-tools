@@ -24,6 +24,6 @@ export async function getDeploymentScript(
   const result = unwrapDocument(response);
 
   return {
-    data: result.content,
+    data: result.content ?? "",
   };
 }

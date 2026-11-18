@@ -44,7 +44,7 @@ forge <command> [subcommand] [options]
 | Command             | Alias   | Description                                          |
 | ------------------- | ------- | ---------------------------------------------------- |
 | `config`            |         | Manage CLI configuration (`set`, `get`, `delete`)    |
-| `servers`           | `s`     | List, get, reboot servers                            |
+| `servers`           | `s`     | List, get, create, update, reboot servers            |
 | `sites`             |         | List, get sites; apply a site file                   |
 | `deployments`       | `d`     | List deployments, trigger deploys, deploy script     |
 | `databases`         | `db`    | List, get databases on a server                      |
@@ -123,6 +123,7 @@ forge servers list                  # List all servers
 forge servers get <id>              # Get server details
 forge servers public-key <id>       # Print the public key of the forge user, for the git host
 forge servers reboot <id>           # Reboot a server
+forge servers update <id> [--name <name>] [--ip-address <ip>] [--private-ip <ip>] [--timezone <tz>] [--tag <tag>...]
 forge servers create --name <name> --ip-address <ip> [--php-version php84 --database mariadb1011]
                                     # Create a server (Custom VPS by default)
 ```
@@ -376,10 +377,12 @@ forge php disable-opcache --server <id>                                         
 ### `certificates` (`certs`) — Manage SSL certificates
 
 ```bash
-forge certificates list --server <id> --site <id>               # List certificates
-forge certificates get <cert_id> --server <id> --site <id>      # Get certificate details
-forge certificates activate <cert_id> --server <id> --site <id> # Activate a certificate
+forge certificates list --server <id> --site <id> [--domain <id>]                 # List certificates
+forge certificates get [cert_id] --server <id> --site <id> --domain <id>          # Get a certificate
+forge certificates activate <cert_id> --server <id> --site <id> --domain <id>     # Activate a certificate
 ```
+
+Each domain of a site has its certificates, and one of them is active. `list` without `--domain` lists the certificates of every domain of the site. `get` without a certificate ID gets the active certificate of the domain. `--domain` takes the ID of a domain record of the site.
 
 ### `firewall-rules` (`fw`) — Manage firewall rules
 

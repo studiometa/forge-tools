@@ -3,6 +3,7 @@ import * as v from "valibot";
 
 import {
   CreateServerDataSchema,
+  UpdateServerDataSchema,
   CreateSiteDataSchema,
   CreateCertificateDataSchema,
   CreateDatabaseDataSchema,
@@ -47,6 +48,13 @@ function testSchema(
 }
 
 testSchema(
+  "UpdateServerDataSchema",
+  UpdateServerDataSchema,
+  { name: "web-2", timezone: "Europe/Paris", tags: ["prod"] },
+  { name: 123 },
+);
+
+testSchema(
   "CreateServerDataSchema",
   CreateServerDataSchema,
   {
@@ -60,7 +68,12 @@ testSchema(
   { name: 123 },
 );
 
-testSchema("CreateSiteDataSchema", CreateSiteDataSchema, { type: "php" }, { type: 123 });
+testSchema(
+  "CreateSiteDataSchema",
+  CreateSiteDataSchema,
+  { type: "php", name: "example.com" },
+  { type: "php" },
+);
 
 testSchema(
   "CreateCertificateDataSchema",

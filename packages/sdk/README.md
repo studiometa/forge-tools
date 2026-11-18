@@ -45,6 +45,7 @@ await forge.server(123).site(456).env.update("APP_ENV=production\nAPP_DEBUG=fals
 forge.servers.list()                    // List all servers
 forge.servers.get(id)                   // Get a server
 forge.servers.create({ ... })           // Create a server
+forge.servers.update(id, { name })      // Update name, IP addresses, timezone or tags
 forge.servers.delete(id)                // Delete a server
 forge.servers.reboot(id)                // Reboot a server
 forge.servers.resolve('prod')           // Find servers by name
@@ -52,6 +53,7 @@ forge.servers.resolve('prod')           // Find servers by name
 // Resource with nested access
 forge.server(id).get()                  // Get server details
 forge.server(id).reboot()               // Reboot server
+forge.server(id).update({ timezone })   // Update server
 forge.server(id).delete()               // Delete server
 forge.server(id).sites.list()           // List sites on server
 forge.server(id).databases.list()       // List databases
@@ -152,17 +154,23 @@ forge.server(id).site(siteId).deployments.script(); // Get deploy script
 forge.server(id).site(siteId).deployments.updateScript("npm run build");
 ```
 
-### Certificates (per-domain in v2)
+### Certificates
+
+Each domain of a site has its certificates, and one of them is active.
 
 ```typescript
-// Get certificate for a domain
-forge.server(id).site(siteId).certificates.get(domainId);
+// List the certificates of a domain, or of every domain of the site
+forge.server(id).site(siteId).certificates.list(domainId);
+forge.server(id).site(siteId).certificates.list();
+// Get the active certificate of a domain, or a certificate by ID
+forge.server(id).site(siteId).certificates.active(domainId);
+forge.server(id).site(siteId).certificates.get(domainId, certId);
 // Create a certificate
 forge.server(id).site(siteId).certificates.create(domainId, { type: "letsencrypt" });
 // Activate a certificate
-forge.server(id).site(siteId).certificates.activate(domainId);
+forge.server(id).site(siteId).certificates.activate(domainId, certId);
 // Delete a certificate
-forge.server(id).site(siteId).certificates.delete(domainId);
+forge.server(id).site(siteId).certificates.delete(domainId, certId);
 ```
 
 ### Databases

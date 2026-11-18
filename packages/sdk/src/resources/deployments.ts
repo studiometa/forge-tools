@@ -137,7 +137,7 @@ export class DeploymentsCollection extends BaseCollection {
     const response = await this.client.get<JsonApiDocument<DeploymentScriptAttributes>>(
       `/orgs/${this.orgSlug}/servers/${this.serverId}/sites/${this.siteId}/deployments/script`,
     );
-    return unwrapDocument(response).content;
+    return unwrapDocument(response).content ?? "";
   }
 
   /**

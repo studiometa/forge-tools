@@ -107,18 +107,21 @@ describe("getDaemonHints", () => {
 
 describe("getCertificateHints", () => {
   it("should return hints for a certificate", () => {
-    const hints = getCertificateHints("3", "7", "55");
+    const hints = getCertificateHints("3", "7", "55", "12");
 
     expect(hints.related_resources).toBeDefined();
     expect(hints.related_resources![0].resource).toBe("sites");
     expect(hints.related_resources![0].example.server_id).toBe("3");
+    expect(hints.related_resources![1].example).toMatchObject({
+      resource: "certificates",
+      action: "list",
+      domain_id: "55",
+    });
 
     expect(hints.common_actions).toBeDefined();
     const actions = hints.common_actions!.map((a) => a.example);
-    const hasActivate = actions.some((a) => a.action === "activate");
-    const hasDelete = actions.some((a) => a.action === "delete");
-    expect(hasActivate).toBe(true);
-    expect(hasDelete).toBe(true);
+    expect(actions).toContainEqual(expect.objectContaining({ action: "activate", id: "12" }));
+    expect(actions).toContainEqual(expect.objectContaining({ action: "delete", id: "12" }));
   });
 });
 

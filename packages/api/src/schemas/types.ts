@@ -11,7 +11,7 @@ export const CreateServerDataSchema = v.object({
   provider: v.string(),
   type: v.string(),
   ubuntu_version: v.string(),
-  credential_id: v.optional(v.string()),
+  credential_id: v.optional(v.number()),
   team_id: v.optional(v.nullable(v.number())),
   php_version: v.optional(v.string()),
   database_type: v.optional(v.string()),
@@ -28,21 +28,31 @@ export const CreateServerDataSchema = v.object({
   custom: v.optional(
     v.object({
       ip_address: v.optional(v.string()),
-      private_ip_address: v.optional(v.string()),
-      ssh_port: v.optional(v.string()),
-      behind_nat: v.optional(v.string()),
-      nat_ssh_port: v.optional(v.string()),
+      private_ip_address: v.optional(v.nullable(v.string())),
+      ssh_port: v.optional(v.number()),
+      behind_nat: v.optional(v.boolean()),
+      nat_ssh_port: v.optional(v.nullable(v.number())),
     }),
   ),
 });
 
 export type CreateServerData = v.InferOutput<typeof CreateServerDataSchema>;
 
+export const UpdateServerDataSchema = v.object({
+  name: v.optional(v.string()),
+  ip_address: v.optional(v.string()),
+  private_ip_address: v.optional(v.string()),
+  timezone: v.optional(v.string()),
+  tags: v.optional(v.array(v.string())),
+});
+
+export type UpdateServerData = v.InferOutput<typeof UpdateServerDataSchema>;
+
 // ── Sites ────────────────────────────────────────────
 
 export const CreateSiteDataSchema = v.object({
   type: v.string(),
-  name: v.optional(v.string()),
+  name: v.string(),
   domain_mode: v.optional(v.string()),
   www_redirect_type: v.optional(v.string()),
   allow_wildcard_subdomains: v.optional(v.boolean()),
@@ -54,10 +64,11 @@ export const CreateSiteDataSchema = v.object({
   zero_downtime_deployments: v.optional(v.boolean()),
   nginx_template_id: v.optional(v.number()),
   source_control_provider: v.optional(v.nullable(v.string())),
+  source_control_provider_id: v.optional(v.nullable(v.number())),
   repository: v.optional(v.nullable(v.string())),
   branch: v.optional(v.nullable(v.string())),
-  database_id: v.optional(v.nullable(v.number())),
-  database_user_id: v.optional(v.string()),
+  database_id: v.optional(v.number()),
+  database_user_id: v.optional(v.number()),
   push_to_deploy: v.optional(v.boolean()),
   tags: v.optional(v.nullable(v.array(v.string()))),
   shared_paths: v.optional(v.array(v.string())),
@@ -69,10 +80,10 @@ export const CreateSiteDataSchema = v.object({
   nuxt_next_port: v.optional(v.number()),
   private_deploy_key: v.optional(v.string()),
   public_deploy_key: v.optional(v.string()),
-  statamic_setup: v.optional(v.boolean()),
+  statamic_setup: v.optional(v.string()),
   statamic_starter_kit: v.optional(v.string()),
   statamic_super_user_email: v.optional(v.string()),
-  statamic_super_user_password: v.optional(v.string()),
+  statamic_super_user_password: v.optional(v.nullable(v.string())),
 });
 
 export type CreateSiteData = v.InferOutput<typeof CreateSiteDataSchema>;
@@ -84,6 +95,7 @@ export const UpdateSiteDataSchema = v.object({
   php_version: v.optional(v.string()),
   push_to_deploy: v.optional(v.boolean()),
   repository_branch: v.optional(v.nullable(v.string())),
+  deployment_retention: v.optional(v.number()),
 });
 
 export type UpdateSiteData = v.InferOutput<typeof UpdateSiteDataSchema>;
@@ -135,6 +147,8 @@ export type UpdateLoadBalancingNodesData = v.InferOutput<typeof UpdateLoadBalanc
 
 export const CreateCertificateDataSchema = v.object({
   type: v.picklist(["letsencrypt", "csr", "existing", "clone"]),
+  /** Activate the certificate once installed (ignored for Let's Encrypt and CSR). */
+  enable: v.optional(v.boolean()),
   letsencrypt: v.optional(
     v.object({
       verification_method: v.optional(v.picklist(["http-01", "dns-01"])),
@@ -174,6 +188,7 @@ export const CreateDatabaseDataSchema = v.object({
   name: v.string(),
   user: v.optional(v.nullable(v.string())),
   password: v.optional(v.nullable(v.string())),
+  backup_configuration_ids: v.optional(v.array(v.number())),
 });
 
 export type CreateDatabaseData = v.InferOutput<typeof CreateDatabaseDataSchema>;
@@ -241,6 +256,7 @@ export const UpdateBackupConfigDataSchema = v.object({
   frequency: v.string(),
   retention: v.number(),
   database_ids: v.array(v.number()),
+  include_new_databases: v.optional(v.boolean()),
   name: v.optional(v.nullable(v.string())),
   bucket: v.optional(v.nullable(v.string())),
   directory: v.optional(v.nullable(v.string())),
@@ -269,7 +285,7 @@ export const CreateScheduledJobDataSchema = v.object({
   name: v.optional(v.nullable(v.string())),
   cron: v.optional(v.nullable(v.string())),
   heartbeat: v.optional(v.nullable(v.boolean())),
-  grace_period: v.optional(v.string()),
+  grace_period: v.optional(v.picklist([1, 2, 5, 10, 30, 60])),
 });
 
 export type CreateScheduledJobData = v.InferOutput<typeof CreateScheduledJobDataSchema>;
@@ -385,7 +401,7 @@ export const CreateRecipeDataSchema = v.object({
   name: v.string(),
   user: v.string(),
   script: v.string(),
-  team_id: v.optional(v.string()),
+  team_id: v.optional(v.number()),
 });
 
 export type CreateRecipeData = v.InferOutput<typeof CreateRecipeDataSchema>;

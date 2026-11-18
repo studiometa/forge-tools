@@ -23,6 +23,13 @@ describe("showCertificatesHelp", () => {
     expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining("certificates get"));
   });
 
+  it("should show list help", () => {
+    showCertificatesHelp("list");
+    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining("certificates list"));
+    showCertificatesHelp("ls");
+    expect(consoleLogSpy).toHaveBeenCalledTimes(2);
+  });
+
   it("should show activate help", () => {
     showCertificatesHelp("activate");
     expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining("activate"));

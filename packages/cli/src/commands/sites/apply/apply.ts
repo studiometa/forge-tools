@@ -361,7 +361,7 @@ async function waitForSite(
 
 interface DatabaseIds {
   database_id?: number;
-  database_user_id?: string;
+  database_user_id?: number;
 }
 
 /**
@@ -381,7 +381,7 @@ async function applyDatabase(
   if (databases.length === 0) return { ids, env };
 
   const databaseIds = new Map((state.databases ?? []).map((db) => [db.name, db.id]));
-  const userIds = new Map<string, string>();
+  const userIds = new Map<string, number>();
   for (const change of plan.changes) {
     if (change.action === "create-database") {
       options.onChange?.(change);
@@ -427,7 +427,7 @@ async function applyDatabase(
           ),
         options,
       );
-      userIds.set(change.name, String(user.data.id));
+      userIds.set(change.name, user.data.id);
       // One password per user, in the .env keys of each database of the user.
       for (const database of databases.filter((entry) => entry.user === change.name)) {
         const keys = databaseEnvKeys(database);
