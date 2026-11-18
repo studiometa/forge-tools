@@ -101,10 +101,21 @@ describe("readLoadBalancerFile", () => {
     expect(file.domain).toBe("www.example.com");
     expect(file.aliases).toEqual(["example.com"]);
     expect(file.wildcards).toBe(false);
+    expect(file.wwwRedirect).toBeUndefined();
     expect(file.sites.map((site) => [site.node.environment, site.path, site.file.server])).toEqual([
       ["production", resolve("config/forge/production/site.json"), "web-1"],
       ["production-2", resolve("config/forge/production-2/site.json"), "web-10"],
     ]);
+  });
+
+  it("takes the www redirect of the site files", () => {
+    const site = { server: "web-1", domain: "example.com", wwwRedirect: "to-www" };
+    files({
+      "load-balancer.json": balancer,
+      "production/site.json": site,
+      "production-2/site.json": site,
+    });
+    expect(readLoadBalancerFile(path).wwwRedirect).toBe("to-www");
   });
 
   it("refuses site files that declare another site", () => {
@@ -132,6 +143,14 @@ describe("readLoadBalancerFile", () => {
     });
     expect(() => readLoadBalancerFile(path)).toThrow(
       "different wildcards: production (false), production-2 (true)",
+    );
+    files({
+      "load-balancer.json": balancer,
+      "production/site.json": site,
+      "production-2/site.json": { ...site, wwwRedirect: "to-www" },
+    });
+    expect(() => readLoadBalancerFile(path)).toThrow(
+      "different www redirects: production ((not set)), production-2 (to-www)",
     );
   });
 

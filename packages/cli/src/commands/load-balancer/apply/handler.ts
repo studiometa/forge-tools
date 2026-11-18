@@ -20,9 +20,10 @@ export async function loadBalancerApply(
   ctx: CommandContext,
   applyOptions: ApplyOptions = {},
 ): Promise<void> {
-  const usage = "forge load-balancer apply --file <load-balancer.json> [--check]";
+  const usage = "forge load-balancer apply --file <load-balancer.json> [--check] [--force]";
   const path = ctx.options.file;
   const check = Boolean(ctx.options.check);
+  const force = Boolean(ctx.options.force);
 
   if (typeof path !== "string" || !path) {
     exitWithValidationError("file", usage, ctx.formatter);
@@ -36,7 +37,8 @@ export async function loadBalancerApply(
 
     if (check) {
       const target = await resolveNodes(file, execCtx);
-      const plan = buildPlan(file, await readRemoteState(file, server_id, target, execCtx));
+      const state = await readRemoteState(file, server_id, target, execCtx);
+      const plan = buildPlan(file, state, { force });
       const inSync = plan.changes.length === 0;
       if (ctx.formatter.isJson()) {
         ctx.formatter.output({ inSync, changes: plan.changes });
@@ -52,6 +54,7 @@ export async function loadBalancerApply(
 
     const applied: string[] = [];
     const plan = await applyLoadBalancerFile(file, server_id, execCtx, {
+      force,
       ...applyOptions,
       onChange: (change) => {
         applied.push(change.action);

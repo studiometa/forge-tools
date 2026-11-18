@@ -273,6 +273,8 @@ A worker or a scheduled job matches the file when its command (rendered), direct
 - Without the `workers` key, no worker is read or deleted. With `"workers": []`, all the workers of the site are deleted. The same applies to `schedule`.
 - The site, its aliases, its database and its `.env` keys are never deleted. Only on a site that `apply` creates, the `.env` that Forge copies from `.env.example` is replaced.
 
+Forge does not report the method of a site: it is only in the Nginx upstream file on the load balancer. `apply` sends it with the nodes, so a change of `method` alone needs `--force`. With `--force`, `apply` replaces the nodes and sets the method even when the nodes match. Forge then rewrites the upstream file and reloads Nginx on the load balancer: use `--force` once after a change of `method`, not in every pipeline. `--check --force` shows this change and exits `1`.
+
 With `--check`, `apply` prints the plan and changes nothing. It exits `0` when Forge matches the file, `1` when it differs, and another code on an error (`3` for an invalid file). Every deletion shows its ID and full command. The plan gives `.env` key names only, never values, and shows a generated password as `<generated>`. With `--format json`, it prints `{ "inSync": false, "changes": [...], "warnings": [...] }`.
 
 Run `--check` in merge request pipelines and `apply` on the main branch:
@@ -287,9 +289,10 @@ forge sites apply --file config/forge/production/site.json
 ```bash
 forge load-balancer apply --file load-balancer.json --check  # Print the plan, change nothing
 forge load-balancer apply --file load-balancer.json          # Make the load balancer match the file
+forge load-balancer apply --file load-balancer.json --force  # Also send the nodes and the method when the nodes match
 ```
 
-`load-balancer apply` makes the site of a load balancer match a JSON file kept in the project, `config/forge/load-balancer.json`, next to the site files of `sites apply`. A project has one load balancer. Each node is an environment of the project: the site file `<environment>/site.json`, in the folder of the load balancer file, gives the server and the site of the node. The site of the load balancer gets the `domain`, the `aliases` and the `wildcards` of these site files.
+`load-balancer apply` makes the site of a load balancer match a JSON file kept in the project, `config/forge/load-balancer.json`, next to the site files of `sites apply`. A project has one load balancer. Each node is an environment of the project: the site file `<environment>/site.json`, in the folder of the load balancer file, gives the server and the site of the node. The site of the load balancer gets the `domain`, the `aliases`, the `wildcards` and the `wwwRedirect` of these site files.
 
 ```json
 {
@@ -303,16 +306,16 @@ forge load-balancer apply --file load-balancer.json          # Make the load bal
 }
 ```
 
-| Key                                        | What `apply` does                                                                                                                                                  |
-| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `server`                                   | The load balancer, by exact name or ID                                                                                                                             |
-| `method`                                   | `round_robin` (default), `least_conn` or `ip_hash`. Forge does not report the method: `apply` sets it with the nodes, and a different method alone is not a change |
-| `nodes[].environment`                      | Required. The folder of the site file of the node. Two nodes cannot use the same environment                                                                       |
-| `nodes[].port`, `weight`, `backup`, `down` | Port of the site on its server (default `80`), weight (default `1`), backup node and down node (default `false`)                                                   |
+| Key                                        | What `apply` does                                                                                                                                                                 |
+| ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `server`                                   | The load balancer, by exact name or ID                                                                                                                                            |
+| `method`                                   | `round_robin` (default), `least_conn` or `ip_hash`. Forge does not report the method: `apply` sets it with the nodes, and a different method alone is not a change: use `--force` |
+| `nodes[].environment`                      | Required. The folder of the site file of the node. Two nodes cannot use the same environment                                                                                      |
+| `nodes[].port`, `weight`, `backup`, `down` | Port of the site on its server (default `80`), weight (default `1`), backup node and down node (default `false`)                                                                  |
 
-Before any change, `apply` reads the site file of each node with the same validation as `sites apply`. The site files must declare the same `domain`, the same `aliases` and the same `wildcards`, and each site must exist on its server: run `forge sites apply` (or the provision job of the environment) first. Otherwise `--check` and `apply` exit `3`.
+Before any change, `apply` reads the site file of each node with the same validation as `sites apply`. The site files must declare the same `domain`, `aliases`, `wildcards` and `wwwRedirect` (all set to the same value, or all without it), and each site must exist on its server: run `forge sites apply` (or the provision job of the environment) first. Otherwise `--check` and `apply` exit `3`.
 
-The site of the load balancer is the one named `domain` or one of the `aliases`, without case. When two sites match, `apply` exits `3`. When no site matches, `apply` creates it with the nodes and the method, waits until Forge installs it, then adds the aliases. On an existing site, `apply` replaces the nodes when they differ (in any order) and adds the missing aliases (`POST .../domains`, like `sites apply`). It never deletes the site or an alias, and it does not manage the certificate. The DNS points to the load balancer, so a change of node needs no DNS change.
+The site of the load balancer is the one named `domain` or one of the `aliases`, without case. When two sites match, `apply` exits `3`. When no site matches, `apply` creates it with the nodes and the method, waits until Forge installs it, then adds the aliases and sets the `www` redirect. On an existing site, `apply` replaces the nodes when they differ (in any order), adds the missing aliases (`POST .../domains`, like `sites apply`) and updates the `www` redirect of the primary domain when the site files set `wwwRedirect` and it differs (`PATCH .../domains/{domain}`). It never deletes the site or an alias, and it does not manage the certificate. The DNS points to the load balancer, so a change of node needs no DNS change.
 
 To move a site to another server, declare the new server in a new environment, run `sites apply` and deploy it, test it, then change the nodes of the load balancer file.
 

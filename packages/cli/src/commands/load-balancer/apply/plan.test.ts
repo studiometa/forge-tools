@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { node, site } from "../../sites/apply/test-fixtures.ts";
+import { domain, node, site } from "../../sites/apply/test-fixtures.ts";
 import { type RemoteState, buildPlan, describeChange, describeNode, sameNodes } from "./plan.ts";
 import { TARGET, balancerFile } from "./test-fixtures.ts";
 
@@ -10,6 +10,7 @@ function state(overrides: Partial<RemoteState> = {}): RemoteState {
     site: site(600, "example.com"),
     nodes: [node(123), node(124, { weight: 2 })],
     domains: ["example.com", "www.example.com"],
+    primaryDomain: domain(600, "example.com", "primary"),
     target: TARGET,
     ...overrides,
   };
@@ -26,7 +27,7 @@ describe("buildPlan", () => {
   it("creates a missing site, then adds its aliases", () => {
     const plan = buildPlan(
       balancerFile({ method: "least_conn", wildcards: true }),
-      state({ site: null, nodes: [], domains: [] }),
+      state({ site: null, nodes: [], domains: [], primaryDomain: null }),
     );
     expect(plan.changes).toEqual([
       {
@@ -70,6 +71,56 @@ describe("buildPlan", () => {
       { action: "add-alias", name: "www.example.com" },
       { action: "add-alias", name: "example.org" },
     ]);
+  });
+});
+
+describe("buildPlan with force", () => {
+  it("replaces nodes that match, to set the method", () => {
+    expect(
+      buildPlan(balancerFile({ method: "ip_hash" }), state(), { force: true }).changes,
+    ).toEqual([
+      {
+        action: "update-load-balancer-nodes",
+        site: "example.com",
+        method: "ip_hash",
+        from: TARGET,
+        to: TARGET,
+      },
+    ]);
+  });
+
+  it("creates a missing site once", () => {
+    const plan = buildPlan(
+      balancerFile(),
+      state({ site: null, nodes: [], domains: [], primaryDomain: null }),
+      { force: true },
+    );
+    expect(plan.changes.map((change) => change.action)).toEqual([
+      "create-load-balancer-site",
+      "add-alias",
+    ]);
+  });
+});
+
+describe("buildPlan with a www redirect", () => {
+  it("updates the www redirect of the primary domain when it differs", () => {
+    expect(buildPlan(balancerFile({ wwwRedirect: "to-www" }), state()).changes).toEqual([
+      {
+        action: "update-www-redirect",
+        id: 600,
+        domain: "example.com",
+        from: "none",
+        to: "to-www",
+      },
+    ]);
+  });
+
+  it("plans nothing when it matches, when the file has none, or without a primary domain", () => {
+    expect(buildPlan(balancerFile({ wwwRedirect: "none" }), state()).changes).toEqual([]);
+    expect(buildPlan(balancerFile(), state()).changes).toEqual([]);
+    expect(
+      buildPlan(balancerFile({ wwwRedirect: "to-www" }), state({ primaryDomain: null })).changes,
+    ).toEqual([]);
   });
 });
 
@@ -117,6 +168,15 @@ describe("describeChange", () => {
     ).toBe(
       "~ update load balancer nodes of example.com (method: round_robin): (none) → server 123:80, server 124:80 weight 2",
     );
+    expect(
+      describeChange({
+        action: "update-www-redirect",
+        id: 600,
+        domain: "example.com",
+        from: "none",
+        to: "from-www",
+      }),
+    ).toBe("~ update www redirect of example.com: none → from-www");
     expect(describeChange({ action: "add-alias", name: "example.com" })).toBe(
       "+ add alias example.com",
     );

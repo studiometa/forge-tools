@@ -187,6 +187,8 @@ export interface FakeForge {
   nodes: Record<number, LoadBalancingNode[]>;
   /** Aliases of each site of the load balancer, by site ID. */
   balancerDomains: Record<number, string[]>;
+  /** The `www` redirect of the primary domain of each site of the load balancer. Default: none. */
+  balancerWwwRedirects: Record<number, string>;
   /** Sites of server 124. */
   otherSites: Site[];
   /** Aliases of each site of server 123, by site ID. The name of the site is its primary domain. */
@@ -223,6 +225,7 @@ export function fakeForge(initial: Partial<FakeForge> = {}) {
     balancerSites: [],
     nodes: {},
     balancerDomains: {},
+    balancerWwwRedirects: {},
     otherSites: [],
     domains: {},
     wwwRedirects: {},
@@ -274,7 +277,9 @@ export function fakeForge(initial: Partial<FakeForge> = {}) {
         const id = Number(match[1]);
         const found = state.balancerSites.find((s) => s.id === id)!;
         return list("domainRecords", [
-          domain(id, found.name, "primary"),
+          domain(id, found.name, "primary", {
+            www_redirect_type: state.balancerWwwRedirects[id] ?? "none",
+          }),
           ...(state.balancerDomains[id] ?? []).map((name, index) =>
             domain(id * 100 + index, name, "alias"),
           ),
@@ -430,6 +435,12 @@ export function fakeForge(initial: Partial<FakeForge> = {}) {
     patch: vi.fn(async (raw: string, body: Record<string, unknown>) => {
       calls.push(["PATCH", raw, body]);
       const url = route(raw);
+      const balancerPrimary = /^\/orgs\/org\/servers\/300\/sites\/(\d+)\/domains\/\1$/.exec(url);
+      if (balancerPrimary) {
+        const id = Number(balancerPrimary[1]);
+        state.balancerWwwRedirects[id] = String(body.www_redirect_type);
+        return doc("domainRecords", domain(id, "lb", "primary"));
+      }
       const primary = /^\/orgs\/org\/servers\/123\/sites\/(\d+)\/domains\/(\d+)$/.exec(url);
       if (primary && primary[1] === primary[2]) {
         const id = Number(primary[1]);

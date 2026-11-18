@@ -5,6 +5,7 @@
 import {
   createDomain,
   createLoadBalancerSite,
+  updateDomain,
   getSite,
   listLoadBalancingNodes,
   listSites,
@@ -23,12 +24,17 @@ import {
 } from "../../sites/apply/apply.ts";
 import type { Site } from "../../sites/apply/plan.ts";
 import type { LoadBalancerFile } from "./balancer-file.ts";
-import { type Balancing, type Change, type Plan, type RemoteState, buildPlan } from "./plan.ts";
+import {
+  type Balancing,
+  type Change,
+  type Plan,
+  type PlanOptions,
+  type RemoteState,
+  buildPlan,
+} from "./plan.ts";
 
-export interface ApplyOptions extends Pick<
-  SiteApplyOptions,
-  "sleep" | "pollIntervalMs" | "timeoutMs"
-> {
+export interface ApplyOptions
+  extends Pick<SiteApplyOptions, "sleep" | "pollIntervalMs" | "timeoutMs">, PlanOptions {
   /** Called before each change. */
   onChange?: (change: Change) => void;
 }
@@ -94,11 +100,18 @@ export async function readRemoteState(
 ): Promise<RemoteState> {
   const sites = (await listSites({ server_id: serverId }, ctx)).data;
   const site = findLoadBalancerSite(sites, [file.domain, ...file.aliases]);
-  if (!site) return { serverId, site, nodes: [], domains: [], target };
+  if (!site) return { serverId, site, nodes: [], domains: [], primaryDomain: null, target };
   const params = { server_id: serverId, site_id: String(site.id) };
   const nodes = (await listLoadBalancingNodes(params, ctx)).data;
-  const domains = (await readDomains(serverId, site, ctx)).map((domain) => domain.name);
-  return { serverId, site, nodes, domains, target };
+  const domains = await readDomains(serverId, site, ctx);
+  return {
+    serverId,
+    site,
+    nodes,
+    domains: domains.map((domain) => domain.name),
+    primaryDomain: domains.find((domain) => domain.type === "primary") ?? null,
+    target,
+  };
 }
 
 /**
@@ -114,7 +127,7 @@ export async function applyLoadBalancerFile(
 ): Promise<Plan> {
   const target = await resolveNodes(file, ctx);
   let state = await readRemoteState(file, serverId, target, ctx);
-  const firstPlan = buildPlan(file, state);
+  const firstPlan = buildPlan(file, state, options);
   let plan = firstPlan;
 
   const create = plan.changes.find((change) => change.action === "create-load-balancer-site");
@@ -140,6 +153,7 @@ export async function applyLoadBalancerFile(
       options,
     );
     state = await readRemoteState(file, serverId, target, ctx);
+    // The new site has the nodes and the method: no need to send them again.
     plan = buildPlan(file, state);
   }
 
@@ -164,6 +178,12 @@ export async function applyLoadBalancerFile(
           allow_wildcard_subdomains: false,
           www_redirect_type: "none",
         },
+        ctx,
+      );
+    } else if (change.action === "update-www-redirect") {
+      options.onChange?.(change);
+      await updateDomain(
+        { ...params, domain_id: String(change.id), www_redirect_type: change.to },
         ctx,
       );
     }

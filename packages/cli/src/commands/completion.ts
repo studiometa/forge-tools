@@ -53,7 +53,7 @@ _forge_completions() {
   local completion_cmds="bash zsh fish"
 
   # Global options
-  options="--token --server --site --exact -f --format --no-color -h --help -v --version --name --command --content --from --to --provider --frequency --cron --type --operator --threshold --minutes --key --port --ip-address --user --private --dry-run --script --servers --domain --password --credential-id --region --size --project-type --directory --file --script-file --check --all-servers --prune --ubuntu-version --php-version --database --private-ip --ssh-port --tag --storage-provider --databases --retention --time --day --bucket --notification-email --include-new-databases --endpoint --access-key --secret-key-file --assume-role --initiated-by --ran-as --ids --mode --output --repository --branch --verification-method --key-type --key-file --certificate-file --csr-domain --sans --country --state --city --organization --department --certificate-id --enable --notify"
+  options="--token --server --site --exact -f --format --no-color -h --help -v --version --name --command --content --from --to --provider --frequency --cron --type --operator --threshold --minutes --key --port --ip-address --user --private --dry-run --script --servers --domain --password --credential-id --region --size --project-type --directory --file --script-file --check --force --all-servers --prune --ubuntu-version --php-version --database --private-ip --ssh-port --tag --storage-provider --databases --retention --time --day --bucket --notification-email --include-new-databases --endpoint --access-key --secret-key-file --assume-role --initiated-by --ran-as --ids --mode --output --repository --branch --verification-method --key-type --key-file --certificate-file --csr-domain --sans --country --state --city --organization --department --certificate-id --enable --notify"
 
   # Format options
   local formats="json human table"
@@ -605,6 +605,7 @@ _forge() {
         '--prune[Remove SSH keys that are not in the file]' \\
         '--dry-run[Print the plan and change nothing]' \\
         '--check[Compare with Forge, do not write]' \\
+        '--force[Replace the load balancer nodes even when they match]' \\
         '--storage-provider[Storage provider ID or name]:storage provider:' \\
         '--databases[Database IDs or names]:databases:' \\
         '--retention[Number of backups to keep]:retention:' \\
@@ -902,6 +903,7 @@ complete -c forge -l ssh-port -d "SSH port" -r
 complete -c forge -l tag -d "Tag" -r
 complete -c forge -l dry-run -d "Print the plan and change nothing"
 complete -c forge -l check -d "Compare with Forge, do not write"
+complete -c forge -l force -d "Replace the load balancer nodes even when they match"
 complete -c forge -l storage-provider -d "Storage provider ID or name" -r
 complete -c forge -l databases -d "Database IDs or names" -r
 complete -c forge -l retention -d "Number of backups to keep" -r

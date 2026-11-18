@@ -58,6 +58,8 @@ export interface LoadBalancerFile extends LoadBalancerFileData {
   domain: string;
   aliases: string[];
   wildcards: boolean;
+  /** The `www` redirect of the node site files; undefined when they do not set it. */
+  wwwRedirect?: SiteFile["wwwRedirect"];
   /** The site file of each node, in the order of `nodes`. */
   sites: Array<{ node: NodeDeclaration; path: string; file: SiteFile }>;
 }
@@ -94,6 +96,7 @@ function assertSameSite(sites: LoadBalancerFile["sites"]): void {
     ["domains", (file) => file.domain.toLowerCase()],
     ["aliases", aliasKey],
     ["wildcards", (file) => String(file.wildcards ?? false)],
+    ["www redirects", (file) => file.wwwRedirect ?? "(not set)"],
   ];
   for (const [name, key] of checks) {
     if (new Set(sites.map(({ file }) => key(file))).size > 1) {
@@ -101,7 +104,9 @@ function assertSameSite(sites: LoadBalancerFile["sites"]): void {
       throw new ValidationError(
         `The site files of the nodes declare different ${name}: ${values.join(", ")}`,
         "nodes",
-        ["The nodes of a load balancer serve one site: use the same domain, aliases and wildcards"],
+        [
+          "The nodes of a load balancer serve one site: use the same domain, aliases, wildcards and www redirect",
+        ],
       );
     }
   }
@@ -139,6 +144,7 @@ export function readLoadBalancerFile(path: string): LoadBalancerFile {
     domain: first.file.domain,
     aliases: [...new Set(first.file.aliases ?? [])],
     wildcards: first.file.wildcards ?? false,
+    ...(first.file.wwwRedirect ? { wwwRedirect: first.file.wwwRedirect } : {}),
     sites,
   };
 }

@@ -137,6 +137,30 @@ describe("loadBalancerApply", () => {
     });
   });
 
+  it("shows the nodes with --check --force", async () => {
+    const { ctx, forge } = context(
+      "human",
+      { file: "load-balancer.json", check: true, force: true },
+      inSync,
+    );
+
+    await loadBalancerApply(ctx);
+
+    expect(process.exitCode).toBe(1);
+    expect(output()).toContain("~ update load balancer nodes of www.example.com");
+    expect(writes(forge)).toEqual([]);
+  });
+
+  it("replaces the nodes with --force", async () => {
+    const { ctx, forge } = context("json", { file: "load-balancer.json", force: true }, inSync);
+
+    await loadBalancerApply(ctx);
+
+    expect(writes(forge).map(([method, url]) => `${method} ${url}`)).toEqual([
+      "PUT /orgs/test-org/servers/300/sites/600/load-balancing-nodes",
+    ]);
+  });
+
   it("says in sync with --check in human output", async () => {
     const { ctx } = context("human", { file: "load-balancer.json", check: true }, inSync);
 

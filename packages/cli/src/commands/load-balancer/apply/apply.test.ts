@@ -95,6 +95,28 @@ describe("applyLoadBalancerFile", () => {
     expect(state.balancerDomains[900]).toEqual(["example.com"]);
   });
 
+  it("sets the www redirect of a new site once it is installed", async () => {
+    const { ctx, calls, state } = fakeForge(nodeSites);
+
+    await applyLoadBalancerFile(balancerFile({ wwwRedirect: "from-www" }), "300", ctx);
+
+    expect(writes(calls).map(([method, url]) => `${String(method)} ${String(url)}`)).toEqual([
+      "POST /orgs/org/servers/300/sites/balancer",
+      "POST /orgs/org/servers/300/sites/900/domains",
+      "PATCH /orgs/org/servers/300/sites/900/domains/900",
+    ]);
+    expect(writes(calls).at(-1)?.[2]).toEqual({ www_redirect_type: "from-www" });
+    expect(state.balancerWwwRedirects[900]).toBe("from-www");
+  });
+
+  it("does not send the nodes of a new site again with force", async () => {
+    const { ctx, calls } = fakeForge(nodeSites);
+
+    await applyLoadBalancerFile(balancerFile(), "300", ctx, { force: true });
+
+    expect(writes(calls).map(([method]) => method)).toEqual(["POST", "POST"]);
+  });
+
   it("fails when the new site is not installed", async () => {
     const { ctx } = fakeForge({ ...nodeSites, newSiteStatuses: ["failed"] });
     await expect(applyLoadBalancerFile(balancerFile(), "300", ctx)).rejects.toThrow(
@@ -131,6 +153,25 @@ describe("applyLoadBalancerFile", () => {
         "PUT",
         "/orgs/org/servers/300/sites/600/load-balancing-nodes",
         { balancer_method: "least_conn", balancing: TARGET },
+      ],
+    ]);
+  });
+
+  it("sends the nodes and the method with force, even when the nodes match", async () => {
+    const { ctx, calls } = fakeForge({
+      ...nodeSites,
+      balancerSites: [site(600, "www.example.com")],
+      balancerDomains: { 600: ["example.com"] },
+      nodes: { 600: [node(123), node(124, { weight: 2 })] },
+    });
+
+    await applyLoadBalancerFile(balancerFile({ method: "ip_hash" }), "300", ctx, { force: true });
+
+    expect(writes(calls)).toEqual([
+      [
+        "PUT",
+        "/orgs/org/servers/300/sites/600/load-balancing-nodes",
+        { balancer_method: "ip_hash", balancing: TARGET },
       ],
     ]);
   });

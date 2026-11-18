@@ -5,7 +5,8 @@
 
 import type { LoadBalancingNodeAttributes } from "@studiometa/forge-api";
 
-import type { Site } from "../../sites/apply/plan.ts";
+import type { Domain, Site } from "../../sites/apply/plan.ts";
+import type { SiteFile } from "../../sites/apply/site-file.ts";
 import type { LoadBalancerFile } from "./balancer-file.ts";
 
 export type LoadBalancingNode = LoadBalancingNodeAttributes & { id: number };
@@ -29,6 +30,8 @@ export interface RemoteState {
   nodes: LoadBalancingNode[];
   /** Names of the domains of the site; empty when the site does not exist. */
   domains: string[];
+  /** The primary domain of the site; null when the site does not exist or Forge lists none. */
+  primaryDomain: Domain | null;
   /** The nodes of the file, with the server ID of each environment. */
   target: Balancing[];
 }
@@ -48,7 +51,20 @@ export type Change =
       from: Balancing[];
       to: Balancing[];
     }
-  | { action: "add-alias"; name: string };
+  | { action: "add-alias"; name: string }
+  | {
+      action: "update-www-redirect";
+      /** ID of the primary domain. */
+      id: number;
+      domain: string;
+      from: string;
+      to: NonNullable<SiteFile["wwwRedirect"]>;
+    };
+
+export interface PlanOptions {
+  /** Replace the nodes and set the method even when the nodes match. */
+  force?: boolean;
+}
 
 export interface Plan {
   changes: Change[];
@@ -72,9 +88,13 @@ function toBalancing({ server_id, port, weight, backup, down }: LoadBalancingNod
  * Compare the load balancer file with the state of Forge. The plan creates the site when it
  * is missing, replaces its nodes when they differ and adds the missing aliases. It never deletes
  * the site or an alias. Forge does not report the method of a site: the plan sets it with the
- * nodes, and a different method alone is not a change.
+ * nodes, and a different method alone is not a change: `force` sets it.
  */
-export function buildPlan(file: LoadBalancerFile, state: RemoteState): Plan {
+export function buildPlan(
+  file: LoadBalancerFile,
+  state: RemoteState,
+  options: PlanOptions = {},
+): Plan {
   const changes: Change[] = [];
 
   if (!state.site) {
@@ -87,7 +107,7 @@ export function buildPlan(file: LoadBalancerFile, state: RemoteState): Plan {
     });
   } else {
     const from = state.nodes.map(toBalancing);
-    if (!sameNodes(from, state.target)) {
+    if (options.force || !sameNodes(from, state.target)) {
       changes.push({
         action: "update-load-balancer-nodes",
         site: state.site.name,
@@ -104,6 +124,18 @@ export function buildPlan(file: LoadBalancerFile, state: RemoteState): Plan {
     if (!existing.some((domain) => domain.toLowerCase() === name.toLowerCase())) {
       changes.push({ action: "add-alias", name });
     }
+  }
+
+  // A new site gets its `www` redirect once it exists: the API creates it without one.
+  const primary = state.primaryDomain;
+  if (file.wwwRedirect && primary && primary.www_redirect_type !== file.wwwRedirect) {
+    changes.push({
+      action: "update-www-redirect",
+      id: primary.id,
+      domain: primary.name,
+      from: primary.www_redirect_type,
+      to: file.wwwRedirect,
+    });
   }
 
   return { changes };
@@ -134,5 +166,7 @@ export function describeChange(change: Change): string {
       return `~ update load balancer nodes of ${change.site} (method: ${change.method}): ${describeNodes(change.from)} → ${describeNodes(change.to)}`;
     case "add-alias":
       return `+ add alias ${change.name}`;
+    case "update-www-redirect":
+      return `~ update www redirect of ${change.domain}: ${change.from} → ${change.to}`;
   }
 }
