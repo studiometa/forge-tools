@@ -553,7 +553,7 @@ describe("applySiteFile", () => {
       ],
     ]);
     // Forge links the new site to the first database and its user.
-    expect(writes[5][2]).toMatchObject({ database_id: 70, database_user_id: "71" });
+    expect(writes[5][2]).toMatchObject({ database_id: 70, database_user_id: 71 });
     expect(parseEnv(state.env)).toEqual(
       new Map([
         ["APP_DATABASE", "app"],
@@ -626,7 +626,7 @@ describe("applySiteFile", () => {
       repository: "https://git.example.com/group/a.git",
       branch: "main",
       database_id: 70,
-      database_user_id: "71",
+      database_user_id: 71,
     });
     expect(state.env).toBe(
       "APP_ENV=production\nDB_DATABASE=example\nDB_USERNAME=example\nDB_PASSWORD=pw\n",

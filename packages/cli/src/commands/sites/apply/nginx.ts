@@ -45,10 +45,13 @@ export function needsServer(template: string): boolean {
 }
 
 /** `PHP 8.3`, `php83` and `php8.3` all give `8.3`. */
-export function phpSocketVersion(version: string): string {
-  const digits = version.replaceAll(/\D/g, "");
+export function phpSocketVersion(version: string | null): string {
+  const digits = (version ?? "").replaceAll(/\D/g, "");
   if (digits.length < 2) {
-    throw new ValidationError(`Cannot read the PHP version ${version} of the site`, "nginx");
+    throw new ValidationError(
+      `Cannot read the PHP version ${version ?? "(none)"} of the site`,
+      "nginx",
+    );
   }
   return `${digits[0]}.${digits.slice(1)}`;
 }

@@ -24,6 +24,11 @@ describe("showServersHelp", () => {
     expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining("servers list"));
   });
 
+  it("should show update help", () => {
+    showServersHelp("update");
+    expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining("servers update"));
+  });
+
   it("should show list help for ls alias", () => {
     showServersHelp("ls");
     expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining("servers list"));

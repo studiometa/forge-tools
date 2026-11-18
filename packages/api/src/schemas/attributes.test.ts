@@ -234,6 +234,41 @@ describe("SiteAttributesSchema — nullable aliases", () => {
     };
     expect(() => v.parse(SiteAttributesSchema, fixture)).not.toThrow();
   });
+
+  it("should accept a site without PHP, deployment URL and with a deployment retention", () => {
+    const fixture = {
+      name: "example.com",
+      aliases: null,
+      root_directory: null,
+      web_directory: "/public",
+      wildcards: null,
+      status: "installed",
+      repository: null,
+      quick_deploy: null,
+      deployment_status: null,
+      deployment_url: null,
+      deployment_script: null,
+      php_version: null,
+      app_type: "Static HTML",
+      url: "https://example.com",
+      https: true,
+      isolated: false,
+      user: "forge",
+      database: null,
+      shared_paths: null,
+      uses_envoyer: false,
+      zero_downtime_deployments: false,
+      maintenance_mode: null,
+      healthcheck_url: null,
+      deployment_retention: 5,
+      created_at: null,
+      updated_at: null,
+    };
+    const site = v.parse(SiteAttributesSchema, fixture);
+    expect(site.php_version).toBeNull();
+    expect(site.deployment_url).toBeNull();
+    expect(site.deployment_retention).toBe(5);
+  });
 });
 
 testSchema(
@@ -265,6 +300,14 @@ testSchema(
   { status: 123 },
 );
 
+describe("DeploymentStatusAttributesSchema — no deployment", () => {
+  it("should accept a null status", () => {
+    expect(() =>
+      v.parse(DeploymentStatusAttributesSchema, { status: null, started_at: "" }),
+    ).not.toThrow();
+  });
+});
+
 testSchema(
   "DeploymentOutputAttributesSchema",
   DeploymentOutputAttributesSchema,
@@ -278,6 +321,14 @@ testSchema(
   { content: "cd /home/forge && git pull", auto_source: false },
   { content: "cd /home/forge && git pull", auto_source: "false" },
 );
+
+describe("DeploymentScriptAttributesSchema — no script", () => {
+  it("should accept a null content", () => {
+    expect(() =>
+      v.parse(DeploymentScriptAttributesSchema, { content: null, auto_source: true }),
+    ).not.toThrow();
+  });
+});
 
 testSchema(
   "DatabaseAttributesSchema",
@@ -494,6 +545,17 @@ testSchema(
   { status: 123 },
 );
 
+describe("BackupAttributesSchema — finished_at", () => {
+  it("should accept a timestamp or null", () => {
+    const backup = { status: "completed", is_partial: "false", size: 1024 };
+    expect(v.parse(BackupAttributesSchema, { ...backup, finished_at: 1_700_000_000 })).toEqual({
+      ...backup,
+      finished_at: 1_700_000_000,
+    });
+    expect(() => v.parse(BackupAttributesSchema, { ...backup, finished_at: null })).not.toThrow();
+  });
+});
+
 testSchema(
   "StorageProviderAttributesSchema",
   StorageProviderAttributesSchema,
@@ -557,9 +619,20 @@ testSchema(
 testSchema(
   "PhpMaxUploadSizeAttributesSchema",
   PhpMaxUploadSizeAttributesSchema,
-  { max_upload_size: "64" },
-  { max_upload_size: null },
+  { max_upload_size: 64 },
+  { max_upload_size: true },
 );
+
+describe("PHP limits — not set", () => {
+  it("should accept null limits", () => {
+    expect(() =>
+      v.parse(PhpMaxUploadSizeAttributesSchema, { max_upload_size: null }),
+    ).not.toThrow();
+    expect(() =>
+      v.parse(PhpMaxExecutionTimeAttributesSchema, { max_execution_time: null }),
+    ).not.toThrow();
+  });
+});
 
 testSchema(
   "PhpMaxExecutionTimeAttributesSchema",

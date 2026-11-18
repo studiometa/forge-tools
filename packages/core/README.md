@@ -68,7 +68,11 @@ import { RESOURCES, ACTIONS } from "@studiometa/forge-core";
 
 ### Certificates
 
-- `getCertificate`, `createCertificate`, `deleteCertificate`, `activateCertificate` (per-domain in v2 — requires `domain_id`)
+- `listCertificates({ server_id, site_id, domain_id? }, ctx)` — List the certificates of a domain, or of every domain of the site
+- `getCertificate({ server_id, site_id, domain_id, id? }, ctx)` — Get a certificate, or the active one without `id`
+- `createCertificate({ server_id, site_id, domain_id, type, ... }, ctx)` — Create a certificate
+- `deleteCertificate({ server_id, site_id, domain_id, id }, ctx)` — Delete a certificate
+- `activateCertificate({ server_id, site_id, domain_id, id }, ctx)` — Activate a certificate
 
 ### Databases
 

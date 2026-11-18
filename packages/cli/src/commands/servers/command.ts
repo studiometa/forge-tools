@@ -5,6 +5,7 @@ import {
   serversCreate,
   serversReboot,
   serversPublicKey,
+  serversUpdate,
 } from "./handlers.ts";
 
 export const handleServersCommand = createCommandRouter({
@@ -15,7 +16,8 @@ export const handleServersCommand = createCommandRouter({
     get: [serversGet, "args"],
     "public-key": [serversPublicKey, "args"],
     create: serversCreate,
+    update: [serversUpdate, "args"],
     reboot: [serversReboot, "args"],
   },
-  writeSubcommands: ["create", "reboot"],
+  writeSubcommands: ["create", "update", "reboot"],
 });

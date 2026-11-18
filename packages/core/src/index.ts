@@ -24,6 +24,7 @@ export {
   listServers,
   rebootServer,
   resolveServers,
+  updateServer,
 } from "./executors/servers/index.ts";
 export type {
   CreateServerOptions,
@@ -31,6 +32,7 @@ export type {
   GetServerOptions,
   ListServersOptions,
   RebootServerOptions,
+  UpdateServerOptions,
   ResolveServersOptions,
   ResolveMatch,
   ResolveResult,
@@ -105,12 +107,14 @@ export {
   createCertificate,
   deleteCertificate,
   getCertificate,
+  listCertificates,
 } from "./executors/certificates/index.ts";
 export type {
   ActivateCertificateOptions,
   CreateCertificateOptions,
   DeleteCertificateOptions,
   GetCertificateOptions,
+  ListCertificatesOptions,
 } from "./executors/certificates/index.ts";
 
 // Databases

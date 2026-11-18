@@ -3,8 +3,14 @@
  * Delegates all HTTP logic to forge-core executors.
  */
 
-import type { CreateServerOptions } from "@studiometa/forge-core";
-import { listServers, getServer, createServer, rebootServer } from "@studiometa/forge-core";
+import type { CreateServerOptions, UpdateServerOptions } from "@studiometa/forge-core";
+import {
+  listServers,
+  getServer,
+  createServer,
+  rebootServer,
+  updateServer,
+} from "@studiometa/forge-core";
 
 import type { CommandContext } from "../../context.ts";
 
@@ -121,13 +127,13 @@ export async function serversCreate(ctx: CommandContext): Promise<void> {
   };
 
   if (ctx.options.database) options.database_type = String(ctx.options.database);
-  if (ctx.options["credential-id"]) options.credential_id = String(ctx.options["credential-id"]);
+  if (ctx.options["credential-id"]) options.credential_id = Number(ctx.options["credential-id"]);
 
   const tags = ctx.options.tag;
   if (tags) options.tags = (Array.isArray(tags) ? tags : [tags]).map(String);
 
   if (provider === "custom") {
-    options.custom = { ip_address, ssh_port: String(ctx.options["ssh-port"] ?? "22") };
+    options.custom = { ip_address, ssh_port: Number(ctx.options["ssh-port"] ?? 22) };
     if (ctx.options["private-ip"])
       options.custom.private_ip_address = String(ctx.options["private-ip"]);
   } else {
@@ -155,6 +161,47 @@ export async function serversCreate(ctx: CommandContext): Promise<void> {
         `Run the provisioning command from the Forge server page as root on ${ip_address}.`,
       );
     }
+  }, ctx.formatter);
+}
+
+const UPDATE_USAGE =
+  "forge servers update <server_id> [--name <name>] [--ip-address <ip>] [--private-ip <ip>] [--timezone <tz>] [--tag <tag>...]";
+
+/**
+ * Update a server: its name, IP addresses, timezone or tags.
+ */
+export async function serversUpdate(args: string[], ctx: CommandContext): Promise<void> {
+  const [server] = args;
+
+  if (!server) {
+    exitWithValidationError("server_id", UPDATE_USAGE, ctx.formatter);
+  }
+
+  const data: Omit<UpdateServerOptions, "server_id"> = {};
+  if (ctx.options.name !== undefined) data.name = String(ctx.options.name);
+  if (ctx.options["ip-address"] !== undefined) data.ip_address = String(ctx.options["ip-address"]);
+  if (ctx.options["private-ip"] !== undefined)
+    data.private_ip_address = String(ctx.options["private-ip"]);
+  if (ctx.options.timezone !== undefined) data.timezone = String(ctx.options.timezone);
+  const tags = ctx.options.tag;
+  if (tags !== undefined) data.tags = (Array.isArray(tags) ? tags : [tags]).map(String);
+
+  if (Object.keys(data).length === 0) {
+    exitWithValidationError("name", UPDATE_USAGE, ctx.formatter);
+  }
+
+  await runCommand(async () => {
+    const token = ctx.getToken();
+    const execCtx = ctx.createExecutorContext(token);
+    const server_id = await resolveServerId(server, execCtx);
+    const result = await updateServer({ server_id, ...data }, execCtx);
+
+    if (ctx.formatter.isJson()) {
+      ctx.formatter.output(result.data);
+      return;
+    }
+
+    ctx.formatter.success(`Server ${result.data.name} updated (ID ${result.data.id}).`);
   }, ctx.formatter);
 }
 

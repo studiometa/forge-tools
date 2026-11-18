@@ -6,6 +6,7 @@ import {
   listServers,
   rebootServer,
   resolveServers,
+  updateServer,
 } from "@studiometa/forge-core";
 
 import type { ResolveResult } from "@studiometa/forge-core";
@@ -18,7 +19,7 @@ import type { CommonArgs, HandlerContext, ToolResult } from "./types.ts";
 
 const _handleServers = createResourceHandler({
   resource: "servers",
-  actions: ["list", "get", "create", "delete", "reboot", "resolve"],
+  actions: ["list", "get", "create", "update", "delete", "reboot", "resolve"],
   inputSchemas: {
     get: v.object({ id: v.string() }),
     create: v.object({
@@ -26,6 +27,14 @@ const _handleServers = createResourceHandler({
       name: v.string(),
       type: v.string(),
       region: v.string(),
+    }),
+    update: v.object({
+      id: v.string(),
+      name: v.optional(v.string()),
+      ip_address: v.optional(v.string()),
+      private_ip_address: v.optional(v.string()),
+      timezone: v.optional(v.string()),
+      tags: v.optional(v.array(v.string())),
     }),
     delete: v.object({ id: v.string() }),
     reboot: v.object({ id: v.string() }),
@@ -35,6 +44,7 @@ const _handleServers = createResourceHandler({
     list: listServers,
     get: getServer,
     create: createServer,
+    update: updateServer,
     delete: deleteServer,
     reboot: rebootServer,
     resolve: resolveServers,
@@ -58,6 +68,15 @@ const _handleServers = createResourceHandler({
           size: args.size ?? "",
           region: args.region,
         };
+      case "update": {
+        const fields = ["name", "ip_address", "private_ip_address", "timezone", "tags"] as const;
+        return {
+          server_id: args.id,
+          ...Object.fromEntries(
+            fields.filter((field) => args[field] !== undefined).map((f) => [f, args[f]]),
+          ),
+        };
+      }
       case "resolve":
         return { query: args.query };
       default:
@@ -71,6 +90,7 @@ const _handleServers = createResourceHandler({
       case "get":
         return formatServer(data);
       case "create":
+      case "update":
         return formatServer(data);
       case "delete":
         return `Server ${args.id} deleted.`;

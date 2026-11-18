@@ -4,6 +4,7 @@ import type {
   JsonApiDocument,
   JsonApiListDocument,
   ServerAttributes,
+  UpdateServerData,
 } from "@studiometa/forge-api";
 
 import { unwrapDocument, unwrapListDocument } from "@studiometa/forge-api";
@@ -150,6 +151,25 @@ export class ServersCollection extends BaseCollection {
    */
   async create(data: CreateServerData): Promise<ServerAttributes & { id: number }> {
     const response = await this.client.post<JsonApiDocument<ServerAttributes>>(this.basePath, data);
+    return unwrapDocument(response);
+  }
+
+  /**
+   * Update a server: its name, IP addresses, timezone or tags.
+   *
+   * @example
+   * ```ts
+   * const server = await forge.servers.update(123, { name: 'web-2' });
+   * ```
+   */
+  async update(
+    serverId: number,
+    data: UpdateServerData,
+  ): Promise<ServerAttributes & { id: number }> {
+    const response = await this.client.put<JsonApiDocument<ServerAttributes>>(
+      `${this.basePath}/${serverId}`,
+      data,
+    );
     return unwrapDocument(response);
   }
 
@@ -325,6 +345,22 @@ export class ServerResource extends BaseCollection {
     await this.client.post(`/orgs/${this.orgSlug}/servers/${this.serverId}/actions`, {
       action: "reboot",
     });
+  }
+
+  /**
+   * Update this server: its name, IP addresses, timezone or tags.
+   *
+   * @example
+   * ```ts
+   * const server = await forge.server(123).update({ timezone: 'Europe/Paris' });
+   * ```
+   */
+  async update(data: UpdateServerData): Promise<ServerAttributes & { id: number }> {
+    const response = await this.client.put<JsonApiDocument<ServerAttributes>>(
+      `/orgs/${this.orgSlug}/servers/${this.serverId}`,
+      data,
+    );
+    return unwrapDocument(response);
   }
 
   /**

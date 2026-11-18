@@ -70,6 +70,7 @@ ${colors.bold("COMMANDS:")}
     list, ls            List all servers
     get <id>            Get server details
     create              Create a server (requires --name, and --ip-address for custom)
+    update <id>         Update a server (--name, --ip-address, --private-ip, --timezone, --tag)
     reboot <id>         Reboot a server
 
   sites               Manage sites
@@ -107,10 +108,10 @@ ${colors.bold("COMMANDS:")}
     get                 Get nginx config (requires --server --site)
     update              Update nginx config (requires --server --site --file|--content) [--check]
 
-  certificates, certs Manage SSL certificates (per-domain in v2)
-    get                 Get certificate for a domain (requires --server --site --domain)
-    get <id>            Get certificate details (requires --server --site)
-    activate <id>       Activate a certificate (requires --server --site)
+  certificates, certs Manage SSL certificates (several per domain, one active)
+    list, ls            List certificates (requires --server --site, optional --domain)
+    get [id]            Get a certificate, the active one without an ID (requires --server --site --domain)
+    activate <id>       Activate a certificate (requires --server --site --domain)
 
   firewall-rules, fw  Manage firewall rules
     list, ls            List firewall rules (requires --server)

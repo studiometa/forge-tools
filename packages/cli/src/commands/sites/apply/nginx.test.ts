@@ -52,6 +52,10 @@ describe("phpSocketVersion", () => {
   it("refuses a version without minor", () => {
     expect(() => phpSocketVersion("php")).toThrow(ValidationError);
   });
+
+  it("refuses a site without PHP", () => {
+    expect(() => phpSocketVersion(null)).toThrow("Cannot read the PHP version (none) of the site");
+  });
 });
 
 describe("nginxValues", () => {

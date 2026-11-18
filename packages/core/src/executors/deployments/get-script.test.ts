@@ -21,4 +21,18 @@ describe("getDeploymentScript", () => {
 
     expect(result.data).toContain("npm run build");
   });
+
+  it("should return an empty script when the site has none", async () => {
+    const ctx = createTestExecutorContext({
+      client: {
+        get: async () =>
+          mockDocument(1, "deployment-scripts", { content: null, auto_source: false }),
+      } as never,
+      organizationSlug: "test-org",
+    });
+
+    const result = await getDeploymentScript({ server_id: "123", site_id: "456" }, ctx);
+
+    expect(result.data).toBe("");
+  });
 });

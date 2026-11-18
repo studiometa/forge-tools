@@ -156,6 +156,35 @@ describe("handleServers", () => {
     expect(result.isError).toBeUndefined();
   });
 
+  it("should update a server with the given fields only", async () => {
+    const ctx = createMockContext();
+    const client = ctx.executorContext.client as unknown as Record<string, unknown>;
+    const calls: Array<[string, unknown]> = [];
+    client.put = async (url: string, body: unknown) => {
+      calls.push([url, body]);
+      return (client.get as (url: string) => Promise<unknown>)("/orgs/test-org/servers/1");
+    };
+
+    const result = await handleServers(
+      "update",
+      {
+        resource: "servers",
+        action: "update",
+        id: "1",
+        name: "web-2",
+        timezone: "Europe/Paris",
+        tags: ["prod"],
+      },
+      ctx,
+    );
+
+    expect(result.isError).toBeUndefined();
+    expect(calls).toEqual([
+      ["/orgs/test-org/servers/1", { name: "web-2", timezone: "Europe/Paris", tags: ["prod"] }],
+    ]);
+    expect(result.content[0].text).toContain("web-1");
+  });
+
   it("should delete a server", async () => {
     const result = await handleServers(
       "delete",

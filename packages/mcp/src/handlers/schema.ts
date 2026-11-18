@@ -23,11 +23,12 @@ interface ResourceSchemaData {
 
 const RESOURCE_SCHEMAS: Record<string, ResourceSchemaData> = {
   servers: {
-    actions: ["list", "get", "create", "delete", "reboot", "resolve", "context"],
+    actions: ["list", "get", "create", "update", "delete", "reboot", "resolve", "context"],
     scope: "global",
     required: {
       get: ["id"],
       create: ["provider", "type", "region", "name"],
+      update: ["id"],
       delete: ["id"],
       reboot: ["id"],
       context: ["id"],
@@ -93,17 +94,17 @@ const RESOURCE_SCHEMAS: Record<string, ResourceSchemaData> = {
 
   certificates: {
     actions: ["list", "get", "create", "delete", "activate"],
-    scope: "site",
+    scope: "domain",
     required: {
       list: ["server_id", "site_id"],
-      get: ["server_id", "site_id", "id"],
-      create: ["server_id", "site_id", "domain"],
-      delete: ["server_id", "site_id", "id"],
-      activate: ["server_id", "site_id", "id"],
+      get: ["server_id", "site_id", "domain_id"],
+      create: ["server_id", "site_id", "domain_id", "type"],
+      delete: ["server_id", "site_id", "domain_id", "id"],
+      activate: ["server_id", "site_id", "domain_id", "id"],
     },
     create: {
-      type: { required: false, type: "string — new, existing, clone (default: new)" },
-      domain: { required: true, type: "string" },
+      type: { required: true, type: "string — letsencrypt, csr, existing, clone" },
+      enable: { required: false, type: "boolean — activate once installed (existing, clone)" },
     },
   },
 

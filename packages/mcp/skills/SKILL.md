@@ -42,31 +42,31 @@ forge_write(resource, action, [parameters...])
 
 ### Resources & Actions
 
-| Resource            | Read Actions (`forge`)              | Write Actions (`forge_write`)  | Scope  |
-| ------------------- | ----------------------------------- | ------------------------------ | ------ |
-| `servers`           | `list`, `get`, `resolve`, `context` | `create`, `delete`, `reboot`   | global |
-| `sites`             | `list`, `get`, `resolve`, `context` | `create`, `delete`             | server |
-| `deployments`       | `list`                              | `deploy`, `update`             | site   |
-| `env`               | `get`                               | `update`                       | site   |
-| `nginx`             | `get`                               | `update`                       | site   |
-| `certificates`      | `get`                               | `create`, `delete`, `activate` | domain |
-| `databases`         | `list`, `get`                       | `create`, `delete`             | server |
-| `database-users`    | `list`, `get`                       | `create`, `delete`             | server |
-| `daemons`           | `list`, `get`                       | `create`, `delete`, `restart`  | server |
-| `firewall-rules`    | `list`, `get`                       | `create`, `delete`             | server |
-| `ssh-keys`          | `list`, `get`                       | `create`, `delete`             | server |
-| `security-rules`    | `list`, `get`                       | `create`, `delete`             | site   |
-| `redirect-rules`    | `list`, `get`                       | `create`, `delete`             | site   |
-| `monitors`          | `list`, `get`                       | `create`, `delete`             | server |
-| `nginx-templates`   | `list`, `get`                       | `create`, `update`, `delete`   | server |
-| `recipes`           | `list`, `get`                       | `create`, `delete`, `run`      | global |
-| `scheduled-jobs`    | `list`, `get`                       | `create`, `delete`             | server |
-| `backups`           | `list`, `get`                       | `create`, `update`, `delete`   | server |
-| `storage-providers` | `list`, `get`                       | `create`, `delete`             | global |
-| `commands`          | `list`, `get`                       | `create`                       | site   |
-| `php`               | `list`, `get`                       | `update`                       | server |
-| `user`              | `get`                               | —                              | global |
-| `batch`             | `run`                               | —                              | global |
+| Resource            | Read Actions (`forge`)              | Write Actions (`forge_write`)          | Scope  |
+| ------------------- | ----------------------------------- | -------------------------------------- | ------ |
+| `servers`           | `list`, `get`, `resolve`, `context` | `create`, `update`, `delete`, `reboot` | global |
+| `sites`             | `list`, `get`, `resolve`, `context` | `create`, `delete`                     | server |
+| `deployments`       | `list`                              | `deploy`, `update`                     | site   |
+| `env`               | `get`                               | `update`                               | site   |
+| `nginx`             | `get`                               | `update`                               | site   |
+| `certificates`      | `list`, `get`                       | `create`, `delete`, `activate`         | domain |
+| `databases`         | `list`, `get`                       | `create`, `delete`                     | server |
+| `database-users`    | `list`, `get`                       | `create`, `delete`                     | server |
+| `daemons`           | `list`, `get`                       | `create`, `delete`, `restart`          | server |
+| `firewall-rules`    | `list`, `get`                       | `create`, `delete`                     | server |
+| `ssh-keys`          | `list`, `get`                       | `create`, `delete`                     | server |
+| `security-rules`    | `list`, `get`                       | `create`, `delete`                     | site   |
+| `redirect-rules`    | `list`, `get`                       | `create`, `delete`                     | site   |
+| `monitors`          | `list`, `get`                       | `create`, `delete`                     | server |
+| `nginx-templates`   | `list`, `get`                       | `create`, `update`, `delete`           | server |
+| `recipes`           | `list`, `get`                       | `create`, `delete`, `run`              | global |
+| `scheduled-jobs`    | `list`, `get`                       | `create`, `delete`                     | server |
+| `backups`           | `list`, `get`                       | `create`, `update`, `delete`           | server |
+| `storage-providers` | `list`, `get`                       | `create`, `delete`                     | global |
+| `commands`          | `list`, `get`                       | `create`                               | site   |
+| `php`               | `list`, `get`                       | `update`                               | server |
+| `user`              | `get`                               | —                                      | global |
+| `batch`             | `run`                               | —                                      | global |
 
 ### Scope Guide
 
@@ -165,15 +165,34 @@ Use `action: "schema"` for a compact machine-readable spec:
 
 ### Manage SSL Certificates (per-domain)
 
+Each domain of a site has its certificates, and one of them is active.
+
 ```json
-// Get certificate for a domain (forge)
+// List the certificates of a site, or of one domain with domain_id (forge)
+{ "resource": "certificates", "action": "list", "server_id": "123", "site_id": "456" }
+
+// Get the active certificate of a domain, or one certificate with id (forge)
 { "resource": "certificates", "action": "get", "server_id": "123", "site_id": "456", "domain_id": "789" }
 
 // Request a new Let's Encrypt cert (forge_write)
 { "resource": "certificates", "action": "create", "server_id": "123", "site_id": "456", "domain_id": "789", "type": "letsencrypt" }
 
-// Activate it (forge_write)
-{ "resource": "certificates", "action": "activate", "server_id": "123", "site_id": "456", "domain_id": "789" }
+// Activate a certificate (forge_write)
+{ "resource": "certificates", "action": "activate", "server_id": "123", "site_id": "456", "domain_id": "789", "id": "12" }
+```
+
+### Update a Server
+
+```json
+// Rename a server, change its timezone or replace its tags (forge_write)
+{
+  "resource": "servers",
+  "action": "update",
+  "id": "123",
+  "name": "web-2",
+  "timezone": "Europe/Paris",
+  "tags": ["prod"]
+}
 ```
 
 ### Update Environment Variables

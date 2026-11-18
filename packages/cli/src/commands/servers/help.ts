@@ -87,6 +87,30 @@ ${colors.bold("EXAMPLES:")}
   forge servers create --name web-1 --ip-address 203.0.113.10 --php-version php84 --database mariadb1011
   forge servers create --name worker-1 --provider hetzner --credential-id 42 --region fsn1 --size cpx31
 `);
+  } else if (subcommand === "update") {
+    console.log(`
+${colors.bold("forge servers update")} - Update a server
+
+${colors.bold("USAGE:")}
+  forge servers update <server_id> [options]
+
+${colors.bold("ARGUMENTS:")}
+  <server_id>         Server ID or name (required)
+
+${colors.bold("OPTIONS:")}
+  --name <name>       New server name
+  --ip-address <ip>   Public IP address
+  --private-ip <ip>   Private IP address
+  --timezone <tz>     Timezone, e.g. Europe/Paris
+  --tag <tag>         Tag, repeatable: the tags replace the current ones
+  -f, --format <fmt>  Output format: json, human, table
+
+Give at least one option.
+
+${colors.bold("EXAMPLES:")}
+  forge servers update 123 --name web-2
+  forge servers update web-1 --timezone Europe/Paris --tag prod --tag web
+`);
   } else if (subcommand === "reboot") {
     console.log(`
 ${colors.bold("forge servers reboot")} - Reboot a server
@@ -115,6 +139,7 @@ ${colors.bold("SUBCOMMANDS:")}
   get <id>            Get server details
   public-key <id>     Print the public key of the forge user
   create              Create a server (requires --name, and --ip-address for custom)
+  update <id>         Update the name, IP addresses, timezone or tags of a server
   reboot <id>         Reboot a server
 
 ${colors.bold("OPTIONS:")}

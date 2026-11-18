@@ -97,7 +97,7 @@ export function createResourceHandler(
     }
 
     // Validate ID-like fields to prevent path traversal
-    for (const field of ["id", "server_id", "site_id"]) {
+    for (const field of ["id", "server_id", "site_id", "domain_id"]) {
       const value = args[field];
       const idStr = typeof value === "string" || typeof value === "number" ? String(value) : "";
       if (value !== undefined && !sanitizeId(idStr)) {
