@@ -144,6 +144,7 @@ export const ROUTES = {
     update: { method: "PUT", path: "/orgs/:org/servers/:server_id/sites/:site_id/environment" },
   },
   loadBalancing: {
+    createSite: { method: "POST", path: "/orgs/:org/servers/:server_id/sites/balancer" },
     list: {
       method: "GET",
       path: "/orgs/:org/servers/:server_id/sites/:site_id/load-balancing-nodes",

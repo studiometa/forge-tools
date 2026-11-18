@@ -143,6 +143,28 @@ export const UpdateLoadBalancingNodesDataSchema = v.object({
 
 export type UpdateLoadBalancingNodesData = v.InferOutput<typeof UpdateLoadBalancingNodesDataSchema>;
 
+/** A node of a site of a load balancer: a server and its port that receive the traffic. */
+const LoadBalancingNodeDataSchema = v.object({
+  server_id: v.number(),
+  port: v.optional(v.number()),
+  weight: v.optional(v.number()),
+  backup: v.optional(v.boolean()),
+  down: v.optional(v.boolean()),
+});
+
+/** A new site on a load balancer, with the servers that it sends traffic to. */
+export const CreateLoadBalancerSiteDataSchema = v.object({
+  domain: v.string(),
+  allow_wildcard_subdomains: v.optional(v.boolean()),
+  balancer_method: v.optional(v.picklist(LOAD_BALANCER_METHODS)),
+  balancer_keepalive_max_connections: v.optional(
+    v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(256)),
+  ),
+  balancing: v.optional(v.pipe(v.array(LoadBalancingNodeDataSchema), v.minLength(1))),
+});
+
+export type CreateLoadBalancerSiteData = v.InferOutput<typeof CreateLoadBalancerSiteDataSchema>;
+
 // ── Certificates ─────────────────────────────────────
 
 export const CreateCertificateDataSchema = v.object({

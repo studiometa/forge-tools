@@ -1,4 +1,5 @@
 import type {
+  CreateLoadBalancerSiteData,
   CreateSiteData,
   HttpClient,
   JsonApiDocument,
@@ -157,6 +158,29 @@ export class SitesCollection extends BaseCollection {
    */
   async create(data: CreateSiteData): Promise<SiteAttributes & { id: number }> {
     const response = await this.client.post<JsonApiDocument<SiteAttributes>>(this.basePath, data);
+    return unwrapDocument(response);
+  }
+
+  /**
+   * Create a site on this server when it is a load balancer, with the servers that it sends
+   * traffic to. Forge installs the site in the background: its status is `installing` at first.
+   *
+   * @example
+   * ```ts
+   * const site = await forge.server(123).sites.createLoadBalancer({
+   *   domain: 'example.com',
+   *   balancer_method: 'round_robin',
+   *   balancing: [{ server_id: 456 }, { server_id: 789 }],
+   * });
+   * ```
+   */
+  async createLoadBalancer(
+    data: CreateLoadBalancerSiteData,
+  ): Promise<SiteAttributes & { id: number }> {
+    const response = await this.client.post<JsonApiDocument<SiteAttributes>>(
+      `${this.basePath}/balancer`,
+      data,
+    );
     return unwrapDocument(response);
   }
 

@@ -18,12 +18,13 @@ _forge_completions() {
   prev="\${COMP_WORDS[COMP_CWORD-1]}"
 
   # Main commands
-  commands="config servers s sites deployments d databases db database-users daemons env nginx certificates certs firewall-rules fw ssh ssh-keys backups storage-providers commands scheduled-jobs services php user monitors nginx-templates security-rules redirect-rules recipes events network deploy-key git completion help"
+  commands="config servers s sites load-balancer deployments d databases db database-users daemons env nginx certificates certs firewall-rules fw ssh ssh-keys backups storage-providers commands scheduled-jobs services php user monitors nginx-templates security-rules redirect-rules recipes events network deploy-key git completion help"
 
   # Subcommands for each command
   local config_cmds="set get delete"
   local servers_cmds="list ls get public-key create update reboot"
   local sites_cmds="list ls get apply"
+  local load_balancer_cmds="apply"
   local deployments_cmds="list ls deploy logs log script update-script"
   local databases_cmds="list ls get"
   local database_users_cmds="list ls get create delete"
@@ -52,7 +53,7 @@ _forge_completions() {
   local completion_cmds="bash zsh fish"
 
   # Global options
-  options="--token --server --site --exact -f --format --no-color -h --help -v --version --name --command --content --from --to --provider --frequency --cron --type --operator --threshold --minutes --key --port --ip-address --user --private --dry-run --script --servers --domain --password --credential-id --region --size --project-type --directory --file --script-file --check --all-servers --prune --ubuntu-version --php-version --database --private-ip --ssh-port --tag --storage-provider --databases --retention --time --day --bucket --notification-email --include-new-databases --endpoint --access-key --secret-key-file --assume-role --initiated-by --ran-as --ids --mode --output --repository --branch --verification-method --key-type --key-file --certificate-file --csr-domain --sans --country --state --city --organization --department --certificate-id --enable --notify"
+  options="--token --server --site --exact -f --format --no-color -h --help -v --version --name --command --content --from --to --provider --frequency --cron --type --operator --threshold --minutes --key --port --ip-address --user --private --dry-run --script --servers --domain --password --credential-id --region --size --project-type --directory --file --script-file --check --force --all-servers --prune --ubuntu-version --php-version --database --private-ip --ssh-port --tag --storage-provider --databases --retention --time --day --bucket --notification-email --include-new-databases --endpoint --access-key --secret-key-file --assume-role --initiated-by --ran-as --ids --mode --output --repository --branch --verification-method --key-type --key-file --certificate-file --csr-domain --sans --country --state --city --organization --department --certificate-id --enable --notify"
 
   # Format options
   local formats="json human table"
@@ -74,6 +75,9 @@ _forge_completions() {
           ;;
         sites)
           COMPREPLY=( $(compgen -W "\${sites_cmds}" -- "\${cur}") )
+          ;;
+        load-balancer)
+          COMPREPLY=( $(compgen -W "\${load_balancer_cmds}" -- "\${cur}") )
           ;;
         deployments|d)
           COMPREPLY=( $(compgen -W "\${deployments_cmds}" -- "\${cur}") )
@@ -203,6 +207,7 @@ _forge() {
         'servers:Manage servers'
         's:Manage servers (alias)'
         'sites:Manage sites'
+        'load-balancer:Manage the site of a load balancer'
         'deployments:Manage deployments'
         'd:Manage deployments (alias)'
         'databases:Manage databases'
@@ -271,6 +276,13 @@ _forge() {
             'apply:Make a site match a site file'
           )
           _describe 'sites command' sites_cmds
+          ;;
+        load-balancer)
+          local -a load_balancer_cmds
+          load_balancer_cmds=(
+            'apply:Make the site of a load balancer match a file'
+          )
+          _describe 'load-balancer command' load_balancer_cmds
           ;;
         deployments|d)
           local -a deployments_cmds
@@ -593,6 +605,7 @@ _forge() {
         '--prune[Remove SSH keys that are not in the file]' \\
         '--dry-run[Print the plan and change nothing]' \\
         '--check[Compare with Forge, do not write]' \\
+        '--force[Replace the load balancer nodes even when they match]' \\
         '--storage-provider[Storage provider ID or name]:storage provider:' \\
         '--databases[Database IDs or names]:databases:' \\
         '--retention[Number of backups to keep]:retention:' \\
@@ -620,6 +633,7 @@ complete -c forge -f -n "__fish_use_subcommand" -a "config" -d "Manage CLI confi
 complete -c forge -f -n "__fish_use_subcommand" -a "servers" -d "Manage servers"
 complete -c forge -f -n "__fish_use_subcommand" -a "s" -d "Manage servers (alias)"
 complete -c forge -f -n "__fish_use_subcommand" -a "sites" -d "Manage sites"
+complete -c forge -f -n "__fish_use_subcommand" -a "load-balancer" -d "Manage the site of a load balancer"
 complete -c forge -f -n "__fish_use_subcommand" -a "deployments" -d "Manage deployments"
 complete -c forge -f -n "__fish_use_subcommand" -a "d" -d "Manage deployments (alias)"
 complete -c forge -f -n "__fish_use_subcommand" -a "databases" -d "Manage databases"
@@ -672,6 +686,9 @@ complete -c forge -f -n "__fish_seen_subcommand_from sites" -a "list" -d "List s
 complete -c forge -f -n "__fish_seen_subcommand_from sites" -a "ls" -d "List sites (alias)"
 complete -c forge -f -n "__fish_seen_subcommand_from sites" -a "get" -d "Get site details"
 complete -c forge -f -n "__fish_seen_subcommand_from sites" -a "apply" -d "Make a site match a site file"
+
+# load-balancer subcommands
+complete -c forge -f -n "__fish_seen_subcommand_from load-balancer" -a "apply" -d "Make the site of a load balancer match a file"
 
 # deployments subcommands
 complete -c forge -f -n "__fish_seen_subcommand_from deployments d" -a "list" -d "List deployments"
@@ -886,6 +903,7 @@ complete -c forge -l ssh-port -d "SSH port" -r
 complete -c forge -l tag -d "Tag" -r
 complete -c forge -l dry-run -d "Print the plan and change nothing"
 complete -c forge -l check -d "Compare with Forge, do not write"
+complete -c forge -l force -d "Replace the load balancer nodes even when they match"
 complete -c forge -l storage-provider -d "Storage provider ID or name" -r
 complete -c forge -l databases -d "Database IDs or names" -r
 complete -c forge -l retention -d "Number of backups to keep" -r

@@ -41,7 +41,6 @@ const example = {
   env: { APP_ENV: "production", APP_DEBUG: false, WORKERS: 2 },
   workers: [{ command: "php artisan queue:work database --queue=default", processes: 4 }],
   schedule: [{ command: "php artisan schedule:run", frequency: "minutely" }],
-  loadBalancer: { server: "lb-1", port: 80 },
 };
 
 function issues(data: unknown): string[] {
@@ -90,13 +89,9 @@ describe("parseSiteFile", () => {
     expect(file.workers).toEqual([{ command: "php artisan horizon", processes: 1 }]);
   });
 
-  it("defaults the port of the load balancer to 80 and refuses an invalid port", () => {
+  it("refuses the loadBalancer key: forge load-balancer apply manages load balancers", () => {
     expect(
-      parseSiteFile({ server: 1, domain: "a.example.com", loadBalancer: { server: 300 } })
-        .loadBalancer,
-    ).toEqual({ server: 300, port: 80 });
-    expect(
-      issues({ server: 1, domain: "a.example.com", loadBalancer: { server: "lb-1", port: 0 } }),
+      issues({ server: 1, domain: "a.example.com", loadBalancer: { server: "lb-1" } }),
     ).toHaveLength(1);
   });
 
@@ -352,9 +347,6 @@ describe("site.schema.json", () => {
       keys(SiteFileSchema.entries.repository.wrapped),
     );
     expect(Object.keys(schema.$defs.database.properties).toSorted()).toEqual(keys(DatabaseSchema));
-    expect(Object.keys(schema.properties.loadBalancer.properties).toSorted()).toEqual(
-      keys(SiteFileSchema.entries.loadBalancer.wrapped),
-    );
     expect(Object.keys(schema.$defs.database.properties.env.properties).toSorted()).toEqual(
       keys(DatabaseEnvSchema.pipe[0]),
     );
